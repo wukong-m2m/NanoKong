@@ -1,0 +1,1 @@
+NanoVMARduino is the Arduino porting of the nanovm. Its goal is to fully support Arduino Mega 2560. Since the Arduino Mega 2560 has much bigger flash and RAM than the original avr support. We will implement on the fly download and upgrade via serial or wireless link.
