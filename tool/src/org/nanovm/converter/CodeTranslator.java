@@ -42,7 +42,7 @@ public class CodeTranslator {
 
      0, -1,  0, -1,  2, -1,  0, -1, -1, -1, -1,  0, -1, -1, -1, -1, // 80
     -1, -1,  0, -1, -1,  0,  0, -1, -1,  2,  2,  2,  2,  2,  2,  2, // 90
-     2,  2,  2,  2,  2, -1, -1,  2, -1, -1,  0,  0,  0, -1,  0, -1, // a0
+     2,  2,  2,  2,  2,  2,  2,  2, -1, -1,  0,  0,  0, -1,  0, -1, // a0
     -1,  0,  2,  2,  2,  2,  2,  2,  2, -1, -1,  2,  1,  2,  0, -1, // b0
 
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // c0
@@ -140,7 +140,10 @@ public class CodeTranslator {
   final static int  OP_ANEWARRAY    = 0xbd; // only if array compiled in
   final static int  OP_ARRAYLENGTH  = 0xbe; // only if array compiled in
 
-
+  final static int  OP_IF_ICMPEQ    = 0x9f;
+  final static int  OP_IF_ICMPNE    = 0xa0;
+  final static int  OP_IF_ACMPEQ    = 0xa5;
+  final static int  OP_IF_ACMPNE    = 0xa6;
   
   static int unsigned(int i) {
     if(i<0) return i + 256;
@@ -189,6 +192,9 @@ public class CodeTranslator {
       if(cmd == OP_IFNULL)      cmd = OP_IFEQ;
       if(cmd == OP_IFNONNULL)   cmd = OP_IFNE;
       if(cmd == OP_ARETURN)     cmd = OP_IRETURN;
+
+      if(cmd == OP_IF_ACMPEQ)   cmd = OP_IF_ICMPEQ;
+      if(cmd == OP_IF_ACMPNE)   cmd = OP_IF_ICMPNE;
 
       // we don't need these conversions, since ints, bytes and
       // shorts are the same internal type
