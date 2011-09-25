@@ -1,0 +1,17 @@
+print	AVR/local	for		port		result
+y		AVR			for		A			first test: faint, 27-28s later turns to bright. second test: nothing
+y		AVR			for		C			first test: faint, 27-28s later turns to bright. second test: nothing
+y		AVR			unroll	A			normal
+y		AVR			unroll	C			normal
+y		local		for		A			first and second test: not port A, but port C (!!) is faint, 33-34s later turns to bright
+y		local		for		C			first and second test: faint, 33-34s later turns to bright
+y		local		unroll	A			not port A, but port C (!!) is on
+y		local		unroll	C			normal
+n		AVR			for		A			normal
+n		AVR			for		C			normal
+n		AVR			unroll	A			normal
+n		AVR			unroll	C			normal
+n		local		for		A			normal
+n		local		for		C			normal
+n		local		unroll	A			normal
+n		local		unroll	C			normal

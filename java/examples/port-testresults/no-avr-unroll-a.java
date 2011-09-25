@@ -6,8 +6,8 @@ import nanovm.avr.*;
 
 class ReferenceToNativeObjectTest {
   public static void main(String[] args) {
-	System.out.println("System clock = " + AVR.getClock() + "000 Hz");
-	System.out.println("Blinking LED");
+//	System.out.println("System clock = " + AVR.getClock() + "000 Hz");
+//	System.out.println("Blinking LED");
 
 //	Port port = AVR.portA;
 
