@@ -4,9 +4,10 @@
 
 CONFIG = Mega8.config
 DEVICE = atmega2560
-#DEFAULT_FILE = LedBlink
+#DEFAULT_FILE = TestPorts
 #DEFAULT_FILE = PwmDemo
-DEFAULT_FILE = Rot13
+DEFAULT_FILE = ReferenceToNativeObjectTest
+#DEFAULT_FILE = LedBLink
 ROOT_DIR = ../../..
 # CFLAGS += -DDEBUG
 
@@ -67,7 +68,7 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -p atmega2560 -P /dev/ttyACM0 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -p atmega2560 -P /dev/tty.usbmodem621 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 clean::
 	rm -f *.d *.o *~ nvmdefault.h *.elf
