@@ -6,30 +6,37 @@ import nanovm.avr.*;
 
 class ReferenceToNativeObjectTest {
   public static void main(String[] args) {
-	System.out.println("System clock = " + AVR.getClock() + "000 Hz");
-	System.out.println("Blinking LED");
+		System.out.println("System clock = " + AVR.getClock() + "000 Hz");
+		System.out.println("Blinking LED");
 
-//	Port port = AVR.portA;
+		Port port = AVR.portA;
 
-    AVR.portA.setOutput(0);
-    AVR.portA.setOutput(1);
-    AVR.portA.setOutput(2);
-    AVR.portA.setOutput(3);
-    AVR.portA.setOutput(4);
-    AVR.portA.setOutput(5);
-    AVR.portA.setOutput(6);
-    AVR.portA.setOutput(7);
-    
-	AVR.portA.setBit(0);
-	AVR.portA.setBit(1);
-	AVR.portA.setBit(2);
-	AVR.portA.setBit(3);
-	AVR.portA.setBit(4);
-	AVR.portA.setBit(5);
-	AVR.portA.setBit(6);
-	AVR.portA.setBit(7);
+		for(int i=0; i<8; i++)
+	      port.setOutput(i);
+
+	    for(int i=0; i<8; i++)
+		  port.clrBit(i);
+/*
+	    port.setOutput(0);
+	    port.setOutput(1);
+	    port.setOutput(2);
+	    port.setOutput(3);
+	    port.setOutput(4);
+	    port.setOutput(5);
+	    port.setOutput(6);
+	    port.setOutput(7);
+
+		port.clrBit(0);
+		port.clrBit(1);
+		port.clrBit(2);
+		port.clrBit(3);
+		port.clrBit(4);
+		port.clrBit(5);
+		port.clrBit(6);
+		port.clrBit(7);
+*/
   }
 }
 
 
-// Result: normal
+// Result: not port A, but port C (!!) is on

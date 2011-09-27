@@ -15,3 +15,24 @@ n       local       for     A           normal
 n       local       for     C           normal
 n       local       unroll  A           normal
 n       local       unroll  C           normal
+
+
+
+with LED properly connected
+print   AVR/local   for     port        result
+y       AVR         for     A           idem
+y       AVR         for     C           idem
+y       AVR         unroll  A           idem
+y       AVR         unroll  C           idem
+y       local       for     A           nothing
+y       local       for     C           nothing
+y       local       unroll  A           idem
+y       local       unroll  C           idem
+n       AVR         for     A           idem
+n       AVR         for     C           idem
+n       AVR         unroll  A           idem
+n       AVR         unroll  C           idem
+n       local       for     A           idem
+n       local       for     C           idem
+n       local       unroll  A           idem
+n       local       unroll  C           idem
