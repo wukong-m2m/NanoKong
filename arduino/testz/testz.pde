@@ -1,4 +1,5 @@
 int g_seq = 0;
+int last_node = 0;
 
 #define ST_SOF       1
 #define ST_LEN       2
@@ -20,7 +21,7 @@ private:
   int i;            
   unsigned long expire;  // The expire time of the last command
   void (*f)(byte *,int); // The callback function registered by callback
-  void (*nideinfo)(byte *payload,int len);
+  void (*nodeinfo)(byte *payload,int len);
 public:
   void init() {
     Serial1.begin(115200);
@@ -30,6 +31,7 @@ public:
     seq = random(255);
     state = ST_SOF;
     expire = 0;
+    nodeinfo=NULL;
     f=NULL;
   }
   int getType() {
@@ -86,7 +88,7 @@ public:
         state = ST_SOF;
         if (f!=NULL) f(payload,i);
         if (cmd == 0x49) {
-          DisplayNodeInfo();
+          if (nodeinfo) nodeinfo(payload,i);
         }
         return true;
       }
@@ -97,6 +99,10 @@ public:
   // Register for the callback function when we receive packet from the Z-Wave module
   void callback(void (*func)(byte *,int)) {
     f = func;
+  }
+
+  void callback_nif(void (*func)(byte *,int)) {
+    nodeinfo = func;
   }
 
   // Send ZWave command to another node. This command can be used as wireless repeater between 
@@ -228,11 +234,11 @@ void offack(byte *b,int len)
   if (ZWave.getType() == 0) {
     delay(500);
     ZWave.callback(onack);
-    ZWave.set(1,255,5);
+    ZWave.set(last_node,255,5);
   } else if (ZWave.getType() == 2) {
       Serial.write("Timeout\n");
       ZWave.callback(onack);
-      ZWave.set(1,255,5);
+      ZWave.set(last_node,255,5);
   } 
 }
 
@@ -242,13 +248,22 @@ void onack(byte *b,int len)
     delay(500);
     ZWave.callback(offack);
   
-    ZWave.set(1,0,5);
+    ZWave.set(last_node,0,5);
   } else if (ZWave.getType() == 2) {
       Serial.write("Timeout\n");
       ZWave.callback(offack);
-      ZWave.set(1,0,5);
+      ZWave.set(last_node,0,5);
   }
 }
+
+void display_nif(byte *payload,int len) {
+    char buf[128];
+    
+    snprintf(buf,64,"Status=%d Node=%d Device=%d:%d:%d\n", payload[0],payload[1],payload[3],payload[4],payload[5]);
+    Serial.write(buf);
+    last_node = payload[1];
+}
+
 
 
 void setup()
@@ -265,6 +280,7 @@ void setup()
   //ZWave.includeAny();
   //ZWave.send(2,b,1);
   //offack(NULL,0);
+  ZWave.callback_nif(display_nif);
 }
 
 unsigned char hex[] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
@@ -283,6 +299,14 @@ void exclude_cb(byte *b,int len)
   snprintf(buf,64,"Status=%d Node=%d\n", b[0],b[1]);
 }
 
+void help()
+{
+  Serial.write("a: Include a new node\n");
+  Serial.write("d: Exclude a node\n");
+  Serial.write("s: stop inclusion/exclusion\n");
+  Serial.write("t: test the current node\n");
+  Serial.write("Press the program button of the node to change the current node\n");
+}
   
 void loop()
 {
@@ -302,7 +326,9 @@ void loop()
       ZWave.LearnStop();
     } else if (c == 't') {
       ZWave.callback(offack);
-      ZWave.set(1,0,5);
+      ZWave.set(last_node,0,5);
+    } else {
+      help();
     }
   }
 }
