@@ -137,8 +137,6 @@ int main(int argc, char **argv) {
 
   vm_init();
 
-  DEBUGF("Sinterklaas");
-
   nvmfile_call_main();
 
 #ifdef UNIX

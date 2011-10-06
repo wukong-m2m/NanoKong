@@ -45,6 +45,12 @@
 #include "nvmcomm3.h"
 #endif
 
+#ifdef AVR
+#include <avr/interrupt.h>
+#include <avr/wdt.h>
+#endif
+
+
 #ifdef NVM_USE_32BIT_WORD
 # define DBG_INT "0x" DBG32
 #else
@@ -56,6 +62,18 @@ u08_t nvm_runlevel = NVM_RUNLVL_BOOT;
 void vm_set_runlevel(u08_t runlevel) {
   DEBUGF("Changing to runlevel "DBG8"\n", runlevel);
   nvm_runlevel = runlevel;
+  if (nvm_runlevel == NVM_RUNLVL_RESET) {
+#ifdef AVR
+    // TODO:
+    DEBUGF_COMM("Please press reset until I figure out how to do this from code");
+    wdt_disable();  
+    wdt_enable(WDTO_500MS);
+    while (1) {
+    }
+#else
+    exit(0);
+#endif
+  }
 }
 
 void vm_init(void) {
@@ -210,7 +228,7 @@ void   vm_run(u16_t mref) {
   stack_save_base();
   
   vm_set_runlevel(NVM_RUNLVL_VM);
-  
+
   do {
 #ifdef NVMCOMM3
     // Check if there's any packet coming in that we need to handle before processing the next VM instruction.

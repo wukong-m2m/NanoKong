@@ -33,11 +33,10 @@ extern u08_t nvm_runlevel;
 // additional items to be allocated on heap during constructor call
 #define VM_CLASS_CONST_ALLOC  1
 
-#define NVM_RUNLVL_HALT    0x00
-#define NVM_RUNLVL_CONF    0x01
-#define NVM_RUNLVL_VM      0x03
-#define NVM_RUNLVL_RESET   0x06
-#define NVM_RUNLVL_BOOT    0x07
+#define NVM_RUNLVL_BOOT    0x01
+#define NVM_RUNLVL_VM      0x02
+#define NVM_RUNLVL_CONF    0x03
+#define NVM_RUNLVL_RESET   0x04
 
 void   vm_set_runlevel(u08_t runlevel);
 void   vm_init(void);

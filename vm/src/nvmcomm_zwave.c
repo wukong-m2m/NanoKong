@@ -73,7 +73,7 @@ void nvmcomm_zwave_poll(void) {
   while (uart_available(ZWAVE_UART)) {
 // TODO    expire = now + 1000;
     u08_t c = uart_read_byte(ZWAVE_UART);
-    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
+//    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
     if (state == ZWAVE_STATUS_SOF) {
       // TODO: temporary until we figure out where the extra 'packets' from the Z-Wave module are coming from
       payload[4] = 0;
