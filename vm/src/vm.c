@@ -203,7 +203,7 @@ void   vm_run(u16_t mref) {
     instr = nvmfile_read08(pc);
     pc_inc = 1;
     
-    DEBUGF("%d/(sp:%d) - "DBG8" (%d): ", 
+    DEBUGF_INSTR("%d/(sp:%d) - "DBG8" (%d): ", 
 	       (pc-(u08_t*)mhdr_ptr) - mhdr.code_index, 
 	       stack_get_depth(), instr, instr);
     
@@ -212,54 +212,54 @@ void   vm_run(u16_t mref) {
     arg0.z.bl = nvmfile_read08(pc+2);
 
     if(instr == OP_NOP) {
-      DEBUGF("nop\n");
+      DEBUGF_INSTR("nop\n");
     }
     
     else if(instr == OP_BIPUSH) {
       stack_push(arg0.z.bh); pc_inc = 2;
-      DEBUGF("bipush #%d\n", stack_peek(0));
+      DEBUGF_INSTR("bipush #%d\n", stack_peek(0));
     } 
 
     else if(instr == OP_SIPUSH) {
       stack_push(~NVM_IMMEDIATE_MASK & (arg0.w)); pc_inc = 3;
-      DEBUGF("sipush #"DBG16"\n", stack_peek_int(0));
+      DEBUGF_INSTR("sipush #"DBG16"\n", stack_peek_int(0));
     } 
     
     else if((instr >= OP_ICONST_M1) && (instr <= OP_ICONST_5)) {
       stack_push(instr - OP_ICONST_0);
-      DEBUGF("iconst_%d\n", stack_peek(0));
+      DEBUGF_INSTR("iconst_%d\n", stack_peek(0));
     }   
     
     // move integer from stack into locals
     else if(instr == OP_ISTORE) {
       locals[arg0.z.bh] = stack_pop(); pc_inc = 2;
-      DEBUGF("istore %d (%d)\n", arg0.z.bh, nvm_stack2int(locals[arg0.z.bh]));
+      DEBUGF_INSTR("istore %d (%d)\n", arg0.z.bh, nvm_stack2int(locals[arg0.z.bh]));
     } 
     
     // move integer from stack into locals
     else if((instr >= OP_ISTORE_0) && (instr <= OP_ISTORE_3)) {
       locals[instr - OP_ISTORE_0] = stack_pop();
-      DEBUGF("istore_%d (%d)\n", instr - OP_ISTORE_0, 
+      DEBUGF_INSTR("istore_%d (%d)\n", instr - OP_ISTORE_0, 
 		 nvm_stack2int(locals[instr - OP_ISTORE_0]));
     } 
 
     // load int from local variable (push local var)
     else if(instr == OP_ILOAD) {
       stack_push(locals[arg0.z.bh]); pc_inc = 2;
-      DEBUGF("iload %d (%d, "DBG_INT")\n", locals[arg0.z.bh],
+      DEBUGF_INSTR("iload %d (%d, "DBG_INT")\n", locals[arg0.z.bh],
 		 stack_peek_int(0), stack_peek_int(0));
     } 
 
     // push local onto stack
     else if((instr >= OP_ILOAD_0) && (instr <= OP_ILOAD_3)) {
       stack_push(locals[instr - OP_ILOAD_0]);
-      DEBUGF("iload_%d (%d, "DBG_INT")\n", instr-OP_ILOAD_0,
+      DEBUGF_INSTR("iload_%d (%d, "DBG_INT")\n", instr-OP_ILOAD_0,
 		 stack_peek_int(0), stack_peek_int(0));
     } 
 
     // immediate comparison / comparison with zero
     else if((instr >= OP_IFEQ) && (instr <= OP_IF_ICMPLE)) {
-      DEBUGF("if");
+      DEBUGF_INSTR("if");
 
       if((instr >= OP_IFEQ) && (instr <= OP_IFLE)) {
 	// comparision with zero
@@ -267,35 +267,35 @@ void   vm_run(u16_t mref) {
 	instr -= OP_IFEQ - OP_IF_ICMPEQ;
       } else {
 	// comparison with second argument
-	DEBUGF("_cmp");
+	DEBUGF_INSTR("_cmp");
 	tmp2 = stack_pop_int();
       }
 
       tmp1 = stack_pop_int();
 
       switch(instr) {
-        case OP_IF_ICMPEQ: DEBUGF("eq (%d %d)", tmp1, tmp2);
+        case OP_IF_ICMPEQ: DEBUGF_INSTR("eq (%d %d)", tmp1, tmp2);
           tmp1 = (tmp1 == tmp2); break;
-        case OP_IF_ICMPNE: DEBUGF("ne (%d %d)", tmp1, tmp2);
+        case OP_IF_ICMPNE: DEBUGF_INSTR("ne (%d %d)", tmp1, tmp2);
           tmp1 = (tmp1 != tmp2); break;
-        case OP_IF_ICMPLT: DEBUGF("lt (%d %d)", tmp1, tmp2);
+        case OP_IF_ICMPLT: DEBUGF_INSTR("lt (%d %d)", tmp1, tmp2);
           tmp1 = (tmp1 <  tmp2); break;
-        case OP_IF_ICMPGE: DEBUGF("ge (%d %d)", tmp1, tmp2);
+        case OP_IF_ICMPGE: DEBUGF_INSTR("ge (%d %d)", tmp1, tmp2);
           tmp1 = (tmp1 >= tmp2); break;
-        case OP_IF_ICMPGT: DEBUGF("gt (%d %d)", tmp1, tmp2);
+        case OP_IF_ICMPGT: DEBUGF_INSTR("gt (%d %d)", tmp1, tmp2);
           tmp1 = (tmp1 >  tmp2); break;
-        case OP_IF_ICMPLE: DEBUGF("le (%d %d)", tmp1, tmp2);
+        case OP_IF_ICMPLE: DEBUGF_INSTR("le (%d %d)", tmp1, tmp2);
           tmp1 = (tmp1 <= tmp2); break;
       }
       
       // change pc if jump has been taken
-      if(tmp1) { DEBUGF(" -> taken\n"); pc += arg0.w; pc_inc = 0; }
-      else     { DEBUGF(" -> not taken\n"); pc_inc = 3; }
+      if(tmp1) { DEBUGF_INSTR(" -> taken\n"); pc += arg0.w; pc_inc = 0; }
+      else     { DEBUGF_INSTR(" -> not taken\n"); pc_inc = 3; }
     } 
 
     else if(instr == OP_GOTO) {
       pc_inc = 3;
-      DEBUGF("goto %d\n", arg0.w); 
+      DEBUGF_INSTR("goto %d\n", arg0.w); 
       pc += (arg0.w-3);
     } 
 
@@ -305,10 +305,10 @@ void   vm_run(u16_t mref) {
       if(instr == OP_INEG) {
 	tmp1 = -stack_pop_int();
 	stack_push(nvm_int2stack(tmp1));
-        DEBUGF("ineg(%d)\n", -stack_peek_int(0));
+        DEBUGF_INSTR("ineg(%d)\n", -stack_peek_int(0));
 
       } else if(instr == OP_IINC) {
-	DEBUGF("iinc %d,%d\n", arg0.z.bh, arg0.z.bl); 
+	DEBUGF_INSTR("iinc %d,%d\n", arg0.z.bh, arg0.z.bl); 
 	locals[arg0.z.bh] = (nvm_stack2int(locals[arg0.z.bh]) + arg0.z.bl) 
 	  & ~NVM_IMMEDIATE_MASK; 
 	pc_inc = 3;
@@ -318,27 +318,27 @@ void   vm_run(u16_t mref) {
         if (instr == OP_FNEG) {
           f0 = -stack_pop_float();
           stack_push(nvm_float2stack(f0));
-          DEBUGF("fneg (%f)\n", stack_peek_float(0));
+          DEBUGF_INSTR("fneg (%f)\n", stack_peek_float(0));
         }
         else {
           f0 = stack_pop_float();  // fetch operands from stack
           f1 = stack_pop_float();
           switch(instr) {
-            case OP_FADD:  DEBUGF("fadd(%f,%f)", f1, f0);
+            case OP_FADD:  DEBUGF_INSTR("fadd(%f,%f)", f1, f0);
               f1  += f0; break;
-            case OP_FSUB:  DEBUGF("fsub(%f,%f)", f1, f0);
+            case OP_FSUB:  DEBUGF_INSTR("fsub(%f,%f)", f1, f0);
               f1  -= f0; break;
-            case OP_FMUL:  DEBUGF("fmul(%f,%f)", f1, f0);
+            case OP_FMUL:  DEBUGF_INSTR("fmul(%f,%f)", f1, f0);
               f1  *= f0; break;
-            case OP_FDIV:  DEBUGF("fdiv(%f,%f)", f1, f0);
+            case OP_FDIV:  DEBUGF_INSTR("fdiv(%f,%f)", f1, f0);
               if(!f0) error(ERROR_VM_DIVISION_BY_ZERO);
               f1  /= f0; break;
-            case OP_IREM:  DEBUGF("frem(%f,%f)", f1, f0);
+            case OP_IREM:  DEBUGF_INSTR("frem(%f,%f)", f1, f0);
               error(ERROR_VM_UNSUPPORTED_OPCODE);
               //f1  = f1%f0; break;
           }
           stack_push(nvm_float2stack(f1));
-          DEBUGF(" = %f\n", stack_peek_float(0));
+          DEBUGF_INSTR(" = %f\n", stack_peek_float(0));
         }
 #endif
 
@@ -347,34 +347,34 @@ void   vm_run(u16_t mref) {
 	tmp2 = stack_pop_int();
 	
 	switch(instr) {
-          case OP_IADD:  DEBUGF("iadd(%d,%d)", tmp2, tmp1);
+          case OP_IADD:  DEBUGF_INSTR("iadd(%d,%d)", tmp2, tmp1);
 	    tmp2  += tmp1; break;
-	  case OP_ISUB:  DEBUGF("isub(%d,%d)", tmp2, tmp1);
+	  case OP_ISUB:  DEBUGF_INSTR("isub(%d,%d)", tmp2, tmp1);
 	    tmp2  -= tmp1; break;
-	  case OP_IMUL:  DEBUGF("imul(%d,%d)", tmp2, tmp1);
+	  case OP_IMUL:  DEBUGF_INSTR("imul(%d,%d)", tmp2, tmp1);
 	    tmp2  *= tmp1; break;
-	  case OP_IDIV:  DEBUGF("idiv(%d,%d)", tmp2, tmp1);
+	  case OP_IDIV:  DEBUGF_INSTR("idiv(%d,%d)", tmp2, tmp1);
 	    if(!tmp1) error(ERROR_VM_DIVISION_BY_ZERO);
 	    tmp2  /= tmp1; break;
-	  case OP_IREM:  DEBUGF("irem(%d,%d)", tmp2, tmp1);
+	  case OP_IREM:  DEBUGF_INSTR("irem(%d,%d)", tmp2, tmp1);
 	    tmp2  %= tmp1; break;
-	  case OP_ISHL:  DEBUGF("ishl(%d,%d)", tmp2, tmp1);
+	  case OP_ISHL:  DEBUGF_INSTR("ishl(%d,%d)", tmp2, tmp1);
 	    tmp2 <<= tmp1; break;
-	  case OP_ISHR:  DEBUGF("ishr(%d,%d)", tmp2, tmp1);
+	  case OP_ISHR:  DEBUGF_INSTR("ishr(%d,%d)", tmp2, tmp1);
 	    tmp2 >>= tmp1; break;
-	  case OP_IAND:  DEBUGF("iand(%d,%d)", tmp2, tmp1);
+	  case OP_IAND:  DEBUGF_INSTR("iand(%d,%d)", tmp2, tmp1);
 	    tmp2  &= tmp1; break;
-	  case OP_IOR:   DEBUGF("ior(%d,%d)",  tmp2, tmp1);
+	  case OP_IOR:   DEBUGF_INSTR("ior(%d,%d)",  tmp2, tmp1);
 	    tmp2  |= tmp1; break;
-	  case OP_IXOR:  DEBUGF("ixor(%d,%d)", tmp2, tmp1);
+	  case OP_IXOR:  DEBUGF_INSTR("ixor(%d,%d)", tmp2, tmp1);
 	    tmp2  ^= tmp1; break;
-	  case OP_IUSHR: DEBUGF("iushr(%d,%d)", tmp2, tmp1);
+	  case OP_IUSHR: DEBUGF_INSTR("iushr(%d,%d)", tmp2, tmp1);
 	    tmp2 = ((nvm_uint_t)tmp2 >> tmp1); break;
 	}
 	
 	// and finally push result
         stack_push(nvm_int2stack(tmp2));
-        DEBUGF(" = %d\n", stack_peek_int(0));
+        DEBUGF_INSTR(" = %d\n", stack_peek_int(0));
       }
     }
 
@@ -389,10 +389,10 @@ void   vm_run(u16_t mref) {
 #endif
       ) {
 	tmp1 = stack_pop();     // save result
-	DEBUGF("i");
+	DEBUGF_INSTR("i");
       }
 
-      DEBUGF("return: ");
+      DEBUGF_INSTR("return: ");
 
       // return from locally called method? other case: return
       // from main() -> end of program
@@ -428,12 +428,12 @@ void   vm_run(u16_t mref) {
 	
         if(instr == OP_IRETURN){
           stack_push(tmp1);
-          DEBUGF("ireturn val: %d\n", stack_peek_int(0));
+          DEBUGF_INSTR("ireturn val: %d\n", stack_peek_int(0));
         }
 #ifdef NVM_USE_FLOAT
         else if(instr == OP_FRETURN){
 	  stack_push(tmp1);
-          DEBUGF("freturn val: %f\n", stack_peek_float(0));
+          DEBUGF_INSTR("freturn val: %f\n", stack_peek_float(0));
 	}
 #endif
 	instr = OP_NOP;  // make vm continue
@@ -442,27 +442,27 @@ void   vm_run(u16_t mref) {
 
     // discard both top stack items
     else if(instr == OP_POP2) {
-      DEBUGF("ipop\n");
+      DEBUGF_INSTR("ipop\n");
       stack_pop(); stack_pop();
     }
     
     // discard top stack item
     else if(instr == OP_POP) {
-      DEBUGF("pop\n");
+      DEBUGF_INSTR("pop\n");
       stack_pop();
     }
     
     // duplicate top stack item
     else if(instr == OP_DUP) {
       stack_push(stack_peek(0));
-      DEBUGF("dup ("DBG16")\n", stack_peek(0) & 0xffff);
+      DEBUGF_INSTR("dup ("DBG16")\n", stack_peek(0) & 0xffff);
     }
 
     // duplicate top two stack items  (a,b -> a,b,a,b)
     else if(instr == OP_DUP2) {
       stack_push(stack_peek(1));
       stack_push(stack_peek(1));
-      DEBUGF("dup2 ("DBG16","DBG16")\n", 
+      DEBUGF_INSTR("dup2 ("DBG16","DBG16")\n", 
 	     stack_peek(0) & 0xffff, stack_peek(1) & 0xffff);
     }
 
@@ -475,7 +475,7 @@ void   vm_run(u16_t mref) {
       stack_push(w1);
       stack_push(w2);
       stack_push(w1);
-      DEBUGF("dup_x1 ("DBG16")\n", stack_peek(0) & 0xffff);
+      DEBUGF_INSTR("dup_x1 ("DBG16")\n", stack_peek(0) & 0xffff);
     }
 
     // duplicate top stack item
@@ -487,7 +487,7 @@ void   vm_run(u16_t mref) {
       stack_push(w2);
       stack_push(w3);
       stack_push(w1);
-      DEBUGF("dup ("DBG16")\n", stack_peek(0) & 0xffff);
+      DEBUGF_INSTR("dup ("DBG16")\n", stack_peek(0) & 0xffff);
     }
 
     // duplicate top two stack items  (a,b -> a,b,a,b)
@@ -500,7 +500,7 @@ void   vm_run(u16_t mref) {
       stack_push(w3);
       stack_push(w1);
       stack_push(w2);
-      DEBUGF("dup2 ("DBG16","DBG16")\n",
+      DEBUGF_INSTR("dup2 ("DBG16","DBG16")\n",
              stack_peek(0) & 0xffff, stack_peek(1) & 0xffff);
     }
 
@@ -516,7 +516,7 @@ void   vm_run(u16_t mref) {
       stack_push(w4);
       stack_push(w1);
       stack_push(w2);
-      DEBUGF("dup2 ("DBG16","DBG16")\n",
+      DEBUGF_INSTR("dup2 ("DBG16","DBG16")\n",
              stack_peek(0) & 0xffff, stack_peek(1) & 0xffff);
     }
     
@@ -526,7 +526,7 @@ void   vm_run(u16_t mref) {
       nvm_stack_t w2 = stack_pop();
       stack_push(w1);
       stack_push(w2);
-      DEBUGF("swap ("DBG16","DBG16")\n", stack_peek(0), stack_peek(1));
+      DEBUGF_INSTR("swap ("DBG16","DBG16")\n", stack_peek(0), stack_peek(1));
     }
     
 #endif
@@ -534,14 +534,14 @@ void   vm_run(u16_t mref) {
     
 #ifdef NVM_USE_TABLESWITCH
     else if(instr == OP_TABLESWITCH) {
-      DEBUGF("TABLESWITCH\n");
+      DEBUGF_INSTR("TABLESWITCH\n");
       // padding was eliminated by generator
       tmp1 = ((nvmfile_read08(pc+7)<<8) |
 	      nvmfile_read08(pc+8));        // get low value
       tmp2 = ((nvmfile_read08(pc+11)<<8) |
 	      nvmfile_read08(pc+12));       // get high value
       arg0.tmp = stack_pop();               // get actual value
-      DEBUGF("tableswitch %d-%d (%d)\n", tmp1, tmp2, arg0.w);
+      DEBUGF_INSTR("tableswitch %d-%d (%d)\n", tmp1, tmp2, arg0.w);
       
       // value within range?
       if((arg0.tmp < tmp1)||(arg0.tmp > tmp2))
@@ -562,16 +562,16 @@ void   vm_run(u16_t mref) {
     else if(instr == OP_LOOKUPSWITCH) {
       u08_t size;
 
-      DEBUGF("LOOKUPSWITCH\n");
+      DEBUGF_INSTR("LOOKUPSWITCH\n");
       // padding was eliminated by generator
      
       arg0.tmp = 1 + 4;
       size = nvmfile_read08(pc+arg0.tmp+3); // get table size (max for nvm is 30 cases!)
-      DEBUGF("  size: %d\n", size);
+      DEBUGF_INSTR("  size: %d\n", size);
       arg0.tmp += 4;
       
       tmp1 = stack_pop_int();                        // get actual value
-      DEBUGF("  val=: %d\n", tmp1);
+      DEBUGF_INSTR("  val=: %d\n", tmp1);
       
       while(size)
       {
@@ -584,7 +584,7 @@ void   vm_run(u16_t mref) {
              nvmfile_read08(pc+arg0.tmp+3)==(u08_t)(tmp1>>0)
            )
         {
-          DEBUGF("  value found, index is %d\n", (int)(arg0.tmp-pc_inc-8)/8);
+          DEBUGF_INSTR("  value found, index is %d\n", (int)(arg0.tmp-pc_inc-8)/8);
           arg0.tmp+=4;
           break;
         }
@@ -594,7 +594,7 @@ void   vm_run(u16_t mref) {
       
       if (size==0)
       {
-        DEBUGF("  not found, using default!\n");
+        DEBUGF_INSTR("  not found, using default!\n");
         arg0.tmp = 1;
       }
       pc += ((nvmfile_read08(pc+arg0.tmp+2)<<8) |
@@ -606,21 +606,21 @@ void   vm_run(u16_t mref) {
     // get static field from class
     else if(instr == OP_GETSTATIC) {
       pc_inc = 3;   // prefetched data used
-      DEBUGF("getstatic #"DBG16"\n", arg0.w);
+      DEBUGF_INSTR("getstatic #"DBG16"\n", arg0.w);
       stack_push(stack_get_static(arg0.w));
     }
     
     else if(instr == OP_PUTSTATIC) {
       pc_inc = 3;
       stack_set_static(arg0.w, stack_pop());
-      DEBUGF("putstatic #"DBG16" -> "DBG16"\n", 
+      DEBUGF_INSTR("putstatic #"DBG16" -> "DBG16"\n", 
 	     arg0.w, stack_get_static(arg0.w));
     }
     
     // push item from constant pool
     else if(instr == OP_LDC) {
       pc_inc = 2;
-      DEBUGF("ldc #"DBG16"\n", arg0.z.bh);
+      DEBUGF_INSTR("ldc #"DBG16"\n", arg0.z.bh);
 #ifdef NVM_USE_32BIT_WORD
       stack_push(nvmfile_get_constant(arg0.z.bh));
 #else
@@ -629,15 +629,15 @@ void   vm_run(u16_t mref) {
     }
     
     else if((instr >= OP_INVOKEVIRTUAL)&&(instr <= OP_INVOKESTATIC)) {
-      DEBUGF("invoke");
+      DEBUGF_INSTR("invoke");
 
 #ifdef DEBUG
-      if(instr == OP_INVOKEVIRTUAL) { DEBUGF("virtual"); }
-      if(instr == OP_INVOKESPECIAL) { DEBUGF("special"); }
-      if(instr == OP_INVOKESTATIC)  { DEBUGF("static"); }
+      if(instr == OP_INVOKEVIRTUAL) { DEBUGF_INSTR("virtual"); }
+      if(instr == OP_INVOKESPECIAL) { DEBUGF_INSTR("special"); }
+      if(instr == OP_INVOKESTATIC)  { DEBUGF_INSTR("static"); }
 #endif
 
-      DEBUGF(" #"DBG16"\n", 0xffff & arg0.w);
+      DEBUGF_INSTR(" #"DBG16"\n", 0xffff & arg0.w);
       
       // invoke a method. check if it's local (within the nvm file)
       // or native (implemented by the runtime environment)
@@ -659,17 +659,17 @@ void   vm_run(u16_t mref) {
 	if(instr == OP_INVOKEVIRTUAL) { 
 	  nvm_ref_t mref;
 
-	  DEBUGF("checking inheritance\n");
+	  DEBUGF_INSTR("checking inheritance\n");
 
 	  // fetch class reference from stack and use it to address
 	  // the class instance on the heap. The first entry in this 
 	  // object is the class id of it
 	  mref = ((nvm_ref_t*)heap_get_addr(stack_peek(0) & ~NVM_TYPE_MASK))[0];
-	  DEBUGF("class ref on stack/ref: %d/%d\n", 
+	  DEBUGF_INSTR("class ref on stack/ref: %d/%d\n", 
 		     NATIVE_ID2CLASS(mref), NATIVE_ID2CLASS(mhdr.id));
 
 	  if(NATIVE_ID2CLASS(mref) != NATIVE_ID2CLASS(mhdr.id)) {
-	    DEBUGF("stack/ref class mismatch -> inheritance\n");
+	    DEBUGF_INSTR("stack/ref class mismatch -> inheritance\n");
 
 	    // get matching method in class on stack or its
 	    // super classes
@@ -689,7 +689,7 @@ void   vm_run(u16_t mref) {
 	// method and expected in the locals by the called
 	// method. Thus we make this part of the old stack
 	// be the locals part of the method
-	DEBUGF("Remove %d args from stack\n", mhdr.args);
+	DEBUGF_INSTR("Remove %d args from stack\n", mhdr.args);
 	stack_add_sp(-mhdr.args);
 	
 	tmp2 = stack_get_sp() - locals;
@@ -698,7 +698,7 @@ void   vm_run(u16_t mref) {
 	
 #ifdef DEBUG
 	if(instr == OP_INVOKEVIRTUAL) { 
-	  DEBUGF("virtual call with object reference "DBG16"\n",
+	  DEBUGF_INSTR("virtual call with object reference "DBG16"\n",
 		     locals[0]); 
 	}
 #endif
@@ -735,7 +735,7 @@ void   vm_run(u16_t mref) {
     
     else if(instr == OP_GETFIELD) {
       pc_inc = 3;
-      DEBUGF("getfield #%d\n", arg0.w);
+      DEBUGF_INSTR("getfield #%d\n", arg0.w);
       stack_push(((nvm_word_t*)heap_get_addr(stack_pop() & ~NVM_TYPE_MASK))
 	      [VM_CLASS_CONST_ALLOC+arg0.w]);
     }
@@ -744,14 +744,14 @@ void   vm_run(u16_t mref) {
       pc_inc = 3;
       tmp1 = stack_pop();
       
-      DEBUGF("putfield #%d\n", arg0.w);
+      DEBUGF_INSTR("putfield #%d\n", arg0.w);
       ((nvm_word_t*)heap_get_addr(stack_pop() & ~NVM_TYPE_MASK))
 	[VM_CLASS_CONST_ALLOC+arg0.w] = tmp1;
     }
     
     else if(instr == OP_NEW) {
       pc_inc = 3;
-      DEBUGF("new #"DBG16"\n", 0xffff & arg0.w);
+      DEBUGF_INSTR("new #"DBG16"\n", 0xffff & arg0.w);
       vm_new(arg0.w);
     }
     
@@ -830,51 +830,51 @@ void   vm_run(u16_t mref) {
 
     else if(instr == OP_FCONST_0) {
       stack_push(nvm_float2stack(0.0));
-      DEBUGF("fconst_%d\n", stack_peek_float(0));
+      DEBUGF_INSTR("fconst_%d\n", stack_peek_float(0));
     }
     else if(instr == OP_FCONST_1) {
       stack_push(nvm_float2stack(1.0));
-      DEBUGF("fconst_%d\n", stack_peek_float(0));
+      DEBUGF_INSTR("fconst_%d\n", stack_peek_float(0));
     }
     else if(instr == OP_FCONST_2) {
       stack_push(nvm_float2stack(2.0));
-      DEBUGF("fconst_%d\n", stack_peek_float(0));
+      DEBUGF_INSTR("fconst_%d\n", stack_peek_float(0));
     }
     else if(instr == OP_I2F) {
       tmp1 = stack_pop_int();
       stack_push(nvm_float2stack(tmp1));
-      DEBUGF("i2f %f\n", stack_peek_float(0));
+      DEBUGF_INSTR("i2f %f\n", stack_peek_float(0));
     }
     else if(instr == OP_F2I) {
       tmp1 = stack_pop_float();
       stack_push(nvm_int2stack(tmp1));
-      DEBUGF("i2f %f\n", stack_peek_int(0));
+      DEBUGF_INSTR("i2f %f\n", stack_peek_int(0));
     }
     
     // move float from stack into locals
     else if(instr == OP_FSTORE) {
       locals[arg0.z.bh] = stack_pop(); pc_inc = 2;
-      DEBUGF("fstore %d (%f)\n", arg0.z.bh, nvm_stack2float(locals[arg0.z.bh]));
+      DEBUGF_INSTR("fstore %d (%f)\n", arg0.z.bh, nvm_stack2float(locals[arg0.z.bh]));
     } 
     
     // move integer from stack into locals
     else if((instr >= OP_FSTORE_0) && (instr <= OP_FSTORE_3)) {
       locals[instr - OP_FSTORE_0] = stack_pop();
-      DEBUGF("fstore_%d (%f)\n", instr - OP_FSTORE_0,
+      DEBUGF_INSTR("fstore_%d (%f)\n", instr - OP_FSTORE_0,
       nvm_stack2float(locals[instr - OP_FSTORE_0]));
     } 
 
     // load float from local variable (push local var)
     else if(instr == OP_FLOAD) {
       stack_push(locals[arg0.z.bh]); pc_inc = 2;
-      DEBUGF("fload %d (%f, "DBG16")\n", locals[arg0.z.bh],
+      DEBUGF_INSTR("fload %d (%f, "DBG16")\n", locals[arg0.z.bh],
       stack_peek_float(0), stack_peek_int(0));
     } 
 
     // push local onto stack
     else if((instr >= OP_FLOAD_0) && (instr <= OP_FLOAD_3)) {
       stack_push(locals[instr - OP_FLOAD_0]);
-      DEBUGF("fload_%d (%f, "DBG16")\n", instr-OP_FLOAD_0,
+      DEBUGF_INSTR("fload_%d (%f, "DBG16")\n", instr-OP_FLOAD_0,
       stack_peek_float(0), stack_peek_int(0));
     }
     
@@ -888,7 +888,7 @@ void   vm_run(u16_t mref) {
       else if (f0>f1)
         tmp1=1;
       stack_push(nvm_int2stack(tmp1));
-      DEBUGF("fcmp%c (%f, %f, %i)\n", (instr==OP_FCMPL)?'l':'g',
+      DEBUGF_INSTR("fcmp%c (%f, %f, %i)\n", (instr==OP_FCMPL)?'l':'g',
       f0, f1, stack_peek_int(0));
     }
 #endif

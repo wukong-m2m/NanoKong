@@ -124,6 +124,10 @@ int main(int argc, char **argv) {
   loader_receive();
 #endif
 
+#ifdef DEBUG // TODO: temporary
+  debug_enable(TRUE);
+#endif
+
   nvmfile_init();
 
   vm_init();
