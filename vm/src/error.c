@@ -65,12 +65,12 @@ void error(err_t code) {
   exit(-1);
 #else
 
-  uart_putc('E');
-  uart_putc('R');
-  uart_putc('R');
-  uart_putc(':');
-  uart_putc('A'+code);
-  uart_putc('\n');
+  uart_putc(0, 'E');
+  uart_putc(0, 'R');
+  uart_putc(0, 'R');
+  uart_putc(0, ':');
+  uart_putc(0, 'A'+code);
+  uart_putc(0, '\n');
 
   for(;;) {
     // reset watchdog here if in use

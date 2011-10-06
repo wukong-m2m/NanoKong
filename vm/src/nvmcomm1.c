@@ -37,13 +37,13 @@ u08_t uart_get_block(u08_t *data, u08_t len) {
 
   while(len) {
     timeout = 10;  // 10 * 20ms
-    while(!uart_available()) {
+    while(!uart_available(0)) {
       // reset watchdog here if enabled
       delay(MILLISEC(20));
       if(timeout-- == 0) return cnt;
     }
 
-    *data++ = uart_read_byte();
+    *data++ = uart_read_byte(0);
     len--;
     cnt++;
   }

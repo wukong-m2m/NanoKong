@@ -33,6 +33,10 @@
 #include "uart.h"
 #include "delay.h"
 
+
+
+
+
 // unix uart emulation
 #ifdef UNIX
 #include <stdlib.h>
@@ -59,7 +63,7 @@ void uart_sigproc() {
   exit(-1);   // exit (and thus call uart_bye)
 }
 
-void uart_init(void) {
+void uart_init(u08_t uart) {
 #ifdef UART_PORT
   out = in = fopen(UART_PORT, "w+b");
   if(!in) {
@@ -96,18 +100,18 @@ void uart_init(void) {
   signal(SIGINT, uart_sigproc);
 }
 
-void uart_write_byte(u08_t byte) {
+void uart_write_byte(u08_t uart, u08_t byte) {
   fputc(byte, out);
   fflush(out);
 }
 
-u08_t uart_read_byte(void) {
+u08_t uart_read_byte(u08_t uart) {
   return fgetc(in);
 }
 
 // unix can't tell us how many bytes in the input buffer are,
 // so just return one as long as there's data
-u08_t uart_available(void) {
+u08_t uart_available(u08_t uart) {
   fd_set fds;
   struct timeval tv = { 0, 100 };
 
@@ -119,9 +123,21 @@ u08_t uart_available(void) {
 
 #endif  // UNIX
 
+
+
+
+
 #ifdef AVR
 #include <avr/io.h>
 #include <avr/interrupt.h>
+
+// These bits are the same for all UARTS
+#define TXEN TXEN0
+#define RXEN RXEN0
+#define RXCIE RXCIE0
+#define UCSZ0 UCSZ00
+#define UDRE UDRE0
+
 #define F_CPU 16000000UL
 #define UART_BAUD  57600
 #define UART_BITRATE_CONFIG (u16_t)(((CLOCK/16l)/(UART_BITRATE))-1)
@@ -129,151 +145,152 @@ u08_t uart_available(void) {
 #define UART_BUFFER_MASK  ((UART_BUFFER_SIZE)-1)
 
 #if defined(ATMEGA168)
-#define UBRRH UBRR0H
-#define UBRRL UBRR0L
-#define UCSRA UCSR0A
-#define UCSRB UCSR0B
-#define UCSRC UCSR0C
-#define TXEN TXEN0
-#define RXEN RXEN0
-#define RXCIE RXCIE0
-#define UCSZ0 UCSZ00
-#define UDR UDR0
-#define UDRE UDRE0
-#define SIG_UART_RECV SIG_USART0_RECV
-#endif
-
-#if defined(ATMEGA2560)
-#define UBRRH UBRR0H
-#define UBRRL UBRR0L
-#define UCSRA UCSR0A
-#define UCSRB UCSR0B
-#define UCSRC UCSR0C
-#define TXEN TXEN0
-#define RXEN RXEN0
-#define RXCIE RXCIE0
-#define UCSZ0 UCSZ00
-#define UDR UDR0
-#define UDRE UDRE0
-#define SIG_UART_RECV SIG_USART0_RECV
-#endif
-
-
-#if defined(NIBO)
-#define UBRRH UBRR0H
-#define UBRRL UBRR0L
-#define UCSRA UCSR0A
-#define UCSRB UCSR0B
-#define UCSRC UCSR0C
-#define UDR UDR0
-
+#define UART_COUNT 1
+volatile u08_t *UBRRH[] = { &UBRR0H };
+volatile u08_t *UBRRL[] = { &UBRR0L };
+volatile u08_t *UCSRA[] = { &UCSR0A };
+volatile u08_t *UCSRB[] = { &UCSR0B };
+volatile u08_t *UCSRC[] = { &UCSR0C };
+volatile u08_t *UDR[] = { &UDR0 };
+volatile u16_t *UBRR[] = { &UBRR0 };
+#elif defined(ATMEGA2560)
+#define UART_COUNT 4
+volatile u08_t *UBRRH[] = { &UBRR0H, &UBRR1H, &UBRR2H, &UBRR3H };
+volatile u08_t *UBRRL[] = { &UBRR0L, &UBRR1L, &UBRR2L, &UBRR3L };
+volatile u08_t *UCSRA[] = { &UCSR0A, &UCSR1A, &UCSR2A, &UCSR3A };
+volatile u08_t *UCSRB[] = { &UCSR0B, &UCSR1B, &UCSR2B, &UCSR3B };
+volatile u08_t *UCSRC[] = { &UCSR0C, &UCSR1C, &UCSR2C, &UCSR3C };
+volatile u08_t *UDR[] = { &UDR0, &UDR1, &UDR2, &UDR3 };
+volatile u16_t *UBRR[] = { &UBRR0, &UBRR1, &UBRR2, &UBRR3 };
+// TODO #define SIG_UART_RECV SIG_USART0_RECV
+#elif defined(NIBO)
+volatile u08_t *UBRRH[] = { &UBRR0H };
+volatile u08_t *UBRRL[] = { &UBRR0L };
+volatile u08_t *UCSRA[] = { &UCSR0A };
+volatile u08_t *UCSRB[] = { &UCSR0B };
+volatile u08_t *UCSRC[] = { &UCSR0C };
+volatile u08_t *UDR[] = { &UDR0 };
+volatile u16_t *UBRR[] = { &UBRR0 };
 #define URSEL UBRR0H
-#define SIG_UART_RECV SIG_UART0_RECV
-/*
-#define TXEN TXEN0
-#define RXEN RXEN0
-#define RXCIE RXCIE0
-#define UCSZ0 UCSZ00
-#define UDRE UDRE0
-#define SIG_UART_RECV SIG_USART_RECV
-*/
+#endif
+
+u08_t uart_rd[UART_COUNT], uart_wr[UART_COUNT];
+u08_t uart_buf[UART_COUNT][UART_BUFFER_SIZE];
+
+// Interrupt handlers for receiving data
+// Store byte and increase write pointer
+#if defined(ATMEGA168)
+SIGNAL(SIG_USART0_RECV) {
+  uart_buf[0][uart_wr[0]] = *UDR[0];
+  uart_wr[0] = ((uart_wr[0]+1) & UART_BUFFER_MASK);
+}
+#elif defined(ATMEGA2560)
+SIGNAL(SIG_USART0_RECV) {
+  uart_buf[0][uart_wr[0]] = *UDR[0];
+  uart_wr[0] = ((uart_wr[0]+1) & UART_BUFFER_MASK);
+}
+SIGNAL(SIG_USART1_RECV) {
+  uart_buf[1][uart_wr[1]] = *UDR[1];
+  uart_wr[1] = ((uart_wr[1]+1) & UART_BUFFER_MASK);
+}
+SIGNAL(SIG_USART2_RECV) {
+  uart_buf[2][uart_wr[2]] = *UDR[2];
+  uart_wr[2] = ((uart_wr[2]+1) & UART_BUFFER_MASK);
+}
+SIGNAL(SIG_USART3_RECV) {
+  uart_buf[3][uart_wr[3]] = *UDR[3];
+  uart_wr[3] = ((uart_wr[3]+1) & UART_BUFFER_MASK);
+}
+#elif defined(NIBO)
+SIGNAL(SIG_USART0_RECV) {
+  uart_buf[0][uart_wr[0]] = *UDR[0];
+  uart_wr[0] = ((uart_wr[0]+1) & UART_BUFFER_MASK);
+}
 #endif
 
 
-u08_t uart_rd, uart_wr;
-u08_t uart_buf[UART_BUFFER_SIZE];
 
-void uart_init(void) {
-  uart_rd = uart_wr = 0;   // init buffers
+
+
+
+void uart_init(u08_t uart) {
+  uart_rd[uart] = uart_wr[uart] = 0;   // init buffers
 
   //UBRRH = (u08_t)((UART_BITRATE_CONFIG>>8) & 0xf);
   //UBRRL = (u08_t)((UART_BITRATE_CONFIG) & 0xff);
-  UBRR0 = (CLOCK / (16UL * UART_BAUD)) - 1;
+// TODO hardcoded to uart 0
+  *UBRR[uart] = (CLOCK / (16UL * UART_BAUD)) - 1;
 
-  UCSRA = 0;
-  UCSRB =
+  *UCSRA[uart] = 0;
+  *UCSRB[uart] =
     _BV(RXEN) | _BV(RXCIE) |          // enable receiver and irq
     _BV(TXEN);                        // enable transmitter
 
 #ifdef URSEL // UCSRC shared with UBRRH
-  UCSRC = _BV(URSEL) | (3 << UCSZ0);  // 8n1
+  *UCSRC[uart] = _BV(URSEL) | (3 << UCSZ0);  // 8n1
 #else
-  UCSRC = (3 << UCSZ0);  // 8n1
+  *UCSRC[uart] = (3 << UCSZ0);  // 8n1
 #endif // URSEL
-  DDRB=0xFF;
-  //PORTB=0xFF;
 
   sei();
 }
-#include <util/delay.h>
-SIGNAL(SIG_UART_RECV) {
-  /* irq driven input */
-  uart_buf[uart_wr] = UDR;
 
-  /* and increase write pointer */
-  uart_wr = ((uart_wr+1) & UART_BUFFER_MASK);
-#if 0
-  while(1) {
-      PORTB=0xFF;
-	  _delay_ms(30);
-	  PORTB=0;
-	  _delay_ms(30);
-  }
-#endif  
+u08_t uart_available(u08_t uart) {
+  return(UART_BUFFER_MASK & (uart_wr[uart] - uart_rd[uart]));
 }
 
-u08_t uart_available(void) {
-  return(UART_BUFFER_MASK & (uart_wr - uart_rd));
-}
-
-void uart_write_byte(u08_t byte) {
+void uart_write_byte(u08_t uart, u08_t byte) {
   /* Wait for empty transmit buffer */
-  while(!(UCSRA & _BV(UDRE)));
+  while(!(*UCSRA[uart] & _BV(UDRE)));
 
   // asuro needs echo cancellation, since the ir receiver "sees"
   // the transmitter
 #ifdef ASURO
   // disable receiver
-  UCSRB &= ~(_BV(RXEN) | _BV(RXCIE));
+  *UCSRB[uart] &= ~(_BV(RXEN) | _BV(RXCIE));
 #endif
 
   // start transmission
-  UDR = byte;
+  *UDR[uart] = byte;
 
 #ifdef ASURO
   // Wait for empty transmit buffer
-  while(!(UCSRA & _BV(UDRE)));
+  while(!(*UCSRA[uart] & _BV(UDRE)));
   delay(MILLISEC(5));
 
   // re-enable receiver
-  UCSRB |= _BV(RXEN) | _BV(RXCIE);
+  *UCSRB[uart] |= _BV(RXEN) | _BV(RXCIE);
 #endif
 }
 
-u08_t uart_read_byte(void) {
-  u08_t ret = uart_buf[uart_rd];
+u08_t uart_read_byte(u08_t uart) {
+  u08_t ret = uart_buf[uart][uart_rd[uart]];
 
   /* and increase read pointer */
-  uart_rd = ((uart_rd+1) & UART_BUFFER_MASK);
+  uart_rd[uart] = ((uart_rd[uart]+1) & UART_BUFFER_MASK);
 
   return ret;
 }
 
 #endif // AVR
 
+
+
+
+
 #ifdef __CC65__
 
-u08_t uart_available(void) {
+u08_t uart_available(u08_t uart) {
   return kbhit()?1:0;
 }
 
 // Use conio for available() support
-u08_t uart_read_byte(void) {
+u08_t uart_read_byte(u08_t uart) {
   return cgetc();
 }
 
 // Use stdio for scrolling support
-void uart_putc(u08_t byte) {
+void uart_putc(u08_t uart, u08_t byte) {
 #ifdef __CBM__
   if((byte & 0x60) == 0x40) byte |= 0x80;
   if((byte & 0x60) == 0x60) byte &= 0xDF;
@@ -284,11 +301,11 @@ void uart_putc(u08_t byte) {
 #else // __CC65__
 
 // translate nl to cr nl
-void uart_putc(u08_t byte) {
+void uart_putc(u08_t uart, u08_t byte) {
   if(byte == '\n')
-    uart_write_byte('\r');
+    uart_write_byte(uart, '\r');
 
-  uart_write_byte(byte);
+  uart_write_byte(uart, byte);
 }
 
 #endif // __CC65__

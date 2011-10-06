@@ -1,32 +1,34 @@
+
+
 #ifdef NVM_USE_ZWAVE
 
 #include "nvmcomm_zwave.h""
 #include "uart.h"
-int g_seq = 0;
-int last_node = 0;
 
-#define ST_SOF       1
-#define ST_LEN       2
-#define ST_TYPE      3
-#define ST_CMD       4
-#define ST_ID        5
-#define ST_DATA      6
-#define ST_CRC       7
-#define ST_DONE      8
+#define ZWAVE_STATUS_SOF       1
+#define ZWAVE_STATUS_LEN       2
+#define ZWAVE_STATUS_TYPE      3
+#define ZWAVE_STATUS_CMD       4
+#define ZWAVE_STATUS_ID        5
+#define ZWAVE_STATUS_DATA      6
+#define ZWAVE_STATUS_CRC       7
+#define ZWAVE_STATUS_DONE      8
 
 
-class ZWaveClass {
-private:  
-  byte seq;          // Sequence number which is used to match the callback function
-  int state;         // Current state
-  int len;           // Length of the returned payload
-  int type;          // 0: request 1: resposne 2: timeout
-  int cmd;           // the serial api command number of the current payload
-  byte payload[64];  // The data of the current packet
-  int i;            
-  unsigned long expire;  // The expire time of the last command
-  void (*f)(byte *,int); // The callback function registered by callback
-  void (*nodeinfo)(byte *payload,int len);
+u16_t g_seq = 0;
+u16_t last_node = 0;
+u08_t seq;          // Sequence number which is used to match the callback function
+u16_t state;        // Current state
+u16_t len;          // Length of the returned payload
+u16_t type;         // 0: request 1: resposne 2: timeout
+u16_t cmd;          // the serial api command number of the current payload
+u08_t payload[64];  // The data of the current packet
+u16_t i;
+u32_t expire;  // The expire time of the last command
+
+void (*f)(u08_t *, u16_t); // The callback function registered by callback
+void (*nodeinfo)(u08_t *payload, u16_t len);
+
 public:
   void init() {
     Serial1.begin(115200);
@@ -338,28 +340,6 @@ void loop()
   }
 }
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
