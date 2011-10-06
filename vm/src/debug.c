@@ -28,16 +28,17 @@
 #include "types.h"
 #include "config.h"
 #include "debug.h"
+#include "uart.h"
 
 #ifdef DEBUG
 
-#if defined(UNIX) || defined(__CC65__)
 bool_t debug_enabled = FALSE;
 
 void debug_enable(bool_t enable) {
   debug_enabled = enable;
 }
 
+#if defined(UNIX) || defined(__CC65__)
 void debugf(const char *fmt, ...) {
   if(debug_enabled) {
     va_list ap;
@@ -45,6 +46,22 @@ void debugf(const char *fmt, ...) {
     va_start(ap, fmt);
     vprintf(fmt, ap);
     va_end(ap);
+  }
+}
+#elif defined(ATMEGA2560)
+void debugf(const char *fmt, ...) {
+  if(debug_enabled) {
+    u08_t size;
+    char buf[64];
+    va_list ap;
+    va_start(ap, fmt);
+    vprintf(fmt, ap);
+    va_end(ap);
+    size = snprintf(buf, 64, fmt, ap);
+    if (size > 64)
+      size = 64;
+    for (int i=0; i<size; i++)
+      uart_write_byte(buf[i]);
   }
 }
 #endif // UNIX || __CC65__
