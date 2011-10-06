@@ -139,8 +139,6 @@ u08_t uart_available(u08_t uart) {
 #define UDRE UDRE0
 
 #define F_CPU 16000000UL
-#define UART_BAUD  57600
-#define UART_BITRATE_CONFIG (u16_t)(((CLOCK/16l)/(UART_BITRATE))-1)
 #define UART_BUFFER_SIZE  (1<<(UART_BUFFER_BITS))
 #define UART_BUFFER_MASK  ((UART_BUFFER_SIZE)-1)
 
@@ -213,13 +211,10 @@ SIGNAL(SIG_USART0_RECV) {
 
 
 
-void uart_init(u08_t uart) {
+void uart_init(u08_t uart, u32_t baudrate) {
   uart_rd[uart] = uart_wr[uart] = 0;   // init buffers
 
-  //UBRRH = (u08_t)((UART_BITRATE_CONFIG>>8) & 0xf);
-  //UBRRL = (u08_t)((UART_BITRATE_CONFIG) & 0xff);
-// TODO hardcoded to uart 0
-  *UBRR[uart] = (CLOCK / (16UL * UART_BAUD)) - 1;
+  *UBRR[uart] = (CLOCK / (16UL * baudrate)) - 1;
 
   *UCSRA[uart] = 0;
   *UCSRB[uart] =

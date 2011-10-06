@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 #endif
 
 #if defined(UNIX) || defined(NVM_USE_COMM)
-  uart_init(0);
+  uart_init(0, UART_BAUDRATE);
 #endif
 
   // call native initialization (e.g. hardware setup)
@@ -127,6 +127,8 @@ int main(int argc, char **argv) {
   nvmfile_init();
 
   vm_init();
+
+  DEBUGF("Sinterklaas");
 
   nvmfile_call_main();
 

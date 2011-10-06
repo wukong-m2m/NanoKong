@@ -6,8 +6,8 @@ CONFIG = Mega8.config
 DEVICE = atmega2560
 #DEFAULT_FILE = TestPorts
 #DEFAULT_FILE = PwmDemo
-DEFAULT_FILE = ReferenceToNativeObjectTest
 #DEFAULT_FILE = LedBLink
+DEFAULT_FILE = Rot13
 ROOT_DIR = ../../..
 # CFLAGS += -DDEBUG
 
@@ -15,7 +15,7 @@ ROOT_DIR = ../../..
 CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long
 
 # AVR compiler setup
-PREFIX =
+PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
 CC = $(PREFIX)avr-gcc
 OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump
