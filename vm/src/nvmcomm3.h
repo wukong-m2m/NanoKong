@@ -3,6 +3,17 @@
 
 #ifdef NVMCOMM3
 
+#define NVC3_CMD_FOPEN      0x70
+#define NVC3_CMD_FCLOSE     0x71
+#define NVC3_CMD_RDFILE     0x72
+#define NVC3_CMD_WRFILE     0x73
+#define NVC3_CMD_GETRUNLVL  0x74
+#define NVC3_CMD_SETRUNLVL  0x75
+
+#define NVC3_MAX_FID 0           // maximum supported file id
+#define NVC3_FILE_FIRMWARE 0x00  // firmware file id
+#define NVC3_FILE_DATA 0x01  // data file id (not yet supported)
+
 // Initialise nvmcomm and whatever protocol is enabled.
 extern void nvmcomm_init(void);
 // Call this periodically to receive data

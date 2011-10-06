@@ -7,9 +7,9 @@ DEVICE = atmega2560
 #DEFAULT_FILE = TestPorts
 #DEFAULT_FILE = PwmDemo
 #DEFAULT_FILE = LedBLink
-DEFAULT_FILE = Rot13
+DEFAULT_FILE = TestCodeUpdate
 ROOT_DIR = ../../..
-# CFLAGS += -DDEBUG
+CFLAGS += -DDEBUG
 
 # general GCC compiler flags
 CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long

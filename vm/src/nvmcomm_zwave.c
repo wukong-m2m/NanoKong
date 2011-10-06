@@ -28,7 +28,7 @@ u08_t payload_length;  // Length of the payload while reading a packet
 u08_t last_node = 0;
 u08_t seq;          // Sequence number which is used to match the callback function
 // u32_t expire;  // The expire time of the last command
-void (*f)(u08_t *payload, u08_t length); // The callback function registered by callback
+void (*f)(u08_t src, u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
 // Private
@@ -54,7 +54,7 @@ void nvmcomm_zwave_init() {
   // expire = 0;
 }
 
-void nvmcomm_zwave_setcallback(void (*func)(u08_t *, u08_t)) {
+void nvmcomm_zwave_setcallback(void (*func)(u08_t, u08_t *, u08_t)) {
   f = func;
 }
 
@@ -73,8 +73,11 @@ void nvmcomm_zwave_poll(void) {
   while (uart_available(ZWAVE_UART)) {
 // TODO    expire = now + 1000;
     u08_t c = uart_read_byte(ZWAVE_UART);
-//    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
+    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
     if (state == ZWAVE_STATUS_SOF) {
+      // TODO: temporary until we figure out where the extra 'packets' from the Z-Wave module are coming from
+      payload[4] = 0;
+      payload[5] = 0;
       if (c == 1) {
         state = ZWAVE_STATUS_LEN;
         len = 0;
@@ -101,7 +104,7 @@ void nvmcomm_zwave_poll(void) {
       uart_write_byte(ZWAVE_UART, 6);
       state = ZWAVE_STATUS_SOF;
       if (f!=NULL)
-        f(payload, payload_length);
+        f(payload[1], payload+4, payload_length-4); // Trim off first 4 bytes to get to the data. Byte 1 is the sending node.
       if (cmd == 0x49 && f_nodeinfo)
           f_nodeinfo(payload, payload_length);
     }
@@ -116,7 +119,14 @@ void nvmcomm_zwave_send(u08_t id, u08_t *b, u08_t l, u08_t option) {
 // TODO: buffer size was 24, but aren't Z-Wave packets larger?
   u08_t buf[64];
 
-  DEBUGF_COMM("Send\n\r");
+#ifdef DEBUG
+  DEBUGF_COMM("Sending message to "DBG8", length "DBG8": ", id, l);
+  for (size8_t i=0; i<l; ++i) {
+    DEBUGF_COMM(" "DBG8"", b[i]);
+  }
+  DEBUGF_COMM("\n");
+#endif
+
   buf[0] = 1;
   buf[1] = l+7;
   buf[2] = 0;

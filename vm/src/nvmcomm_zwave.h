@@ -6,7 +6,7 @@
 // Initialise the Z-Wave interface
 extern void nvmcomm_zwave_init(void);
 // Register the callback function when we receive packet from the Z-Wave module
-extern void nvmcomm_zwave_setcallback(void (*func)(u08_t *, u08_t));
+extern void nvmcomm_zwave_setcallback(void (*func)(u08_t, u08_t *, u08_t));
 // Call this periodically to receive data
 extern void nvmcomm_zwave_poll(void);
 // Send ZWave command to another node. This command can be used as wireless repeater between 
