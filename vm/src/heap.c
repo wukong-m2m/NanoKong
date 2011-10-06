@@ -88,7 +88,7 @@ void heap_check(void) {
   u16_t len;
 
   if(h->id != HEAP_ID_FREE) {
-    DEBUGF("heap_check(): start element not free element\n");
+    DEBUGF_HEAP("heap_check(): start element not free element\n");
     error(ERROR_HEAP_CORRUPTED);
   }  
   
@@ -99,13 +99,13 @@ void heap_check(void) {
     h = (heap_t*)&heap[current];
     len = h->len & HEAP_LEN_MASK;
     if(len > sizeof(heap)) {
-      DEBUGF("heap_check(): single chunk too big\n");
+      DEBUGF_HEAP("heap_check(): single chunk too big\n");
       heap_show();
       error(ERROR_HEAP_ILLEGAL_CHUNK_SIZE);
     }
     
     if(len + sizeof(heap_t) > sizeof(heap) - current) {
-      DEBUGF("heap_check(): total size error\n");
+      DEBUGF_HEAP("heap_check(): total size error\n");
       heap_show();
       error(ERROR_HEAP_CORRUPTED);
     }
@@ -114,7 +114,7 @@ void heap_check(void) {
   }
 
   if(current != sizeof(heap)) {
-    DEBUGF("heap_check(): heap sum mismatch\n");
+    DEBUGF_HEAP("heap_check(): heap sum mismatch\n");
     heap_show();
     error(ERROR_HEAP_CORRUPTED);
   }
@@ -125,14 +125,14 @@ void heap_check(void) {
 void heap_show(void) {
   u16_t current = heap_base;
 
-  DEBUGF("Heap:\n");
+  DEBUGF_HEAP("Heap:\n");
   while(current < sizeof(heap)) {
     heap_t *h = (heap_t*)&heap[current];
     u16_t len = h->len & HEAP_LEN_MASK;
     if(h->id == HEAP_ID_FREE) {
-      DEBUGF("- %d free bytes\n", len);
+      DEBUGF_HEAP("- %d free bytes\n", len);
     } else {
-      DEBUGF("- chunk id %x with %d bytes:\n", h->id, len);
+      DEBUGF_HEAP("- chunk id %x with %d bytes:\n", h->id, len);
 
       if(len > sizeof(heap))
 	error(ERROR_HEAP_ILLEGAL_CHUNK_SIZE);
@@ -141,14 +141,14 @@ void heap_show(void) {
     }
 
     if(len + sizeof(heap_t) > sizeof(heap) - current) {
-      DEBUGF("heap_show(): total size error\n");
+      DEBUGF_HEAP("heap_show(): total size error\n");
       error(ERROR_HEAP_CORRUPTED);
     }
 
     current += len + sizeof(heap_t);
   }
 
-  DEBUGF("- %d bytes stolen\n", heap_base);
+  DEBUGF_HEAP("- %d bytes stolen\n", heap_base);
 }
 #endif
 
@@ -173,7 +173,7 @@ void heap_init_ids(void) {
 }
 
 void heap_mark_id(heap_id_t id) {
-  DEBUGF("  heap_mark_id(id=0x%04x)\n", id);
+  DEBUGF_HEAP("  heap_mark_id(id=0x%04x)\n", id);
   heap_idmap[id/8] |= heap_idmap_mask[id%8];
 }
 
@@ -212,7 +212,7 @@ void heap_mark_child_ids(void) {
     u16_t current = heap_base;
     again = FALSE;
 
-    DEBUGF("heap_mark_child_ids(): starting heap walk\n");
+    DEBUGF_HEAP("heap_mark_child_ids(): starting heap walk\n");
     while(current < sizeof(heap)) {
       heap_t *h = (heap_t*)&heap[current];
 
@@ -222,7 +222,7 @@ void heap_mark_child_ids(void) {
 	u08_t i;
 
 	// check all fields in the heap element
-	DEBUGF("- checking id 0x%04x\n", h->id);
+	DEBUGF_HEAP("- checking id 0x%04x\n", h->id);
 	for(i=0;i<fields;i++) {
 	  nvm_ref_t ref = ((nvm_ref_t*)(h+1))[i];
 
@@ -319,14 +319,14 @@ bool_t heap_alloc_internal(heap_id_t id, bool_t fieldref, u16_t size) {
     return TRUE;
   }
 
-  DEBUGF("heap_alloc_internal(%d): out of memory\n", size);
+  DEBUGF_HEAP("heap_alloc_internal(%d): out of memory\n", size);
   return FALSE;
 }
 
 heap_id_t heap_alloc(bool_t fieldref, u16_t size) {
   heap_id_t id = heap_new_id();
 
-  DEBUGF("heap_alloc(size=%d) -> id=0x%04x\n", size, id);
+  DEBUGF_HEAP("heap_alloc(size=%d) -> id=0x%04x\n", size, id);
   if(!id) error(ERROR_HEAP_OUT_OF_IDS);
 
   if(!heap_alloc_internal(id, fieldref, size)) {
@@ -338,7 +338,7 @@ heap_id_t heap_alloc(bool_t fieldref, u16_t size) {
 
     if(!heap_alloc_internal(id, fieldref, size))
       error(ERROR_HEAP_OUT_OF_MEMORY);
-    DEBUGF("heap_alloc(size=%d) -> id=0x%04x successfull after gc\n",
+    DEBUGF_HEAP("heap_alloc(size=%d) -> id=0x%04x successfull after gc\n",
            size, id);
   }
 
@@ -348,7 +348,7 @@ heap_id_t heap_alloc(bool_t fieldref, u16_t size) {
 void heap_realloc(heap_id_t id, u16_t size) {
   heap_t *h, *h_new;
 
-  DEBUGF("heap_realloc(id=0x%04x, size=%d)\n", id, size);
+  DEBUGF_HEAP("heap_realloc(id=0x%04x, size=%d)\n", id, size);
 
   // check free mem and call garbage collection if required
   h = (heap_t*)&heap[heap_base];
@@ -387,7 +387,7 @@ void *heap_get_addr(heap_id_t id) {
 void heap_init(void) {
   heap_t *h;
 
-  DEBUGF("heap_init()\n");
+  DEBUGF_HEAP("heap_init()\n");
 
   // just one big free block
   h = (heap_t*)&heap[0];
@@ -406,7 +406,7 @@ void heap_garbage_collect(void) {
   u16_t current = heap_base;
   heap_t *h;
   // (no HEAP_LEN_MASK required for free chunk)
-  DEBUGF("heap_garbage_collect() free space before: %d\n", ((heap_t*)&heap[heap_base])->len);
+  DEBUGF_HEAP("heap_garbage_collect() free space before: %d\n", ((heap_t*)&heap[heap_base])->len);
 
 #ifdef NVM_USE_HEAP_IDMAP
   heap_init_ids();
@@ -430,7 +430,7 @@ void heap_garbage_collect(void) {
       if((!stack_heap_id_in_use(h->id))&&(!heap_fieldref(h->id))) {
 #endif
 	// it is not used, remove it
-	DEBUGF("HEAP: removing unused object with id 0x%04x (len %d)\n",
+	DEBUGF_HEAP("HEAP: removing unused object with id 0x%04x (len %d)\n",
 	       h->id, len);
       
 	// move everything before to the top
@@ -450,12 +450,12 @@ void heap_garbage_collect(void) {
   }
 
   if(current != sizeof(heap)) {
-    DEBUGF("heap_garbage_collect(): total size error\n");
+    DEBUGF_HEAP("heap_garbage_collect(): total size error\n");
     error(ERROR_HEAP_CORRUPTED);
   }
 
   // (no HEAP_LEN_MASK required for free chunk)
-  DEBUGF("heap_garbage_collect() free space after: %d\n", ((heap_t*)&heap[heap_base])->len);
+  DEBUGF_HEAP("heap_garbage_collect() free space after: %d\n", ((heap_t*)&heap[heap_base])->len);
 }
 
 // "steal" some bytes from the bottom of the heap (where
@@ -464,10 +464,10 @@ void heap_steal(u16_t bytes) {
   heap_t *h = (heap_t*)&heap[heap_base];
   u16_t len;
 
-  DEBUGF("HEAP: request to steal %d bytes\n", bytes);
+  DEBUGF_HEAP("HEAP: request to steal %d bytes\n", bytes);
 
   if(h->id != HEAP_ID_FREE) {
-    DEBUGF("heap_steal(%d): start element not free element\n", bytes);
+    DEBUGF_HEAP("heap_steal(%d): start element not free element\n", bytes);
     error(ERROR_HEAP_CORRUPTED);
   }
 
@@ -496,14 +496,14 @@ void heap_unsteal(u16_t bytes) {
   u16_t len;
 
   if(h->id != HEAP_ID_FREE) {
-    DEBUGF("heap_unsteal(%d): start element not free element\n", bytes);
+    DEBUGF_HEAP("heap_unsteal(%d): start element not free element\n", bytes);
     error(ERROR_HEAP_CORRUPTED);
   }
 
-  DEBUGF("HEAP: request to unsteal %d bytes\n", bytes);
+  DEBUGF_HEAP("HEAP: request to unsteal %d bytes\n", bytes);
 
   if(heap_base < bytes) {
-    DEBUGF("stack underrun by %d bytes\n", bytes - heap_base);
+    DEBUGF_HEAP("stack underrun by %d bytes\n", bytes - heap_base);
     error(ERROR_HEAP_STACK_UNDERRUN);
   }
 

@@ -114,22 +114,23 @@ void native_avr_port_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_SETINPUT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native setinput %bd/%bd\n", port, bit);
+    DEBUGF("native setinput "DBG8"/"DBG8"\n", port, bit);
     *ddrs[port] &= ~_BV(bit);
   } else if(mref == NATIVE_METHOD_SETOUTPUT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native setoutput %bd/%bd\n", port, bit);
+//    DEBUGF("native setoutput %bd/%bd\n", port, bit);
+    DEBUGF("native setoutput "DBG8"/"DBG8"\n", port, bit);
     *ddrs[port] |= _BV(bit);
   } else if(mref == NATIVE_METHOD_SETBIT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native setbit %bd/%bd\n", port, bit);
+    DEBUGF("native setbit "DBG8"/"DBG8"\n", port, bit);
     *ports[port] |= _BV(bit);
   } else if(mref == NATIVE_METHOD_CLRBIT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native clrbit %bd/%bd\n", port, bit);
+    DEBUGF("native clrbit "DBG8"/"DBG8"\n", port, bit);
     *ports[port] &= ~_BV(bit);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);

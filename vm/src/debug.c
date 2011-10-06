@@ -49,17 +49,17 @@ void debugf(const char *fmt, ...) {
   }
 }
 #elif defined(ATMEGA2560)
+#define DEBUG_BUFFER_SIZE 128
 void debugf(const char *fmt, ...) {
   if(debug_enabled) {
     u08_t size;
-    char buf[64];
+    char buf[DEBUG_BUFFER_SIZE];
     va_list ap;
     va_start(ap, fmt);
-    vprintf(fmt, ap);
+    size = vsnprintf(buf, DEBUG_BUFFER_SIZE, fmt, ap);
     va_end(ap);
-    size = snprintf(buf, 64, fmt, ap);
-    if (size > 64)
-      size = 64;
+    if (size > DEBUG_BUFFER_SIZE)
+      size = DEBUG_BUFFER_SIZE;
     for (int i=0; i<size; i++)
       uart_write_byte(buf[i]);
   }

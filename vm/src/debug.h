@@ -32,11 +32,16 @@
 #define DBG32 "%08x"
 
 #ifdef DEBUG
-#define DEBUGF(...)  debugf(__VA_ARGS__)
+// Turn off specific DEBUGF types by commenting "debugf(__VA_ARGS__)"
+#define DEBUGF_INSTR(...)  debugf(__VA_ARGS__)
+#define DEBUGF_HEAP(...)  debugf(__VA_ARGS__) // Heap operations
+#define DEBUGF(...)  debugf(__VA_ARGS__) // All other debug info.
 #define DEBUG_HEXDUMP(a,b) debug_hexdump(a,b)
 void debugf(const char *fmt, ...);
 void debug_hexdump(const void *data, u16_t size);
 #else
+#define DEBUGF_INSTR(...)
+#define DEBUGF_HEAP(...)
 #define DEBUGF(...)
 #define DEBUG_HEXDUMP(a,b)
 #endif
