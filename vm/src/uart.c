@@ -160,7 +160,6 @@ volatile u08_t *UCSRB[] = { &UCSR0B, &UCSR1B, &UCSR2B, &UCSR3B };
 volatile u08_t *UCSRC[] = { &UCSR0C, &UCSR1C, &UCSR2C, &UCSR3C };
 volatile u08_t *UDR[] = { &UDR0, &UDR1, &UDR2, &UDR3 };
 volatile u16_t *UBRR[] = { &UBRR0, &UBRR1, &UBRR2, &UBRR3 };
-// TODO #define SIG_UART_RECV SIG_USART0_RECV
 #elif defined(NIBO)
 volatile u08_t *UBRRH[] = { &UBRR0H };
 volatile u08_t *UBRRL[] = { &UBRR0L };
@@ -212,9 +211,18 @@ SIGNAL(SIG_USART0_RECV) {
 
 
 void uart_init(u08_t uart, u32_t baudrate) {
+  u16_t bl = baudrate & 0xffff;
+  u16_t bh = (baudrate >> 16) & 0xffff;
+
   uart_rd[uart] = uart_wr[uart] = 0;   // init buffers
 
-  *UBRR[uart] = (CLOCK / (16UL * baudrate)) - 1;
+  if (baudrate == 115200)
+    // TODO: calculation fails for 115200 baud (results in 7 instead of 8). Need to fix this properly sometime.
+    *UBRR[uart] = 8;
+  else
+    *UBRR[uart] = (CLOCK / (16UL * baudrate)) - 1;
+
+  DEBUGF_COMM("Uart.c: init UART "DBG8" at "DBG16""DBG16" baud. UBRR="DBG16"\n\r", uart, bh, bl, *UBRR[uart]);
 
   *UCSRA[uart] = 0;
   *UCSRB[uart] =

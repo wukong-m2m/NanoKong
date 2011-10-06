@@ -1,10 +1,12 @@
 
 #include "nvmcomm_zwave.h"
+#include "config.h"
 #include "uart.h"
+#include "debug.h"
 
 #ifdef NVM_USE_COMMZWAVE
 
-#define ZWAVE_UART            1
+#define ZWAVE_UART             1
 
 #define ZWAVE_STATUS_SOF       1
 #define ZWAVE_STATUS_LEN       2
@@ -16,40 +18,47 @@
 #define ZWAVE_STATUS_DONE      8
 
 // u16_t g_seq = 0;
-// u16_t last_node = 0;
-// u08_t seq;          // Sequence number which is used to match the callback function
 u08_t state;        // Current state
 u08_t len;          // Length of the returned payload
 u08_t type;         // 0: request 1: resposne 2: timeout
 u08_t cmd;          // the serial api command number of the current payload
 u08_t payload[64];  // The data of the current packet
-// u16_t i;
+u08_t payload_length;  // Length of the payload while reading a packet
+// TODO: used?
+u08_t last_node = 0;
+u08_t seq;          // Sequence number which is used to match the callback function
 // u32_t expire;  // The expire time of the last command
 void (*f)(u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
-// public interface
+// Private
+void display_nif(u08_t *payload, u08_t len) {
+    DEBUGF_COMM("Status=%d Node=%d Device=%d:%d:%d\n", payload[0],payload[1],payload[3],payload[4],payload[5]);
+    last_node = payload[1];
+}
+
+// Public interface
 void nvmcomm_zwave_init() {
-  uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 // TODO: why is this here?
   // for(i=0;i<100;i++)
   //   mainloop();
 // TODO: analog read
   // randomSeed(analogRead(0));
   // seq = random(255);
-  seq = 42 // temporarily init to fixed value
+  seq = 42; // temporarily init to fixed value
   state = ZWAVE_STATUS_SOF;
   f=NULL;
   f_nodeinfo=display_nif;
+  uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 // TODO
   // expire = 0;
 }
 
-void nvmcomm_zwave_setcallback(void (*func)(byte *, u08_t)) {
+void nvmcomm_zwave_setcallback(void (*func)(u08_t *, u08_t)) {
   f = func;
 }
 
-void nvmcomm_zwave_poll() {
+void nvmcomm_zwave_poll(void) {
 // TODO
   // unsigned long now = millis();
   // 
@@ -60,12 +69,11 @@ void nvmcomm_zwave_poll() {
   //   if (f!=NULL) f(payload,i);
   //   Serial.write("timeout...\n");
   //   return true;
-  }
-// TODO: make this into a while?
-  if (uart_available(ZWAVE_UART)) {
+  // }
+  while (uart_available(ZWAVE_UART)) {
 // TODO    expire = now + 1000;
     u08_t c = uart_read_byte(ZWAVE_UART);
-    DEBUGF("c=%x state=%d\n", c, state);
+//    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
     if (state == ZWAVE_STATUS_SOF) {
       if (c == 1) {
         state = ZWAVE_STATUS_LEN;
@@ -82,9 +90,9 @@ void nvmcomm_zwave_poll() {
     } else if (state == ZWAVE_STATUS_CMD) {
       cmd = c;
       state = ZWAVE_STATUS_DATA;
-      i = 0;
+      payload_length = 0;
     } else if (state == ZWAVE_STATUS_DATA) {
-      payload[i++] = c;
+      payload[payload_length++] = c;
       len--;
       if (len == 0) {
         state = ZWAVE_STATUS_CRC;
@@ -93,23 +101,22 @@ void nvmcomm_zwave_poll() {
       uart_write_byte(ZWAVE_UART, 6);
       state = ZWAVE_STATUS_SOF;
       if (f!=NULL)
-        f(payload, i);
+        f(payload, payload_length);
       if (cmd == 0x49 && f_nodeinfo)
-          f_nodeinfo(payload, i);
+          f_nodeinfo(payload, payload_length);
     }
   }
 }
 
 // Send ZWave command to another node. This command can be used as wireless repeater between 
 // two nodes. It has no assumption of the payload sent between them.
-void nvmcomm_zwave_send(byte id, byte *b, byte l, byte option) {
+void nvmcomm_zwave_send(u08_t id, u08_t *b, u08_t l, u08_t option) {
   int k;
   u08_t crc;
 // TODO: buffer size was 24, but aren't Z-Wave packets larger?
   u08_t buf[64];
-  u08_t ll=l+7;
 
-  DEBUGF("Send\n");
+  DEBUGF_COMM("Send\n\r");
   buf[0] = 1;
   buf[1] = l+7;
   buf[2] = 0;
@@ -131,14 +138,6 @@ void nvmcomm_zwave_send(byte id, byte *b, byte l, byte option) {
   uart_write_byte(ZWAVE_UART, crc);
 // TODO  expire = millis()+1000;
 }
-
-
-// private
-void display_nif(byte *payload,int len) {
-    DEBUGF("Status=%d Node=%d Device=%d:%d:%d\n", payload[0],payload[1],payload[3],payload[4],payload[5]);
-    last_node = payload[1];
-}
-
 
 
 //===================================================================================================================

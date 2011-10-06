@@ -6,11 +6,14 @@
 #include "nvmcomm_zwave.h"
 #endif
 
-// Public
+#ifdef NVMCOMM3
 
+// Public
+void x(u08_t *payload, u08_t length);
 void nvmcomm_init(void) {
 #ifdef NVM_USE_COMMZWAVE
   nvmcomm_zwave_init();
+  nvmcomm_zwave_setcallback(x);
 #endif
 }
 
@@ -22,10 +25,10 @@ void nvmcomm_poll(void) {
 
 // Private
 void x(u08_t *payload, u08_t length) {
-  DEBUGF("NVMCOMM3 - Received packet with length %d", length);
+  DEBUGF_COMM("NVMCOMM3 - Packet received with length %d\n", length);
   for(u08_t i=0; i<length; i++) {
-    DEBUGF("NVMCOMM3 - Byte %d: %d", i, payload[i]);
+    DEBUGF_COMM("NVMCOMM3 - Byte %d: %d\n", i, payload[i]);
   }
 }
 
-
+#endif // NVMCOMM3

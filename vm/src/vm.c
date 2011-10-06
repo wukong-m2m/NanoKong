@@ -41,6 +41,10 @@
 #include "array.h"
 #endif
 
+#ifdef NVMCOMM3
+#include "nvmcomm3.h"
+#endif
+
 #ifdef NVM_USE_32BIT_WORD
 # define DBG_INT "0x" DBG32
 #else
@@ -200,6 +204,11 @@ void   vm_run(u16_t mref) {
   stack_save_base();
   
   do {
+#ifdef NVMCOMM3
+    // Check if there's any packet coming in that we need to handle before processing the next VM instruction.
+    nvmcomm_poll();
+#endif
+    
     instr = nvmfile_read08(pc);
     pc_inc = 1;
     

@@ -31,6 +31,7 @@
 #include "uart.h"
 #include "nvmfile.h"
 #include "vm.h"
+#include "nvmcomm3.h"
 
 #ifdef ATMEGA168
 #include <avr/wdt.h>
@@ -67,6 +68,14 @@ int main(int argc, char **argv) {
 
 #if defined(UNIX) || defined(NVM_USE_COMM)
   uart_init(0, UART_BAUDRATE);
+#endif
+
+#ifdef DEBUG // TODO: temporary
+  debug_enable(TRUE);
+#endif
+
+#if defined(NVMCOMM3)
+  nvmcomm_init();
 #endif
 
   // call native initialization (e.g. hardware setup)
@@ -119,13 +128,9 @@ int main(int argc, char **argv) {
 #endif // NVM_USE_DISK_FILE
 #endif // UNIX || __CC65__
 
-#ifdef NVM_USE_COMM
+#if defined(NVM_USE_COMM) && (defined(NVMCOMM1) || defined(NVMCOMM2))
   // wait 1 sec for upload
   loader_receive();
-#endif
-
-#ifdef DEBUG // TODO: temporary
-  debug_enable(TRUE);
 #endif
 
   nvmfile_init();
