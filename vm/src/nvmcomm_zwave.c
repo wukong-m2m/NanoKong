@@ -124,7 +124,7 @@ void nvmcomm_zwave_send(address_t dest, u08_t *b, u08_t l, u08_t option) {
   u08_t buf[64];
 
 #ifdef DEBUG
-  DEBUGF_COMM("Sending message to "DBG8", length "DBG8": ", id, l);
+  DEBUGF_COMM("Sending message to "DBG8", length "DBG8": ", dest, l);
   for (size8_t i=0; i<l; ++i) {
     DEBUGF_COMM(" "DBG8"", b[i]);
   }
@@ -135,7 +135,7 @@ void nvmcomm_zwave_send(address_t dest, u08_t *b, u08_t l, u08_t option) {
   buf[1] = l+7;
   buf[2] = 0;
   buf[3] = 0x13;
-  buf[4] = id;
+  buf[4] = dest;
   buf[5] = l;
   for(k=0;k<l;k++)
     buf[k+6] = b[k];
