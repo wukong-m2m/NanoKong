@@ -28,7 +28,7 @@ u08_t payload_length;  // Length of the payload while reading a packet
 u08_t last_node = 0;
 u08_t seq;          // Sequence number which is used to match the callback function
 // u32_t expire;  // The expire time of the last command
-void (*f)(u08_t src, u08_t *payload, u08_t length); // The callback function registered by callback
+void (*f)(address_t src, u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
 // Private
@@ -54,7 +54,7 @@ void nvmcomm_zwave_init() {
   // expire = 0;
 }
 
-void nvmcomm_zwave_setcallback(void (*func)(u08_t, u08_t *, u08_t)) {
+void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t *, u08_t)) {
   f = func;
 }
 
@@ -82,7 +82,11 @@ void nvmcomm_zwave_poll(void) {
         state = ZWAVE_STATUS_LEN;
         len = 0;
       } else if (c == 0x15) {
-        // TODO: what?
+        // TODO: send: packet is incorrect
+      } else if (c == 0x18) {
+        // TODO: send: chip busy
+      } else if (c == 0x06) {
+        // TODO: send: correct
       }
     } else if (state == ZWAVE_STATUS_LEN) {
       len = c-3;
@@ -113,7 +117,7 @@ void nvmcomm_zwave_poll(void) {
 
 // Send ZWave command to another node. This command can be used as wireless repeater between 
 // two nodes. It has no assumption of the payload sent between them.
-void nvmcomm_zwave_send(u08_t id, u08_t *b, u08_t l, u08_t option) {
+void nvmcomm_zwave_send(address_t dest, u08_t *b, u08_t l, u08_t option) {
   int k;
   u08_t crc;
 // TODO: buffer size was 24, but aren't Z-Wave packets larger?

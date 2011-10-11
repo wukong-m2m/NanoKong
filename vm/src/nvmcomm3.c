@@ -15,7 +15,7 @@
 s08_t g_nvc3_file_open = -1;
 u16_t g_nvc3_file_pos = 0;
 
-void handle_message(u08_t src, u08_t *payload, u08_t length);
+void handle_message(address_t src, u08_t *payload, u08_t length);
 void nvmcomm_init(void) {
 #ifdef NVM_USE_COMMZWAVE
   nvmcomm_zwave_init();
@@ -29,12 +29,12 @@ void nvmcomm_poll(void) {
 #endif
 }
 
-void nvmcomm_send(u08_t dest, u08_t *payload, u08_t length) {
+void nvmcomm_send(address_t dest, u08_t *payload, u08_t length) {
   nvmcomm_zwave_send(dest, payload, length, 0);
 }
 // Private
 
-void handle_message(u08_t src, u08_t *payload, u08_t length) {
+void handle_message(address_t src, u08_t *payload, u08_t length) {
   // TODO: temporary until we figure out where the extra 'packets' from the Z-Wave module are coming from
   if (payload[0] != 0x42 && payload[1] != 0x42) {
     DEBUGF_COMM("====discarded because of missing 0x42 0x42====\n");
