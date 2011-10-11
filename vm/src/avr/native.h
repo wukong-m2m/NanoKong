@@ -51,6 +51,9 @@
 #define NATIVE_FIELD_PORTF          5
 #define NATIVE_FIELD_PORTG          6
 #define NATIVE_FIELD_PORTH          7
+#define NATIVE_FIELD_PORTJ          8
+#define NATIVE_FIELD_PORTK          9
+#define NATIVE_FIELD_PORTL          10
 
 // nanovm/avr/Port
 #define NATIVE_CLASS_PORT           (NATIVE_CLASS_BASE+6)

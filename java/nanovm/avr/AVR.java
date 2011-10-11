@@ -17,6 +17,9 @@ public class AVR {
   public static Port portF;
   public static Port portG;
   public static Port portH;
+  public static Port portJ;
+  public static Port portK;
+  public static Port portL;
 
   // and the PWM units
   public static Pwm pwm0;

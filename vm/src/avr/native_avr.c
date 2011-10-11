@@ -45,9 +45,9 @@ volatile u08_t *ddrs[]  = { &DDRA,  &DDRB,  &DDRC,  &DDRD,  &DDRE,  &DDRF  };
 volatile u08_t *pins[]  = { &PINA,  &PINB,  &PINC,  &PIND,  &PINE,  &PINF  };
 
 #elif defined(ATMEGA2560)
-volatile u08_t *ports[] = { &PORTA, &PORTB, &PORTC, &PORTD, &PORTE, &PORTF };
-volatile u08_t *ddrs[]  = { &DDRA,  &DDRB,  &DDRC,  &DDRD,  &DDRE,  &DDRF  };
-volatile u08_t *pins[]  = { &PINA,  &PINB,  &PINC,  &PIND,  &PINE,  &PINF  };
+volatile u08_t *ports[] = { &PORTA, &PORTB, &PORTC, &PORTD, &PORTE, &PORTF, &PORTG, &PORTH, &PORTJ, &PORTK, &PORTL};
+volatile u08_t *ddrs[]  = { &DDRA,  &DDRB,  &DDRC,  &DDRD,  &DDRE,  &DDRF,  &DDRG,  &DDRH,  &DDRJ,  &DDRK,  &DDRL };
+volatile u08_t *pins[]  = { &PINA,  &PINB,  &PINC,  &PIND,  &PINE,  &PINF,  &PING,  &PINH,  &PINJ,  &PINK,  &PINL };
 
 #elif defined(ATMEGA32)
 volatile u08_t *ports[] = { &PORTA, &PORTB, &PORTC, &PORTD };
@@ -114,23 +114,22 @@ void native_avr_port_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_SETINPUT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native setinput "DBG8"/"DBG8"\n", port, bit);
+    DEBUGF("native setinput %bd/%bd\n", port, bit);
     *ddrs[port] &= ~_BV(bit);
   } else if(mref == NATIVE_METHOD_SETOUTPUT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-//    DEBUGF("native setoutput %bd/%bd\n", port, bit);
-    DEBUGF("native setoutput "DBG8"/"DBG8"\n", port, bit);
+    DEBUGF("native setoutput %bd/%bd\n", port, bit);
     *ddrs[port] |= _BV(bit);
   } else if(mref == NATIVE_METHOD_SETBIT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native setbit "DBG8"/"DBG8"\n", port, bit);
+    DEBUGF("native setbit %bd/%bd\n", port, bit);
     *ports[port] |= _BV(bit);
   } else if(mref == NATIVE_METHOD_CLRBIT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native clrbit "DBG8"/"DBG8"\n", port, bit);
+    DEBUGF("native clrbit %bd/%bd\n", port, bit);
     *ports[port] &= ~_BV(bit);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
