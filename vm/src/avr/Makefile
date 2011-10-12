@@ -6,7 +6,7 @@ AVR_DIR = $(ROOT_DIR)/vm/src/avr
 AVR_OBJS = \
   avr/native_avr.o \
   avr/native_impl.o \
-  
+  avr/avr_flash.o
 
 
 OBJS += $(AVR_OBJS)

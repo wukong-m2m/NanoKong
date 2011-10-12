@@ -23,7 +23,7 @@ OBJDUMP = $(PREFIX)avr-objdump
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
-CLDFLAGS += -Wl,--gc-sections  -mmcu=$(DEVICE)
+CLDFLAGS += -Wl,--gc-sections,--section-start=.bootloader=0x1DF00 -mmcu=$(DEVICE)
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex
@@ -56,10 +56,10 @@ endef
 	avr-size -A $@
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -O ihex $< $@
+	$(OBJCOPY) -j .text -j .data -j .bootloader -O ihex $< $@
 
 %_eeprom.hex: %.elf
-	$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $< $@
+	$(OBJCOPY) -j .eeprom -O ihex $< $@
 
 # use uisp tool to configure whole cpu
 uisp: NanoVM.hex NanoVM_eeprom.hex
@@ -68,9 +68,9 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -p atmega2560 -P /dev/tty.usbmodem621 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -V -v -v -p atmega2560 -P /dev/tty.usbmodem621 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
-clean::
+clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf
 
 include $(OBJS:.o=.d)

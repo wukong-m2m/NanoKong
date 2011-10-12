@@ -23,7 +23,7 @@
 #define NVM_USE_SWITCH          // support switch instruction
 #define NVM_USE_INHERITANCE     // support for inheritance
 #define NVM_USE_UTILS           // enable inline utils
-#define NVM_USE_EEPROM          // nvm file resides in EEPROM (or flash)
+//#define NVM_USE_EEPROM          // nvm file resides in EEPROM (or flash)
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_DEFAULT_FILE    // enable pre-installed default file
 #define NVM_USE_COMM
