@@ -15,4 +15,5 @@ public class Port {
   public native void setOutput(int bit);
   public native void setBit(int bit);
   public native void clrBit(int bit);
+  public native int getInput(int bit);
 }

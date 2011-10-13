@@ -61,6 +61,7 @@
 #define NATIVE_METHOD_SETOUTPUT     2
 #define NATIVE_METHOD_SETBIT        3
 #define NATIVE_METHOD_CLRBIT        4
+#define NATIVE_METHOD_GETINPUT      5
 
 // nanovm/avr/Timer
 #define NATIVE_CLASS_TIMER          (NATIVE_CLASS_BASE+7)

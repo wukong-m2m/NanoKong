@@ -131,6 +131,11 @@ void native_avr_port_invoke(u08_t mref) {
     u08_t port = stack_pop();
     DEBUGF("native clrbit %bd/%bd\n", port, bit);
     *ports[port] &= ~_BV(bit);
+  } else if(mref == NATIVE_METHOD_GETINPUT) {
+    u08_t bit  = stack_pop();
+    u08_t port = stack_pop();
+    DEBUGF("native clrbit %bd/%bd\n", port, bit);
+    stack_push( (*pins[port]>>bit) & 0x01);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
 }
