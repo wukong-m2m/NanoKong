@@ -139,19 +139,6 @@ int main(int argc, char **argv) {
 
   vm_init();
 
-  uint8_t x;
-  x = boot_lock_fuse_bits_get(GET_LOCK_BITS);
-  DEBUGF_COMM("Lock bits "DBG8"\n", x);
-  x = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);
-  DEBUGF_COMM("Low fuse bits "DBG8"\n", x);
-  x = boot_lock_fuse_bits_get(GET_HIGH_FUSE_BITS);
-  DEBUGF_COMM("High fuse bits "DBG8"\n", x);
-  x = boot_lock_fuse_bits_get(GET_EXTENDED_FUSE_BITS);
-  DEBUGF_COMM("Extended fuse bits "DBG8"\n", x);
-  DEBUGF_COMM("pre-hello\n");
-  hello();
-  DEBUGF_COMM("post-hello\n");
-
   nvmfile_call_main();
 
 #ifdef UNIX

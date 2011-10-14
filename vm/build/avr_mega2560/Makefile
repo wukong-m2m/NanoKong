@@ -23,10 +23,10 @@ OBJDUMP = $(PREFIX)avr-objdump
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
-CLDFLAGS += -Wl,--gc-sections,--section-start=.bootloader=0x1DF00 -mmcu=$(DEVICE)
+CLDFLAGS += -Wl,--gc-sections,--section-start=.bootloader=0x3E000 -mmcu=$(DEVICE)
 
 # build intel hex files
-all: NanoVM.hex NanoVM_eeprom.hex
+all: NanoVM.hex NanoVM_eeprom.hex NanoVM_bootloader.hex
 
 include ../../src/Makefile
 include ../../src/avr/Makefile
@@ -57,6 +57,9 @@ endef
 
 %.hex: %.elf
 	$(OBJCOPY) -j .text -j .data -j .bootloader -O ihex $< $@
+
+%_bootloader.hex: %.elf
+	$(OBJCOPY) -j .bootloader -O ihex $< $@
 
 %_eeprom.hex: %.elf
 	$(OBJCOPY) -j .eeprom -O ihex $< $@
