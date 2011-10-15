@@ -79,6 +79,7 @@ LICENSE:
 //*	Jul 29,	2010	<MLS> Added recchar_timeout for timing out on bootloading
 //*	Aug 23,	2010	<MLS> Added support for atmega2561
 //*	Aug 26,	2010	<MLS> Removed support for BOOT_BY_SWITCH
+//*	Oct 16,	2011	<Niels Reijers> Commented monitor support to make space for our own code in the bootloader section
 //************************************************************************
 
 
@@ -96,8 +97,8 @@ LICENSE:
 
 
 #if defined(_MEGA_BOARD_) || defined(_BOARD_AMBER128_) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega2561__)
-	#define		ENABLE_MONITOR
-	static void	RunMonitor(void);
+//	#define		ENABLE_MONITOR
+//	static void	RunMonitor(void);
 #endif
 
 //#define	_DEBUG_SERIAL_
