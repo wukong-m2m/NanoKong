@@ -195,7 +195,7 @@ void native_avr_pwm_invoke(u08_t mref) {
     u08_t port = stack_pop();   // top byte contains class ref
 
     // implement pwm1
-    if(port == 1) {
+    if(port == 0 || port==1) {
       // keep everything but prescaler
 #if defined(ATMEGA168) || defined(ATMEGA2560)
       TCCR2B = (TCCR2B & ~7) | (value & 7);
@@ -208,14 +208,14 @@ void native_avr_pwm_invoke(u08_t mref) {
     u08_t value = stack_pop();
     u08_t port = stack_pop();   // top byte contains class ref
 
-    // implement pwm1
-    if(port == 1) {
+    // implement pwm0.pwm1
+    if(port == 0 || port ==1) {
 
       // setup of timer 2: keep prescaler, set fast pwm
       // and clear OC2 on match, set OC2 on top
 #if defined(ATMEGA168) || defined(ATMEGA2560)
-      TCCR2A = _BV(WGM21) | _BV(WGM20);
-      TCCR2B = (TCCR2B & 7) | _BV(COM2A1);
+      TCCR2A = _BV(WGM21) | _BV(WGM20) | _BV(COM2A1) | _BV(COM2B1);
+      TCCR2B = (TCCR2B & 7) ;
 #else
       TCCR2 = (TCCR2 & 7) | _BV(WGM21) | _BV(WGM20) | _BV(COM21);
 #endif
@@ -233,14 +233,20 @@ void native_avr_pwm_invoke(u08_t mref) {
       // the pwm output is on pin b.7 on the mega128
       DDRB |= _BV(7);        // OC2 -> output
 #elif defined(ATMEGA2560)
-      // the pwm output is on pin b.7 on the mega2560????
-      DDRB |= _BV(7);        // OC2 -> output
+      // the pwm output is on pin b.4, h.6 on the mega2560
+      if(port==0)
+      	DDRB |= _BV(4);        // OC2A -> output
+      else if(port==1)
+      	DDRH |= _BV(6);        // OC2B -> output
 #else
 #error Please add PWM support for your CPU!
 #endif
 
 #if defined(ATMEGA168) || defined(ATMEGA2560)
-      OCR2A = value;
+      if(port==0)
+	OCR2A = value;
+      else if(port==1)
+	OCR2B = value;
 #else
       OCR2 = value;
 #endif
