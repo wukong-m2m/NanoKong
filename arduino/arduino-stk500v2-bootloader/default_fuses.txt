@@ -1,0 +1,5 @@
+For Arduino Mega 2560:
+lfuse: 0xFF
+hfuse: 0xD0
+efuse: 0xFD
+lock : 0x0F
