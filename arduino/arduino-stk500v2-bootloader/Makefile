@@ -322,6 +322,15 @@ ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
+############################################################
+#	Jul 6,	2010	<MLS> Adding 2560 support
+mega2560:	MCU = atmega2560
+mega2560:	F_CPU = 16000000
+mega2560:	BOOTLOADER_ADDRESS = 3E000
+mega2560:	CFLAGS += -D_MEGA_BOARD_
+mega2560:	begin gccversion sizebefore build sizeafter end 
+			mv $(TARGET).hex stk500boot_v2_mega2560.hex
+
 
 ############################################################
 #	May 25,	2010	<MLS> Adding 1280 support
@@ -331,16 +340,6 @@ mega1280: BOOTLOADER_ADDRESS = 1E000
 mega1280: CFLAGS += -D_MEGA_BOARD_
 mega1280: begin gccversion sizebefore build sizeafter end 
 			mv $(TARGET).hex stk500boot_v2_mega1280.hex
-
-
-############################################################
-#	Jul 6,	2010	<MLS> Adding 2560 support
-mega2560:	MCU = atmega2560
-mega2560:	F_CPU = 16000000
-mega2560:	BOOTLOADER_ADDRESS = 3E000
-mega2560:	CFLAGS += -D_MEGA_BOARD_
-mega2560:	begin gccversion sizebefore build sizeafter end 
-			mv $(TARGET).hex stk500boot_v2_mega2560.hex
 
 
 ############################################################
