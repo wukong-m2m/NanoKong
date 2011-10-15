@@ -82,10 +82,7 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
       if (nvc3_file_open == NVC3_FILE_FIRMWARE) {
 	 			if (nvc3_avr_flash_open == FALSE) {
 					nvc3_avr_flash_open = TRUE;
-          DEBUGF_FLASH("as 8 "DBG8"\n", nvmfile_get_base());
-          DEBUGF_FLASH("as 8 "DBG16"\n", nvmfile_get_base());
-          DEBUGF_FLASH("as 8 "DBG32"\n", nvmfile_get_base());
-					avr_flash_open((uint16_t)nvmfile_get_base());
+					avr_flash_open(0x4000); // TODO: ugly hack
         	vm_set_runlevel(NVM_RUNLVL_CONF); // opening firmware for writing implies conf runlevel
 				}
         DEBUGF_COMM("Write "DBG8" bytes at position "DBG16", address "DBG16".\n", length-1, nvc3_file_pos, nvc3_file_pos);

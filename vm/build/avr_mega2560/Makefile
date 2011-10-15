@@ -23,7 +23,7 @@ OBJDUMP = $(PREFIX)avr-objdump
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
-CLDFLAGS += -Wl,--gc-sections,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
@@ -56,7 +56,7 @@ endef
 	avr-size -A $@
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -O ihex $< $@
+	$(OBJCOPY) -j .text -j .data -j .javabytecode -O ihex $< $@
 
 %_NRWWsection.hex: %.elf
 	$(OBJCOPY) -j .bootloader -O ihex $< $@
