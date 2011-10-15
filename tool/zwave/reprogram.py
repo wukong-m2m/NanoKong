@@ -17,24 +17,17 @@ RUNLVL_CONF  = " 03"
 RUNLVL_RESET = " 04"
 
 def sendcmd(cmd):
-  cmd = "./testrtt host 192.168.0.231 nowait raw 01 88 42 42 " + cmd
+  cmd = "./testrtt host 192.168.0.231 nowait raw 01 88 " + cmd
   result = ""
   print cmd
-  return
   while not "Transmit complete ok." in result:
     print "============ " + cmd
     fin,fout = os.popen4(cmd)
     result = fout.read()
     time.sleep(1) # one step at a time...
 
-
-
-def sinterklaasTest():
-  sendcmd(SETRUNLVL + RUNLVL_CONF)
-  sendcmd(FOPEN + " 00")
-  sendcmd(FSEEK + " 00 36")
-  sendcmd(WRFILE + " 62")
-  sendcmd(SETRUNLVL + RUNLVL_VM)
+def getRunLevelTest():
+  sendcmd(GETRUNLVL)
 
 def reprogramNvmdefault():
   sendcmd(SETRUNLVL + RUNLVL_CONF)
@@ -43,6 +36,9 @@ def reprogramNvmdefault():
   lines = [" " + l.replace('0x','').replace(',','').replace('\n','') for l in open(sys.argv[1]).readlines() if l.startswith('0x')]
   for l in lines:
     sendcmd(WRFILE + l)
+  sendcmd(FCLOSE)
   sendcmd(SETRUNLVL + RUNLVL_RESET)
 
 reprogramNvmdefault()
+#getRunLevelTest()
+

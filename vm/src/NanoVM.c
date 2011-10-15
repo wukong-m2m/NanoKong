@@ -137,8 +137,6 @@ int main(int argc, char **argv) {
 
   nvmfile_init();
 
-  hello();
-
   vm_init();
 
   nvmfile_call_main();

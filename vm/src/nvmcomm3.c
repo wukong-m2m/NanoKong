@@ -5,15 +5,15 @@
 #ifdef NVM_USE_COMMZWAVE
 #include "nvmcomm_zwave.h"
 #endif
+#include "avr/avr_flash.h"
 
 #include "nvmcomm3.h"
 
 #ifdef NVMCOMM3
 
-// Public
-// TODO: should go to vm.c
-s08_t g_nvc3_file_open = -1;
-u16_t g_nvc3_file_pos = 0;
+uint8_t nvc3_file_open = 0xFF;
+uint16_t nvc3_file_pos = 0;
+uint8_t nvc3_avr_flash_open = FALSE;
 
 void handle_message(address_t src, u08_t *payload, u08_t length);
 void nvmcomm_init(void) {
@@ -39,7 +39,7 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
   u08_t response_size = 0;
 
 #ifdef DEBUG
-  DEBUGF_COMM("Handling message from "DBG8", length "DBG8": ", src, length);
+  DEBUGF_COMM("Handling message from "DBG8", length "DBG8":\n", src, length);
   for (size8_t i=0; i<length; ++i) {
     DEBUGF_COMM(" "DBG8"", payload[i]);
   }
@@ -50,47 +50,47 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
     case NVC3_CMD_FOPEN:
       if (payload[1] <= NVC3_MAX_FID) {
         DEBUGF_COMM("Open file "DBG8"\n", payload[1]);
-        g_nvc3_file_open = payload[1];
-        g_nvc3_file_pos = 0;
+        nvc3_file_open = payload[1];
+        nvc3_file_pos = 0;
       }
     break;
-    case NVC3_CMD_FCLOSE: 
+    case NVC3_CMD_FCLOSE:
       DEBUGF_COMM("Closing file\n");
-      g_nvc3_file_open = -1;
+			if (nvc3_avr_flash_open == TRUE)
+				avr_flash_close();
+      nvc3_file_open = 0xFF;
     break;
     case NVC3_CMD_FSEEK:
-      g_nvc3_file_pos = ((u16_t)payload[1]<<8) + payload[2];
-      DEBUGF_COMM("Seek to position "DBG16"\n", g_nvc3_file_pos);
+      nvc3_file_pos = ((u16_t)payload[1]<<8) + payload[2];
+      DEBUGF_COMM("Seek to position "DBG16"\n", nvc3_file_pos);
     break;
     case NVC3_CMD_RDFILE:
-      if (g_nvc3_file_open == NVC3_FILE_FIRMWARE) {
+      if (nvc3_file_open == NVC3_FILE_FIRMWARE) {
         u08_t *addr = nvmfile_get_base();
-        addr += g_nvc3_file_pos;
+        addr += nvc3_file_pos;
 
         response_size = payload[1];
         if (response_size < 39) { // TODO: check for buffer size (depends on protocol)
           for (size8_t i=0; i<response_size; ++i) {
             payload[i] = nvmfile_read08(addr++);
-            ++g_nvc3_file_pos;
+            ++nvc3_file_pos;
           }
         }
       }
     break;
-    case NVC3_CMD_WRFILE: 
-      if (g_nvc3_file_open == NVC3_FILE_FIRMWARE) {
-        vm_set_runlevel(NVM_RUNLVL_CONF); // opening firmware for writing implies conf runlevel
-
-        u08_t *addr = nvmfile_get_base();
-        addr += g_nvc3_file_pos;
-
-        DEBUGF_COMM("Write "DBG8" bytes at position "DBG16", address "DBG16":", length-1, g_nvc3_file_pos, addr);
-        
-        for (size8_t i=1; i<length; ++i) {
-          DEBUGF_COMM(" "DBG8"", payload[i]);
-          nvmfile_write08(addr++, payload[i]);
-          ++g_nvc3_file_pos;
-        }
-        DEBUGF_COMM("\nDone\n");
+    case NVC3_CMD_WRFILE:
+      if (nvc3_file_open == NVC3_FILE_FIRMWARE) {
+	 			if (nvc3_avr_flash_open == FALSE) {
+					nvc3_avr_flash_open = TRUE;
+          DEBUGF_FLASH("as 8 "DBG8"\n", nvmfile_get_base());
+          DEBUGF_FLASH("as 8 "DBG16"\n", nvmfile_get_base());
+          DEBUGF_FLASH("as 8 "DBG32"\n", nvmfile_get_base());
+					avr_flash_open((uint16_t)nvmfile_get_base());
+        	vm_set_runlevel(NVM_RUNLVL_CONF); // opening firmware for writing implies conf runlevel
+				}
+        DEBUGF_COMM("Write "DBG8" bytes at position "DBG16", address "DBG16".\n", length-1, nvc3_file_pos, nvc3_file_pos);
+				avr_flash_write(length-1, payload+1);
+        nvc3_file_pos += length-1;
       }
     break;
     case NVC3_CMD_GETRUNLVL: 

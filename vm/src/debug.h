@@ -38,6 +38,7 @@
 #define DEBUGF_INSTR(...)  //debugf(__VA_ARGS__)
 #define DEBUGF_HEAP(...)  //debugf(__VA_ARGS__) // Heap operations
 #define DEBUGF_COMM(...)  debugf(__VA_ARGS__) // Nvmcomm3
+#define DEBUGF_FLASH(...)  debugf(__VA_ARGS__) // avr_flash.c
 #define DEBUGF(...)  //debugf(__VA_ARGS__) // All other debug info.
 #define DEBUG_HEXDUMP(a,b) debug_hexdump(a,b)
 void debugf(const char *fmt, ...);
@@ -46,6 +47,7 @@ void debug_hexdump(const void *data, u16_t size);
 #define DEBUGF_INSTR(...)
 #define DEBUGF_HEAP(...)
 #define DEBUGF_COMM(...)
+#define DEBUGF_FLASH(...)
 #define DEBUGF(...)
 #define DEBUG_HEXDUMP(a,b)
 #endif

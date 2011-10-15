@@ -47,10 +47,10 @@
 #ifdef NVM_USE_DEFAULT_FILE
 
 # ifdef NVM_USE_FLASH_PROGRAM
-   static u08_t nvmfile[CODESIZE] __attribute__((align(256))) PROGMEM =
+   static u08_t nvmfile[CODESIZE] PROGMEM =
 # else
 #  if defined(NVM_USE_COMM) || defined(NVM_USE_DISK_FILE)
-    static u08_t EEPROM nvmfile[CODESIZE] =
+     static u08_t EEPROM nvmfile[CODESIZE] =
 #  else
     static u08_t EEPROM nvmfile[] =
 #  endif
@@ -60,10 +60,10 @@
 #else
 
 # ifdef NVM_USE_FLASH_PROGRAM
-   extern u08_t nvmfile[CODESIZE] __attribute__((align(256))) PROGMEM;
+   extern u08_t nvmfile[CODESIZE] PROGMEM;
 # else
 #  if defined(NVM_USE_COMM) || defined(NVM_USE_DISK_FILE)
-    extern u08_t EEPROM nvmfile[CODESIZE];
+    extern u08_t EEPROM __attribute__ ((section (".javabytecode"))) nvmfile[CODESIZE];
 #  else
     extern u08_t EEPROM nvmfile[];
 #  endif

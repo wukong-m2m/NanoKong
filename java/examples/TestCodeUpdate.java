@@ -5,7 +5,7 @@ class TestCodeUpdate {
   public static void main(String[] args) throws IOException {
     System.out.println("NanoVM - TestCodeUpdate");
     while(true) {
-      System.out.println("Sinterklaas");
+      System.out.println("BBBBBBBBBBBBBBBBBBBBB");
       Timer.wait(10000);
     }
   }
