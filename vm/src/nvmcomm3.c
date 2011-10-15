@@ -35,18 +35,7 @@ void nvmcomm_send(address_t dest, u08_t *payload, u08_t length) {
 // Private
 
 void handle_message(address_t src, u08_t *payload, u08_t length) {
-  // TODO: temporary until we figure out where the extra 'packets' from the Z-Wave module are coming from
-  if (payload[0] != 0x42 && payload[1] != 0x42) {
-    DEBUGF_COMM("====discarded because of missing 0x42 0x42====\n");
-    return;
-  }
-  DEBUGF_COMM("====accepted: "DBG8" "DBG8"====\n", payload[0], payload[1]);  
-  // Skip 0x42 0x42
-  payload = payload+2;
-  length = length-2;
-  // END TODO
-
-  const u08_t command = payload[0];
+  const u08_t nvmcomm3_command = payload[0];
   u08_t response_size = 0;
 
 #ifdef DEBUG
@@ -57,7 +46,7 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
   DEBUGF_COMM("\n");
 #endif
   
-  switch (command) {
+  switch (nvmcomm3_command) {
     case NVC3_CMD_FOPEN:
       if (payload[1] <= NVC3_MAX_FID) {
         DEBUGF_COMM("Open file "DBG8"\n", payload[1]);

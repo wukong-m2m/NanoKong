@@ -37,48 +37,17 @@ void display_nif(u08_t *payload, u08_t len) {
     last_node = payload[1];
 }
 
-// Public interface
-void nvmcomm_zwave_init() {
-// TODO: why is this here?
-  // for(i=0;i<100;i++)
-  //   mainloop();
-// TODO: analog read
-  // randomSeed(analogRead(0));
-  // seq = random(255);
-  seq = 42; // temporarily init to fixed value
-  state = ZWAVE_STATUS_SOF;
-  f=NULL;
-  f_nodeinfo=display_nif;
-  uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
-// TODO
-  // expire = 0;
-}
-
-void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t *, u08_t)) {
-  f = func;
-}
-
-void nvmcomm_zwave_poll(void) {
-// TODO
-  // unsigned long now = millis();
-  // 
-  // if (expire && (now > expire)) {
-  //   expire = 0;
-  //   type = 2;
-  //   state = ZWAVE_STATUS_SOF;
-  //   if (f!=NULL) f(payload,i);
-  //   Serial.write("timeout...\n");
-  //   return true;
-  // }
+// Blocking receive.
+// Returns the Z-Wave cmd of the received message.
+// Calls the callback for .... messages?
+void nvmcomm_zwave_receive(void) {
+  while (!uart_available(ZWAVE_UART)) { }
   while (uart_available(ZWAVE_UART)) {
 // TODO    expire = now + 1000;
     u08_t c = uart_read_byte(ZWAVE_UART);
-//    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
+    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
     if (state == ZWAVE_STATUS_SOF) {
-      // TODO: temporary until we figure out where the extra 'packets' from the Z-Wave module are coming from
-      payload[4] = 0;
-      payload[5] = 0;
-      if (c == 1) {
+      if (c == 0x01) {
         state = ZWAVE_STATUS_LEN;
         len = 0;
       } else if (c == 0x15) {
@@ -115,6 +84,44 @@ void nvmcomm_zwave_poll(void) {
   }
 }
 
+
+// Public interface
+void nvmcomm_zwave_init() {
+// TODO: why is this here?
+  // for(i=0;i<100;i++)
+  //   mainloop();
+// TODO: analog read
+  // randomSeed(analogRead(0));
+  // seq = random(255);
+  seq = 42; // temporarily init to fixed value
+  state = ZWAVE_STATUS_SOF;
+  f=NULL;
+  f_nodeinfo=display_nif;
+  uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
+// TODO
+  // expire = 0;
+}
+
+void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t *, u08_t)) {
+  f = func;
+}
+
+void nvmcomm_zwave_poll(void) {
+// TODO
+  // unsigned long now = millis();
+  // 
+  // if (expire && (now > expire)) {
+  //   expire = 0;
+  //   type = 2;
+  //   state = ZWAVE_STATUS_SOF;
+  //   if (f!=NULL) f(payload,i);
+  //   Serial.write("timeout...\n");
+  //   return true;
+  // }
+  if (uart_available(ZWAVE_UART))
+    nvmcomm_zwave_receive();
+}
+
 // Send ZWave command to another node. This command can be used as wireless repeater between 
 // two nodes. It has no assumption of the payload sent between them.
 void nvmcomm_zwave_send(address_t dest, u08_t *b, u08_t l, u08_t option) {
@@ -133,8 +140,8 @@ void nvmcomm_zwave_send(address_t dest, u08_t *b, u08_t l, u08_t option) {
 
   buf[0] = 1;
   buf[1] = l+7;
-  buf[2] = 0;
-  buf[3] = 0x13;
+  buf[2] = 0; // ZW_REQ
+  buf[3] = 0x13; // ZW_SendData
   buf[4] = dest;
   buf[5] = l;
   for(k=0;k<l;k++)
