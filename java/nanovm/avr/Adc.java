@@ -37,8 +37,8 @@ public class Adc {
   public static final int CHANNEL5   = 5;
   public static final int CHANNEL6   = 6;
   public static final int CHANNEL7   = 7;
-  public static final int CHANNELVBG = 14;  // VBG (1.23V)
-  public static final int CHANNELGND = 15;  // GND (0V)
+  public static final int Diff32x10 = 13;   //(channel3-channel2) *10 
+  public static final int Diff32x200 = 15;  //(channel3-channel2) *200
 
   // get current ADC value
   static public native int getValue(int channel);  // get 10 bit value

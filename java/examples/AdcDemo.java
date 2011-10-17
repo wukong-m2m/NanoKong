@@ -19,11 +19,8 @@ class AdcDemo {
 
     // permanently poll ADC channel0
     while(true) {
-      // display internal VBG voltage (about 1.23 volts)
-      System.out.println("Value VBG: " + Adc.getValue(Adc.CHANNELVBG));
-
-      // display internal GND (0 volts)
-      System.out.println("Value Gnd: " + Adc.getValue(Adc.CHANNELGND));
+      // display voltage difference between channel3.channel2
+      System.out.println("Value (ch3-ch2)*10: " + Adc.getValue(Adc.Diff32x10));
 
       // display ADC0 value with 10 bits resolution
       System.out.println("Value CH0: " + Adc.getValue(Adc.CHANNEL0));
