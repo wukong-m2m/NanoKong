@@ -75,7 +75,7 @@ SIGNAL(SIG_OUTPUT_COMPARE1A) {
   ticks++;
 }
 #else
-ISR(TIMER0_OVF_vect)
+ISR(TIMER1_COMPA_vect)
 {
   TCNT1 = 0;
   ticks++;
@@ -89,9 +89,10 @@ void native_init(void) {
   OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default
   TIMSK1 |= _BV(OCIE1A);         // interrupt on compare
 #elif defined(ATMEGA2560)
-  TCCR0B &= ~(_BV(CS02) | _BV(CS01) | _BV(CS00));
-  TCCR0B |= _BV(CS01);
-  TIMSK0 = _BV(TOIE0);
+  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
+  TCCR1B |= _BV(CS11);
+  TIMSK1 = _BV(OCIE1A);		//output compare interrupt enable
+  OCR1A = 2000;			//set default T=1ms
 #else
   TCCR1B = _BV(CS11);           // clk/8
   OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default
@@ -143,15 +144,16 @@ void native_avr_port_invoke(u08_t mref) {
 // the timer class, based on AVR 16 bit timer 1
 void native_avr_timer_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_SETSPEED) {
-    OCR1A = stack_pop_int();  // set reload value
+    OCR1A = stack_pop();  // set reload value
+    TCNT1 = 0;
   } else if(mref == NATIVE_METHOD_GET) {
     stack_push(ticks);
   } else if(mref == NATIVE_METHOD_TWAIT) {
-    nvm_int_t wait = stack_pop_int();
+    nvm_int_t wait = stack_pop();
     ticks = 0;
     while(ticks < wait);      // reset watchdog here if enabled
   } else if(mref == NATIVE_METHOD_SETPRESCALER) {
-    TCCR1B = stack_pop_int();
+    TCCR1B = stack_pop();
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
 }
