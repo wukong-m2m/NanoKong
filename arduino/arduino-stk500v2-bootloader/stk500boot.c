@@ -814,6 +814,11 @@ int main(void)
 	#else
 					address	=	( ((msgBuffer[3])<<8)|(msgBuffer[4]) )<<1;		//convert word to byte address
 	#endif
+	        // Niels Reijers 20111020: when we start to write from a different address, also move the erase pointer to there
+	        // or we'll be writing to pages that may still contain data, which will give us corrupted code.
+	        // THIS ONLY WORKS WHEN WE LOAD AN ADDRESS THAT IS A PAGE BOUNDARY, AND DON'T WRITE MORE THAN 1 PAGE AT A TIME
+	        // But at least it's better than what we had before.
+          eraseAddress = address - (address % SPM_PAGESIZE);
 					msgLength		=	2;
 					msgBuffer[1]	=	STATUS_CMD_OK;
 					break;
