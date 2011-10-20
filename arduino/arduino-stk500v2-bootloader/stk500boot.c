@@ -844,20 +844,25 @@ int main(void)
 							}
 
 							/* Write FLASH */
-							do {
-								lowByte		=	*p++;
-								highByte 	=	*p++;
+							// Niels Reijers 20111020: Don't write to bootloader section. This shouldn't be possible,
+							// but USBtinyISP leaves the NRWW unprotected if we're not careful, so check for it just
+							// in case.
+							if (address+size <= APP_END){
+  							do {
+  								lowByte		=	*p++;
+  								highByte 	=	*p++;
 
-								data		=	(highByte << 8) | lowByte;
-								boot_page_fill(address,data);
+  								data		=	(highByte << 8) | lowByte;
+  								boot_page_fill(address,data);
 
-								address	=	address + 2;	// Select next word in memory
-								size	-=	2;				// Reduce number of bytes to write by two
-							} while (size);					// Loop until all bytes written
+  								address	=	address + 2;	// Select next word in memory
+  								size	-=	2;				// Reduce number of bytes to write by two
+  							} while (size);					// Loop until all bytes written
 
-							boot_page_write(tempaddress);
-							boot_spm_busy_wait();
-							boot_rww_enable();				// Re-enable the RWW section
+  							boot_page_write(tempaddress);
+  							boot_spm_busy_wait();
+  							boot_rww_enable();				// Re-enable the RWW section
+						  }
 						}
 						else
 						{
