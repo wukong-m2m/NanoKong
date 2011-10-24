@@ -80,6 +80,10 @@ ISR(TIMER1_COMPA_vect)
   TCNT1 = 0;
   ticks++;
 }
+ISR(INT0_vect)
+{
+	PORTA= ~PORTA;
+}
 #endif
 
 void native_init(void) {
@@ -93,6 +97,9 @@ void native_init(void) {
   TCCR1B |= _BV(CS11);
   TIMSK1 = _BV(OCIE1A);		//output compare interrupt enable
   OCR1A = 2000;			//set default T=1ms
+
+  //INT0 interrupt test
+  EIMSK=_BV(INT0);
 #else
   TCCR1B = _BV(CS11);           // clk/8
   OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default
