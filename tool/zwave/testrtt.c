@@ -4242,3 +4242,64 @@ int main(int argc, char *argv[])
 	printf("end of main\n");
 	return 0;
 }
+
+//// 20111025 Niels Reijers: for PyZwave
+int PyZwave_bytesReceived = 0;
+char PyZwave_messagebuffer[1024];
+
+void PyZwave_proprietary_class_cb(void * payload, int len) {
+  if (len>1024) {
+    printf("Received too much data. :-(");
+    exit(0);
+  }
+  
+  memcpy(PyZwave_messagebuffer, (char *)payload, len);
+  PyZwave_bytesReceived = len;
+
+  // int i;
+  // printf("Received %i bytes: ", len);
+  // for (i=0; i<len; i++)
+  //   printf("[%x] ", PyZwave_messagebuffer[i]);
+  // printf("\n");
+}
+
+
+int PyZwave_init(char *host) {
+  g_host = host;
+  register_persistent_class_callback(COMMAND_CLASS_PROPRIETARY, PyZwave_proprietary_class_cb);
+  return zwave_init();
+}
+
+int PyZwave_receive(int wait_msec) {
+	unsigned char c;
+	struct timeval to;
+	fd_set rs;
+	int n, tmpBytesReceived;
+
+	while(1) {
+		to.tv_sec = wait_msec/1000;
+		to.tv_usec = 1000*(wait_msec%1000);
+			
+		FD_ZERO(&rs);
+		FD_SET(zwavefd,&rs);
+		n = select(zwavefd+1,&rs,NULL,NULL,&to);
+		if (n == 0) {
+			break;
+		}
+		else if (n < 0) {
+			printf("select() error\n");
+			exit(1);
+		}
+		n = (int)read(zwavefd, &c,1);
+		if (n != 1) {
+			printf("read error !!!!!!!!!!!!!! n=%d\n", n);
+			exit(1);
+		}
+		zwave_check_state(c);
+		if (PyZwave_bytesReceived > 0)
+      break; // Complete message received, handle it first
+	}
+  tmpBytesReceived = PyZwave_bytesReceived;
+  PyZwave_bytesReceived = 0;
+  return tmpBytesReceived;
+}

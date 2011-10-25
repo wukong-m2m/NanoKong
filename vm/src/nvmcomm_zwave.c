@@ -24,6 +24,8 @@
 
 #define ZWAVE_CMD_APPLICATIONCOMMANDHANDLER 0x04
 
+#define COMMAND_CLASS_PROPRIETARY   0x88
+
 #define ZWAVE_REQ_SENDDATA     0x13
 
 #define ZWAVE_ACK              0x06
@@ -123,12 +125,13 @@ int ZW_sendData(uint8_t id, u08_t *in, u08_t len, u08_t txoptions)
 	buf[0] = ZWAVE_TYPE_REQ;
 	buf[1] = ZWAVE_REQ_SENDDATA;
 	buf[2] = id;
-	buf[3] = len;
+	buf[3] = len+1;
+  buf[4] = COMMAND_CLASS_PROPRIETARY;
   for(i=0; i<len; i++)
-    buf[i+4] = in[i];
-	buf[4+len] = txoptions;
-  buf[5+len] = seq++;
-	return SerialAPI_request(buf, len + 6);
+    buf[i+5] = in[i];
+	buf[5+len] = txoptions;
+  buf[6+len] = seq++;
+	return SerialAPI_request(buf, len + 7);
 }
 //===================================================================================================================
 // End: copied & modified from testrtt.c
