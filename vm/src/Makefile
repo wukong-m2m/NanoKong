@@ -10,7 +10,7 @@ NVM_OBJS = NanoVM.o nvmfile.o vm.o heap.o array.o \
 	error.o loader.o native_stdio.o stack.o \
 	uart.o debug.o native_lcd.o nvmcomm1.o nvmcomm2.o \
 	native_math.o native_formatter.o nvmstring.o \
-	nvmcomm3.o nvmcomm_zwave.o
+	nvmcomm3.o nvmcomm_zwave.o native_nvmcomm3.o
 
 OBJS += $(NVM_OBJS)
 

@@ -102,6 +102,11 @@
 #define NATIVE_METHOD_MOTORSENSOR   7
 #define NATIVE_METHOD_GETSWITCHES   8
 
+// nanovm/io/NvmComm3
+#define NATIVE_CLASS_NVMCOMM3       (NATIVE_CLASS_BASE+13)
+#define NATIVE_METHOD_SEND          1
+#define NATIVE_METHOD_RECEIVE       2
+
 // nanovm/lang/Math
 #define NATIVE_CLASS_MATH           (NATIVE_CLASS_BASE+27)
 

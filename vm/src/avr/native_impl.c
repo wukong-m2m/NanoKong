@@ -55,6 +55,9 @@
 #include "native_formatter.h"
 #endif
 
+#ifdef NVMCOMM3
+#include "native_nvmcomm3.h"
+#endif
 
 void native_java_lang_object_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_INIT) {
@@ -98,6 +101,11 @@ void native_invoke(u16_t mref) {
     native_formatter_invoke(NATIVE_ID2METHOD(mref));
 #endif
 
+#if defined(NVMCOMM3)
+  } else if(NATIVE_ID2CLASS(mref) == NATIVE_CLASS_NVMCOMM3) {
+    native_nvmcomm3_invoke(NATIVE_ID2METHOD(mref));
+#endif
+
 #if defined(AVR) && !defined(ASURO)
     // the avr specific classes 
     // (not used in asuro, although its avr based)
@@ -118,7 +126,7 @@ void native_invoke(u16_t mref) {
     native_lcd_invoke(NATIVE_ID2METHOD(mref));
 
 #endif
-  } else
+  } else 
     error(ERROR_NATIVE_UNKNOWN_CLASS);
 }
 

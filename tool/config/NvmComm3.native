@@ -1,0 +1,8 @@
+#
+# Port.native
+#
+
+class nanovm/io/NvmComm3 29
+
+method send:(I[B)V 1
+method receive:(I)[B 2
