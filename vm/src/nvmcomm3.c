@@ -29,16 +29,17 @@ void nvmcomm_poll(void) {
 #endif
 }
 
-int nvmcomm_send(address_t dest, u08_t *payload, u08_t length) {
+int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length) {
   if (length > NVC3_MESSAGE_SIZE)
     return -2; // Message too large
-  return nvmcomm_zwave_send(dest, payload, length, 0);
+  return nvmcomm_zwave_send(dest, nvc3_command, payload, length, 0);
 }
 // Private
 
 void handle_message(address_t src, u08_t *payload, u08_t length) {
   const u08_t nvmcomm3_command = payload[0];
   u08_t response_size = 0;
+  u08_t response_cmd = 0;
 
 #ifdef DEBUG
   DEBUGF_COMM("Handling message from "DBG8", length "DBG8":\n", src, length);
@@ -78,6 +79,7 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
             ++nvc3_file_pos;
           }
         }
+        response_cmd = NVC3_CMD_RDFILE_R;
       }
     break;
     case NVC3_CMD_WRFILE:
@@ -94,15 +96,17 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
     break;
     case NVC3_CMD_GETRUNLVL: 
       payload[0] = nvm_runlevel;
+      response_cmd = NVC3_CMD_GETRUNLVL_R;
       response_size = 1;
     break;
     case NVC3_CMD_SETRUNLVL:
       DEBUGF_COMM("Goto runlevel "DBG8"\n", payload[1]);
       vm_set_runlevel(payload[1]);
+      response_cmd = NVC3_CMD_SETRUNLVL_R;
     break;
   }
-  if (response_size > 0) {
-    nvmcomm_send(src, payload, response_size);
+  if (response_cmd > 0) {
+    nvmcomm_send(src, response_cmd, payload, response_size);
   }
 }
 

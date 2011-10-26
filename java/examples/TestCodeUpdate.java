@@ -14,21 +14,17 @@ class TestCodeUpdate {
   //   }
   // }
   // 
-  // public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException {
   //   System.out.println("NanoVM - TestCodeUpdate");
-  //   while(true) {
+    while(true) {
   //     byte[] data = NvmComm3.receive(1000);
   //     if (data != null) {
   //       Rot13(data);
   //       NvmComm3.send(2, data);
   //     }
-  //     System.out.println("BBBBBBBBBBBBBBBBBBBBB");
-  //   }
-  // }
-
-  public static void main(String[] args) throws IOException {
-    byte[] data = {0x40, 0x41, 0x42, 0x43, 0x44, 0x45};
-    NvmComm3.send((byte)2, data, (byte)4);
+      System.out.println("BBBBBBBBBBBBBBBBBBBBB");
+      Timer.wait(10000);
+    }
   }
 }
 

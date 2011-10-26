@@ -34,9 +34,11 @@
 // u16_t g_seq = 0;
 u08_t state;        // Current state
 u08_t len;          // Length of the returned payload
-u08_t type;         // 0: request 1: resposne 2: timeout
+u08_t type;         // 0: request 1: response 2: timeout
 u08_t cmd;          // the serial api command number of the current payload
-u08_t payload[NVC3_MESSAGE_SIZE+4];  // The data of the current packet. 4 bytes protocol overhead (see nvmcomm_zwave_receive).
+u08_t payload[NVC3_MESSAGE_SIZE+5];  // The data of the current packet. 
+                                     // 4 bytes protocol overhead (see nvmcomm_zwave_receive),
+                                     // 1 byte for the nvc3_command, which is the first byte in the buffer.
 u08_t payload_length;  // Length of the payload while reading a packet
 // TODO: used?
 u08_t last_node = 0;
@@ -118,21 +120,22 @@ int SerialAPI_request(unsigned char *buf, int len)
 	return -1; // Never happens
 }
 
-int ZW_sendData(uint8_t id, u08_t *in, u08_t len, u08_t txoptions)
+int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t txoptions)
 {
-	unsigned char buf[NVC3_MESSAGE_SIZE+7];
+	unsigned char buf[NVC3_MESSAGE_SIZE+8];
   int i;
   
 	buf[0] = ZWAVE_TYPE_REQ;
 	buf[1] = ZWAVE_REQ_SENDDATA;
 	buf[2] = id;
-	buf[3] = len+1;
+	buf[3] = len+2;
   buf[4] = COMMAND_CLASS_PROPRIETARY;
+  buf[5] = nvc3_command; // See nvmcomm3.h
   for(i=0; i<len; i++)
-    buf[i+5] = in[i];
-	buf[5+len] = txoptions;
-  buf[6+len] = seq++;
-	return SerialAPI_request(buf, len + 7);
+    buf[i+6] = in[i];
+	buf[6+len] = txoptions;
+  buf[7+len] = seq++;
+	return SerialAPI_request(buf, len + 8);
 }
 //===================================================================================================================
 // End: copied & modified from testrtt.c
@@ -171,7 +174,7 @@ void nvmcomm_zwave_receive(void) {
       len = c-3; // 3 bytes for TYPE, CMD, and CRC
       state = ZWAVE_STATUS_WAIT_TYPE;
     } else if (state == ZWAVE_STATUS_WAIT_TYPE) {
-      type = c;
+      type = c; // 0: request 1: response 2: timeout
       state = ZWAVE_STATUS_WAIT_CMD;
     } else if (state == ZWAVE_STATUS_WAIT_CMD) {
       cmd = c;
@@ -235,16 +238,16 @@ void nvmcomm_zwave_poll(void) {
 
 // Send ZWave command to another node. This command can be used as wireless repeater between 
 // two nodes. It has no assumption of the payload sent between them.
-int nvmcomm_zwave_send(address_t dest, u08_t *data, u08_t len, u08_t txoptions) {
+int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len, u08_t txoptions) {
 #ifdef DEBUG
-  DEBUGF_COMM("Sending message to "DBG8", length "DBG8": ", dest, len);
+  DEBUGF_COMM("Sending command "DBG8" to "DBG8", length "DBG8": ", nvc3_command, dest, len);
   for (size8_t i=0; i<len; ++i) {
     DEBUGF_COMM(" "DBG8"", data[i]);
   }
   DEBUGF_COMM("\n");
 #endif
 
-  return ZW_sendData(dest, data, len, txoptions);
+  return ZW_sendData(dest, nvc3_command, data, len, txoptions);
 // TODO  expire = millis()+1000;
 }
 
