@@ -14,6 +14,12 @@
 #define NVC3_CMD_SETRUNLVL    0x7c
 #define NVC3_CMD_SETRUNLVL_R  0x7d
 #define NVC3_CMD_APPMSG       0x7e
+#define NVC3_CMD_APPMSG_R     0x7f
+
+
+#define NVC3_CMD_APPMSG_WAIT_ACK   0x00
+#define NVC3_CMD_APPMSG_ACK        0x01
+#define NVC3_CMD_APPMSG_BUSY       0x02
 
 #define NVC3_MAX_FID 0           // maximum supported file id
 #define NVC3_FILE_FIRMWARE 0x00  // firmware file id
@@ -27,6 +33,10 @@ extern void nvmcomm_init(void);
 extern int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length);
 // Call this periodically to receive data
 extern void nvmcomm_poll(void);
+
+extern uint8_t nvc3_appmsg_buf[NVC3_MESSAGE_SIZE];
+extern uint8_t nvc3_appmsg_size;
+
 
 #endif // NVMCOMM3
 

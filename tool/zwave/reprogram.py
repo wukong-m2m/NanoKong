@@ -39,16 +39,29 @@ def getRunLevelTest():
     print "Received runlevel:", received_data[0]
 
 def reprogramNvmdefault():
+  MESSAGESIZE = 16
   sendcmd(SETRUNLVL, [RUNLVL_CONF])
+  pyzwave.receive(1000)
   sendcmd(FOPEN, [0])
+  pyzwave.receive(1000)
   sendcmd(FSEEK, [0, 0])
+  bytecode = []
   lines = [" " + l.replace('0x','').replace(',','').replace('\n','') for l in open(sys.argv[1]).readlines() if l.startswith('0x')]
   for l in lines:
-    sendcmd(WRFILE, l)
+    for b in l.split():
+      bytecode.append(int(b, 16))
+  for messagenr in range (1, len(bytecode)/MESSAGESIZE + 1):
+    payload = bytecode[messagenr*MESSAGESIZE:(messagenr+1)*MESSAGESIZE]
+    if not payload == []:
+      sendcmd(WRFILE, payload)
   sendcmd(FCLOSE)
   sendcmd(SETRUNLVL, [RUNLVL_RESET])
 
 pyzwave.init("192.168.0.231")
-#reprogramNvmdefault()
-getRunLevelTest()
+reprogramNvmdefault()
+#getRunLevelTest()
 #listen()
+
+#sendcmd(APPMSG, [0x68, 0x61, 0x6c, 0x6c, 0x6f])
+#pyzwave.receive(5000) # Receive ack of APPMSG
+#pyzwave.receive(5000) # Receive reply

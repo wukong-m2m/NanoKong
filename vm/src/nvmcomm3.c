@@ -15,7 +15,11 @@ uint8_t nvc3_file_open = 0xFF;
 uint16_t nvc3_file_pos = 0;
 uint8_t nvc3_avr_flash_open = FALSE;
 
-void handle_message(address_t src, u08_t *payload, u08_t length);
+uint8_t nvc3_appmsg_buf[NVC3_MESSAGE_SIZE];
+uint8_t nvc3_appmsg_size = 0; // 0 if the buffer is not in use (so we can receive a message), otherwise indicates the length of the received message.
+uint8_t nvc3_appmsg_reply = 0;
+
+void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t length);
 void nvmcomm_init(void) {
 #ifdef NVM_USE_COMMZWAVE
   nvmcomm_zwave_init();
@@ -36,13 +40,12 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
 }
 // Private
 
-void handle_message(address_t src, u08_t *payload, u08_t length) {
-  const u08_t nvmcomm3_command = payload[0];
+void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t length) {
   u08_t response_size = 0;
   u08_t response_cmd = 0;
 
 #ifdef DEBUG
-  DEBUGF_COMM("Handling message from "DBG8", length "DBG8":\n", src, length);
+  DEBUGF_COMM("Handling command "DBG8" from "DBG8", length "DBG8":\n", nvmcomm3_command, src, length);
   for (size8_t i=0; i<length; ++i) {
     DEBUGF_COMM(" "DBG8"", payload[i]);
   }
@@ -51,9 +54,9 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
   
   switch (nvmcomm3_command) {
     case NVC3_CMD_FOPEN:
-      if (payload[1] <= NVC3_MAX_FID) {
-        DEBUGF_COMM("Open file "DBG8"\n", payload[1]);
-        nvc3_file_open = payload[1];
+      if (payload[0] <= NVC3_MAX_FID) {
+        DEBUGF_COMM("Open file "DBG8"\n", payload[0]);
+        nvc3_file_open = payload[0];
         nvc3_file_pos = 0;
       }
     break;
@@ -64,7 +67,7 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
       nvc3_file_open = 0xFF;
     break;
     case NVC3_CMD_FSEEK:
-      nvc3_file_pos = ((u16_t)payload[1]<<8) + payload[2];
+      nvc3_file_pos = ((u16_t)payload[0]<<8) + payload[1];
       DEBUGF_COMM("Seek to position "DBG16"\n", nvc3_file_pos);
     break;
     case NVC3_CMD_RDFILE:
@@ -72,7 +75,7 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
         u08_t *addr = nvmfile_get_base();
         addr += nvc3_file_pos;
 
-        response_size = payload[1];
+        response_size = payload[0];
         if (response_size < 39) { // TODO: check for buffer size (depends on protocol)
           for (size8_t i=0; i<response_size; ++i) {
             payload[i] = nvmfile_read08(addr++);
@@ -90,19 +93,37 @@ void handle_message(address_t src, u08_t *payload, u08_t length) {
         	vm_set_runlevel(NVM_RUNLVL_CONF); // opening firmware for writing implies conf runlevel
 				}
         DEBUGF_COMM("Write "DBG8" bytes at position "DBG16", address "DBG16".\n", length-1, nvc3_file_pos, nvc3_file_pos);
-				avr_flash_write(length-1, payload+1);
+				avr_flash_write(length, payload);
         nvc3_file_pos += length-1;
       }
     break;
     case NVC3_CMD_GETRUNLVL: 
       payload[0] = nvm_runlevel;
-      response_cmd = NVC3_CMD_GETRUNLVL_R;
       response_size = 1;
+      response_cmd = NVC3_CMD_GETRUNLVL_R;
     break;
     case NVC3_CMD_SETRUNLVL:
-      DEBUGF_COMM("Goto runlevel "DBG8"\n", payload[1]);
-      vm_set_runlevel(payload[1]);
+      DEBUGF_COMM("Goto runlevel "DBG8"\n", payload[0]);
+      vm_set_runlevel(payload[0]);
       response_cmd = NVC3_CMD_SETRUNLVL_R;
+    break;
+    case NVC3_CMD_APPMSG:
+      DEBUGF_COMM("Received some data intended for Java\n");
+      if (nvc3_appmsg_size == 0) {
+        for (size8_t i=0; i<length; ++i) {
+          nvc3_appmsg_buf[i] = payload[i];
+        }
+        nvc3_appmsg_size = length;
+        payload[0] = NVC3_CMD_APPMSG_ACK;
+      } else
+        payload[0] = NVC3_CMD_APPMSG_BUSY;
+      response_size = 1;
+      response_cmd = NVC3_CMD_APPMSG_R;
+      nvc3_appmsg_reply = NVC3_CMD_APPMSG_WAIT_ACK;
+    break;
+    case NVC3_CMD_APPMSG_R:
+      // TODO: expose this to Java. Make ACKs optional.
+      nvc3_appmsg_reply = payload[0];
     break;
   }
   if (response_cmd > 0) {

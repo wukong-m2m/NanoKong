@@ -45,7 +45,7 @@ u08_t last_node = 0;
 u08_t seq;          // Sequence number which is used to match the callback function
 u08_t ack_got = 0;
 // u32_t expire;  // The expire time of the last command
-void (*f)(address_t src, u08_t *payload, u08_t length); // The callback function registered by callback
+void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
 
@@ -191,7 +191,7 @@ void nvmcomm_zwave_receive(void) {
       state = ZWAVE_STATUS_WAIT_SOF;
       if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER)
       if (f!=NULL)
-        f(payload[1], payload+4, payload_length-4); // Trim off first 4 bytes to get to the data. Byte 1 is the sending node.
+        f(payload[1], payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
       if (cmd == 0x49 && f_nodeinfo)
           f_nodeinfo(payload, payload_length);
     }
@@ -216,7 +216,7 @@ void nvmcomm_zwave_init() {
   // expire = 0;
 }
 
-void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t *, u08_t)) {
+void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
   f = func;
 }
 
