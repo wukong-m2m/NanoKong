@@ -4,5 +4,5 @@
 
 class nanovm/io/NvmComm3 29
 
-method send:(I[B)V 1
+method send:(B[BB)I 1
 method receive:(I)[B 2

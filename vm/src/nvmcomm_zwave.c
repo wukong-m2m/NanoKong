@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "debug.h"
 #include "delay.h"
+#include "nvmcomm3.h"
 
 #ifdef NVM_USE_COMMZWAVE
 
@@ -35,7 +36,7 @@ u08_t state;        // Current state
 u08_t len;          // Length of the returned payload
 u08_t type;         // 0: request 1: resposne 2: timeout
 u08_t cmd;          // the serial api command number of the current payload
-u08_t payload[64];  // The data of the current packet
+u08_t payload[NVC3_MESSAGE_SIZE+4];  // The data of the current packet. 4 bytes protocol overhead (see nvmcomm_zwave_receive).
 u08_t payload_length;  // Length of the payload while reading a packet
 // TODO: used?
 u08_t last_node = 0;
@@ -119,7 +120,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 
 int ZW_sendData(uint8_t id, u08_t *in, u08_t len, u08_t txoptions)
 {
-	unsigned char buf[64]; // TODO: buffersize
+	unsigned char buf[NVC3_MESSAGE_SIZE+7];
   int i;
   
 	buf[0] = ZWAVE_TYPE_REQ;
@@ -234,7 +235,7 @@ void nvmcomm_zwave_poll(void) {
 
 // Send ZWave command to another node. This command can be used as wireless repeater between 
 // two nodes. It has no assumption of the payload sent between them.
-void nvmcomm_zwave_send(address_t dest, u08_t *data, u08_t len, u08_t txoptions) {
+int nvmcomm_zwave_send(address_t dest, u08_t *data, u08_t len, u08_t txoptions) {
 #ifdef DEBUG
   DEBUGF_COMM("Sending message to "DBG8", length "DBG8": ", dest, len);
   for (size8_t i=0; i<len; ++i) {
@@ -243,7 +244,7 @@ void nvmcomm_zwave_send(address_t dest, u08_t *data, u08_t len, u08_t txoptions)
   DEBUGF_COMM("\n");
 #endif
 
-  ZW_sendData(dest, data, len, txoptions);
+  return ZW_sendData(dest, data, len, txoptions);
 // TODO  expire = millis()+1000;
 }
 

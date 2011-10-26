@@ -15,8 +15,12 @@
 #define NVC3_FILE_FIRMWARE 0x00  // firmware file id
 #define NVC3_FILE_DATA 0x01  // data file id (not yet supported)
 
+#define NVC3_MESSAGE_SIZE   0x20
+
 // Initialise nvmcomm and whatever protocol is enabled.
 extern void nvmcomm_init(void);
+// Send length bytes to dest
+extern int nvmcomm_send(address_t dest, u08_t *payload, u08_t length);
 // Call this periodically to receive data
 extern void nvmcomm_poll(void);
 

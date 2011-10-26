@@ -13,6 +13,6 @@
 package nanovm.io;
 
 public class NvmComm3 {
-  public static native void send(int dest, byte data[]);
+  public static native int send(byte dest, byte data[], byte length);
   public static native byte[] receive(int waitmsec);
 }

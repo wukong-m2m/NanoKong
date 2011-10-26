@@ -29,8 +29,10 @@ void nvmcomm_poll(void) {
 #endif
 }
 
-void nvmcomm_send(address_t dest, u08_t *payload, u08_t length) {
-  nvmcomm_zwave_send(dest, payload, length, 0);
+int nvmcomm_send(address_t dest, u08_t *payload, u08_t length) {
+  if (length > NVC3_MESSAGE_SIZE)
+    return -2; // Message too large
+  return nvmcomm_zwave_send(dest, payload, length, 0);
 }
 // Private
 
