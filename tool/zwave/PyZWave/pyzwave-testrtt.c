@@ -4316,7 +4316,6 @@ int PyZwave_receive(int wait_msec) {
 
 void PyZwave_senddata_ack_cb(void * data, int txStatus)
 {
-  printf("TXSTATUS:%i\n", txStatus);
   PyZwave_senddataAckReceived = txStatus;
 }
 
