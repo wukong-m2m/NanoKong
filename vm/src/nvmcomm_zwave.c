@@ -152,7 +152,7 @@ void nvmcomm_zwave_receive(void) {
   while (uart_available(ZWAVE_UART)) {
 // TODO    expire = now + 1000;
     u08_t c = uart_read_byte(ZWAVE_UART);
-    DEBUGF_COMM("c="DBG8" state="DBG8"\n\r", c, state);
+    DEBUGF_ZWAVETRACE("c="DBG8" state="DBG8"\n\r", c, state);
     if (state == ZWAVE_STATUS_WAIT_ACK) {
       if (c == ZWAVE_ACK) {
   			state = ZWAVE_STATUS_WAIT_SOF;
