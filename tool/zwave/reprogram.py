@@ -42,7 +42,6 @@ def reprogramNvmdefault():
   MESSAGESIZE = 16
   sendcmd(SETRUNLVL, [RUNLVL_CONF])
   pyzwave.receive(1000)
-  time.sleep(1)
   sendcmd(FOPEN, [0])
   time.sleep(1)
   sendcmd(FSEEK, [0, 0])
@@ -76,8 +75,8 @@ def testSendingFastMessages():
   sendcmd(FOPEN, [0])
 
 pyzwave.init("192.168.0.231")
-reprogramNvmdefault()
+#reprogramNvmdefault()
 #getRunLevelTest()
 #listen()
 #testRot13()
-#testSendingFastMessages()
+testSendingFastMessages()

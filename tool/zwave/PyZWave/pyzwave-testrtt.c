@@ -301,6 +301,7 @@ void zwave_check_state(unsigned char c);
 
 #define COMMAND_CLASS_SWITCH_ALL                                                         0x27
 
+#define TRANSMIT_WAIT_FOR_ACK                              0xFF
 #define TRANSMIT_COMPLETE_OK                               0x00
 #define TRANSMIT_COMPLETE_NO_ACK                           0x01 //# retransmission error 
 #define TRANSMIT_COMPLETE_FAIL                             0x02 //# transmit error 
@@ -4246,6 +4247,7 @@ int main(int argc, char *argv[])
 //// 20111025 Niels Reijers: for PyZwave
 int PyZwave_bytesReceived = 0;
 char PyZwave_messagebuffer[1024];
+int PyZwave_senddataAckReceived = 0;
 
 void PyZwave_proprietary_class_cb(void * payload, int len) {
   if (len>1024) {
@@ -4269,32 +4271,41 @@ int PyZwave_init(char *host) {
   return zwave_init();
 }
 
-int PyZwave_receive(int wait_msec) {
+int PyZwave_receiveByte(int wait_msec) {
+  int n;
 	unsigned char c;
 	struct timeval to;
 	fd_set rs;
-	int n, tmpBytesReceived;
+
+  to.tv_sec = wait_msec/1000;
+	to.tv_usec = 1000*(wait_msec%1000);
+		
+	FD_ZERO(&rs);
+	FD_SET(zwavefd,&rs);
+	n = select(zwavefd+1,&rs,NULL,NULL,&to);
+	if (n == 0) {
+		return 0;
+	}
+	else if (n < 0) {
+		printf("select() error\n");
+		exit(1);
+	}
+	n = (int)read(zwavefd, &c,1);
+	if (n != 1) {
+		printf("read error !!!!!!!!!!!!!! n=%d\n", n);
+		exit(1);
+	}
+	zwave_check_state(c);
+  return 1;
+}
+
+int PyZwave_receive(int wait_msec) {
+	int tmpBytesReceived;
 
 	while(1) {
-		to.tv_sec = wait_msec/1000;
-		to.tv_usec = 1000*(wait_msec%1000);
-			
-		FD_ZERO(&rs);
-		FD_SET(zwavefd,&rs);
-		n = select(zwavefd+1,&rs,NULL,NULL,&to);
-		if (n == 0) {
-			break;
-		}
-		else if (n < 0) {
-			printf("select() error\n");
-			exit(1);
-		}
-		n = (int)read(zwavefd, &c,1);
-		if (n != 1) {
-			printf("read error !!!!!!!!!!!!!! n=%d\n", n);
-			exit(1);
-		}
-		zwave_check_state(c);
+	  if (!PyZwave_receiveByte(wait_msec)) {
+      break; // No data received.
+	  }
 		if (PyZwave_bytesReceived > 0)
       break; // Complete message received, handle it first
 	}
@@ -4303,15 +4314,30 @@ int PyZwave_receive(int wait_msec) {
   return tmpBytesReceived;
 }
 
-int PyWave_send(unsigned id,unsigned char *in,int len) {
+void PyZwave_senddata_ack_cb(void * data, int txStatus)
+{
+  printf("TXSTATUS:%i\n", txStatus);
+  PyZwave_senddataAckReceived = txStatus;
+}
+
+
+int PyZwave_send(unsigned id,unsigned char *in,int len) {
+  PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+  register_senddata_ack_callback(PyZwave_senddata_ack_cb, NULL);
   int res = ZW_sendData(id, in, len);
   if (res != 0)
     return res;
-  PyZwave_receive(10); // This fixes my problem but I'm not sure why
-  // Shouldn't we receive two messages back from the ZW unit? 
-  // According to page 93 we can expect
-  //    "ZW->HOST: RES | 0x13 | RetVal"
-  // and
-  //    "ZW->HOST: REQ | 0x13 | funcID | txStatus"
-  return 0;
+  while (1) {
+	  if (!PyZwave_receiveByte(1000)) {
+      break; // No data received.
+	  }
+		if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+      break; // Ack or error received.
+  }
+  if (PyZwave_senddataAckReceived == TRANSMIT_COMPLETE_OK)
+    return 0;
+  else {
+    printf("Transmit failed: %i\n", PyZwave_senddataAckReceived);
+    return -1;
+  }
 }

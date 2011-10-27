@@ -89,7 +89,7 @@ static PyObject* pyzwave_send(PyObject *self, PyObject *args) {
   for (i=0; i<length; i++) {
     DEBUGF("[%x] ", buf[i]);
   }
-  if(PyWave_send(dest_address, buf, length) == 0) {
+  if(PyZwave_send(dest_address, buf, length) == 0) {
     DEBUGF("\nPYZWAVE: Done.\n");
     Py_RETURN_NONE;
   } else {
