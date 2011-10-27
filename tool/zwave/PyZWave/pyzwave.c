@@ -1,8 +1,12 @@
 #include <Python.h>
 
-#include "../testrtt.h"
+#include "pyzwave-testrtt.h"
 
 int initialised = 0;
+
+//#define DEBUGF(...)  printf(__VA_ARGS__)
+#define DEBUGF(...) 
+
 
 static PyObject* pyzwave_receive(PyObject *self, PyObject *args) {
   int wait_msec, len;
@@ -21,10 +25,10 @@ static PyObject* pyzwave_receive(PyObject *self, PyObject *args) {
   } else {
     int i;
 
-    printf("Received %i bytes: ", len);
+    DEBUGF("PYZWAVE: Received %i bytes: ", len);
     for (i=0; i<len; i++)
-      printf("[%x] ", PyZwave_messagebuffer[i]);
-    printf("\n");
+      DEBUGF("[%x] ", PyZwave_messagebuffer[i]);
+    DEBUGF("\n");
 
     PyObject* received_list = PyList_New(0);
     for (i=0; i<len; i++) {
@@ -48,7 +52,7 @@ static PyObject* pyzwave_init(PyObject *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
-static PyObject* pyzwave_senddata(PyObject *self, PyObject *args) {
+static PyObject* pyzwave_send(PyObject *self, PyObject *args) {
   int dest_address, i, length;
   PyObject *data;
   uint8_t buf[256];
@@ -81,12 +85,12 @@ static PyObject* pyzwave_senddata(PyObject *self, PyObject *args) {
     buf[i] = (uint8_t)byteAsLong;
   }
 
-  printf("Sending %i bytes to: %i\n", length, dest_address);
+  DEBUGF("PYZWAVE: Sending %i bytes to %i: ", length, dest_address);
   for (i=0; i<length; i++) {
-    printf("[%x] ", buf[i]);
+    DEBUGF("[%x] ", buf[i]);
   }
-  if(ZW_sendData(dest_address, buf, length) == 0) {
-    printf("\nDone.\n");
+  if(PyWave_send(dest_address, buf, length) == 0) {
+    DEBUGF("\nPYZWAVE: Done.\n");
     Py_RETURN_NONE;
   } else {
     PyErr_SetString(PyExc_IOError, "Call to ZW_senddata failed.");
@@ -96,7 +100,7 @@ static PyObject* pyzwave_senddata(PyObject *self, PyObject *args) {
 
 PyMethodDef methods[] = {
   {"init", pyzwave_init, METH_VARARGS, "Sets the IP address to connect to"},
-  {"senddata", pyzwave_senddata, METH_VARARGS, "Sends a list of bytes to a node"},
+  {"send", pyzwave_send, METH_VARARGS, "Sends a list of bytes to a node"},
   {"receive", pyzwave_receive, METH_VARARGS, "Receive data"},
   {NULL, NULL, 0, NULL}
 };

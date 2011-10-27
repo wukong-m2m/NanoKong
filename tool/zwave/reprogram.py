@@ -23,7 +23,7 @@ RUNLVL_CONF  = 0x03
 RUNLVL_RESET = 0x04
 
 def sendcmd(cmd, payload=[]):
-  return pyzwave.senddata(1, [0x88, cmd] + payload)
+  return pyzwave.send(1, [0x88, cmd] + payload)
 
 def listen():
   while True:
@@ -42,26 +42,42 @@ def reprogramNvmdefault():
   MESSAGESIZE = 16
   sendcmd(SETRUNLVL, [RUNLVL_CONF])
   pyzwave.receive(1000)
+  time.sleep(1)
   sendcmd(FOPEN, [0])
-  pyzwave.receive(1000)
+  time.sleep(1)
   sendcmd(FSEEK, [0, 0])
+  time.sleep(1)
   bytecode = []
   lines = [" " + l.replace('0x','').replace(',','').replace('\n','') for l in open(sys.argv[1]).readlines() if l.startswith('0x')]
   for l in lines:
     for b in l.split():
       bytecode.append(int(b, 16))
-  for messagenr in range (1, len(bytecode)/MESSAGESIZE + 1):
+  print "Uploading", len(bytecode), "bytes."
+  for messagenr in range (0, len(bytecode)/MESSAGESIZE + 1):
     payload = bytecode[messagenr*MESSAGESIZE:(messagenr+1)*MESSAGESIZE]
     if not payload == []:
+      time.sleep(1)
       sendcmd(WRFILE, payload)
+  time.sleep(1)
   sendcmd(FCLOSE)
+  time.sleep(1)
   sendcmd(SETRUNLVL, [RUNLVL_RESET])
+  pyzwave.receive(1000)
+
+def testRot13():
+  sendcmd(APPMSG, [0x68, 0x61, 0x6c, 0x6c, 0x6f])
+  print "APPMSG ACK:", pyzwave.receive(5000) # Receive ack of APPMSG
+  print "Reply:", pyzwave.receive(5000) # Receive reply
+
+def testSendingFastMessages():
+  sendcmd(FOPEN, [0])
+  sendcmd(FOPEN, [0])
+  sendcmd(FOPEN, [0])
+  sendcmd(FOPEN, [0])
 
 pyzwave.init("192.168.0.231")
 reprogramNvmdefault()
 #getRunLevelTest()
 #listen()
-
-#sendcmd(APPMSG, [0x68, 0x61, 0x6c, 0x6c, 0x6f])
-#pyzwave.receive(5000) # Receive ack of APPMSG
-#pyzwave.receive(5000) # Receive reply
+#testRot13()
+#testSendingFastMessages()
