@@ -34,6 +34,8 @@
 #include "debug.h"
 #include "error.h"
 
+#include "nvmcomm3.h"
+
 #if defined(UNIX) || defined(__CC65__)
 char *error_msg[] = {
   // unix message              avr error code
@@ -74,6 +76,12 @@ void error(err_t code) {
 
   for(;;) {
     // reset watchdog here if in use
+    
+    // Check if there's any packet coming in that we need to handle before processing the next VM instruction.
+    // Need to do this here because the VM's main loop is stopped.
+    // TODO: Reconsider this when we have a better design for receiving messages.
+    nvmcomm_poll();
+    delay(MILLISEC(10));
 
 #ifdef ASURO
     // yellow/red blinking status led
