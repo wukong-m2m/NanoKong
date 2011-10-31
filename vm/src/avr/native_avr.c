@@ -84,6 +84,10 @@ ISR(INT0_vect)
 {
 	PORTA= ~PORTA;
 }
+ISR(PCINT0_vect)
+{
+	PORTA= ~PORTA;
+}
 #endif
 
 void native_init(void) {
@@ -98,8 +102,10 @@ void native_init(void) {
   TIMSK1 = _BV(OCIE1A);		//output compare interrupt enable
   OCR1A = 2000;			//set default T=1ms
 
-  //INT0 interrupt test
+  //INT0.PCINT0 interrupt test
   EIMSK=_BV(INT0);
+  PCICR=_BV(PCIE0);
+  PCMSK0=_BV(PCINT0);
 #else
   TCCR1B = _BV(CS11);           // clk/8
   OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default
