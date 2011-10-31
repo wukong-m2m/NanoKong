@@ -20,10 +20,10 @@
 #ifndef UART_H
 #define UART_H
 
-extern void uart_init(void);
-extern void uart_write_byte(u08_t byte);
-extern void uart_putc(u08_t byte);
-extern u08_t uart_read_byte(void);
-extern u08_t uart_available(void);
+extern void uart_init(u08_t uart, u32_t baudrate);
+extern void uart_write_byte(u08_t uart, u08_t byte);
+extern void uart_putc(u08_t uart, u08_t byte);
+extern u08_t uart_read_byte(u08_t uart);
+extern u08_t uart_available(u08_t uart);
 
 #endif // UART_H

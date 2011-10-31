@@ -61,7 +61,7 @@ void debugf(const char *fmt, ...) {
     if (size > DEBUG_BUFFER_SIZE)
       size = DEBUG_BUFFER_SIZE;
     for (int i=0; i<size; i++)
-      uart_write_byte(buf[i]);
+      uart_write_byte(0,buf[i]);
   }
 }
 #endif // UNIX || __CC65__
