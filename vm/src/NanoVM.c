@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 #endif
 
 #if defined(UNIX) || defined(NVM_USE_COMM)
-  uart_init(0, UART_BAUDRATE);
+  uart_init(0, 57600);
 #endif
 
   // call native initialization (e.g. hardware setup)

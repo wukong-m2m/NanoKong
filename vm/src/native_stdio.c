@@ -122,7 +122,7 @@ void native_java_io_printstream_invoke(u08_t mref) {
     native_print(tmp, FALSE);
   } else if(mref == NATIVE_METHOD_PRINTLN_CHAR) {
     uart_putc(0,stack_pop_int());
-    uart_putc('\n');
+    uart_putc(0,'\n');
   } else if(mref == NATIVE_METHOD_PRINT_CHAR) {
     uart_putc(0,stack_pop_int());
 #ifdef NVM_USE_EXT_STDIO
