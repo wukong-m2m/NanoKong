@@ -843,7 +843,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 		// read out pending request from Z-Wave
 		while(1) {
 			to.tv_sec = 0;
-			to.tv_usec = 0;
+			to.tv_usec = 100;
 			
 			FD_ZERO(&rs);
 			FD_SET(zwavefd,&rs);
@@ -919,8 +919,8 @@ int SerialAPI_request(unsigned char *buf, int len)
 			if (ack_got) {
 				return 0;
 			} else {
-				printf("Ack error!!! zstate=%d ack_got=%d\n", zstate, ack_got);
-				break;
+				printf("Ack error!!! zstate=%d ack_got=%d c=%d\n", zstate, ack_got, c);
+				//break;
 			}
 		}
 		if (!retry--) {
@@ -4267,6 +4267,7 @@ void PyZwave_proprietary_class_cb(void * payload, int len) {
 
 int PyZwave_init(char *host) {
   g_host = host;
+    txoptions |= TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE;
   register_persistent_class_callback(COMMAND_CLASS_PROPRIETARY, PyZwave_proprietary_class_cb);
   return zwave_init();
 }

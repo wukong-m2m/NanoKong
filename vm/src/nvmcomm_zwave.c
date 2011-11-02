@@ -93,7 +93,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 		// get SerialAPI ack
 		while(1) {
       i = 0;
-      while(!uart_available(ZWAVE_UART) && i++<1000)
+      while(!uart_available(ZWAVE_UART) && i++<100)
         delay(MILLISEC(1));
       if (uart_available(ZWAVE_UART)) {
         nvmcomm_zwave_poll();			
@@ -104,6 +104,7 @@ int SerialAPI_request(unsigned char *buf, int len)
   			}
 		  } else {
 				DEBUGF_COMM("No ack!!! zstate="DBG8" ack_got="DBG8"\n", state, ack_got);
+        break;
 		  }
 		}
 		if (!retry--) {
