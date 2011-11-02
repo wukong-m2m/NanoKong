@@ -47,7 +47,7 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
 void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t length) {
   u08_t response_size = 0;
   u08_t response_cmd = 0;
-  uint16_t pos;
+  uint16_t pos_in_message;
 
 #ifdef DEBUG
   DEBUGF_COMM("Handling command "DBG8" from "DBG8", length "DBG8":\n", nvmcomm3_command, src, length);
@@ -66,29 +66,39 @@ void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t
       DEBUGF_COMM("Going to runlevel NVM_RUNLVL_CONF.\n");
       vm_set_runlevel(NVM_RUNLVL_CONF);
       response_cmd = NVC3_CMD_REPRG_OPEN_R;
+      payload[0] = (uint8_t)(AVR_FLASH_PAGESIZE>>8);
+      payload[1] = (uint8_t)(AVR_FLASH_PAGESIZE);
+      response_size = 2;
     break;
     case NVC3_CMD_REPRG_WRITE:
-      pos = (((uint16_t)payload[0])<<8) + ((uint16_t)payload[1]);
-      DEBUGF_COMM("Received program packet for address "DBG16", current position: "DBG16".\n", pos, nvc3_avr_reprogramming_pos);
+      pos_in_message = (((uint16_t)payload[0])<<8) + ((uint16_t)payload[1]);
+      uint16_t expected_pos = nvc3_avr_reprogramming_pos;
+      DEBUGF_COMM("Received program packet for address "DBG16", current position: "DBG16".\n", pos_in_message, nvc3_avr_reprogramming_pos);
       u08_t codelength = length - 2;
       u08_t *codepayload = payload + 2;
-      if (pos == nvc3_avr_reprogramming_pos) {
+      if (pos_in_message == expected_pos) {
         DEBUGF_COMM("Write "DBG8" bytes at position "DBG16".\n", codelength, nvc3_avr_reprogramming_pos);
 				avr_flash_write(codelength, codepayload);
         nvc3_avr_reprogramming_pos += codelength;
-        response_cmd = NVC3_CMD_REPRG_WRITE_R_OK;
-      } else {
-        DEBUGF_COMM("Positions don't match. Sending WRITE_RETRANSMIT request.");
-        response_cmd = NVC3_CMD_REPRG_WRITE_R_RETRANSMIT;
-        payload[0] = (uint8_t)(nvc3_avr_reprogramming_pos>>8);
-        payload[1] = (uint8_t)(nvc3_avr_reprogramming_pos);
-        response_size = 2;
+      }
+      if (pos_in_message/(uint16_t)AVR_FLASH_PAGESIZE != (pos_in_message+(uint16_t)codelength)/(uint16_t)AVR_FLASH_PAGESIZE) {
+        // Crossing page boundary, send a NVC3_CMD_REPRG_WRITE_R_OK or NVC3_CMD_REPRG_WRITE_R_RETRANSMIT
+        if (pos_in_message == expected_pos) {
+          DEBUGF_COMM("Page boundary reached. Sending REPRG_WRITE_R_OK.");
+          response_cmd = NVC3_CMD_REPRG_WRITE_R_OK;
+        } else {
+          DEBUGF_COMM("Page boundary reached, positions don't match. Sending WRITE_RETRANSMIT request.");
+          response_cmd = NVC3_CMD_REPRG_WRITE_R_RETRANSMIT;
+          payload[0] = (uint8_t)(nvc3_avr_reprogramming_pos>>8);
+          payload[1] = (uint8_t)(nvc3_avr_reprogramming_pos);
+          response_size = 2;
+        }
       }
     break;
     case NVC3_CMD_REPRG_COMMIT:
-      pos = (((uint16_t)payload[0])<<8) + ((uint16_t)payload[1]);
-      DEBUGF_COMM("Received commit request for code up to address "DBG16", current position: "DBG16".\n", pos, nvc3_avr_reprogramming_pos);
-      if (pos != nvc3_avr_reprogramming_pos) {
+      pos_in_message = (((uint16_t)payload[0])<<8) + ((uint16_t)payload[1]);
+      DEBUGF_COMM("Received commit request for code up to address "DBG16", current position: "DBG16".\n", pos_in_message, nvc3_avr_reprogramming_pos);
+      if (pos_in_message != nvc3_avr_reprogramming_pos) {
         DEBUGF_COMM("Positions don't match. Sending COMMIT_RETRANSMIT request.");
         response_cmd = NVC3_CMD_REPRG_COMMIT_R_RETRANSMIT;
         payload[0] = (uint8_t)(nvc3_avr_reprogramming_pos>>8);
@@ -101,6 +111,7 @@ void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t
         DEBUGF_COMM("Committing new code.\n");
         DEBUGF_COMM("Flushing pending writes to flash.\n");
         avr_flash_close();
+        nvc3_avr_reprogramming = FALSE;
         response_cmd = NVC3_CMD_REPRG_COMMIT_R_OK;
       }
     break;
