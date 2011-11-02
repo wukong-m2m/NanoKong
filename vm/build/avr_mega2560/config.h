@@ -11,7 +11,7 @@
 #define ATMEGA2560
 #define CLOCK 16000000
 
-#define CODESIZE 512
+#define CODESIZE 4096
 #define HEAPSIZE 768
 
 // avr specific native init routines
