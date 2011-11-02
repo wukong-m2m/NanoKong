@@ -31,6 +31,10 @@
 #include "uart.h"
 #include "nvmfile.h"
 #include "vm.h"
+#include "nvmcomm3.h"
+
+#include "avr/avr_flash.h"
+#include <avr/boot.h>
 
 #ifdef ATMEGA168
 #include <avr/wdt.h>
@@ -66,7 +70,15 @@ int main(int argc, char **argv) {
 #endif
 
 #if defined(UNIX) || defined(NVM_USE_COMM)
-  uart_init(0, 57600);
+  uart_init(0, UART_BAUDRATE);
+#endif
+
+#ifdef DEBUG // TODO: temporary
+  debug_enable(TRUE);
+#endif
+
+#if defined(NVMCOMM3)
+  nvmcomm_init();
 #endif
 
   // call native initialization (e.g. hardware setup)
@@ -98,7 +110,6 @@ int main(int argc, char **argv) {
 
   if(!quiet)
     printf("NanoVM " VERSION " runtime (c) 2005-2007 by Till Harbaum <till@harbaum.org>\n");
-
 #ifdef NVM_USE_DISK_FILE
   // load translated class file
   if((i<argc)&&(argv[i][0] != '-')) {
@@ -119,13 +130,9 @@ int main(int argc, char **argv) {
 #endif // NVM_USE_DISK_FILE
 #endif // UNIX || __CC65__
 
-#ifdef NVM_USE_COMM
+#if defined(NVM_USE_COMM) && (defined(NVMCOMM1) || defined(NVMCOMM2))
   // wait 1 sec for upload
   loader_receive();
-#endif
-
-#ifdef DEBUG // TODO: temporary
-  debug_enable(TRUE);
 #endif
 
   nvmfile_init();

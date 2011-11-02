@@ -41,12 +41,40 @@
 #include "array.h"
 #endif
 
+#ifdef NVMCOMM3
+#include "nvmcomm3.h"
+#endif
+
+#ifdef AVR
+#include <avr/interrupt.h>
+#include <avr/wdt.h>
+#endif
+
+
 #ifdef NVM_USE_32BIT_WORD
 # define DBG_INT "0x" DBG32
 #else
 # define DBG_INT "0x" DBG16
 #endif
 
+u08_t nvm_runlevel = NVM_RUNLVL_BOOT;
+
+void vm_set_runlevel(u08_t runlevel) {
+  DEBUGF("Changing to runlevel "DBG8"\n", runlevel);
+  nvm_runlevel = runlevel;
+  if (nvm_runlevel == NVM_RUNLVL_RESET) {
+#ifdef AVR
+    // TODO:
+    DEBUGF_COMM("Please press reset until I figure out how to do this from code");
+    wdt_disable();  
+    wdt_enable(WDTO_500MS);
+    while (1) {
+    }
+#else
+    exit(0);
+#endif
+  }
+}
 
 void vm_init(void) {
   DEBUGF("vm_init() with %d static fields\n", nvmfile_get_static_fields());
@@ -160,7 +188,7 @@ typedef union {
 } vm_arg_t;
 
 void   vm_run(u16_t mref) {
-  register u08_t instr, pc_inc, *pc;
+  register u08_t instr = 0, pc_inc, *pc;
   register nvm_int_t tmp1=0;
   register nvm_int_t tmp2;
   register vm_arg_t arg0;
@@ -199,7 +227,17 @@ void   vm_run(u16_t mref) {
   stack_add_sp(mhdr.max_locals);
   stack_save_base();
   
+  vm_set_runlevel(NVM_RUNLVL_VM);
+
   do {
+#ifdef NVMCOMM3
+    // Check if there's any packet coming in that we need to handle before processing the next VM instruction.
+    nvmcomm_poll();
+#endif
+    // If we're not at runlevel VM, wait for nvmcomm to unpause or reset the VM.
+    if (nvm_runlevel != NVM_RUNLVL_VM)
+      continue;
+
     instr = nvmfile_read08(pc);
     pc_inc = 1;
     

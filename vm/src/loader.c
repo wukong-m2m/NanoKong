@@ -55,7 +55,7 @@ void loader_receive(void) {
 #endif
 
   // tell sender that we accept data
-  uart_write_byte(0,ASCII_NAK);
+  uart_write_byte(0, ASCII_NAK);
 
   // wait for data with timeout
   for(sum=0;sum<250 && !uart_available(0);sum++)
@@ -82,22 +82,22 @@ void loader_receive(void) {
 	    nvmfile_write08(addr++, loader.data[i]);
 
 	  // send ack and increase block counter
-	  uart_write_byte(0,ASCII_ACK);
+	  uart_write_byte(0, ASCII_ACK);
 	  block++;
 	} else
-	  uart_write_byte(0,ASCII_NAK);
+	  uart_write_byte(0, ASCII_NAK);
       } else {
 	if(!len)
-	  uart_write_byte(0,ASCII_ACK);
+	  uart_write_byte(0, ASCII_ACK);
 	else {
 	  // not a full packet and not the eof marker -> nak
 	  if(loader.soh != ASCII_EOF)
-	    uart_write_byte(0,ASCII_NAK);
+	    uart_write_byte(0, ASCII_NAK);
 	}
       }
     } while((len < 1) || (loader.soh != ASCII_EOF));
     nvmfile_write_finalize();
-    uart_write_byte(0,ASCII_ACK);
+    uart_write_byte(0, ASCII_ACK);
 
 #ifdef ASURO
     // red status led

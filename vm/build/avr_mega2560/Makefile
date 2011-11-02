@@ -6,16 +6,16 @@ CONFIG = Mega8.config
 DEVICE = atmega2560
 #DEFAULT_FILE = TestPorts
 #DEFAULT_FILE = PwmDemo
-DEFAULT_FILE = ReferenceToNativeObjectTest
 #DEFAULT_FILE = LedBLink
+DEFAULT_FILE = TestCodeUpdate
 ROOT_DIR = ../../..
-# CFLAGS += -DDEBUG
+CFLAGS += -DDEBUG
 
 # general GCC compiler flags
 CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long
 
 # AVR compiler setup
-PREFIX =
+PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
 CC = $(PREFIX)avr-gcc
 OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump
@@ -23,10 +23,10 @@ OBJDUMP = $(PREFIX)avr-objdump
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
-CLDFLAGS += -Wl,--gc-sections  -mmcu=$(DEVICE)
+CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 
 # build intel hex files
-all: NanoVM.hex NanoVM_eeprom.hex
+all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
 
 include ../../src/Makefile
 include ../../src/avr/Makefile
@@ -56,10 +56,13 @@ endef
 	avr-size -A $@
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -O ihex $< $@
+	$(OBJCOPY) -j .text -j .data -j .javabytecode -O ihex $< $@
+
+%_NRWWsection.hex: %.elf
+	$(OBJCOPY) -j .bootloader -O ihex $< $@
 
 %_eeprom.hex: %.elf
-	$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $< $@
+	$(OBJCOPY) -j .eeprom -O ihex $< $@
 
 # use uisp tool to configure whole cpu
 uisp: NanoVM.hex NanoVM_eeprom.hex
@@ -68,9 +71,16 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -p atmega2560 -P /dev/tty.usbmodem621 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -V -v -v -p atmega2560 -P /dev/tty.usbmodem621 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
-clean::
+clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf
+
+upload_bootloader:
+	avrdude -p atmega2560 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section
+	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:../../../arduino/arduino-stk500v2-bootloader/stk500boot_v2_mega2560.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
+	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
+	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
+  
 
 include $(OBJS:.o=.d)

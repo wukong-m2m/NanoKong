@@ -80,7 +80,7 @@ void nvm_halt() {
 #ifdef AVR
 	cli();
 	wdt_disable();
-while (true) uart_write_byte(0,'H'); //!! DEBUG OUTPUT
+while (true) uart_write_byte(0, 'H'); //!! DEBUG OUTPUT
 	for(;;);
 #else
 	exit(0);
@@ -274,7 +274,7 @@ static inline void nvc2_send_response() {
 
 	// send SYN
 
-	uart_write_byte(0,ASCII_SYN);
+	uart_write_byte(0, ASCII_SYN);
 
 	// send LE, LEr/LEi, 0000NNN1 and DATA
 
@@ -284,7 +284,7 @@ static inline void nvc2_send_response() {
 		if (i>=3) value = g_nvc2_data[i-3];
 	
 		crc = crc16_ccitt_lsbf_update(value, crc);
-		uart_write_byte(0,value);
+		uart_write_byte(0, value);
 
 		if (!g_nvc2_query_success) value = value ^ 0xFF; // invert repeated length if error
 	}
@@ -292,8 +292,8 @@ static inline void nvc2_send_response() {
 
 	// send CRC (FCS-16)
 
-	uart_write_byte(0,(u08_t)(crc & 0xFF));
-	uart_write_byte(0,(u08_t)(crc >> 8));
+	uart_write_byte(0, (u08_t)(crc & 0xFF));
+	uart_write_byte(0, (u08_t)(crc >> 8));
 }
 
 

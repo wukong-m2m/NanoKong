@@ -59,7 +59,7 @@ void uart_sigproc() {
   exit(-1);   // exit (and thus call uart_bye)
 }
 
-void uart_init(void) {
+void uart_init(u08_t uart) {
 #ifdef UART_PORT
   out = in = fopen(UART_PORT, "w+b");
   if(!in) {
@@ -96,18 +96,18 @@ void uart_init(void) {
   signal(SIGINT, uart_sigproc);
 }
 
-void uart_write_byte(u08_t byte) {
+void uart_write_byte(u08_t uart, u08_t byte) {
   fputc(byte, out);
   fflush(out);
 }
 
-u08_t uart_read_byte(void) {
+u08_t uart_read_byte(u08_t uart) {
   return fgetc(in);
 }
 
 // unix can't tell us how many bytes in the input buffer are,
 // so just return one as long as there's data
-u08_t uart_available(void) {
+u08_t uart_available(u08_t uart) {
   fd_set fds;
   struct timeval tv = { 0, 100 };
 
@@ -122,17 +122,19 @@ u08_t uart_available(void) {
 #ifdef AVR
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#define UART_BUFFER_SIZE  (1<<(UART_BUFFER_BITS))
-#define UART_BUFFER_MASK  ((UART_BUFFER_SIZE)-1)
 
-// Code from the nvcomm3 branch
 // These bits are the same for all UARTS
 #define TXEN TXEN0
 #define RXEN RXEN0
 #define RXCIE RXCIE0
+#define UCSZ0 UCSZ00
 #define UDRE UDRE0
 
-#if defined(ATMEGA168) || defined(NIBO)
+#define F_CPU 16000000UL
+#define UART_BUFFER_SIZE  (1<<(UART_BUFFER_BITS))
+#define UART_BUFFER_MASK  ((UART_BUFFER_SIZE)-1)
+
+#if defined(ATMEGA168)
 #define UART_COUNT 1
 volatile u08_t *UBRRH[] = { &UBRR0H };
 volatile u08_t *UBRRL[] = { &UBRR0L };
@@ -150,9 +152,14 @@ volatile u08_t *UCSRB[] = { &UCSR0B, &UCSR1B, &UCSR2B, &UCSR3B };
 volatile u08_t *UCSRC[] = { &UCSR0C, &UCSR1C, &UCSR2C, &UCSR3C };
 volatile u08_t *UDR[] = { &UDR0, &UDR1, &UDR2, &UDR3 };
 volatile u16_t *UBRR[] = { &UBRR0, &UBRR1, &UBRR2, &UBRR3 };
-#endif
-
-#if defined(NIBO)
+#elif defined(NIBO)
+volatile u08_t *UBRRH[] = { &UBRR0H };
+volatile u08_t *UBRRL[] = { &UBRR0L };
+volatile u08_t *UCSRA[] = { &UCSR0A };
+volatile u08_t *UCSRB[] = { &UCSR0B };
+volatile u08_t *UCSRC[] = { &UCSR0C };
+volatile u08_t *UDR[] = { &UDR0 };
+volatile u16_t *UBRR[] = { &UBRR0 };
 #define URSEL UBRR0H
 #endif
 
@@ -161,48 +168,63 @@ u08_t uart_buf[UART_COUNT][UART_BUFFER_SIZE];
 
 // Interrupt handlers for receiving data
 // Store byte and increase write pointer
-#if defined(USART0_RX_vect)
-SIGNAL(USART0_RX_vect) {
+#if defined(ATMEGA168)
+SIGNAL(SIG_USART0_RECV) {
+  uart_buf[0][uart_wr[0]] = *UDR[0];
+  uart_wr[0] = ((uart_wr[0]+1) & UART_BUFFER_MASK);
+}
+#elif defined(ATMEGA2560)
+SIGNAL(SIG_USART0_RECV) {
+  uart_buf[0][uart_wr[0]] = *UDR[0];
+  uart_wr[0] = ((uart_wr[0]+1) & UART_BUFFER_MASK);
+}
+SIGNAL(SIG_USART1_RECV) {
+  uart_buf[1][uart_wr[1]] = *UDR[1];
+  uart_wr[1] = ((uart_wr[1]+1) & UART_BUFFER_MASK);
+}
+SIGNAL(SIG_USART2_RECV) {
+  uart_buf[2][uart_wr[2]] = *UDR[2];
+  uart_wr[2] = ((uart_wr[2]+1) & UART_BUFFER_MASK);
+}
+SIGNAL(SIG_USART3_RECV) {
+  uart_buf[3][uart_wr[3]] = *UDR[3];
+  uart_wr[3] = ((uart_wr[3]+1) & UART_BUFFER_MASK);
+}
+#elif defined(NIBO)
+SIGNAL(SIG_USART0_RECV) {
   uart_buf[0][uart_wr[0]] = *UDR[0];
   uart_wr[0] = ((uart_wr[0]+1) & UART_BUFFER_MASK);
 }
 #endif
-#if defined(USART1_RX_vect)
-SIGNAL(USART1_RX_vect) {
-  uart_buf[1][uart_wr[1]] = *UDR[1];
-  uart_wr[1] = ((uart_wr[1]+1) & UART_BUFFER_MASK);
-}
-#endif
-#if defined(USART2_RX_vect)
-SIGNAL(USART2_RX_vect) {
-  uart_buf[2][uart_wr[2]] = *UDR[2];
-  uart_wr[2] = ((uart_wr[2]+1) & UART_BUFFER_MASK);
-}
-#endif
-#if defined(USART3_RX_vect)
-SIGNAL(USART3_RX_vect) {
-  uart_buf[3][uart_wr[3]] = *UDR[3];
-  uart_wr[3] = ((uart_wr[3]+1) & UART_BUFFER_MASK);
-}
-#endif
 
-// four parameters for UART communication
-// baudrate, data-bit, parity, stop-bit
+
+
+
+
+
 void uart_init(u08_t uart, u32_t baudrate) {
+  u16_t bl = baudrate & 0xffff;
+  u16_t bh = (baudrate >> 16) & 0xffff;
+
   uart_rd[uart] = uart_wr[uart] = 0;   // init buffers
 
-  /* set baud rate by rounding */
-  *UBRR[uart] = (CLOCK + (8UL * baudrate)) / (16UL * baudrate) - 1;
+  if (baudrate == 115200)
+    // TODO: calculation fails for 115200 baud (results in 7 instead of 8). Need to fix this properly sometime.
+    *UBRR[uart] = 8;
+  else
+    *UBRR[uart] = (CLOCK / (16UL * baudrate)) - 1;
+
+  DEBUGF_COMM("Uart.c: init UART "DBG8" at "DBG16""DBG16" baud. UBRR="DBG16"\n\r", uart, bh, bl, *UBRR[uart]);
 
   *UCSRA[uart] = 0;
   *UCSRB[uart] =
     _BV(RXEN) | _BV(RXCIE) |          // enable receiver and irq
     _BV(TXEN);                        // enable transmitter
 
-#ifdef URSEL // UCSRC shared with UBRRH in nibo
-  *UCSRC[uart] = _BV(URSEL) | _BV(UCSZ00) | _BV(UCSZ01);  // default is 8n1 = 8 bit data + no parity + 1 stop bit
+#ifdef URSEL // UCSRC shared with UBRRH
+  *UCSRC[uart] = _BV(URSEL) | (3 << UCSZ0);  // 8n1
 #else
-  *UCSRC[uart] = _BV(UCSZ00) | _BV(UCSZ01);  // 8n1
+  *UCSRC[uart] = (3 << UCSZ0);  // 8n1
 #endif // URSEL
 
   sei();
@@ -246,6 +268,10 @@ u08_t uart_read_byte(u08_t uart) {
 }
 
 #endif // AVR
+
+
+
+
 
 #ifdef __CC65__
 

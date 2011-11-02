@@ -47,6 +47,7 @@ typedef uintptr_t ptr_t;
 typedef uint8_t   size8_t;  // A byte-sized size_t
 typedef int8_t    ssize8_t; // A byte-sized ssize_t
 
+typedef int8_t    address_t; // Placeholder until we figure out what an address is. Shouldn't be a Z-Wave address in the rest of the code.
 
 #if !defined __cplusplus
 
