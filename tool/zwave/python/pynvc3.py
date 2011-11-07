@@ -34,4 +34,4 @@ def receive(waitmsec):
   return pyzwave.receive(waitmsec)
 
 def init():
-  pyzwave.init("192.168.0.231")
+  pyzwave.init("10.3.36.231")
