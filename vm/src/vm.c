@@ -66,8 +66,6 @@ void vm_set_runlevel(u08_t runlevel) {
 #ifdef AVR
     // TODO:
     DEBUGF_COMM("Please press reset until I figure out how to do this from code");
-    wdt_disable();  
-    wdt_enable(WDTO_500MS);
     while (1) {
     }
 #else
