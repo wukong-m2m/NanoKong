@@ -843,7 +843,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 		// read out pending request from Z-Wave
 		while(1) {
 			to.tv_sec = 0;
-			to.tv_usec = 100;
+			to.tv_usec = 10000;
 			
 			FD_ZERO(&rs);
 			FD_SET(zwavefd,&rs);
@@ -4303,12 +4303,10 @@ int PyZwave_receiveByte(int wait_msec) {
 int PyZwave_receive(int wait_msec) {
 	int tmpBytesReceived;
 
-	while(1) {
+	while(PyZwave_bytesReceived == 0) {
 	  if (!PyZwave_receiveByte(wait_msec)) {
       break; // No data received.
 	  }
-		if (PyZwave_bytesReceived > 0)
-      break; // Complete message received, handle it first
 	}
   tmpBytesReceived = PyZwave_bytesReceived;
   PyZwave_bytesReceived = 0;
