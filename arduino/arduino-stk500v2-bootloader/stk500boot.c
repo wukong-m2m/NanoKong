@@ -92,6 +92,7 @@ LICENSE:
 #include	<util/delay.h>
 #include	<avr/eeprom.h>
 #include	<avr/common.h>
+#include  <avr/wdt.h>
 #include	<stdlib.h>
 #include	"command.h"
 
@@ -423,8 +424,6 @@ uint32_t count = 0;
 	return UART_DATA_REG;
 }
 
-
-
 //*****************************************************************************
 int main(void)
 {
@@ -446,6 +445,10 @@ int main(void)
 	unsigned int	exPointCntr	=	0;
 #endif
 
+  // Disable WDT
+  MCUSR &= ~_BV(WDRF);
+  WDTCSR = _BV(WDCE) | _BV(WDE);
+  WDTCSR = 0;
 
 	boot_timer	=	0;
 	boot_state	=	0;
