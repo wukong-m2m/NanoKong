@@ -65,8 +65,8 @@ void vm_set_runlevel(u08_t runlevel) {
   if (nvm_runlevel == NVM_RUNLVL_RESET) {
 #ifdef AVR
     // Reset using the watchdog timer.
-    WDTCSR = _BV(WDCE) | _BV(WDE);
-    WDTCSR = _BV(WDE) | _BV(WDIE);
+    WDTCSR = _BV(WDCE);
+    WDTCSR = _BV(WDE);
     while (1) {
     }
 #else
