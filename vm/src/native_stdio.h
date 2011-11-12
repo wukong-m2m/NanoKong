@@ -28,5 +28,6 @@ void native_java_io_printstream_invoke(u08_t mref);
 void native_java_io_inputstream_invoke(u08_t mref);
 void native_java_lang_stringbuffer_invoke(u08_t mref);
 void native_itoa(char *str, nvm_int_t val);
+void native_print_impl(char *str, bool_t ret, int uart);
 
 #endif // NATIVE_STDIO_H

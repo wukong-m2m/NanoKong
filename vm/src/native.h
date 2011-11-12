@@ -66,8 +66,17 @@
 #define NATIVE_METHOD_TWAIT         3
 #define NATIVE_METHOD_SETPRESCALER  4
 
-// nanovm/avr/Uart (use PrintStream/InputStream for io)
-#define NATIVE_CLASS_UART           (NATIVE_CLASS_BASE+8)
+// nanovm/avr/USART (use PrintStream/InputStream for io)
+#define NATIVE_CLASS_USART           (NATIVE_CLASS_BASE+8)
+#define NATIVE_METHOD_USART_AVAILABLE 8
+#define NATIVE_METHOD_USART_READ      9
+#define NATIVE_METHOD_SETBAUDRATE	10
+#define NATIVE_METHOD_SETPARITY		11
+#define NATIVE_METHOD_SETSTOPBITS	12
+#define NATIVE_FIELD_USART0         0
+#define NATIVE_FIELD_USART1         1
+#define NATIVE_FIELD_USART2         2
+#define NATIVE_FIELD_USART3         3
 
 // nanovm/avr/Pwm
 #define NATIVE_CLASS_PWM            (NATIVE_CLASS_BASE+9)

@@ -119,6 +119,8 @@ void native_invoke(u16_t mref) {
     native_avr_adc_invoke(NATIVE_ID2METHOD(mref));
   } else if(NATIVE_ID2CLASS(mref) == NATIVE_CLASS_PWM) {
     native_avr_pwm_invoke(NATIVE_ID2METHOD(mref));
+  } else if(NATIVE_ID2CLASS(mref) == NATIVE_CLASS_USART) {
+    native_avr_usart_invoke(NATIVE_ID2METHOD(mref));
 #endif
 
 #if defined(LCD)
