@@ -21,6 +21,16 @@
 #define UART_H
 
 extern void uart_init(u08_t uart, u32_t baudrate);
+
+//#if defined(ATMEGA2560)
+extern void uart_setBaudrate(u08_t uart, u32_t baudrate, u08_t factor);
+extern void uart_setStopbit(u08_t uart, u08_t stopbit);
+extern void uart_setParity(u08_t uart, u08_t parity);
+extern void uart_flush(u08_t uart);
+extern void uart_spi_begin(u08_t uart, u32_t baudrate);
+extern u08_t uart_spi_transfer(u08_t uart, u08_t byte);
+//#endif
+
 extern void uart_write_byte(u08_t uart, u08_t byte);
 extern void uart_putc(u08_t uart, u08_t byte);
 extern u08_t uart_read_byte(u08_t uart);

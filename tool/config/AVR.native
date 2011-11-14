@@ -22,3 +22,9 @@ field portL:Lnanovm/avr/Port; 10
 # AVR supports two PWM units
 field pwm0:Lnanovm/avr/Pwm;   0
 field pwm1:Lnanovm/avr/Pwm;   1
+
+# AVR supports up to four USARTs
+field usart0:Lnanovm/avr/USART; 0
+field usart1:Lnanovm/avr/USART; 1
+field usart2:Lnanovm/avr/USART; 2
+field usart3:Lnanovm/avr/USART; 3

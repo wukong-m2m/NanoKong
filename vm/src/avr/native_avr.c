@@ -33,6 +33,7 @@
 #include "vm.h"
 #include "native.h"
 #include "native_avr.h"
+#include "native_stdio.h"
 #include "stack.h"
 #include "uart.h"
 
@@ -121,6 +122,65 @@ void native_avr_avr_invoke(u08_t mref) {
     stack_push(CLOCK/1000);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
+}
+
+void native_avr_usart_invoke(u08_t mref) {
+  char tmp[8];
+
+  if(mref == NATIVE_METHOD_PRINTLN_STR) {
+    char *addr = stack_pop_addr();
+    u08_t uart = stack_pop_int();
+    native_print_impl(addr, TRUE, uart);
+  } else if(mref == NATIVE_METHOD_PRINTLN_INT) {
+    native_itoa((char*)tmp, stack_pop_int());
+    u08_t uart = stack_pop_int();
+    native_print_impl(tmp, TRUE, uart);
+  } else if(mref == NATIVE_METHOD_PRINT_STR) {
+    char *addr = stack_pop_addr();
+    u08_t uart = stack_pop_int();
+    native_print_impl(addr, FALSE, uart);
+  } else if(mref == NATIVE_METHOD_PRINT_INT) {
+    native_itoa((char*)tmp, stack_pop_int());
+    u08_t uart = stack_pop_int();
+    native_print_impl(tmp, FALSE, uart);
+  } else if(mref == NATIVE_METHOD_PRINTLN_CHAR) {
+    u08_t c = stack_pop_int();
+    u08_t uart = stack_pop_int();
+    uart_putc(uart, c);
+    uart_putc(uart, '\n');
+  } else if(mref == NATIVE_METHOD_PRINT_CHAR) {
+    u08_t c = stack_pop_int();
+    u08_t uart = stack_pop_int();
+    uart_putc(uart, c);
+#ifdef NVM_USE_EXT_STDIO
+  } else if(mref == NATIVE_METHOD_FORMAT) {
+    char *addr = stack_pop_addr();
+    stack_pop_int(); // TODO
+    u08_t uart = stack_pop_int();
+    native_print_impl(addr, FALSE, uart);
+    stack_push(stack_peek(0)); // duplicate this ref
+#endif    
+  } else if (mref == NATIVE_METHOD_USART_AVAILABLE) {
+    u08_t uart = stack_pop_int();
+    stack_push(uart_available(uart));
+  } else if(mref == NATIVE_METHOD_USART_READ) {
+    u08_t uart = stack_pop_int();
+    stack_push(uart_read_byte(uart));
+  } else if(mref == NATIVE_METHOD_SETBAUDRATE) {
+    u08_t baudrate = stack_pop_int();
+    u08_t uart = stack_pop_int();
+    uart_setBaudrate(uart, baudrate, 16UL);
+  } else if(mref == NATIVE_METHOD_SETPARITY) {
+    u08_t parity = stack_pop_int();
+    u08_t uart = stack_pop_int();
+    uart_setParity(uart, parity);
+  } else if(mref == NATIVE_METHOD_SETSTOPBITS) {
+    u08_t stopbit = stack_pop_int();
+    u08_t uart = stack_pop_int();
+    uart_setStopbit(uart, stopbit);
+  } else
+    error(ERROR_NATIVE_UNKNOWN_METHOD);
+ 
 }
 
 // the port class

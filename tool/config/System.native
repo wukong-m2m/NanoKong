@@ -6,3 +6,4 @@ class java/lang/System 17
 
 field out:Ljava/io/PrintStream; 0
 field in:Ljava/io/InputStream; 1
+

@@ -24,6 +24,11 @@ public class AVR {
   // and the PWM units
   public static Pwm pwm0;
   public static Pwm pwm1;
+  
+  public static USART usart0;
+  public static USART usart1;
+  public static USART usart2;
+  public static USART usart3;
 
   // return system clock in khz
   static public native int getClock();
