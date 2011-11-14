@@ -18,7 +18,7 @@ class TestNvmComm3Rot13 {
   public static void main(String[] args) throws IOException {
     while(true) {
       System.out.println("Waiting for data.....");
-      byte[] data = NvmComm3.receive(10000);
+      byte[] data = NvmComm3.receive(1000);
       if (data != null) {
         Rot13(data);
         NvmComm3.send((byte)2, data, (byte)data.length);
