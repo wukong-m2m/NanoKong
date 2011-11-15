@@ -8,6 +8,7 @@ DEVICE = atmega2560
 #DEFAULT_FILE = PwmDemo
 #DEFAULT_FILE = LedBLink
 DEFAULT_FILE = TestCodeUpdate
+#DEFAULT_FILE = TestNvmComm3Rot13
 ROOT_DIR = ../../..
 CFLAGS += -DDEBUG
 
@@ -71,7 +72,7 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -V -v -v -p atmega2560 -P /dev/tty.usbmodem621 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -p atmega2560 -P /dev/tty.usbmodem621 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf
