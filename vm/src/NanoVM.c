@@ -77,12 +77,6 @@ int main(int argc, char **argv) {
   debug_enable(TRUE);
 #endif
 
-#if defined(ATMEGA2560)
-  uart_init(0, UART_BAUDRATE);
-  uart_init(1, UART_BAUDRATE);
-  uart_init(2, UART_BAUDRATE);
-  uart_init(3, UART_BAUDRATE);
-#endif
 #if defined(NVMCOMM3)
   nvmcomm_init();
 #endif

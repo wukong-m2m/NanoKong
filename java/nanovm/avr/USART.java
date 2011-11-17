@@ -8,12 +8,12 @@
 
 package nanovm.avr;
 import java.io.PrintStream;
-import java.lang.*;
+import java.lang.String;
 
 public class USART {
-    public static final int NoneParity = 0;
-    public static final int OddParity = 2;
-    public static final int EvenParity = 3;
+    public static final int None = 0;
+    public static final int Odd = 2;
+    public static final int Even = 3;
 
     public native void println(String x);
     public native void println(int x);
@@ -24,7 +24,7 @@ public class USART {
     public native PrintStream format(String format, Object[] args);
     public native int available();
     public native int read();
-    public native void setBaudrate(int baudrate);
-    public native void setParity(int parity);
-    public native void setStopbits(int stopbit);
+    public native void init(int baudrate, int stopbit, int parity);
+    public void init(int baudrate){ init(baudrate, None, 1); }
+    public void init(int baudrate, int stopbit){ init(baudrate, None, stopbit); }
 }
