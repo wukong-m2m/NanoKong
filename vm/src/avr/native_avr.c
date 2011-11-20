@@ -127,35 +127,35 @@ void native_avr_avr_invoke(u08_t mref) {
 // the USART class
 void native_avr_usart_invoke(u08_t mref) {
   char tmp[8];
-  if(mref == NATIVE_METHOD_PRINTLN_STR) {
+  if(mref == NATIVE_METHOD_USART_PRINTLN_STR) {
     char *addr = stack_pop_addr();
     u08_t uart = stack_pop();
     uart_native_print(addr, TRUE, uart);
-  } else if(mref == NATIVE_METHOD_PRINTLN_INT) {
+  } else if(mref == NATIVE_METHOD_USART_PRINTLN_INT) {
     native_itoa((char*)tmp, stack_pop_int());
     u08_t uart = stack_pop();
     uart_native_print(tmp, TRUE, uart);
-  } else if(mref == NATIVE_METHOD_PRINT_STR) {
+  } else if(mref == NATIVE_METHOD_USART_PRINT_STR) {
     char *addr = stack_pop_addr();
     u08_t uart = stack_pop();
     uart_native_print(addr, FALSE, uart);
-  } else if(mref == NATIVE_METHOD_PRINT_INT) {
+  } else if(mref == NATIVE_METHOD_USART_PRINT_INT) {
     native_itoa((char*)tmp, stack_pop_int());
     u08_t uart = stack_pop();
     uart_native_print(tmp, FALSE, uart);
-  } else if(mref == NATIVE_METHOD_PRINTLN_CHAR) {
+  } else if(mref == NATIVE_METHOD_USART_PRINTLN_CHAR) {
     u08_t c = stack_pop_int();
     u08_t uart = stack_pop();
     uart_putc(uart, c);
     uart_putc(uart, '\n');
-  } else if(mref == NATIVE_METHOD_PRINT_CHAR) {
+  } else if(mref == NATIVE_METHOD_USART_PRINT_CHAR) {
     u08_t c = stack_pop_int();
     u08_t uart = stack_pop();
     //DEBUGF_USART(""DBG16"\n",c);
     //DEBUGF_USART(""DBG16"\n",uart);
     uart_putc(uart, c);
 #ifdef NVM_USE_EXT_STDIO
-  } else if(mref == NATIVE_METHOD_FORMAT) {
+  } else if(mref == NATIVE_METHOD_USART_FORMAT) {
     char *addr = stack_pop_addr();
     stack_pop_int(); // TODO
     u08_t uart = stack_pop();

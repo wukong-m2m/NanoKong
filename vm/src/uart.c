@@ -206,13 +206,13 @@ static void uart_set_baudrate(u08_t uart, u32_t baudrate, u08_t factor){
 }
 
 void uart_init_impl(u08_t uart, u32_t baudrate, u08_t stopbit, u08_t parity){
-  // DEBUGF_USART(""DBG32"\n",baudrate);
+  //DEBUGF_USART(""DBG32"\n",baudrate);
   // WARNING:
   //    We cannot use more than 15-bit int which is at most 16383
   //    So Baudrate is needed to be considered.
   if (uart_openlog & _BV(uart+1)) uart_close(uart);  // if initialized, then close it
   uart_rd[uart] = uart_wr[uart] = 0;   // init buffers
-  bool_t u2x_flag = (baudrate != 57600)?TRUE:FALSE;  // speed up
+  bool_t u2x_flag = FALSE;//(baudrate != 57600)?TRUE:FALSE;  // speed up
   u08_t factor = (u2x_flag) ? 8 : 16;
 
   *UCSRA[uart] = (u2x_flag) ? _BV(U2X) : 0;

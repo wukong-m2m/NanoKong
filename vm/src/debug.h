@@ -29,7 +29,7 @@
 
 #define DBG8 "%02x"
 #define DBG16 "%04x"
-#define DBG32 "%08x"
+#define DBG32 "%08lx"
 
 #define DEBUG_UART 0
 
