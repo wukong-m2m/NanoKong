@@ -88,26 +88,22 @@ void native_ftoa(char *str, nvm_float_t val) {
 }
 #endif
 
-void native_print_impl(char *str, bool_t ret, int uart){
+// send a string to the console and append return if ret is true
+static void native_print(char *str, bool_t ret) {
 #ifdef NVM_USE_EEPROM
   u08_t chr;
   // check if source string is within internal nvm file, otherwise 
   // it's directly being read from ram
   if(NVMFILE_ISSET(str)) {
     while((chr = nvmfile_read08(str++)))
-      uart_putc(uart, chr);
+      uart_putc(0, chr);
   } else
 #endif
     while(*str)
-      uart_putc(uart, *str++);
+      uart_putc(0, *str++);
 
   if(ret)
-    uart_putc(uart, '\n');
-}
-
-// send a string to the console and append return if ret is true
-static void native_print(char *str, bool_t ret) {
-  native_print_impl(str, ret, 0);
+    uart_putc(0, '\n');
 }
 
 // invoke a native method within class java/io/PrintStream

@@ -135,6 +135,7 @@ u08_t uart_available(void) {
 #define UCPHA UCSZ00
 #define UDORD UCSZ01
 #define UCPOL UCPOL0
+#define U2X U2X0
 
 #if defined(ATMEGA168) || defined(NIBO)
 #define UART_COUNT 1
@@ -164,6 +165,7 @@ volatile u08_t XCKn[] = {DDE2, DDD5, DDH2, DDJ2};
 
 u08_t uart_rd[UART_COUNT], uart_wr[UART_COUNT];
 u08_t uart_buf[UART_COUNT][UART_BUFFER_SIZE];
+u08_t uart_openlog = 0;
 
 // Interrupt handlers for receiving data
 // Store byte and increase write pointer
@@ -195,52 +197,86 @@ SIGNAL(USART3_RX_vect) {
 // four parameters for UART communication
 // baudrate, data-bit, parity, stop-bit
 void uart_init(u08_t uart, u32_t baudrate) {
-  uart_rd[uart] = uart_wr[uart] = 0;   // init buffers
+  uart_init_impl(uart, baudrate, 1, 0);
+}
 
+static void uart_set_baudrate(u08_t uart, u32_t baudrate, u08_t factor){
   /* set baud rate by rounding */
-  *UBRR[uart] = (CLOCK + (8UL * baudrate)) / (16UL * baudrate) - 1;
+  *UBRR[uart] = (CLOCK / (factor>>1) / baudrate - 1) / 2;
+}
 
-  *UCSRA[uart] = 0;
+void uart_init_impl(u08_t uart, u32_t baudrate, u08_t stopbit, u08_t parity){
+  //DEBUGF_USART(""DBG32"\n",baudrate);
+  // WARNING:
+  //    We cannot use more than 15-bit int which is at most 16383
+  //    So Baudrate is needed to be considered.
+  if (uart_openlog & _BV(uart+1)) uart_close(uart);  // if initialized, then close it
+  uart_rd[uart] = uart_wr[uart] = 0;   // init buffers
+  bool_t u2x_flag = FALSE;//(baudrate != 57600)?TRUE:FALSE;  // speed up
+  u08_t factor = (u2x_flag) ? 8 : 16;
+
+  *UCSRA[uart] = (u2x_flag) ? _BV(U2X) : 0;
   *UCSRB[uart] =
     _BV(RXEN) | _BV(RXCIE) |          // enable receiver and irq
     _BV(TXEN);                        // enable transmitter
 
+  if (stopbit == 2){
+    *UCSRC[uart] |= _BV(USBS);
+  } else { // default: one stop bit
+    *UCSRC[uart] &= ~_BV(USBS);
+  }
+
+  switch (parity){
+    case 3: // Odd Parity
+      *UCSRC[uart] |= _BV(UPM01) | _BV(UPM00);
+      break;
+    case 2: // Even Parity
+      *UCSRC[uart] &= ~_BV(UPM00);
+      *UCSRC[uart] |= _BV(UPM01);
+      break;
+    case 0: // default: No Parity
+    default:
+      *UCSRC[uart] &= ~(_BV(UPM00) | _BV(UPM01));
+      break;
+  }
+
+  uart_set_baudrate(uart, baudrate, factor);
+
 #ifdef URSEL // UCSRC shared with UBRRH in nibo
-  *UCSRC[uart] = _BV(URSEL) | _BV(UCSZ00) | _BV(UCSZ01);  // default is 8n1 = 8 bit data + no parity + 1 stop bit
+  *UCSRC[uart] |= _BV(URSEL) | _BV(UCSZ00) | _BV(UCSZ01);
 #else
-  *UCSRC[uart] = _BV(UCSZ00) | _BV(UCSZ01);  // 8n1
+  *UCSRC[uart] |= _BV(UCSZ00) | _BV(UCSZ01);  // 8 bit data
 #endif // URSEL
 
   sei();
+  uart_openlog |= _BV(uart+1);
 }
 
-//#if defined(ATMEGA2560)
-void uart_setBaudrate(u08_t uart, u32_t baudrate, u08_t factor){
-  if (baudrate > 0)
-    /* set baud rate by rounding */
-    *UBRR[uart] = (CLOCK + ((factor>>1) * baudrate)) / (factor * baudrate) - 1;
+void uart_native_print(char *str, bool_t ret, u08_t uart){
+#ifdef NVM_USE_EEPROM
+  u08_t chr;
+  // check if source string is within internal nvm file, otherwise 
+  // it's directly being read from ram
+  if(NVMFILE_ISSET(str)) {
+    while((chr = nvmfile_read08(str++)))
+      uart_putc(uart, chr);
+  } else
+#endif
+    while(*str)
+      uart_putc(uart, *str++);
+
+  if(ret)
+    uart_putc(uart, '\n');
 }
-void uart_setStopbit(u08_t uart, u08_t stopbit){
-  if (stopbit == 2){
-    *UCSRC[uart] |= _BV(USBS);
-  }else if(stopbit == 1){
-    *UCSRC[uart] &= ~_BV(USBS);
-  }
+
+void uart_close(u08_t uart){
+  *UCSRB[uart] &=
+    ~(_BV(RXEN) | _BV(RXCIE) |          // enable receiver and irq
+    _BV(TXEN));                        // enable transmitter
+  uart_openlog &= ~_BV(uart+1);
 }
-void uart_setParity(u08_t uart, u08_t parity){
-  switch (parity){
-    case 3:
-      *UCSRC[uart] |= _BV(UPM01) | _BV(UPM00);
-    case 2:
-      *UCSRC[uart] |= _BV(UPM01);
-      *UCSRC[uart] &= ~_BV(UPM00);
-    case 0:
-      *UCSRC[uart] &= ~(_BV(UPM00) | _BV(UPM01));
-    default:
-      return;
-  }
-}
-void uart_spi_begin(u08_t uart, u32_t baudrate){
+
+void uart_spi_init(u08_t uart, u32_t baudrate){
     /* Setting the XCKn port pin as output, enables master mode */
     *XCKDDR[uart] |= _BV(XCKn[uart]);
     /* Set MSPI mode of operation and SPI data mode 0 */
@@ -248,8 +284,10 @@ void uart_spi_begin(u08_t uart, u32_t baudrate){
     /* Enable receiber and transmitter. */
     *UCSRB[uart] |= _BV(RXEN) | _BV(TXEN);
     /* Set baudrate IMPORTANT: The Baudrate must be set after the transmitter is enabled */
-    uart_setBaudrate(uart, baudrate, 2UL);
+    uart_set_baudrate(uart, baudrate, 2);
+    sei();
 }
+
 u08_t uart_spi_transfer(u08_t uart, u08_t byte){
   /* Wait for empty transmit buffer */
   while(!(*UCSRA[uart] & _BV(UDRE)));
@@ -262,11 +300,6 @@ u08_t uart_spi_transfer(u08_t uart, u08_t byte){
 
   return *UDR[uart];
 }
-
-void uart_flush(u08_t uart){
-  uart_wr[uart] = uart_rd[uart];
-}
-//#endif
 
 u08_t uart_available(u08_t uart) {
   return(UART_BUFFER_MASK & (uart_wr[uart] - uart_rd[uart]));

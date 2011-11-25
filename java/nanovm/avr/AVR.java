@@ -24,7 +24,8 @@ public class AVR {
   // and the PWM units
   public static Pwm pwm0;
   public static Pwm pwm1;
-  
+ 
+  // the USART units 
   public static USART usart0;
   public static USART usart1;
   public static USART usart2;

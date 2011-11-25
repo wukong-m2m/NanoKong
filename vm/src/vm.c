@@ -764,7 +764,7 @@ void   vm_run(u16_t mref) {
 	mref = arg0.w;
 	pc = (u08_t*)mhdr_ptr + mhdr.code_index;
 	pc_inc = 0;  // don't add further bytes to program counter
-      } else { 
+      } else {
 	native_invoke(arg0.w);
 	pc_inc = 3;   // prefetched data used
       }
