@@ -13,13 +13,13 @@ def checkedReceive(waitmsec, allowedTypes):
     quit()
   return reply
   
-def reprogramNvmdefault():
+def reprogramNvmdefault(destination, filename):
   MESSAGESIZE = 16
-  pynvc3.sendcmd(pynvc3.REPRG_OPEN)
+  pynvc3.sendcmd(destination, pynvc3.REPRG_OPEN)
   reply = checkedReceive(1000, [pynvc3.REPRG_OPEN_R])
   pagesize = reply[1]*256 + reply[2]
 
-  lines = [" " + l.replace('0x','').replace(',','').replace('\n','') for l in open(sys.argv[1]).readlines() if l.startswith('0x')]
+  lines = [" " + l.replace('0x','').replace(',','').replace('\n','') for l in open(filename).readlines() if l.startswith('0x')]
   bytecode = []
   for l in lines:
     for b in l.split():
@@ -31,7 +31,7 @@ def reprogramNvmdefault():
   while not pos == len(bytecode):
     payload_pos = [pos/256, pos%256]
     payload_data = bytecode[pos:pos+MESSAGESIZE]
-    pynvc3.sendcmd(pynvc3.REPRG_WRITE, payload_pos+payload_data)
+    pynvc3.sendcmd(destination, pynvc3.REPRG_WRITE, payload_pos+payload_data)
     if pos/pagesize == (pos+len(payload_data))/pagesize:
       pos += len(payload_data)
     else:
@@ -48,7 +48,7 @@ def reprogramNvmdefault():
     # Send REPRG_VERIFY after last packet
     if pos == len(bytecode):
       payload = [pos/256, pos%256]
-      pynvc3.sendcmd(pynvc3.REPRG_COMMIT, payload)
+      pynvc3.sendcmd(destination, pynvc3.REPRG_COMMIT, payload)
       reply = checkedReceive(1000, [pynvc3.REPRG_COMMIT_R_RETRANSMIT,
                                     pynvc3.REPRG_COMMIT_R_FAILED,
                                     pynvc3.REPRG_COMMIT_R_OK])
@@ -61,7 +61,7 @@ def reprogramNvmdefault():
       else:
         print "Commit failed."
         quit()
-  pynvc3.sendcmd(pynvc3.SETRUNLVL, [pynvc3.RUNLVL_RESET])
+  pynvc3.sendcmd(destination, pynvc3.SETRUNLVL, [pynvc3.RUNLVL_RESET])
 
 pynvc3.init()
-reprogramNvmdefault()
+reprogramNvmdefault(int(sys.argv[1]), sys.argv[2])

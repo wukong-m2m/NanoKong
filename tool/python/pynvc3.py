@@ -27,8 +27,8 @@ RUNLVL_VM                    = 0x02
 RUNLVL_CONF                  = 0x03
 RUNLVL_RESET                 = 0x04
 
-def sendcmd(cmd, payload=[]):
-  return pyzwave.send(1, [0x88, cmd] + payload)
+def sendcmd(dest, cmd, payload=[]):
+  return pyzwave.send(dest, [0x88, cmd] + payload)
 
 def receive(waitmsec):
   return pyzwave.receive(waitmsec)
