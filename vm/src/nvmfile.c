@@ -234,9 +234,8 @@ bool_t nvmfile_init(void) {
   
   // TODO: Get rid of this really bad hack
   int i;
-  DEBUGF_COMM("To stop compiler from complaining:"DBG8"\n", nvmfileflash[1]);
   for (i=0; i<CODESIZE; i++) {
-    nvmfile[i] = pgm_read_byte(0x8000+i);
+    nvmfile[i] = pgm_read_byte(nvmfileflash+i);
   }
   
   u32_t features = nvmfile_read32(&nvm_header->magic_feature);

@@ -6,6 +6,7 @@ class WuKongIODemos {
     // For example, Set PA0 to be output and output the low value
     AVR.portA.setOutput(0);
     AVR.portA.setBit(0);
+    AVR.portA.clrBit(0);
 
     // ======= Comments =======
     // For now this works through calling AVR.portA. In the final version this should be

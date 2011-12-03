@@ -200,6 +200,13 @@ void uart_init(u08_t uart, u32_t baudrate) {
   uart_init_impl(uart, baudrate, 1, 0);
 }
 
+// Because of the limit of 16 bit 
+// the java code transfer the baudrate
+// which is 400 times less
+u32_t uart_int2baud(u32_t baudrate){
+  return baudrate*400;
+}
+
 static void uart_set_baudrate(u08_t uart, u32_t baudrate, u08_t factor){
   /* set baud rate by rounding */
   *UBRR[uart] = (CLOCK / (factor>>1) / baudrate - 1) / 2;

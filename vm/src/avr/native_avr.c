@@ -173,6 +173,7 @@ void native_avr_usart_invoke(u08_t mref) {
     u08_t stopbit = stack_pop();
     u32_t baudrate = stack_pop_int();
     u08_t uart = stack_pop();
+    baudrate = uart_int2baud(baudrate);
     uart_init_impl(uart, baudrate, stopbit, parity);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);

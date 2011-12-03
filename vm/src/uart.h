@@ -23,6 +23,7 @@
 extern void uart_init(u08_t uart, u32_t baudrate);
 extern void uart_init_impl(u08_t uart, u32_t baudrate, u08_t stopbit, u08_t parity);
 extern void uart_close(u08_t uart);
+extern u32_t uart_int2baud(u32_t baudrate);
 extern void uart_spi_init(u08_t uart, u32_t baudrate);
 extern u08_t uart_spi_transfer(u08_t uart, u08_t byte);
 extern void uart_native_print(char *str, bool_t ret, u08_t uart);
