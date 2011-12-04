@@ -43,6 +43,9 @@
 // nanovm/avr/AVR
 #define NATIVE_CLASS_AVR            (NATIVE_CLASS_BASE+5)
 #define NATIVE_METHOD_GETCLOCK      1
+#define NATIVE_METHOD_SETPINIOMODE      2
+#define NATIVE_METHOD_DIGITALWRITE      3
+#define NATIVE_METHOD_DIGITALREAD      4
 #define NATIVE_FIELD_PORTA          0
 #define NATIVE_FIELD_PORTB          1
 #define NATIVE_FIELD_PORTC          2

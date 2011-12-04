@@ -20,6 +20,8 @@ public class AVR {
   public static Port portJ;
   public static Port portK;
   public static Port portL;
+  public static int INPUT = 1;
+  public static int OUTPUT = 0;
 
   // and the PWM units
   public static Pwm pwm0;
@@ -33,4 +35,7 @@ public class AVR {
 
   // return system clock in khz
   static public native int getClock();
+  static public native void setPinIOMode(int pin, int mode);
+  static public native void digitalWrite(int pin, int value);
+  static public native int digitalRead(int pin);
 }

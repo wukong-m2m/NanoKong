@@ -5,6 +5,9 @@
 class nanovm/avr/AVR 21
 
 method getClock:()I 1
+method setPinIOMode:(II)V 2
+method digitalWrite:(II)V 3
+method digitalRead:(I)I 4
 
 # AVR supports 11 ports
 field portA:Lnanovm/avr/Port; 0

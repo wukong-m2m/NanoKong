@@ -8,6 +8,11 @@ class WuKongIODemos {
     AVR.portA.setBit(0);
     AVR.portA.clrBit(0);
 
+    // Second Method: Set pin 13 to Output, and write 1 into the pin
+    int pin = 13;
+    AVR.setPinIOMode(pin, 0);
+    AVR.digitalWrite(pin, 1);
+
     // ======= Comments =======
     // For now this works through calling AVR.portA. In the final version this should be
     // replaced with something that's not in a class AVR, since not all nodes will be AVR
@@ -21,6 +26,11 @@ class WuKongIODemos {
     // Get input data from PA0
     AVR.portA.setInput(0);
     System.out.println("Value portA0: " + AVR.portA.getInput(0));   
+    
+    // Second Method: Set pin 13 to Iutput, and read from the pin
+    int pin = 13;
+    AVR.setPinIOMode(pin, 1);
+    System.out.println("Value pin"+pin+": "+AVR.digitalRead(pin));
     
     // ======= Comments =======
     // The easiest way should be to just poll, but it would be useful to also be able
@@ -53,6 +63,7 @@ class WuKongIODemos {
     System.out.println("Byte CH0:  " + Adc.getByte(Adc.CHANNEL0));
   }
 
+  // SetAnalogOutput()
   public void SetPWM() {
     // Using PWM to write analog value as digital form.
     // Currently, we only have pwm0 (PB.4 or Digital pin 10),
