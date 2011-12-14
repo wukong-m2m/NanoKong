@@ -5,6 +5,10 @@
 class nanovm/avr/AVR 21
 
 method getClock:()I 1
+method getIflagINT:(I)I 2
+method getIflagPCINTA:(I)I 3
+method clrIflagINT:(I)V 4
+method clrIflagPCINTA:(I)V 5
 
 # AVR supports 11 ports
 field portA:Lnanovm/avr/Port; 0

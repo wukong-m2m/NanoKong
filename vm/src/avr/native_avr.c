@@ -69,6 +69,9 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 #endif
 
 volatile static nvm_int_t ticks;
+volatile static u08_t iflag_INT;
+volatile static u08_t iflag_PCINTA;
+
 #ifndef ATMEGA2560
 SIGNAL(SIG_OUTPUT_COMPARE1A) {
   TCNT1 = 0;
@@ -82,11 +85,31 @@ ISR(TIMER1_COMPA_vect)
 }
 ISR(INT0_vect)
 {
-	PORTA= ~PORTA;
+	iflag_INT |= _BV(0);//set interrupt flag to let java know
+}
+ISR(INT1_vect)
+{
+	iflag_INT |= _BV(1);
+}
+ISR(INT2_vect)
+{
+	iflag_INT |= _BV(2);
+}
+ISR(INT3_vect)
+{
+	iflag_INT |= _BV(3);
+}
+ISR(INT4_vect)
+{
+	iflag_INT |= _BV(4);
+}
+ISR(INT5_vect)
+{
+	iflag_INT |= _BV(5);
 }
 ISR(PCINT0_vect)
 {
-	PORTA= ~PORTA;
+	iflag_PCINTA |= _BV(0);//set interrupt flag to let java know
 }
 #endif
 
@@ -102,10 +125,12 @@ void native_init(void) {
   TIMSK1 = _BV(OCIE1A);		//output compare interrupt enable
   OCR1A = 2000;			//set default T=1ms
 
-  //INT0.PCINT0 interrupt test
-  EIMSK=_BV(INT0);
-  PCICR=_BV(PCIE0);
-  PCMSK0=_BV(PCINT0);
+  //if we want to use INT0~5 interrupt, must set the mask to enable interrupt .
+  EIMSK=_BV(INT0) | _BV(INT1) | _BV(INT2) | _BV(INT3) |_BV(INT4) | _BV(INT5);
+
+  //PCINT
+  PCICR=_BV(PCIE0);	//turn on interrupt PCINT0~7
+  PCMSK0=_BV(PCINT0);	//enable PCINT0
 #else
   TCCR1B = _BV(CS11);           // clk/8
   OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default
@@ -119,6 +144,18 @@ void native_init(void) {
 void native_avr_avr_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_GETCLOCK) {
     stack_push(CLOCK/1000);
+  } else if(mref == NATIVE_METHOD_GETIFINT) {
+    u08_t bit  = stack_pop();
+    stack_push( (iflag_INT>>bit) & 0x01);
+  } else if(mref == NATIVE_METHOD_GETIFPCINTA) {
+    u08_t bit  = stack_pop();
+    stack_push( (iflag_PCINTA>>bit) & 0x01);
+  } else if(mref == NATIVE_METHOD_CLRIFINT) {
+    u08_t bit  = stack_pop();
+    iflag_INT &= ~_BV(bit);
+  } else if(mref == NATIVE_METHOD_CLRIFPCINTA) {
+    u08_t bit  = stack_pop();
+    iflag_PCINTA &= ~_BV(bit);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
 }

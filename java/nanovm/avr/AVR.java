@@ -27,4 +27,8 @@ public class AVR {
 
   // return system clock in khz
   static public native int getClock();
+  static public native int getIflagINT(int bit);
+  static public native int getIflagPCINTA(int bit);
+  static public native void clrIflagINT(int bit);
+  static public native void clrIflagPCINTA(int bit);
 }
