@@ -60,8 +60,11 @@ void debugf(const char *fmt, ...) {
     va_end(ap);
     if (size > DEBUG_BUFFER_SIZE)
       size = DEBUG_BUFFER_SIZE;
-    for (int i=0; i<size; i++)
-      uart_write_byte(buf[i]);
+    for (int i=0; i<size; i++) {
+      uart_write_byte(DEBUG_UART, buf[i]);
+      if (buf[i]=='\n')
+        uart_write_byte(DEBUG_UART, '\r');
+    }
   }
 }
 #endif // UNIX || __CC65__

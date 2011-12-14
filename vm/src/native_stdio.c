@@ -96,14 +96,14 @@ static void native_print(char *str, bool_t ret) {
   // it's directly being read from ram
   if(NVMFILE_ISSET(str)) {
     while((chr = nvmfile_read08(str++)))
-      uart_putc(chr);
+      uart_putc(0, chr);
   } else
 #endif
     while(*str)
-      uart_putc(*str++);
+      uart_putc(0, *str++);
 
   if(ret)
-    uart_putc('\n');
+    uart_putc(0, '\n');
 }
 
 // invoke a native method within class java/io/PrintStream
@@ -121,10 +121,10 @@ void native_java_io_printstream_invoke(u08_t mref) {
     native_itoa((char*)tmp, stack_pop_int());
     native_print(tmp, FALSE);
   } else if(mref == NATIVE_METHOD_PRINTLN_CHAR) {
-    uart_putc(stack_pop_int());
-    uart_putc('\n');
+    uart_putc(0, stack_pop_int());
+    uart_putc(0, '\n');
   } else if(mref == NATIVE_METHOD_PRINT_CHAR) {
-    uart_putc(stack_pop_int());
+    uart_putc(0, stack_pop_int());
 #ifdef NVM_USE_EXT_STDIO
   } else if(mref == NATIVE_METHOD_FORMAT) {
     native_print(stack_pop_addr(), FALSE);
@@ -149,9 +149,9 @@ void native_java_io_inputstream_invoke(u08_t mref) {
   stack_pop(); // pop input stream reference
 
   if(mref == NATIVE_METHOD_INPUTSTREAM_AVAILABLE) {
-    stack_push(uart_available());
+    stack_push(uart_available(0));
   } else if(mref == NATIVE_METHOD_INPUTSTREAM_READ) {
-    stack_push(uart_read_byte());
+    stack_push(uart_read_byte(0));
   } else 
     error(ERROR_NATIVE_UNKNOWN_METHOD);
 }    

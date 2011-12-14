@@ -80,7 +80,7 @@ void nvm_halt() {
 #ifdef AVR
 	cli();
 	wdt_disable();
-while (true) uart_write_byte('H'); //!! DEBUG OUTPUT
+while (true) uart_write_byte(0, 'H'); //!! DEBUG OUTPUT
 	for(;;);
 #else
 	exit(0);
@@ -274,7 +274,7 @@ static inline void nvc2_send_response() {
 
 	// send SYN
 
-	uart_write_byte(ASCII_SYN);
+	uart_write_byte(0, ASCII_SYN);
 
 	// send LE, LEr/LEi, 0000NNN1 and DATA
 
@@ -284,7 +284,7 @@ static inline void nvc2_send_response() {
 		if (i>=3) value = g_nvc2_data[i-3];
 	
 		crc = crc16_ccitt_lsbf_update(value, crc);
-		uart_write_byte(value);
+		uart_write_byte(0, value);
 
 		if (!g_nvc2_query_success) value = value ^ 0xFF; // invert repeated length if error
 	}
@@ -292,8 +292,8 @@ static inline void nvc2_send_response() {
 
 	// send CRC (FCS-16)
 
-	uart_write_byte((u08_t)(crc & 0xFF));
-	uart_write_byte((u08_t)(crc >> 8));
+	uart_write_byte(0, (u08_t)(crc & 0xFF));
+	uart_write_byte(0, (u08_t)(crc >> 8));
 }
 
 
@@ -408,12 +408,12 @@ static inline void nvc2_process_query() {
 void nvc2_check_input() {
 	while (true) {
 		// wait for input within timeout limits
-		for (u08_t i=0; !uart_available() && (i < NVC2_RECV_UART_TIMEOUT); ++i)
+		for (u08_t i=0; !uart_available(0) && (i < NVC2_RECV_UART_TIMEOUT); ++i)
 			{ delay(MILLISEC(1)); }
 		
-		if (uart_available()) {
+		if (uart_available(0)) {
 			// input available
-			u08_t value = uart_read_byte();
+			u08_t value = uart_read_byte(0);
 			if (!nvc2_enabled() || !nvc2_proc_input(value)) {
 				// received input doesn't belong to a message,
 				// possible alternative input processing here

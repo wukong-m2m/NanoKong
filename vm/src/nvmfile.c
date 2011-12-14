@@ -43,6 +43,9 @@
 # include <avr/pgmspace.h>
 #endif
 
+// TODO: needed for very dirty hack in nvmfile_init
+# include <avr/pgmspace.h>
+
 // buffer for file itself is in eeprom
 #ifdef NVM_USE_DEFAULT_FILE
 
@@ -50,7 +53,8 @@
    static u08_t nvmfile[CODESIZE] PROGMEM =
 # else
 #  if defined(NVM_USE_COMM) || defined(NVM_USE_DISK_FILE)
-    static u08_t EEPROM nvmfile[CODESIZE] =
+     static u08_t EEPROM nvmfile[CODESIZE];
+     static u08_t __attribute__ ((section (".javabytecode"))) nvmfileflash[CODESIZE] =
 #  else
     static u08_t EEPROM nvmfile[] =
 #  endif
@@ -227,6 +231,12 @@ void nvmfile_store(u16_t index, u08_t *buffer, u16_t size) {
 bool_t nvmfile_init(void) {
   u16_t t;
   nvm_header_t * nvm_header = (nvm_header_t *)nvmfile;
+  
+  // TODO: Get rid of this really bad hack
+  int i;
+  for (i=0; i<CODESIZE; i++) {
+    nvmfile[i] = pgm_read_byte(nvmfileflash+i);
+  }
   
   u32_t features = nvmfile_read32(&nvm_header->magic_feature);
   DEBUGF("NVM_MAGIC_FEAUTURE[file] = %x\n", features);

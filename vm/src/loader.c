@@ -55,13 +55,13 @@ void loader_receive(void) {
 #endif
 
   // tell sender that we accept data
-  uart_write_byte(ASCII_NAK);
+  uart_write_byte(0, ASCII_NAK);
 
   // wait for data with timeout
-  for(sum=0;sum<250 && !uart_available();sum++)
+  for(sum=0;sum<250 && !uart_available(0);sum++)
     delay(MILLISEC(4));
 
-  if(uart_available()) {
+  if(uart_available(0)) {
     nvmfile_write_initialize();
     do {
       // try to receive a full data block
@@ -82,22 +82,22 @@ void loader_receive(void) {
 	    nvmfile_write08(addr++, loader.data[i]);
 
 	  // send ack and increase block counter
-	  uart_write_byte(ASCII_ACK);
+	  uart_write_byte(0, ASCII_ACK);
 	  block++;
 	} else
-	  uart_write_byte(ASCII_NAK);
+	  uart_write_byte(0, ASCII_NAK);
       } else {
 	if(!len)
-	  uart_write_byte(ASCII_ACK);
+	  uart_write_byte(0, ASCII_ACK);
 	else {
 	  // not a full packet and not the eof marker -> nak
 	  if(loader.soh != ASCII_EOF)
-	    uart_write_byte(ASCII_NAK);
+	    uart_write_byte(0, ASCII_NAK);
 	}
       }
     } while((len < 1) || (loader.soh != ASCII_EOF));
     nvmfile_write_finalize();
-    uart_write_byte(ASCII_ACK);
+    uart_write_byte(0, ASCII_ACK);
 
 #ifdef ASURO
     // red status led
@@ -129,13 +129,13 @@ void loader_receive(void) {
 
 	// wait for 20ms communication pause
 	while (true) {
-		for (u08_t i=0; !uart_available() && (i<20); ++i) delay(MILLISEC(1));
-		if (uart_available()) uart_read_byte(); else break;
+		for (u08_t i=0; !uart_available(0) && (i<20); ++i) delay(MILLISEC(1));
+		if (uart_available(0)) uart_read_byte(0); else break;
 	}
 
 	for (u08_t count = 0; g_nvm_runlevel != NVM_RUNLVL_VM; ++count) {
 		// wait for data with 100ms timeout
-		for (u08_t i=0; !uart_available() && (i<100); ++i) delay(MILLISEC(1));
+		for (u08_t i=0; !uart_available(0) && (i<100); ++i) delay(MILLISEC(1));
 
 		nvc2_check_input();
 

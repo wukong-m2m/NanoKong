@@ -11,11 +11,7 @@
 #define ATMEGA2560
 #define CLOCK 16000000
 
-// uart setup
-#define UART_BITRATE 27600
-#define UART_BUFFER_BITS 5     // 32 bytes buffer (min. req for loader)
-
-#define CODESIZE 512
+#define CODESIZE 4096
 #define HEAPSIZE 768
 
 // avr specific native init routines
@@ -23,19 +19,28 @@
 
 // vm setup
 #undef NVM_USE_STACK_CHECK      // enable check if method returns empty stack
-#define NVM_USE_ARRAY            // enable arrays
-#define NVM_USE_SWITCH           // support switch instruction
-#define NVM_USE_INHERITANCE      // support for inheritance
-#define NVM_USE_UTILS            // enable inline utils
-//#define NVM_USE_EEPROM           // nvm file resides in EEPROM (or flash)
-#define NVM_USE_MEMCPY_UP        // enable custom memcpy for heap compacting
-#define NVM_USE_DEFAULT_FILE     // enable pre-installed default file
+#define NVM_USE_ARRAY           // enable arrays
+#define NVM_USE_SWITCH          // support switch instruction
+#define NVM_USE_INHERITANCE     // support for inheritance
+#define NVM_USE_UTILS           // enable inline utils
+//#define NVM_USE_EEPROM          // nvm file resides in EEPROM (or flash)
+#define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
+#define NVM_USE_DEFAULT_FILE    // enable pre-installed default file
 #define NVM_USE_COMM
+#define NVMCOMM3                // Use Nvmcomm v3.0
+#define NVM_USE_COMMZWAVE       // enable Z-wave support
 
 // native setup
-#define NVM_USE_STDIO            // enable native stdio support
+#define NVM_USE_STDIO           // enable native stdio support
 
 // marker used to indicate, that this item is stored in eeprom
 #define NVMFILE_FLAG     0x8000
+
+// uart setup
+#define UART_BAUDRATE 115200      // default UART bitrate
+#define UART_BUFFER_BITS 5       // 32 bytes buffer (min. req for loader)
+#ifdef NVM_USE_COMMZWAVE
+#define ZWAVE_UART_BAUDRATE 115200 // bitrate for Z-Wave board
+#endif
 
 #endif // CONFIG_H

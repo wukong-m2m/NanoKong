@@ -34,7 +34,7 @@
 #include "debug.h"
 
 
-#if defined(NVM_USE_COMM) && !defined(NVMCOMM2)
+#if defined(NVM_USE_COMM) && !defined(NVMCOMM2) && !defined(NVMCOMM3)
 #define NVMCOMM1
 #endif
 

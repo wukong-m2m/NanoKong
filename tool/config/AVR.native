@@ -5,10 +5,15 @@
 class nanovm/avr/AVR 21
 
 method getClock:()I 1
-method getIflagINT:(I)I 2
-method getIflagPCINTA:(I)I 3
-method clrIflagINT:(I)V 4
-method clrIflagPCINTA:(I)V 5
+method setPinIOMode:(II)V 2
+method digitalWrite:(II)V 3
+method digitalRead:(I)I 4
+method getIflagINT:(I)I 5
+method getIflagPCINTA:(I)I 6
+method clrIflagINT:(I)V 7
+method clrIflagPCINTA:(I)V 8
+
+
 
 # AVR supports 11 ports
 field portA:Lnanovm/avr/Port; 0
@@ -26,3 +31,9 @@ field portL:Lnanovm/avr/Port; 10
 # AVR supports two PWM units
 field pwm0:Lnanovm/avr/Pwm;   0
 field pwm1:Lnanovm/avr/Pwm;   1
+
+# AVR supports up to four USARTs
+field usart0:Lnanovm/avr/USART; 0
+field usart1:Lnanovm/avr/USART; 1
+field usart2:Lnanovm/avr/USART; 2
+field usart3:Lnanovm/avr/USART; 3

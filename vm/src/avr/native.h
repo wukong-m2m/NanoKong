@@ -16,6 +16,7 @@
 #define NATIVE_FIELD_OUT            0
 #define NATIVE_FIELD_IN             1
 
+
 // java/io/PrintStream
 #define NATIVE_CLASS_PRINTSTREAM    (NATIVE_CLASS_BASE+2)
 #define NATIVE_METHOD_PRINTLN_STR   1
@@ -43,10 +44,14 @@
 // nanovm/avr/AVR
 #define NATIVE_CLASS_AVR            (NATIVE_CLASS_BASE+5)
 #define NATIVE_METHOD_GETCLOCK      1
-#define NATIVE_METHOD_GETIFINT	    2
-#define NATIVE_METHOD_GETIFPCINTA   3
-#define NATIVE_METHOD_CLRIFINT      4
-#define NATIVE_METHOD_CLRIFPCINTA   5
+#define NATIVE_METHOD_SETPINIOMODE  2
+#define NATIVE_METHOD_DIGITALWRITE  3
+#define NATIVE_METHOD_DIGITALREAD   4
+#define NATIVE_METHOD_GETIFINT	    5
+#define NATIVE_METHOD_GETIFPCINTA   6
+#define NATIVE_METHOD_CLRIFINT      7
+#define NATIVE_METHOD_CLRIFPCINTA   8
+
 #define NATIVE_FIELD_PORTA          0
 #define NATIVE_FIELD_PORTB          1
 #define NATIVE_FIELD_PORTC          2
@@ -74,8 +79,22 @@
 #define NATIVE_METHOD_TWAIT         3
 #define NATIVE_METHOD_SETPRESCALER  4
 
-// nanovm/avr/Uart (use PrintStream/InputStream for io)
-#define NATIVE_CLASS_UART           (NATIVE_CLASS_BASE+8)
+// nanovm/avr/USART (use PrintStream/InputStream for io)
+#define NATIVE_CLASS_USART           (NATIVE_CLASS_BASE+8)
+#define NATIVE_METHOD_USART_PRINTLN_STR   1
+#define NATIVE_METHOD_USART_PRINTLN_INT   2
+#define NATIVE_METHOD_USART_PRINTLN_CHAR  3
+#define NATIVE_METHOD_USART_PRINT_STR     4
+#define NATIVE_METHOD_USART_PRINT_INT     5
+#define NATIVE_METHOD_USART_PRINT_CHAR    6
+#define NATIVE_METHOD_USART_FORMAT        7
+#define NATIVE_METHOD_USART_AVAILABLE 8
+#define NATIVE_METHOD_USART_READ      9
+#define NATIVE_METHOD_USART_INIT	10
+#define NATIVE_FIELD_USART0         0
+#define NATIVE_FIELD_USART1         1
+#define NATIVE_FIELD_USART2         2
+#define NATIVE_FIELD_USART3         3
 
 // nanovm/avr/Pwm
 #define NATIVE_CLASS_PWM            (NATIVE_CLASS_BASE+9)
@@ -109,6 +128,11 @@
 #define NATIVE_METHOD_LINESENSOR    6
 #define NATIVE_METHOD_MOTORSENSOR   7
 #define NATIVE_METHOD_GETSWITCHES   8
+
+// nanovm/io/NvmComm3
+#define NATIVE_CLASS_NVMCOMM3       (NATIVE_CLASS_BASE+13)
+#define NATIVE_METHOD_SEND          1
+#define NATIVE_METHOD_RECEIVE       2
 
 // nanovm/lang/Math
 #define NATIVE_CLASS_MATH           (NATIVE_CLASS_BASE+27)

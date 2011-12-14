@@ -33,11 +33,24 @@
 #include "vm.h"
 #include "native.h"
 #include "native_avr.h"
+#include "native_stdio.h"
 #include "stack.h"
 #include "uart.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+
+#define PA 0
+#define PB 1
+#define PC 2
+#define PD 3
+#define PE 4
+#define PF 5
+#define PG 6
+#define PH 7
+#define PJ 8
+#define PK 9
+#define PL 10
 
 #if defined(ATMEGA128)
 volatile u08_t *ports[] = { &PORTA, &PORTB, &PORTC, &PORTD, &PORTE, &PORTF };
@@ -113,6 +126,129 @@ ISR(PCINT0_vect)
 }
 #endif
 
+#if defined(ATMEGA2560)
+volatile u08_t digital_pin_to_port[] = {
+	// PORTLIST		
+	// -------------------------------------------		
+	PE	, // PE 0 ** 0 ** USART0_RX	
+	PE	, // PE 1 ** 1 ** USART0_TX	
+	PE	, // PE 4 ** 2 ** PWM2	
+	PE	, // PE 5 ** 3 ** PWM3	
+	PG	, // PG 5 ** 4 ** PWM4	
+	PE	, // PE 3 ** 5 ** PWM5	
+	PH	, // PH 3 ** 6 ** PWM6	
+	PH	, // PH 4 ** 7 ** PWM7	
+	PH	, // PH 5 ** 8 ** PWM8	
+	PH	, // PH 6 ** 9 ** PWM9	
+	PB	, // PB 4 ** 10 ** PWM10	
+	PB	, // PB 5 ** 11 ** PWM11	
+	PB	, // PB 6 ** 12 ** PWM12	
+	PB	, // PB 7 ** 13 ** PWM13	
+	PJ	, // PJ 1 ** 14 ** USART3_TX	
+	PJ	, // PJ 0 ** 15 ** USART3_RX	
+	PH	, // PH 1 ** 16 ** USART2_TX	
+	PH	, // PH 0 ** 17 ** USART2_RX	
+	PD	, // PD 3 ** 18 ** USART1_TX	
+	PD	, // PD 2 ** 19 ** USART1_RX	
+	PD	, // PD 1 ** 20 ** I2C_SDA	
+	PD	, // PD 0 ** 21 ** I2C_SCL	
+	PA	, // PA 0 ** 22 ** D22	
+	PA	, // PA 1 ** 23 ** D23	
+	PA	, // PA 2 ** 24 ** D24	
+	PA	, // PA 3 ** 25 ** D25	
+	PA	, // PA 4 ** 26 ** D26	
+	PA	, // PA 5 ** 27 ** D27	
+	PA	, // PA 6 ** 28 ** D28	
+	PA	, // PA 7 ** 29 ** D29	
+	PC	, // PC 7 ** 30 ** D30	
+	PC	, // PC 6 ** 31 ** D31	
+	PC	, // PC 5 ** 32 ** D32	
+	PC	, // PC 4 ** 33 ** D33	
+	PC	, // PC 3 ** 34 ** D34	
+	PC	, // PC 2 ** 35 ** D35	
+	PC	, // PC 1 ** 36 ** D36	
+	PC	, // PC 0 ** 37 ** D37	
+	PD	, // PD 7 ** 38 ** D38	
+	PG	, // PG 2 ** 39 ** D39	
+	PG	, // PG 1 ** 40 ** D40	
+	PG	, // PG 0 ** 41 ** D41	
+	PL	, // PL 7 ** 42 ** D42	
+	PL	, // PL 6 ** 43 ** D43	
+	PL	, // PL 5 ** 44 ** D44	
+	PL	, // PL 4 ** 45 ** D45	
+	PL	, // PL 3 ** 46 ** D46	
+	PL	, // PL 2 ** 47 ** D47	
+	PL	, // PL 1 ** 48 ** D48	
+	PL	, // PL 0 ** 49 ** D49	
+	PB	, // PB 3 ** 50 ** SPI_MISO	
+	PB	, // PB 2 ** 51 ** SPI_MOSI	
+	PB	, // PB 1 ** 52 ** SPI_SCK	
+	PB	, // PB 0 ** 53 ** SPI_SS	
+	PF	, // PF 0 ** 54 ** A0	
+	PF	, // PF 1 ** 55 ** A1	
+	PF	, // PF 2 ** 56 ** A2	
+	PF	, // PF 3 ** 57 ** A3	
+	PF	, // PF 4 ** 58 ** A4	
+	PF	, // PF 5 ** 59 ** A5	
+	PF	, // PF 6 ** 60 ** A6	
+	PF	, // PF 7 ** 61 ** A7	
+	PK	, // PK 0 ** 62 ** A8	
+	PK	, // PK 1 ** 63 ** A9	
+	PK	, // PK 2 ** 64 ** A10	
+	PK	, // PK 3 ** 65 ** A11	
+	PK	, // PK 4 ** 66 ** A12	
+	PK	, // PK 5 ** 67 ** A13	
+	PK	, // PK 6 ** 68 ** A14	
+	PK	, // PK 7 ** 69 ** A15	
+};
+volatile u08_t digital_pin_to_bit_mask[] = {
+	// PIN IN PORT
+	0,1,4,5,5,
+	3,3,4,5,6,
+	4,5,6,7,1,
+    0,1,0,3,2,
+    1,0,0,1,2,	
+    3,4,5,6,7,
+    7,6,5,4,3,
+    2,1,0,7,2,
+    1,0,7,6,5,
+    4,3,2,1,0,
+    3,2,1,0,0,
+    1,2,3,4,5,
+    6,7,0,1,2,
+    3,4,5,6,7,
+};
+#else // not ATmega2560
+volatile u08_t digital_pin_to_port[] = {
+	PD, /* 0 */
+	PD,
+	PD,
+	PD,
+	PD,
+	PD,
+	PD,
+	PD,
+	PB, /* 8 */
+	PB,
+	PB,
+	PB,
+	PB,
+	PB,
+	PC, /* 14 */
+	PC,
+	PC,
+	PC,
+	PC,
+	PC,
+};
+volatile u08_t digital_pin_to_bit_mask[] = {
+    0,1,2,3,4,
+    5,6,7,0,1,
+    2,3,4,5,0,
+    1,2,3,4,5,
+};
+#endif
+
 void native_init(void) {
   // init timer
 #if defined(ATMEGA168) 
@@ -144,6 +280,29 @@ void native_init(void) {
 void native_avr_avr_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_GETCLOCK) {
     stack_push(CLOCK/1000);
+  } else if(mref == NATIVE_METHOD_SETPINIOMODE) {
+    u08_t mode = stack_pop();
+    u08_t pin = stack_pop();
+    u08_t port = digital_pin_to_port[pin];
+    u08_t bit = digital_pin_to_bit_mask[pin];
+    u08_t oldSREG = SREG; cli();
+    if(mode) {*ddrs[port] &= ~_BV(bit);}
+    else {*ddrs[port] |= _BV(bit);}
+    SREG = oldSREG;
+  } else if(mref == NATIVE_METHOD_DIGITALWRITE) {
+    u08_t value = stack_pop();
+    u08_t pin = stack_pop();
+    u08_t port = digital_pin_to_port[pin];
+    u08_t bit = digital_pin_to_bit_mask[pin];
+    u08_t oldSREG = SREG; cli();
+    if(value) {*ports[port] |= _BV(bit);}
+    else {*ports[port] &= ~_BV(bit);}
+    SREG = oldSREG;
+  } else if(mref == NATIVE_METHOD_DIGITALREAD) {
+    u08_t pin = stack_pop();
+    u08_t port = digital_pin_to_port[pin];
+    u08_t bit = digital_pin_to_bit_mask[pin];
+    stack_push( (*pins[port]>>bit) & 0x01);
   } else if(mref == NATIVE_METHOD_GETIFINT) {
     u08_t bit  = stack_pop();
     stack_push( (iflag_INT>>bit) & 0x01);
@@ -158,6 +317,62 @@ void native_avr_avr_invoke(u08_t mref) {
     iflag_PCINTA &= ~_BV(bit);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
+}
+
+// the USART class
+void native_avr_usart_invoke(u08_t mref) {
+  char tmp[8];
+  if(mref == NATIVE_METHOD_USART_PRINTLN_STR) {
+    char *addr = stack_pop_addr();
+    u08_t uart = stack_pop();
+    uart_native_print(addr, TRUE, uart);
+  } else if(mref == NATIVE_METHOD_USART_PRINTLN_INT) {
+    native_itoa((char*)tmp, stack_pop_int());
+    u08_t uart = stack_pop();
+    uart_native_print(tmp, TRUE, uart);
+  } else if(mref == NATIVE_METHOD_USART_PRINT_STR) {
+    char *addr = stack_pop_addr();
+    u08_t uart = stack_pop();
+    uart_native_print(addr, FALSE, uart);
+  } else if(mref == NATIVE_METHOD_USART_PRINT_INT) {
+    native_itoa((char*)tmp, stack_pop_int());
+    u08_t uart = stack_pop();
+    uart_native_print(tmp, FALSE, uart);
+  } else if(mref == NATIVE_METHOD_USART_PRINTLN_CHAR) {
+    u08_t c = stack_pop_int();
+    u08_t uart = stack_pop();
+    uart_putc(uart, c);
+    uart_putc(uart, '\n');
+  } else if(mref == NATIVE_METHOD_USART_PRINT_CHAR) {
+    u08_t c = stack_pop_int();
+    u08_t uart = stack_pop();
+    //DEBUGF_USART(""DBG16"\n",c);
+    //DEBUGF_USART(""DBG16"\n",uart);
+    uart_putc(uart, c);
+#ifdef NVM_USE_EXT_STDIO
+  } else if(mref == NATIVE_METHOD_USART_FORMAT) {
+    char *addr = stack_pop_addr();
+    stack_pop_int(); // TODO
+    u08_t uart = stack_pop();
+    uart_native_print(addr, FALSE, uart);
+    stack_push(stack_peek(0)); // duplicate this ref
+#endif    
+  } else if (mref == NATIVE_METHOD_USART_AVAILABLE) {
+    u08_t uart = stack_pop();
+    stack_push(uart_available(uart));
+  } else if(mref == NATIVE_METHOD_USART_READ) {
+    u08_t uart = stack_pop();
+    stack_push(uart_read_byte(uart));
+  } else if (mref == NATIVE_METHOD_USART_INIT) {
+    u08_t parity = stack_pop();
+    u08_t stopbit = stack_pop();
+    u32_t baudrate = stack_pop_int();
+    u08_t uart = stack_pop();
+    baudrate = uart_int2baud(baudrate);
+    uart_init_impl(uart, baudrate, stopbit, parity);
+  } else
+    error(ERROR_NATIVE_UNKNOWN_METHOD);
+ 
 }
 
 // the port class
@@ -185,7 +400,7 @@ void native_avr_port_invoke(u08_t mref) {
   } else if(mref == NATIVE_METHOD_GETINPUT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();
-    DEBUGF("native clrbit %bd/%bd\n", port, bit);
+    DEBUGF("native getinput %bd/%bd\n", port, bit);
     stack_push( (*pins[port]>>bit) & 0x01);
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
