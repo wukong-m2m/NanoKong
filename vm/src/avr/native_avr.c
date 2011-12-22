@@ -262,11 +262,12 @@ void native_init(void) {
   OCR1A = 2000;			//set default T=1ms
 
   //if we want to use INT0~5 interrupt, must set the mask to enable interrupt .
-  EIMSK=_BV(INT0) | _BV(INT1) | _BV(INT2) | _BV(INT3) |_BV(INT4) | _BV(INT5);
+  EIMSK=_BV(INT0) | _BV(INT1) | _BV(INT2) | _BV(INT3);
 
   //PCINT
   PCICR=_BV(PCIE0);	//turn on interrupt PCINT0~7
   PCMSK0=_BV(PCINT0);	//enable PCINT0
+
 #else
   TCCR1B = _BV(CS11);           // clk/8
   OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default
@@ -315,6 +316,11 @@ void native_avr_avr_invoke(u08_t mref) {
   } else if(mref == NATIVE_METHOD_CLRIFPCINTA) {
     u08_t bit  = stack_pop();
     iflag_PCINTA &= ~_BV(bit);
+  } else if(mref == NATIVE_METHOD_SETICTRLINT) {
+    u08_t mode = stack_pop();
+    u08_t port = stack_pop();
+    if(port<=3){ EICRA=((mode & 0x03)<<port)<<port; }
+    else if(port<=7 && port >3){EICRB=((mode & 0x03)<<(port-4))<<(port-4);}
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
 }
@@ -382,6 +388,7 @@ void native_avr_port_invoke(u08_t mref) {
     u08_t port = stack_pop();
     DEBUGF("native setinput %bd/%bd\n", port, bit);
     *ddrs[port] &= ~_BV(bit);
+    *ports[port] |= _BV(bit);	//pull high
   } else if(mref == NATIVE_METHOD_SETOUTPUT) {
     u08_t bit  = stack_pop();
     u08_t port = stack_pop();

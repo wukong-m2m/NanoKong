@@ -42,6 +42,7 @@ public class AVR {
   static public native int getIflagPCINTA(int bit);
   static public native void clrIflagINT(int bit);
   static public native void clrIflagPCINTA(int bit);
+  static public native void setIctrlINT(int port, int mode);
 
 
 
