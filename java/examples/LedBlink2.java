@@ -10,7 +10,7 @@ class LedBlink2 {
     System.out.println("System clock = " + AVR.getClock() + "000 Hz");
 
     // both led ports are outputs
-    for(int pin = 2; pin < 14; pin++) 
+    for(int pin = 21; pin < 22; pin++) 
       AVR.setPinIOMode(pin, 0);
     System.out.println("Set Output already");
     
@@ -18,11 +18,11 @@ class LedBlink2 {
 
     while(true) {
       // PortB.0/1 for Demoboard
-      for(int pin = 2; pin < 14; pin++)
+      for(int pin = 21; pin < 22; pin++)
         AVR.digitalWrite(pin, 1);
       System.out.println("On");
       Timer.wait(100);
-      for(int pin = 2; pin < 14; pin++)
+      for(int pin = 21; pin < 22; pin++)
         AVR.digitalWrite(pin, 0);
       System.out.println("Off");
       Timer.wait(100);

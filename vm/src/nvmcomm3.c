@@ -5,6 +5,9 @@
 #ifdef NVM_USE_COMMZWAVE
 #include "nvmcomm_zwave.h"
 #endif
+#ifdef NVM_USE_COMMXBEE
+#include "nvmcomm_xbee.h"
+#endif
 #include "avr/avr_flash.h"
 
 #include "nvmcomm3.h"
@@ -26,19 +29,33 @@ void nvmcomm_init(void) {
   nvmcomm_zwave_init();
   nvmcomm_zwave_setcallback(handle_message);
 #endif
+#ifdef NVM_USE_COMMXBEE
+  nvmcomm_xbee_init();
+  nvmcomm_xbee_setcallback(handle_message);
+#endif
 }
 
 void nvmcomm_poll(void) {
 #ifdef NVM_USE_COMMZWAVE
   nvmcomm_zwave_poll();
 #endif
+#ifdef NVM_USE_COMMXBEE
+  nvmcomm_xbee_poll();
+#endif
 }
 
 int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length) {
   if (length > NVC3_MESSAGE_SIZE)
     return -2; // Message too large
-  int retval = nvmcomm_zwave_send(dest, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
-  if (retval==0 && nvc3_command==NVC3_CMD_APPMSG)
+  int retval = -1, retval2 = -1;
+#ifdef NVM_USE_COMMZWAVE
+  retval = nvmcomm_zwave_send(dest, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
+#endif
+#ifdef NVM_USE_COMMXBEE
+  retval2 = nvmcomm_xbee_send(dest, nvc3_command, payload, length, 0);
+#endif
+
+  if ((retval2 == 0 || retval == 0) && nvc3_command==NVC3_CMD_APPMSG)
     nvc3_appmsg_reply = NVC3_APPMSG_WAIT_ACK;
   return retval;
 }
