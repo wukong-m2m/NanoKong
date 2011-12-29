@@ -23,8 +23,8 @@
 //#include <inttypes.h>
 #include "types.h"
 
-#define SERIES_1
-//#define SERIES_2
+//#define SERIES_1
+#define SERIES_2
 
 // set to ATAP value of XBee. AP=2 is recommended
 #define ATAP 2
@@ -144,10 +144,8 @@
  * It is recommend to reuse subclasses to conserve memory
  */
 typedef struct {
-    // public:
 	// static const int MODEM_STATUS = 0x8a;
 
-    // protected:
 	// pointer to frameData
 	uint8_t* _frameDataPtr;
 
@@ -157,9 +155,9 @@ typedef struct {
 	uint8_t _lsbLength;
 	uint8_t _checksum;
 	uint8_t _frameLength;
-	bool _complete;
 	uint8_t _errorCode;
-} __attribute__ ((__packed__)) XBeeResponse;
+	bool _complete;
+} XBeeResponse;
 
 /**
  * Represents a 64-bit XBee Address
@@ -167,7 +165,7 @@ typedef struct {
 typedef struct{
     uint32_t _msb;
 	uint32_t _lsb;
-} __attribute__ ((__packed__)) XBeeAddress64;
+} XBeeAddress64;
 
 /**
  * This class is extended by all Responses that include a frame id
@@ -175,14 +173,14 @@ typedef struct{
 typedef struct {
     XBeeResponse super;
 	uint8_t _frameId;
-} __attribute__ ((__packed__)) FrameIdResponse;
+} FrameIdResponse;
 
 /**
  * Common functionality for both Series 1 and 2 data RX data packets
  */
 typedef struct{
     XBeeResponse super;
-} __attribute__ ((__packed__)) RxDataResponse;
+} RxDataResponse;
 
 #ifdef SERIES_2
 /**
@@ -190,7 +188,7 @@ typedef struct{
  */
 typedef struct{
     FrameIdResponse super;
-} __attribute__ ((__packed__)) ZBTxStatusResponse;
+} ZBTxStatusResponse;
 
 /**
  * Represents a Series 2 RX packet
@@ -198,14 +196,14 @@ typedef struct{
 typedef struct{
     RxDataResponse super;
 	XBeeAddress64 _remoteAddress64;
-} __attribute__ ((__packed__)) ZBRxResponse;
+} ZBRxResponse;
 
 /**
  * Represents a Series 2 RX I/O Sample packet
  */
 typedef struct {
     ZBRxResponse super;
-} __attribute__ ((__packed__)) ZBRxIoSampleResponse;
+} ZBRxIoSampleResponse;
 #endif
 
 #ifdef SERIES_1
@@ -214,7 +212,7 @@ typedef struct {
  */
 typedef struct{
     FrameIdResponse super;
-} __attribute__ ((__packed__)) TxStatusResponse;
+} TxStatusResponse;
 
 
 /**
@@ -223,42 +221,39 @@ typedef struct{
 
 typedef struct { 
     RxDataResponse super;
-} __attribute__ ((__packed__)) RxResponse;
+} RxResponse;
 
 /**
  * Represents a Series 1 16-bit address RX packet
  */
 typedef struct { 
 	RxResponse super;
-    //protected:
 	uint16_t _remoteAddress;
-} __attribute__ ((__packed__)) Rx16Response;
+} Rx16Response;
 
 /**
  * Represents a Series 1 64-bit address RX packet
  */
 typedef struct{
 	RxResponse super;
-    //private:
 	XBeeAddress64 _remoteAddress;
-} __attribute__ ((__packed__)) Rx64Response;
+} Rx64Response;
 
 /**
  * Represents a Series 1 RX I/O Sample packet
  */
 typedef struct {
     RxResponse super;
-} __attribute__ ((__packed__)) RxIoSampleBaseResponse;
+} RxIoSampleBaseResponse;
 
 typedef struct {
     RxIoSampleBaseResponse super;
-} __attribute__ ((__packed__)) Rx16IoSampleResponse;
+} Rx16IoSampleResponse;
 
 typedef struct {
     RxIoSampleBaseResponse super;
-    //private:
 	XBeeAddress64 _remoteAddress;
-} __attribute__ ((__packed__)) Rx64IoSampleResponse;
+} Rx64IoSampleResponse;
 #endif
 
 /**
@@ -266,14 +261,14 @@ typedef struct {
  */
 typedef struct{
     XBeeResponse super;
-} __attribute__ ((__packed__)) ModemStatusResponse;
+} ModemStatusResponse;
 
 /**
  * Represents an AT Command RX packet
  */
 typedef struct{
     FrameIdResponse super;
-} __attribute__ ((__packed__)) AtCommandResponse;
+} AtCommandResponse;
 
 /**
  * Represents a Remote AT Command RX packet
@@ -281,7 +276,7 @@ typedef struct{
 typedef struct {
     AtCommandResponse super;
 	XBeeAddress64 _remoteAddress64;
-} __attribute__ ((__packed__)) RemoteAtCommandResponse;
+} RemoteAtCommandResponse;
 
 
 /**
@@ -292,10 +287,9 @@ typedef struct {
  * This class allocates a buffer to
  */
 typedef struct{
-    //private:
 	uint8_t _apiId;
 	uint8_t _frameId;
-} __attribute__ ((__packed__)) XBeeRequest;
+} XBeeRequest;
 
 // TODO add reset/clear method since responses are often reused
 /**
@@ -320,9 +314,7 @@ typedef struct{
  * \author Andrew Rapp
  */
 typedef struct {
-	//private:
 	XBeeResponse _response;
-	bool _escape;
 	// current packet position for response.  just a state variable for packet parsing and has no relevance for the response otherwise
 	uint8_t _pos;
 	// last byte read
@@ -331,7 +323,8 @@ typedef struct {
 	uint8_t _nextFrameId;
 	// buffer for incoming RX packets.  holds only the api specific frame data, starting after the api id byte and prior to checksum
 	uint8_t _responseFrameData[MAX_FRAME_DATA_SIZE];
-} __attribute__ ((__packed__)) XBee;
+	bool _escape;
+} XBee;
 
 /**
  * All TX packets that support payloads extend this class
@@ -341,7 +334,7 @@ typedef struct {
     //private:
 	uint8_t* _payloadPtr;
 	uint8_t _payloadLength;
-} __attribute__ ((__packed__)) PayloadRequest;
+} PayloadRequest;
 
 #ifdef SERIES_1
 
@@ -358,7 +351,7 @@ typedef struct {
     //private:
 	uint16_t _addr16;
 	uint8_t _option;
-} __attribute__ ((__packed__)) Tx16Request;
+} Tx16Request;
 
 /**
  * Represents a Series 1 TX packet that corresponds to Api Id: TX_64_REQUEST
@@ -373,7 +366,7 @@ typedef struct {
     //private:
 	XBeeAddress64 _addr64;
 	uint8_t _option;
-} __attribute__ ((__packed__)) Tx64Request;
+} Tx64Request;
 
 #endif
 
@@ -398,7 +391,7 @@ typedef struct {
 	uint16_t _addr16;
 	uint8_t _broadcastRadius;
 	uint8_t _option;
-} __attribute__ ((__packed__)) ZBTxRequest;
+} ZBTxRequest;
 
 #endif
 
@@ -412,7 +405,7 @@ typedef struct {
 	uint8_t *_command;
 	uint8_t *_commandValue;
 	uint8_t _commandValueLength;
-} __attribute__ ((__packed__)) AtCommandRequest;
+} AtCommandRequest;
 
 /**
  * Represents an Remote AT Command TX packet
@@ -423,7 +416,7 @@ typedef struct {
     XBeeAddress64 _remoteAddress64;
 	uint16_t _remoteAddress16;
 	bool _applyChanges;
-} __attribute__ ((__packed__)) RemoteAtCommandRequest;
+} RemoteAtCommandRequest;
 
 extern void nvmcomm_xbee_init(void);
 extern void nvmcomm_xbee_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t));

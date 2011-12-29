@@ -35,11 +35,12 @@ class PeopleCountNode {
             data[3] = (byte)AVR.digitalRead(inMotionPin);
             data[4] = (byte)AVR.digitalRead(inIR1Pin);
             data[5] = (byte)AVR.digitalRead(inIR2Pin);*/
-            //for (int i = 0; i < data.length; ++i)
+            for (int i = 0; i < data.length; ++i)
+                data[i] = (byte)((data[i]+1) & (0xFF));
             //    System.out.print(data[i]);
             //System.out.print('\n');
             NvmComm3.send((byte)1, data, (byte)data.length);
-            Timer.wait(1000);
+            Timer.wait(3000);
         }
     }
 }

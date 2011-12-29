@@ -28,8 +28,44 @@
 
 #define XBEE_UART 2
 #define XBEE_UART_BAUDRATE 9600
+
+#if defined(SERIES_1) && defined(SERIES_2)
+#define NUM_ADDR 4
+#else
 #define NUM_ADDR 2
+#endif
+
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
+XBee xbeeObj;
+uint32_t addrTable[NUM_ADDR][2] = {
+#ifdef SERIES_1
+    {0x0013A200, 0x407B18B5},{0x0013A200, 0x407B18F3},
+#endif
+#ifdef SERIES_2
+    {0x0013A200, 0x407733F3},{0x0013A200, 0x4077340D}
+#endif
+};
+uint8_t payload[NVC3_MESSAGE_SIZE+1];
+
+bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
+{
+    if (addr >= NUM_ADDR) return false;
+    *msb = addrTable[addr][0];
+    *lsb = addrTable[addr][1];
+    return true;
+}
+
+bool addr_xbee_to_nvmcomm(address_t *addr, uint32_t msb, uint32_t lsb)
+{
+    int i;
+    for (i = 0; i < NUM_ADDR; ++i) {
+        if (addrTable[i][0] == msb && addrTable[i][1] == lsb){
+            *addr = i;
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * XBee init code
@@ -183,9 +219,6 @@ void XBee_sendByte(uint8_t b, bool escape)
 
 void XBee_send(void* request, uint8_t _apiId, uint8_t _frameId, uint8_t frameDataLength, uint8_t (*getFrameData)(void*, uint8_t) )
 {
-    // read out pending requests
-    //nvmcomm_xbee_poll();
-
     // the new new deal
     XBee_sendByte(START_BYTE, false);
 
@@ -413,7 +446,7 @@ void XBeeResponse_reset(XBeeResponse* _response)
     _response->_msbLength = 0;
     _response->_lsbLength = 0;
     _response->_frameLength = 0;
-    for (int i = 0; i < MAX_FRAME_DATA_SIZE; i++) {
+    for (int i = 0; i < MAX_FRAME_DATA_SIZE; ++i) {
         (_response->_frameDataPtr)[i] = 0;
     }
 }
@@ -487,22 +520,22 @@ void XBee_readPacket(XBee* xbee){
         switch(*_pos) {
             case 0:
                 if (*b == START_BYTE) {
-                    (*_pos)++;
+                    ++(*_pos);
                 }
                 break;
             case 1:
                 // length msb
                 _response->_msbLength = *b;
-                (*_pos)++;
+                ++(*_pos);
                 break;
             case 2:
                 // length lsb
                 _response->_lsbLength = *b;
-                (*_pos)++;
+                ++(*_pos);
                 break;
             case 3:
                 _response->_apiId = *b;
-                (*_pos)++;
+                ++(*_pos);
                 break;
             default:
                 // starts at fifth byte
@@ -535,7 +568,7 @@ void XBee_readPacket(XBee* xbee){
                 } else {
                     // add to packet array, starting with the fourth byte of the apiFrame
                     (_response->_frameDataPtr)[*_pos - 4] = *b;
-                    (*_pos)++;
+                    ++(*_pos);
                 }
         }
     }
@@ -557,7 +590,7 @@ bool XBee_readPacket_timeout(XBee* xbee, uint32_t timeout)
             return false;
         }
         delay(MILLISEC(1));
-        start++;
+        ++start;
     }
     // timed out
     return false;
@@ -636,6 +669,7 @@ void XBee_getResponse(XBee* xbee, void* response, uint8_t apiId)
                 target = &(rx16->super.super.super);
                 target->_frameDataPtr = source->_frameDataPtr;
                 XBeeResponse_setCommon(source, target);
+                rx16->_remoteAddress = ((source->_frameDataPtr)[0] << 8) + (source->_frameDataPtr)[1];
                 break;
             }
         case RX_64_RESPONSE:
@@ -722,10 +756,11 @@ uint8_t XBeeResponse_getDataLength(XBeeResponse* source)
             return XBeeResponse_getPacketLength(source) - (11) - 1;
         // RxResponse (sub)classes
         case RX_16_RESPONSE:
-        case RX_64_RESPONSE:
         case RX_16_IO_RESPONSE:
-        case RX_64_IO_RESPONSE:
             return XBeeResponse_getPacketLength(source) - (RX_16_RSSI_OFFSET + 2) - 1;
+        case RX_64_RESPONSE:
+        case RX_64_IO_RESPONSE:
+            return XBeeResponse_getPacketLength(source) - (RX_64_RSSI_OFFSET + 2) - 1;
             // Instead, get value length for command classes
         case AT_COMMAND_RESPONSE:
             return source->_frameLength - 14;
@@ -758,11 +793,15 @@ uint8_t* XBee_getData(XBee* xbee)
                 return source->_frameDataPtr + dataOffset;
             }
         case RX_16_RESPONSE:
-        case RX_64_RESPONSE:
         case RX_16_IO_RESPONSE:
-        case RX_64_IO_RESPONSE:
             {
                 uint8_t dataOffset = RX_16_RSSI_OFFSET + 2;
+                return source->_frameDataPtr + dataOffset;
+            }
+        case RX_64_RESPONSE:
+        case RX_64_IO_RESPONSE:
+            {
+                uint8_t dataOffset = RX_64_RSSI_OFFSET + 2;
                 return source->_frameDataPtr + dataOffset;
             }
             // Instead, get value for command classes
@@ -929,36 +968,13 @@ XBeeResponse* getXBeeResponse(void* response, uint8_t apiId)
  * Begin
  */
 
-XBee xbeeObj;
-uint32_t addrTable[NUM_ADDR][2] = {{0x0013A200, 0x407B18F3},{0x0013A200, 0x407B18B5}};
-uint8_t payload[NVC3_MESSAGE_SIZE+1];
-
-bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
-{
-    if (addr >= NUM_ADDR) return false;
-    *msb = addrTable[addr][0];
-    *lsb = addrTable[addr][1];
-    return true;
-}
-
-bool addr_xbee_to_nvmcomm(address_t *addr, uint32_t msb, uint32_t lsb)
-{
-    int i;
-    for (i = 0; i < NUM_ADDR; ++i) {
-        if (addrTable[i][0] == msb && addrTable[i][0] == lsb){
-            *addr = i;
-            return true;
-        }
-    }
-    return false;
-}
 
 void nvmcomm_xbee_receive(void)
 {
     XBee_readPacket(&xbeeObj);
-    DEBUGF_USART("RECV: XBee receive sth.\n");
+    DEBUGF_XBEE("RECV: XBee receive sth.\n");
     if(XBee_isAvailable(&xbeeObj)){
-        DEBUGF_USART("RECV: XBee isAvailable\n");
+        DEBUGF_XBEE("RECV: XBee isAvailable\n");
         uint8_t id = XBee_getResponseApiId(&xbeeObj);
         XBeeResponse* response;
 #ifdef SERIES_1
@@ -973,24 +989,26 @@ void nvmcomm_xbee_receive(void)
                 response = getXBeeResponse(&rx16, RX_16_RESPONSE);
                 option = response->_frameDataPtr[RX_16_RSSI_OFFSET+1];
                 src = rx16._remoteAddress;
-                DEBUGF_USART("RECV: 16 src "DBG8"\n", src);
+                DEBUGF_XBEE("RECV: TX16 from src(16) "DBG8"\n", src);
             } else {
                 XBee_getResponse(&xbeeObj, &rx64, RX_64_RESPONSE);
                 response = getXBeeResponse(&rx64, RX_64_RESPONSE);
                 option = response->_frameDataPtr[RX_64_RSSI_OFFSET+1];
                 XBeeAddress64* addr64 = &(rx64._remoteAddress);
-                addr_xbee_to_nvmcomm(&src, addr64->_msb, addr64->_lsb);
-                DEBUGF_USART("RECV: 64 src "DBG8"\n", src);
+                if(!addr_xbee_to_nvmcomm(&src, addr64->_msb, addr64->_lsb))
+                    DEBUGF_XBEE("RECV: TX64 addr translation failed");
+                DEBUGF_XBEE("RECV: TX64 from src(16) "DBG8", src(64) "DBG32" "DBG32"\n", src, addr64->_msb, addr64->_lsb);
             }
 
             // TODO check option, rssi bytes    
             int len = XBeeResponse_getDataLength(response), i;
             for (i = 0; i < len; ++i){
                 uint8_t c = XBee_getDataByIndex(&xbeeObj, i);
-                if (c != -1) payload[i] = c;
-                else DEBUGF_USART("RECV: XBee get data failed\n");
+                if (c != -1) {payload[i] = c;}//DEBUGF_XBEE("RECV: data["DBG8"] = "DBG8"\n",i,c);}
+                //else DEBUGF_XBEE("RECV: get TXdata failed\n");
             }
             if(f) f(src, payload[0], payload+1, len-1);
+            //else DEBUGF_XBEE("RECV: f is null\n");
             return;
         }
 #endif
@@ -999,36 +1017,38 @@ void nvmcomm_xbee_receive(void)
             ZBRxResponse zbrxObj;
             XBee_getResponse(&xbeeObj, &zbrxObj, ZB_RX_RESPONSE);
             response = getXBeeResponse(&zbrxObj, ZB_RX_RESPONSE);
-            uint8_t option = response->_frameDataPtr[4];
+            uint8_t option = response->_frameDataPtr[10];
             if(option == ZB_PACKET_ACKNOWLEDGED){
                 // packet acknowledged
-                DEBUGF_USART("RECV: XBee ACKNOWLEDGED\n");
+                DEBUGF_XBEE("RECV: ZB ACKNOWLEDGED\n");
             }else{
                 // packet not acknowledged
-                DEBUGF_USART("RECV: XBee NOT ACKNOWLEDGED\n");
+                DEBUGF_XBEE("RECV: ZB NOT ACKNOWLEDGED\n");
             }
             int len = XBeeResponse_getDataLength(response), i;
             for (i = 0; i < len; ++i){
                 uint8_t c = XBee_getDataByIndex(&xbeeObj, i);
                 if (c != -1) payload[i] = c;
-                else DEBUGF_USART("RECV: XBee get data failed\n");
+                else DEBUGF_XBEE("RECV: get TXdata failed\n");
             }
             address_t dest;
             XBeeAddress64* addr64 = &(zbrxObj._remoteAddress64);
-            if(addr_xbee_to_nvmcomm(&dest, addr64->_msb, addr64->_lsb) && !f) f(dest, payload[0], payload+1, len-1);
+            if(!addr_xbee_to_nvmcomm(&dest, addr64->_msb, addr64->_lsb))
+                DEBUGF_XBEE("RECV: ZB addr translation failed ("DBG32" "DBG32"\n",addr64->_msb,addr64->_lsb);
+            if(f) f(dest, payload[0], payload+1, len-1);
             return;
         } else if(id == MODEM_STATUS_RESPONSE) {
             //ModemStatusResponse msrObj;
-            DEBUGF_USART("RECV: XBee get MODEM STATUS RESPONSE\n");
+            DEBUGF_XBEE("RECV: get Modem status response\n");
             return;
         }
 #endif
     } else if (XBee_isError(&xbeeObj)) {
-        DEBUGF_USART("RECV: error code: "DBG8"\n", XBee_getResponseErrorCode(&xbeeObj));
+        DEBUGF_XBEE("RECV: error code: "DBG8"\n", XBee_getResponseErrorCode(&xbeeObj));
         return;
     } else {
         // not something we were expecting
-        DEBUGF_USART("RECV: Not sth. expecting\n");
+        DEBUGF_XBEE("RECV: not sth. expecting\n");
     }
 }
 
@@ -1049,9 +1069,9 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
     uint32_t h, l;
     int i;
     if (addr_nvmcomm_to_xbee(dest, &h, &l)) {
-        DEBUGF_USART("SEND: address to "DBG32""DBG32"\n", h, l);
+        DEBUGF_XBEE("SEND: dest(64) "DBG32" "DBG32"\n", h, l);
     } else {
-        DEBUGF_USART("SEND: address init failed\n");
+        DEBUGF_XBEE("SEND: dest. address translation failed\n");
         return -1;
     }
     for (i = 0; i < len; ++i) buf[i+1] = data[i];
@@ -1060,7 +1080,7 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
 #ifdef SERIES_1
     // send data thru XBee 802.15.4
     send64(buf,len+1,h,l);
-    DEBUGF_USART("SEND: waiting for response after sending XBdata\n");
+    DEBUGF_XBEE("SEND: waiting for TX response\n");
 
     // read response
     if(XBee_readPacket_timeout(&xbeeObj, 5000)){
@@ -1072,11 +1092,11 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
 
             uint8_t deliveryStatus = response->_frameDataPtr[1];
             if (deliveryStatus == SUCCESS){
-                DEBUGF_USART("SEND: XBee delivery TXstatus is success\n");
+                DEBUGF_XBEE("SEND: deliver TXstatus SUCCESS\n");
                 return 0;
             }
         } else {
-            DEBUGF_USART("SEND: XBee getResponseTx failed\n");
+            DEBUGF_XBEE("SEND: no TX response\n");
             return -1;
         }
     }
@@ -1084,10 +1104,10 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
 #ifdef SERIES_2
     // send data thru ZigBee request
     sendZB(buf,len+1,h,l);
-    DEBUGF_USART("SEND: waiting for response after sending ZBdata\n");
+    DEBUGF_XBEE("SEND: waiting for ZB response\n");
 
     // read response
-    if(XBee_readPacket_timeout(&xbeeObj, 500)){
+    if(XBee_readPacket_timeout(&xbeeObj, 5000)){
         uint8_t id = XBee_getResponseApiId(&xbeeObj);
         if(id == ZB_TX_STATUS_RESPONSE){
             ZBTxStatusResponse txStatus;
@@ -1096,16 +1116,16 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
 
             uint8_t deliveryStatus = response->_frameDataPtr[4];
             if (deliveryStatus == SUCCESS){
-                DEBUGF_USART("SEND: XBee delivery ZBTXstatus is success\n");
+                DEBUGF_XBEE("SEND: deliver ZBTXstatus SUCCESS\n");
                 return 0;
             }
         } else {
-            DEBUGF_USART("SEND: XBee getResponseZB failed\n");
+            DEBUGF_XBEE("SEND: no ZB response\n");
             return -1;
         }
     }
 #endif
-    DEBUGF_USART("SEND: XBee delivery status failed\n");
+    DEBUGF_XBEE("SEND: deliver status UNKNOWN\n");
     return -1;
 }
 
