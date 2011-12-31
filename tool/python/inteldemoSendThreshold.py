@@ -5,7 +5,7 @@ import pynvc3
 
 def testLamp(destination, threshold):
   if threshold > 255:
-    print "sendThresholdCommand <nodeid> <threshold>"
+    print "inteldemoSendThresholdCommand <nodeid> <threshold>"
     print "0<=threshold<=255"
   pynvc3.sendcmd(destination, pynvc3.APPMSG, [2, threshold])
 
