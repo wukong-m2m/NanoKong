@@ -57,7 +57,7 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
 
   if ((retval2 == 0 || retval == 0) && nvc3_command==NVC3_CMD_APPMSG)
     nvc3_appmsg_reply = NVC3_APPMSG_WAIT_ACK;
-  return retval;
+  return retval2;
 }
 // Private
 
