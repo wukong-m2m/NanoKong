@@ -132,53 +132,6 @@ void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t
         response_cmd = NVC3_CMD_REPRG_COMMIT_R_OK;
       }
     break;
-    
-/* TODO: turn this into EEPROM file access
-    case NVC3_CMD_FOPEN:
-      if (payload[0] <= NVC3_MAX_FID) {
-        DEBUGF_COMM("Open file "DBG8"\n", payload[0]);
-        nvc3_file_open = payload[0];
-        nvc3_file_pos = 0;
-      }
-    break;
-    case NVC3_CMD_FCLOSE:
-      DEBUGF_COMM("Closing file\n");
-			if (nvc3_avr_flash_open == TRUE)
-				avr_flash_close();
-      nvc3_file_open = 0xFF;
-    break;
-    case NVC3_CMD_FSEEK:
-      nvc3_file_pos = ((u16_t)payload[0]<<8) + payload[1];
-      DEBUGF_COMM("Seek to position "DBG16"\n", nvc3_file_pos);
-    break;
-    case NVC3_CMD_RDFILE:
-      if (nvc3_file_open == NVC3_FILE_FIRMWARE) {
-        u08_t *addr = nvmfile_get_base();
-        addr += nvc3_file_pos;
-
-        response_size = payload[0];
-        if (response_size < 39) { // TODO: check for buffer size (depends on protocol)
-          for (size8_t i=0; i<response_size; ++i) {
-            payload[i] = nvmfile_read08(addr++);
-            ++nvc3_file_pos;
-          }
-        }
-        response_cmd = NVC3_CMD_RDFILE_R;
-      }
-    break;
-    case NVC3_CMD_WRFILE:
-      if (nvc3_file_open == NVC3_FILE_FIRMWARE) {
-	 			if (nvc3_avr_flash_open == FALSE) {
-					nvc3_avr_flash_open = TRUE;
-					avr_flash_open(0x4000); // TODO: ugly hack
-        	vm_set_runlevel(NVM_RUNLVL_CONF); // opening firmware for writing implies conf runlevel
-				}
-        DEBUGF_COMM("Write "DBG8" bytes at position "DBG16", address "DBG16".\n", length-1, nvc3_file_pos, nvc3_file_pos);
-				avr_flash_write(length, payload);
-        nvc3_file_pos += length-1;
-      }
-    break;
-*/
     case NVC3_CMD_GETRUNLVL: 
       payload[0] = nvm_runlevel;
       response_size = 1;

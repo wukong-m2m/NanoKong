@@ -935,6 +935,11 @@ uint8_t payload[NVC3_MESSAGE_SIZE+1];
 
 bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
 {
+    // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
+    if (addr<128)
+      return false;
+    addr -= 128;
+
     if (addr >= NUM_ADDR) return false;
     *msb = addrTable[addr][0];
     *lsb = addrTable[addr][1];
@@ -946,7 +951,7 @@ bool addr_xbee_to_nvmcomm(address_t *addr, uint32_t msb, uint32_t lsb)
     int i;
     for (i = 0; i < NUM_ADDR; ++i) {
         if (addrTable[i][0] == msb && addrTable[i][0] == lsb){
-            *addr = i;
+            *addr = i + 128; // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
             return true;
         }
     }

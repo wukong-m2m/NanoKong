@@ -49,6 +49,22 @@ void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // T
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
 
+bool addr_nvmcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
+    // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
+    if (nvmcomm_addr>128)
+      return false;
+    *zwave_addr = nvmcomm_addr;
+    return true;
+}
+
+bool addr_zwave_to_nvmcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
+  if (zwave_addr>128)
+    return false;
+  *nvmcomm_addr = zwave_addr;
+  return true;
+}
+
+
 //===================================================================================================================
 // Copied & modified from testrtt.c
 //===================================================================================================================
@@ -191,13 +207,17 @@ void nvmcomm_zwave_receive(void) {
       uart_write_byte(ZWAVE_UART, 6);
       state = ZWAVE_STATUS_WAIT_SOF;
       if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER)
-      if (f!=NULL)
-        f(payload[1], payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
+      if (f!=NULL) {
+        address_t nvmcomm_addr;
+        if (addr_zwave_to_nvmcomm(&nvmcomm_addr, payload[1]))
+          f(nvmcomm_addr, payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
+      }
       if (cmd == 0x49 && f_nodeinfo)
           f_nodeinfo(payload, payload_length);
     }
   }
 }
+
 
 
 // Public interface
@@ -247,8 +267,11 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
   }
   DEBUGF_COMM("\n");
 #endif
-
-  return ZW_sendData(dest, nvc3_command, data, len, txoptions);
+  u08_t zwave_addr;
+  if (addr_nvmcomm_to_zwave(dest, &zwave_addr))
+    return ZW_sendData(zwave_addr, nvc3_command, data, len, txoptions);
+  else
+    return -1; // Not a ZWave address
 // TODO  expire = millis()+1000;
 }
 
