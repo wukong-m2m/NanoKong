@@ -311,7 +311,9 @@ u08_t uart_spi_transfer(u08_t uart, u08_t byte){
 u08_t uart_available(u08_t uart) {
   return(UART_BUFFER_MASK & (uart_wr[uart] - uart_rd[uart]));
 }
-
+void uart_flush(u08_t uart){
+  uart_wr[uart] = uart_rd[uart];
+}
 void uart_write_byte(u08_t uart, u08_t byte) {
   /* Wait for empty transmit buffer */
   while(!(*UCSRA[uart] & _BV(UDRE)));

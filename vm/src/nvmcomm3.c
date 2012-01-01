@@ -5,6 +5,9 @@
 #ifdef NVM_USE_COMMZWAVE
 #include "nvmcomm_zwave.h"
 #endif
+#ifdef NVM_USE_COMMXBEE
+#include "nvmcomm_xbee.h"
+#endif
 #include "avr/avr_flash.h"
 
 #include "nvmcomm3.h"
@@ -26,21 +29,35 @@ void nvmcomm_init(void) {
   nvmcomm_zwave_init();
   nvmcomm_zwave_setcallback(handle_message);
 #endif
+#ifdef NVM_USE_COMMXBEE
+  nvmcomm_xbee_init();
+  nvmcomm_xbee_setcallback(handle_message);
+#endif
 }
 
 void nvmcomm_poll(void) {
 #ifdef NVM_USE_COMMZWAVE
   nvmcomm_zwave_poll();
 #endif
+#ifdef NVM_USE_COMMXBEE
+  nvmcomm_xbee_poll();
+#endif
 }
 
 int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length) {
   if (length > NVC3_MESSAGE_SIZE)
     return -2; // Message too large
-  int retval = nvmcomm_zwave_send(dest, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
-  if (retval==0 && nvc3_command==NVC3_CMD_APPMSG)
+  int retval = -1, retval2 = -1;
+#ifdef NVM_USE_COMMZWAVE
+  retval = nvmcomm_zwave_send(dest, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
+#endif
+#ifdef NVM_USE_COMMXBEE
+  retval2 = nvmcomm_xbee_send(dest, nvc3_command, payload, length, 0);
+#endif
+
+  if ((retval2 == 0 || retval == 0) && nvc3_command==NVC3_CMD_APPMSG)
     nvc3_appmsg_reply = NVC3_APPMSG_WAIT_ACK;
-  return retval;
+  return retval2;
 }
 // Private
 
@@ -62,7 +79,7 @@ void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t
       DEBUGF_COMM("Initialise reprogramming.\n");
       nvc3_avr_reprogramming = TRUE;
       nvc3_avr_reprogramming_pos = 0;
-      avr_flash_open(0x4000); // TODO: ugly hack
+      avr_flash_open(0x8000); // TODO: ugly hack
       DEBUGF_COMM("Going to runlevel NVM_RUNLVL_CONF.\n");
       vm_set_runlevel(NVM_RUNLVL_CONF);
       response_cmd = NVC3_CMD_REPRG_OPEN_R;
@@ -115,53 +132,6 @@ void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t
         response_cmd = NVC3_CMD_REPRG_COMMIT_R_OK;
       }
     break;
-    
-/* TODO: turn this into EEPROM file access
-    case NVC3_CMD_FOPEN:
-      if (payload[0] <= NVC3_MAX_FID) {
-        DEBUGF_COMM("Open file "DBG8"\n", payload[0]);
-        nvc3_file_open = payload[0];
-        nvc3_file_pos = 0;
-      }
-    break;
-    case NVC3_CMD_FCLOSE:
-      DEBUGF_COMM("Closing file\n");
-			if (nvc3_avr_flash_open == TRUE)
-				avr_flash_close();
-      nvc3_file_open = 0xFF;
-    break;
-    case NVC3_CMD_FSEEK:
-      nvc3_file_pos = ((u16_t)payload[0]<<8) + payload[1];
-      DEBUGF_COMM("Seek to position "DBG16"\n", nvc3_file_pos);
-    break;
-    case NVC3_CMD_RDFILE:
-      if (nvc3_file_open == NVC3_FILE_FIRMWARE) {
-        u08_t *addr = nvmfile_get_base();
-        addr += nvc3_file_pos;
-
-        response_size = payload[0];
-        if (response_size < 39) { // TODO: check for buffer size (depends on protocol)
-          for (size8_t i=0; i<response_size; ++i) {
-            payload[i] = nvmfile_read08(addr++);
-            ++nvc3_file_pos;
-          }
-        }
-        response_cmd = NVC3_CMD_RDFILE_R;
-      }
-    break;
-    case NVC3_CMD_WRFILE:
-      if (nvc3_file_open == NVC3_FILE_FIRMWARE) {
-	 			if (nvc3_avr_flash_open == FALSE) {
-					nvc3_avr_flash_open = TRUE;
-					avr_flash_open(0x4000); // TODO: ugly hack
-        	vm_set_runlevel(NVM_RUNLVL_CONF); // opening firmware for writing implies conf runlevel
-				}
-        DEBUGF_COMM("Write "DBG8" bytes at position "DBG16", address "DBG16".\n", length-1, nvc3_file_pos, nvc3_file_pos);
-				avr_flash_write(length, payload);
-        nvc3_file_pos += length-1;
-      }
-    break;
-*/
     case NVC3_CMD_GETRUNLVL: 
       payload[0] = nvm_runlevel;
       response_size = 1;

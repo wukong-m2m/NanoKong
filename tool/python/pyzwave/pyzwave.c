@@ -32,7 +32,7 @@ static PyObject* pyzwave_receive(PyObject *self, PyObject *args) {
 
     PyObject* received_list = PyList_New(0);
     for (i=0; i<len; i++) {
-      PyList_Append(received_list, PyInt_FromLong(PyZwave_messagebuffer[i]));
+      PyList_Append(received_list, PyInt_FromLong((long)PyZwave_messagebuffer[i] & 0xFF));
     }
     return received_list;
   }
