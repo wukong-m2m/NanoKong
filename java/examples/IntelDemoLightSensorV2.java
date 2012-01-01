@@ -4,7 +4,9 @@ import nanovm.io.*;
 class IntelDemoLightSensorV2 {
   private static final short COMMAND_SET_LAMP = 1;
   private static final short COMMAND_SET_THRESHOLD = 2;
-  private static final short COMMAND_SET_PEOPLE = 3;
+  private static final short COMMAND_GET_STATUS = 3;
+  private static final short COMMAND_GET_STATUS_REPLY = 4;
+  private static final short COMMAND_SET_PEOPLE = 5;
 
   private static final byte LAMP_NODE_ID = 3;
 
@@ -23,6 +25,7 @@ class IntelDemoLightSensorV2 {
 
   public static void main(String[] args) {
     int threshold = INITIAL_THRESHOLD;
+    int light_sensor_reading = 0;
     boolean lamp_on = false;
     boolean people_in_room = true;
 
@@ -31,21 +34,28 @@ class IntelDemoLightSensorV2 {
 
     while(true) {
       byte[] data = NvmComm3.receive(1000);
-      if (data != null && data.length == 2) {
-        if (data[0] == COMMAND_SET_THRESHOLD) {
+      if (data != null) {
+        if (data.length == 2 && data[0] == COMMAND_SET_THRESHOLD) {
           threshold = 0xFF & data[1]; // necessary since Java doesn't have unsigned bytes
           System.out.println("Set threshold to " + threshold);
-        }
-        if (data[0] == COMMAND_SET_PEOPLE) {
-          people_in_room = data[1] != 0;
-          if (people_in_room)
-            System.out.println("Set people_in_room to true");
-          else
-            System.out.println("Set people_in_room to false");
+        } else if (data.length == 1 && data[0] == COMMAND_GET_STATUS) {
+          System.out.println("Sending GET_STATUS_REPLY");
+          byte[] reply = new byte[] {COMMAND_GET_STATUS_REPLY,
+                                     (byte)threshold,
+                                     (byte)light_sensor_reading,
+                                     lamp_on ? (byte)1 : (byte)0, 
+                                     people_in_room ? (byte)1 : (byte)0};
+          NvmComm3.send((byte)2, reply, (byte)5);
+        } else if (data.length == 2 && data[0] == COMMAND_SET_PEOPLE) {
+            people_in_room = data[1] != 0;
+            if (people_in_room)
+              System.out.println("Set people_in_room to true");
+            else
+              System.out.println("Set people_in_room to false");
         }
       }
         
-      int light_sensor_reading = Adc.getByte(Adc.CHANNEL0);
+      light_sensor_reading = Adc.getByte(Adc.CHANNEL0);
       System.out.println("Sensed value:" + light_sensor_reading);
       System.out.println("Threshold:" + threshold);
       if (lamp_on)

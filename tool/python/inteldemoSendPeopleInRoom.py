@@ -5,11 +5,9 @@ import pynvc3
 
 def testLamp(destination, input):
   if input == "On":
-    pynvc3.sendcmd(destination, pynvc3.APPMSG, [3, 1])
-    pynvc3.receive(5000) # Receive ack of APPMSG
+    pynvc3.sendcmd(destination, pynvc3.APPMSG, [5, 1])
   elif input == "Off":
-    pynvc3.sendcmd(destination, pynvc3.APPMSG, [3, 0])
-    pynvc3.receive(5000) # Receive ack of APPMSG
+    pynvc3.sendcmd(destination, pynvc3.APPMSG, [5, 0])
   else:
     print "inteldemoSendPeopleInRoom <nodeid> [On|Off]"
 
