@@ -4246,7 +4246,7 @@ int main(int argc, char *argv[])
 
 //// 20111025 Niels Reijers: for PyZwave
 int PyZwave_bytesReceived = 0;
-char PyZwave_messagebuffer[1024];
+unsigned char PyZwave_messagebuffer[1024];
 int PyZwave_senddataAckReceived = 0;
 
 void PyZwave_proprietary_class_cb(void * payload, int len) {
@@ -4255,7 +4255,7 @@ void PyZwave_proprietary_class_cb(void * payload, int len) {
     exit(0);
   }
   
-  memcpy(PyZwave_messagebuffer, (char *)payload, len);
+  memcpy(PyZwave_messagebuffer, (unsigned char *)payload, len);
   PyZwave_bytesReceived = len;
 
   // int i;
