@@ -81,9 +81,14 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 #error "Unsupported AVR CPU!"
 #endif
 
-volatile static nvm_int_t ticks;
+volatile static nvm_int_t ticks_1A,ticks_1B;
 volatile static u08_t iflag_INT;
 volatile static u08_t iflag_PCINTA;
+volatile static u08_t iflag_PCINTC;
+volatile static u08_t ivalue_PCINTA;
+volatile static u08_t ivalue_PCINTC;
+//volatile static u08_t ictrl_PCINTA1;
+//volatile static u08_t ictrl_PCINTA2;
 
 #ifndef ATMEGA2560
 SIGNAL(SIG_OUTPUT_COMPARE1A) {
@@ -94,7 +99,12 @@ SIGNAL(SIG_OUTPUT_COMPARE1A) {
 ISR(TIMER1_COMPA_vect)
 {
   TCNT1 = 0;
-  ticks++;
+  ticks_1A++;
+}
+ISR(TIMER1_COMPB_vect)
+{
+  TCNT1 = 0;
+  ticks_1B++;
 }
 ISR(INT0_vect)
 {
@@ -122,7 +132,20 @@ ISR(INT5_vect)
 }
 ISR(PCINT0_vect)
 {
-	iflag_PCINTA |= _BV(0);//set interrupt flag to let java know
+	u08_t now_value=(*pins[1]);
+	u08_t change;
+	change = (now_value^ivalue_PCINTA) & PCMSK0; //different bit & mask
+	//ivalue_PCINTA=now_value;
+	ivalue_PCINTA = now_value | ~PCMSK0;
+	iflag_PCINTA |= change;
+}
+ISR(PCINT2_vect)
+{
+	u08_t now_value=(*pins[9]);
+	u08_t change;
+	change = (now_value^ivalue_PCINTC) & PCMSK2; //different bit & mask
+	ivalue_PCINTC = now_value | ~PCMSK2;
+	iflag_PCINTC |= change;
 }
 #endif
 
@@ -258,15 +281,17 @@ void native_init(void) {
 #elif defined(ATMEGA2560)
   TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
   TCCR1B |= _BV(CS11);
-  TIMSK1 = _BV(OCIE1A);		//output compare interrupt enable
   OCR1A = 2000;			//set default T=1ms
 
-  //if we want to use INT0~5 interrupt, must set the mask to enable interrupt .
-  EIMSK=_BV(INT0) | _BV(INT1) | _BV(INT2) | _BV(INT3);
+  //initial global value
+  iflag_INT=0;
+  iflag_PCINTA=0;
+  iflag_PCINTC=0;
+  ivalue_PCINTA=0xff;
+  ivalue_PCINTC=0xff;
 
   //PCINT
-  PCICR=_BV(PCIE0);	//turn on interrupt PCINT0~7
-  PCMSK0=_BV(PCINT0);	//enable PCINT0
+  PCICR=_BV(PCIE0) | _BV(PCIE2);	//enable interrupt PCINT0~7,PCINT16~23
 
 #else
   TCCR1B = _BV(CS11);           // clk/8
@@ -284,43 +309,108 @@ void native_avr_avr_invoke(u08_t mref) {
   } else if(mref == NATIVE_METHOD_SETPINIOMODE) {
     u08_t mode = stack_pop();
     u08_t pin = stack_pop();
+	if(pin>69){	//unknown pin
+	stack_push(0);
+	return;
+	}
     u08_t port = digital_pin_to_port[pin];
     u08_t bit = digital_pin_to_bit_mask[pin];
-    u08_t oldSREG = SREG; cli();
-    if(mode) {*ddrs[port] &= ~_BV(bit);}
-    else {*ddrs[port] |= _BV(bit);}
-    SREG = oldSREG;
+	if(mode==1) {
+	*ddrs[port] &= ~_BV(bit); 
+	*ports[port] |= _BV(bit);	//pull high
+	stack_push(1);
+      } else if(mode==0){
+	*ddrs[port] |= _BV(bit);
+	stack_push(1);
+      } else {  stack_push(0); }//unknown mode
+      
   } else if(mref == NATIVE_METHOD_DIGITALWRITE) {
     u08_t value = stack_pop();
     u08_t pin = stack_pop();
     u08_t port = digital_pin_to_port[pin];
     u08_t bit = digital_pin_to_bit_mask[pin];
-    u08_t oldSREG = SREG; cli();
-    if(value) {*ports[port] |= _BV(bit);}
-    else {*ports[port] &= ~_BV(bit);}
-    SREG = oldSREG;
+	if(value) {*ports[port] |= _BV(bit);}
+	else {*ports[port] &= ~_BV(bit);}
   } else if(mref == NATIVE_METHOD_DIGITALREAD) {
     u08_t pin = stack_pop();
     u08_t port = digital_pin_to_port[pin];
     u08_t bit = digital_pin_to_bit_mask[pin];
     stack_push( (*pins[port]>>bit) & 0x01);
-  } else if(mref == NATIVE_METHOD_GETIFINT) {
-    u08_t bit  = stack_pop();
-    stack_push( (iflag_INT>>bit) & 0x01);
-  } else if(mref == NATIVE_METHOD_GETIFPCINTA) {
-    u08_t bit  = stack_pop();
-    stack_push( (iflag_PCINTA>>bit) & 0x01);
-  } else if(mref == NATIVE_METHOD_CLRIFINT) {
-    u08_t bit  = stack_pop();
-    iflag_INT &= ~_BV(bit);
-  } else if(mref == NATIVE_METHOD_CLRIFPCINTA) {
-    u08_t bit  = stack_pop();
-    iflag_PCINTA &= ~_BV(bit);
-  } else if(mref == NATIVE_METHOD_SETICTRLINT) {
+  } else if(mref == NATIVE_METHOD_SETINTRMODE) {
     u08_t mode = stack_pop();
-    u08_t port = stack_pop();
-    if(port<=3){ EICRA=((mode & 0x03)<<port)<<port; }
-    else if(port<=7 && port >3){EICRB=((mode & 0x03)<<(port-4))<<(port-4);}
+    u08_t pin = stack_pop();
+	if(pin==21 || pin==20 || pin==19 || pin==18 ) { //INT0~3
+	u08_t port = 21-pin;			
+	EICRA |= ((mode & 0x03)<<port)<<port;		//set interrupt control
+		if(mode<4) { 
+		EIMSK |=_BV(port);			//turn on INT
+	      } else if(mode==4){ 
+		EIMSK &= ~_BV(port); 			//turn off INT
+	      } else {					//unkonwn mode
+		stack_push(0);
+		return;
+	      }		
+	stack_push(1);
+      }	else if(pin==2 || pin==3 ) { 			//INT4~5
+	u08_t port = pin+2;			
+	EICRA |= ((mode & 0x03)<<port)<<port;		
+		if(mode<4) { 
+		EIMSK |=_BV(port);			//turn on INT
+	      } else if(mode==4){ 
+		EIMSK &= ~_BV(port); 			//turn off INT
+	      } else {					//unkonwn mode
+		stack_push(0);
+		return;
+	      }		
+	stack_push(1);
+      } else if(pin==53 || pin==52 || pin==51 || pin==50 ) {	//PCINT0~3
+	u08_t port = 53-pin;		
+		if(mode==1) { 
+		PCMSK0 |=_BV(port);	//anychange mode turn on PCINT
+		stack_push(1);
+	      } else if(mode==4){ 
+		PCMSK0 &= ~_BV(port);   //turn off PCINT      
+		stack_push(1);
+	      } else {	stack_push(0);} //other than anychange mode
+      } else if(pin==10 || pin==11 || pin==12 || pin==13 ) {	//PCINT4~7	
+		u08_t port = pin-6;		
+		if(mode==1) { 
+		PCMSK0 |=_BV(port);	
+		stack_push(1);
+	      } else if(mode==4){ 
+		PCMSK0 &= ~_BV(port);   
+		stack_push(1);
+	      } else {	stack_push(0);} 
+      } else if(pin==62 || pin==63 || pin==64 || pin==65 || 	//PCINT16~23
+		pin==66 || pin==67 || pin==68 || pin==69 ) {	
+		u08_t port = pin-62;		
+		if(mode==1) { 
+		PCMSK2 |=_BV(port);	
+		stack_push(1);
+	      } else if(mode==4){ 
+		PCMSK2 &= ~_BV(port);   
+		stack_push(1);
+	      } else {	stack_push(0);} 
+      } else
+	stack_push(0);
+  } else if(mref == NATIVE_METHOD_SELECT) {
+    nvm_int_t time = stack_pop();
+    u08_t event_mask = stack_pop();
+    OCR1B = 2000;			//set period=1ms
+    TIMSK1 |= _BV(OCIE1B);		//output compare interrupt enable
+    ticks_1B = 0;
+    while(ticks_1B < time);		//wait until time out
+    TIMSK1 &= ~_BV(OCIE1B);		//output compare interrupt disable
+    	if(event_mask==0) { 	//INT	
+	stack_push(iflag_INT);
+	iflag_INT=0;
+      } else if(event_mask==1) {//PCINTA
+	stack_push(iflag_PCINTA);
+	iflag_PCINTA=0;
+      } else if(event_mask==2) {//PCINTC
+	stack_push(iflag_PCINTC);
+	iflag_PCINTC=0;
+      }
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
 }
@@ -419,11 +509,13 @@ void native_avr_timer_invoke(u08_t mref) {
     OCR1A = stack_pop();  // set reload value
     TCNT1 = 0;
   } else if(mref == NATIVE_METHOD_GET) {
-    stack_push(ticks);
+    stack_push(ticks_1A);
   } else if(mref == NATIVE_METHOD_TWAIT) {
     nvm_int_t wait = stack_pop();
-    ticks = 0;
-    while(ticks < wait);      // reset watchdog here if enabled
+    TIMSK1 |= _BV(OCIE1A);		//output compare interrupt enable
+    ticks_1A = 0;
+    while(ticks_1A < wait);		//wait until time out
+    TIMSK1 &= ~_BV(OCIE1A);		//output compare interrupt disable
   } else if(mref == NATIVE_METHOD_SETPRESCALER) {
     TCCR1B = stack_pop();
   } else
