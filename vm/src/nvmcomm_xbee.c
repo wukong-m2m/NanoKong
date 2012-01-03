@@ -36,36 +36,6 @@
 #endif
 
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
-XBee xbeeObj;
-uint32_t addrTable[NUM_ADDR][2] = {
-#ifdef SERIES_1
-    {0x0013A200, 0x407B18B5},{0x0013A200, 0x407B18F3},
-#endif
-#ifdef SERIES_2
-    {0x0013A200, 0x407733F3},{0x0013A200, 0x4077340D}
-#endif
-};
-uint8_t payload[NVC3_MESSAGE_SIZE+1];
-
-bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
-{
-    if (addr >= NUM_ADDR) return false;
-    *msb = addrTable[addr][0];
-    *lsb = addrTable[addr][1];
-    return true;
-}
-
-bool addr_xbee_to_nvmcomm(address_t *addr, uint32_t msb, uint32_t lsb)
-{
-    int i;
-    for (i = 0; i < NUM_ADDR; ++i) {
-        if (addrTable[i][0] == msb && addrTable[i][1] == lsb){
-            *addr = i;
-            return true;
-        }
-    }
-    return false;
-}
 
 /**
  * XBee init code
@@ -969,7 +939,14 @@ XBeeResponse* getXBeeResponse(void* response, uint8_t apiId)
  */
 
 XBee xbeeObj;
-uint32_t addrTable[NUM_ADDR][2] = {{0x0013A200, 0x407B18F3},{0x0013A200, 0x407B18B5}};
+uint32_t addrTable[NUM_ADDR][2] = {
+#ifdef SERIES_1
+    {0x0013A200, 0x407B18B5},{0x0013A200, 0x407B18F3},
+#endif
+#ifdef SERIES_2
+    {0x0013A200, 0x407733F3},{0x0013A200, 0x4077340D}
+#endif
+};
 uint8_t payload[NVC3_MESSAGE_SIZE+1];
 
 bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
@@ -1059,7 +1036,7 @@ void nvmcomm_xbee_receive(void)
                 if (c != -1) payload[i] = c;
                 else DEBUGF_XBEE("RECV: get TXdata failed\n");
             }
-            address_t dest;
+            address_t dest = 0;
             XBeeAddress64* addr64 = &(zbrxObj._remoteAddress64);
             if(!addr_xbee_to_nvmcomm(&dest, addr64->_msb, addr64->_lsb))
                 DEBUGF_XBEE("RECV: ZB addr translation failed ("DBG32" "DBG32"\n",addr64->_msb,addr64->_lsb);
