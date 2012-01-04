@@ -22,14 +22,14 @@ class AdcDemo {
       // display voltage difference between channel3.channel2
       System.out.println("Value (ch3-ch2)*10: " + Adc.getValue(Adc.Diff32x10));
 
-      // display ADC0 value with 10 bits resolution
-      System.out.println("Value CH0: " + Adc.getValue(Adc.CHANNEL0));
+      // display ADC15 value with 10 bits resolution
+      System.out.println("Value CH15: " + Adc.getValue(Adc.CHANNEL15));
 
-      // display ADC0 value with 8 bits resolution
-      System.out.println("Byte CH0:  " + Adc.getByte(Adc.CHANNEL0));
+      // display ADC15 value with 8 bits resolution
+      System.out.println("Byte CH15:  " + Adc.getByte(Adc.CHANNEL15));
 
       // wait a second for next run
-      Timer.wait(100);
+      Timer.wait(1000);
     }
   }
 }

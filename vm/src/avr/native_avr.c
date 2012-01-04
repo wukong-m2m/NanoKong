@@ -84,11 +84,7 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 volatile static nvm_int_t ticks_1A,ticks_1B;
 volatile static u08_t iflag_INT;
 volatile static u08_t iflag_PCINTA;
-volatile static u08_t iflag_PCINTC;
 volatile static u08_t ivalue_PCINTA;
-volatile static u08_t ivalue_PCINTC;
-//volatile static u08_t ictrl_PCINTA1;
-//volatile static u08_t ictrl_PCINTA2;
 
 #ifndef ATMEGA2560
 SIGNAL(SIG_OUTPUT_COMPARE1A) {
@@ -138,14 +134,6 @@ ISR(PCINT0_vect)
 	//ivalue_PCINTA=now_value;
 	ivalue_PCINTA = now_value | ~PCMSK0;
 	iflag_PCINTA |= change;
-}
-ISR(PCINT2_vect)
-{
-	u08_t now_value=(*pins[9]);
-	u08_t change;
-	change = (now_value^ivalue_PCINTC) & PCMSK2; //different bit & mask
-	ivalue_PCINTC = now_value | ~PCMSK2;
-	iflag_PCINTC |= change;
 }
 #endif
 
@@ -286,12 +274,10 @@ void native_init(void) {
   //initial global value
   iflag_INT=0;
   iflag_PCINTA=0;
-  iflag_PCINTC=0;
   ivalue_PCINTA=0xff;
-  ivalue_PCINTC=0xff;
 
   //PCINT
-  PCICR=_BV(PCIE0) | _BV(PCIE2);	//enable interrupt PCINT0~7,PCINT16~23
+  PCICR=_BV(PCIE0);	//enable interrupt PCINT0~7
 
 #else
   TCCR1B = _BV(CS11);           // clk/8
@@ -322,8 +308,7 @@ void native_avr_avr_invoke(u08_t mref) {
       } else if(mode==0){
 	*ddrs[port] |= _BV(bit);
 	stack_push(1);
-      } else {  stack_push(0); }//unknown mode
-      
+      } else {  stack_push(0); }//unknown mode      
   } else if(mref == NATIVE_METHOD_DIGITALWRITE) {
     u08_t value = stack_pop();
     u08_t pin = stack_pop();
@@ -381,16 +366,6 @@ void native_avr_avr_invoke(u08_t mref) {
 		PCMSK0 &= ~_BV(port);   
 		stack_push(1);
 	      } else {	stack_push(0);} 
-      } else if(pin==62 || pin==63 || pin==64 || pin==65 || 	//PCINT16~23
-		pin==66 || pin==67 || pin==68 || pin==69 ) {	
-		u08_t port = pin-62;		
-		if(mode==1) { 
-		PCMSK2 |=_BV(port);	
-		stack_push(1);
-	      } else if(mode==4){ 
-		PCMSK2 &= ~_BV(port);   
-		stack_push(1);
-	      } else {	stack_push(0);} 
       } else
 	stack_push(0);
   } else if(mref == NATIVE_METHOD_SELECT) {
@@ -407,9 +382,6 @@ void native_avr_avr_invoke(u08_t mref) {
       } else if(event_mask==1) {//PCINTA
 	stack_push(iflag_PCINTA);
 	iflag_PCINTA=0;
-      } else if(event_mask==2) {//PCINTC
-	stack_push(iflag_PCINTC);
-	iflag_PCINTC=0;
       }
   } else
     error(ERROR_NATIVE_UNKNOWN_METHOD);
@@ -530,7 +502,9 @@ void native_avr_adc_invoke(u08_t mref) {
     ADMUX = stack_pop_int() & 0xc0;              // set reference value
   } else if(mref == NATIVE_METHOD_ADC_GETVALUE) {
     // ADLAR = 0
-    ADMUX = (ADMUX & 0xc0) | (stack_pop_int() & 0x0f);
+    u08_t channel  = stack_pop_int();
+    ADMUX = (ADMUX & 0xc0) | (channel & 0x0f);
+    ADCSRB |= (channel & 0x20)>>2;
 
     // do conversion
     ADCSRA |= _BV(ADSC);                  // Start conversion
@@ -539,7 +513,9 @@ void native_avr_adc_invoke(u08_t mref) {
     stack_push(ADCL + (ADCH << 8));
   } else if(mref == NATIVE_METHOD_ADC_GETBYTE) {
     // ADLAR = 1
-    ADMUX = (ADMUX & 0xc0) | _BV(ADLAR) | (stack_pop_int() & 0x0f);
+    u08_t channel  = stack_pop_int();
+    ADMUX = (ADMUX & 0xc0) | _BV(ADLAR) | (channel & 0x0f);
+    ADCSRB |= (channel & 0x20)>>2;
 
     // do conversion
     ADCSRA |= _BV(ADSC);                  // Start conversion

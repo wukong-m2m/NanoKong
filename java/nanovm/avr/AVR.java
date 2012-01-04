@@ -53,7 +53,6 @@ public class AVR {
   //event mask
   public static final int EVENT_INT   = 0;
   public static final int EVENT_PCINTA= 1;
-  public static final int EVENT_PCINTC= 2;
   public static final int MASK_INT0   = 1;
   public static final int MASK_INT1   = 2;
   public static final int MASK_INT2   = 4;
@@ -68,14 +67,7 @@ public class AVR {
   public static final int MASK_PCINT5 = 32;
   public static final int MASK_PCINT6 = 64;
   public static final int MASK_PCINT7 = 128;
-  public static final int MASK_PCINT16= 1;
-  public static final int MASK_PCINT17= 2;
-  public static final int MASK_PCINT18= 4;
-  public static final int MASK_PCINT19= 8;
-  public static final int MASK_PCINT20= 16;
-  public static final int MASK_PCINT21= 32;
-  public static final int MASK_PCINT22= 64;
-  public static final int MASK_PCINT23= 128;
+
 
   //pin constant
   public static final int DIGITAL0    = 0;
