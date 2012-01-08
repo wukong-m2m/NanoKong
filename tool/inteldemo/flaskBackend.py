@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import request
+from flask import jsonify
 app = Flask(__name__)
 
 import getStatus
@@ -12,8 +13,23 @@ import pynvc3
 def hello():
   return "Hello World!"
 
+@app.route("/updateStatus")
+def flaskUpdateStatus():
+  reply = getStatus.getStatus(1)
+  f = open("/Users/niels/Sites/getStatus","w")
+  if len(reply) == 3:
+    f.write("""{{"scenario": {0}, "threshold": {1}, "lightsensor": {2}, "lamp_on": {3}}}""".format(1, reply[0], reply[1], reply[2]))
+  else:
+    f.write("""{{"scenario": {0}, "threshold": {1}, "lightsensor": {2}, "lamp_on": {3}, "occupied": {4}}}""".format(2, reply[0], reply[1], reply[2], reply[3]))
+  return "OK"
+
+
 @app.route("/getStatus")
 def flaskGetStatus():
+#  return jsonify(scenario=1,
+#                       threshold=21,
+#                       lightsensor=22,
+#                       lamp_on=0)
   reply = getStatus.getStatus(1)
   if len(reply) == 3:
     return """{{"scenario": {0},
@@ -53,4 +69,4 @@ def flaskReprogram():
 
 if __name__ == "__main__":
   pynvc3.init()
-  app.run()
+  app.run(host='0.0.0.0')
