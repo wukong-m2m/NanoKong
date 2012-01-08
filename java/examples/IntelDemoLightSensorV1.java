@@ -45,7 +45,7 @@ class IntelDemoLightSensorV1 {
             NvmComm3.send((byte)2, reply, (byte)4);
           }
         }
-        light_sensor_reading = Adc.getByte(Adc.CHANNEL0);
+        light_sensor_reading = Adc.getByte(Adc.CHANNEL15);
         System.out.println("Sensed value:" + light_sensor_reading);
         System.out.println("Threshold:" + threshold);
         if (lamp_on)
