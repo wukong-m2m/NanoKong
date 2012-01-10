@@ -144,7 +144,7 @@ $(function () {
     });
     
     
-    setInterval( "loadSenario();", 2000 );
+    setInterval( "loadSenario();", 1000 );
     
 });
 
@@ -190,7 +190,7 @@ function loadSenario()
               						   "</ul>");
               $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario1.png"/></div>');
 			  
-           }else if(data['scenario'] ==2){
+           } else if(data['scenario'] ==2){
           	  $("#status_info").empty();
               $("#status_info").append("<ul>"+
                                        "<li>Scenario: "+ data['scenario'] +"</li>" +
@@ -199,7 +199,7 @@ function loadSenario()
                                        "<li>Lamp: " + data['lamp_on'] + "</li>" +
                                        "<li>occupied: " + data['occupied'] + "</li>" +
               						   "</ul>");
-			  $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario2.png"/></div>');
+			        $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario2.png"/></div>');
            }
            
            
