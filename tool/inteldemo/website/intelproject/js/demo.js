@@ -135,8 +135,17 @@ $(function () {
     $("#thresholdNormal").button().click(function () {
       setThreshold(127);
     });
+    $("#thresholdHigh").button().click(function () {
+      setThreshold(200);
+    });
     $("#thresholdMax").button().click(function () {
       setThreshold(255);
+    });
+    $("#toggleOccupancy").button().click(function () {
+      if (nodestatus['occupied'] == 0)
+        setPeopleInRoom(1);
+      else
+        setPeopleInRoom(0);
     });
 
 /*    
@@ -152,7 +161,6 @@ $(function () {
                 break;   
         }
     });
-*/        
     
     $("#format").buttonset();
     $('#format input:checkbox').click(function() {
@@ -161,6 +169,7 @@ $(function () {
         else	setPeopleInRoom(0);
 
     });
+    */        
     
     
     setInterval( "loadSenario();", 1000 );
@@ -186,12 +195,13 @@ function reprogram(id)
     loadSenario();
 }
 
+var nodestatus;
 
 function loadSenario()
 {
   $.get('http://nielsmbp.local:5000/updateStatus', function(data){});
   
-	$("#loading").show();
+//	$("#loading").show();
 	var senario_id=$('#radioset input:checked').val();
 
     $.ajax({
@@ -199,31 +209,44 @@ function loadSenario()
 		    url: 'http://nielsmbp.local/~niels/getStatus',
 		//url: 'http://localhost/~janetyc/intelproject/scenario1.json',
         success:function(data) {
-           if(data['scenario'] ==1){
+          nodestatus = data;
+
+          x = "<dl>";
+          x += "<dt>Scenario</dt><dd>"+ data['scenario'] +"</dd>";
+          x += "<br>"
+          x += "<dt>Light sensor (Threshold)</dt>"
+          if (data['threshold'] >= data['lightsensor']) {
+            x += "<dd>"+ data['lightsensor'] +"<span class='label success'>&nbsp&lt=&nbsp</span>"+ data['threshold'] +"</dd>";
+          } else {
+            x += "<dd>"+ data['lightsensor'] +"<span class='label important'>&nbsp&gt&nbsp</span>"+ data['threshold'] +"</dd>";
+          }
+          if (data['scenario'] == 2) {
+            if (data['occupied'] == 1)
+              x += "<dt>Occupied</dt><dd><span class='label success'>Yes</span></dd>";
+            else
+              x += "<dt>Occupied</dt><dd><span class='label important'>No</span></dd>";
+          }
+          x += "<br>"
+          if (data['lamp_on'] == 1)
+            x += "<dt>Lamp</dt><dd><span class='label success'>On</span></dd>";
+          else
+            x += "<dt>Lamp</dt><dd><span class='label important'>Off</span></dd>";
+          x += "</dl>";
+          
+           if(data['scenario'] == 1){
               $("#status_info").empty();
-              $("#status_info").append("<ul>"+
-                                       "<li>Scenario: "+ data['scenario'] +"</li>" +
-                                       "<li>Threshold: <span id=\"threshold\">"+ data['threshold'] +"</span></li>" +
-                                       "<li>Light Sensor: " + data['lightsensor'] + "</li>" +
-                                       "<li>Lamp: " + data['lamp_on'] + "</li>" +
-              						   "</ul>");
+              $("#status_info").append(x);
               $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario1.png"/></div>');
               $("#format").hide()
-           } else if(data['scenario'] ==2){
+           } else if(data['scenario'] == 2){
           	  $("#status_info").empty();
-              $("#status_info").append("<ul>"+
-                                       "<li>Scenario: "+ data['scenario'] +"</li>" +
-                                       "<li>Threshold: <span id=\"threshold\">"+ data['threshold'] +"</span></li>" +
-                                       "<li>Light Sensor: " + data['lightsensor'] + "</li>" +
-                                       "<li>Lamp: " + data['lamp_on'] + "</li>" +
-                                       "<li>Occupied: " + data['occupied'] + "</li>" +
-              						   "</ul>");
+              $("#status_info").append(x);
 			        $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario2.png"/></div>');
 			        $("#format").show()
            }
            
            
-           $("#loading").fadeOut("slow");
+//           $("#loading").fadeOut("slow");
         },
         error:function(data){
 		//alert("error!");

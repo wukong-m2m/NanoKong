@@ -120,6 +120,7 @@
         <div class="row">
  -->
           <!--left col-->
+          <div class="row">
           <div class="span10">
 
           <!-- Reprogram: Scenario -->
@@ -128,39 +129,39 @@
               <input type="radio" id="radio2" name="radio" value="scenario2"/><label for="radio2">Scenario 2</label>
           </div>
 -->
+          <h5>Scenario</h5>
           <div id="uploadbuttonset">
               <input type="button" id="upload1" name="upload1" value="Upload scenario 1"/>
               <input type="button" id="upload2" name="upload2" value="Upload scenario 2"/>
           </div>
-
-          <div id="loading">Loading ...  
-              <img src="./pics/loading2.gif" alt="loading.." />  
-          </div> 
-          <h5 id="current_sceneraio"></h5>
-          <!-- image -->
           <div id="scenario_img"><img src="pics/scenario1.png"/></div>
-          
-          <h5>Status</h5>
-          <div id="scenario_status"><div id="status_info"></div></div>
+          <br>
+          <br>
           
           <h5>Control</h5>
-          <label for="amount">Threshold:</label>
-          <span id="amount" style="border:0; color:#f6931f; font-weight:bold; width: 60px;"></span>
-          <div id="slider-horizontal" style="width:200px; margin-top:3px;"></div>
-          
+          <label>Threshold:</label>
           <div id="thresholdbuttonset">
-              <input type="button" id="thresholdLow" name="thresholdLow" value="Dark (15)"/>
+              <input type="button" id="thresholdLow" name="thresholdLow" value="Low (15)"/>
               <input type="button" id="thresholdNormal" name="thresholdNormal" value="Normal (127)"/>
-              <input type="button" id="thresholdMax" name="thresholdMax" value="Bright (255)"/>
+              <input type="button" id="thresholdHigh" name="thresholdHigh" value="High (200)"/>
+              <input type="button" id="thresholdMax" name="thresholdMax" value="Max (255)"/>
           </div>
-          
-          
-          <div id="format" style="margin-top:10px;" >
-          <input type="checkbox" id="check1" /><label for="check1">Toggle occupancy</label>
+          <br>
+          <label>Occupancy:</label>
+          <div id="format">
+              <input type="button" id="toggleOccupancy" name="toggleOccupancy" value="Toggle occupancy"/>
           </div>
+
           <!--<span id="count">0</span>-->
-          </div>
-          <!--end col-->
+          </div> <!--end col-->
+          
+          <div class="span4">
+              <h5>Status</h5>
+              <div id="scenario_status">
+                  <div id="status_info" class="bigfont"></div>
+              </div>
+          </div> <!--end col-->
+          </div> <!--end row-->
         </div>
       </div>
 

@@ -15,14 +15,19 @@ def hello():
 
 @app.route("/updateStatus")
 def flaskUpdateStatus():
+  filename = "/Users/niels/Sites/getStatus"
   reply = getStatus.getStatus(1)
-  f = open("/Users/niels/Sites/getStatus","w")
+  f = open(filename,"w")
   if reply == None:
     print "---------------------------Fail!"
   elif len(reply) == 3:
     f.write("""{{"scenario": {0}, "threshold": {1}, "lightsensor": {2}, "lamp_on": {3}}}""".format(1, reply[0], reply[1], reply[2]))
   else:
     f.write("""{{"scenario": {0}, "threshold": {1}, "lightsensor": {2}, "lamp_on": {3}, "occupied": {4}}}""".format(2, reply[0], reply[1], reply[2], reply[3]))
+  f.close()
+  f = open(filename,"r")
+  print f.readlines()
+  f.close()
   return "OK"
 
 
@@ -73,4 +78,5 @@ def flaskReprogram():
 
 if __name__ == "__main__":
   pynvc3.init()
+  flaskUpdateStatus()
   app.run(host='0.0.0.0')
