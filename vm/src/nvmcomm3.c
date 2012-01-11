@@ -48,6 +48,7 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
   if (length > NVC3_MESSAGE_SIZE)
     return -2; // Message too large
   int retval = -1, retval2 = -1;
+  DEBUGF_COMM("nvmcomm_send\n");
 #ifdef NVM_USE_COMMZWAVE
   retval = nvmcomm_zwave_send(dest, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
 #endif
@@ -143,15 +144,17 @@ void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t
       response_cmd = NVC3_CMD_SETRUNLVL_R;
     break;
     case NVC3_CMD_APPMSG:
-      DEBUGF_COMM("Received some data intended for Java\n");
       if (nvc3_appmsg_size == 0) {
         for (size8_t i=0; i<length; ++i) {
           nvc3_appmsg_buf[i] = payload[i];
         }
         nvc3_appmsg_size = length;
         payload[0] = NVC3_APPMSG_ACK;
-      } else
+        DEBUGF_COMM("Received some data intended for Java: ACK\n");
+      } else {
         payload[0] = NVC3_APPMSG_BUSY;
+        DEBUGF_COMM("Received some data intended for Java: BUSY!\n");
+      }
       response_size = 1;
       response_cmd = NVC3_CMD_APPMSG_R;
     break;

@@ -48,6 +48,7 @@ u08_t ack_got = 0;
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
+int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t txoptions);
 
 bool addr_nvmcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
     // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
@@ -65,6 +66,127 @@ bool addr_zwave_to_nvmcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
 }
 
 
+// Blocking receive.
+// Returns the Z-Wave cmd of the received message.
+// Calls the callback for .... messages?
+void nvmcomm_zwave_receive(int processmessages) {
+  while (!uart_available(ZWAVE_UART)) { }
+  while (uart_available(ZWAVE_UART)) {
+// TODO    expire = now + 1000;
+    u08_t c = uart_read_byte(ZWAVE_UART);
+    DEBUGF_ZWAVETRACE("c="DBG8" state="DBG8"\n\r", c, state);
+    if (state == ZWAVE_STATUS_WAIT_ACK) {
+      if (c == ZWAVE_ACK) {
+  			state = ZWAVE_STATUS_WAIT_SOF;
+  			ack_got=1;
+  		} else if (c == 0x15) {
+          // TODO: send: packet is incorrect
+      } else if (c == 0x18) {
+          // TODO: send: chip busy
+      }
+    } else if (state == ZWAVE_STATUS_WAIT_SOF) {
+      if (c == 0x01) {
+        state = ZWAVE_STATUS_WAIT_LEN;
+        len = 0;
+      } else if (c == ZWAVE_ACK) {
+  			DEBUGF_COMM("ZWAVE_STATUS_WAIT_SOF: SerialAPI got unknown ACK ????????\n");
+  			ack_got = 1;
+      }
+    } else if (state == ZWAVE_STATUS_WAIT_LEN) {
+      len = c-3; // 3 bytes for TYPE, CMD, and CRC
+      state = ZWAVE_STATUS_WAIT_TYPE;
+    } else if (state == ZWAVE_STATUS_WAIT_TYPE) {
+      type = c; // 0: request 1: response 2: timeout
+      state = ZWAVE_STATUS_WAIT_CMD;
+    } else if (state == ZWAVE_STATUS_WAIT_CMD) {
+      cmd = c;
+      state = ZWAVE_STATUS_WAIT_DATA;
+      payload_length = 0;
+    } else if (state == ZWAVE_STATUS_WAIT_DATA) {
+      payload[payload_length++] = c;
+      len--;
+      if (len == 0) {
+        state = ZWAVE_STATUS_WAIT_CRC;
+      }
+    } else if (state == ZWAVE_STATUS_WAIT_CRC) {
+      uart_write_byte(ZWAVE_UART, 6);
+      state = ZWAVE_STATUS_WAIT_SOF;
+      if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER)
+      if (f!=NULL) {
+        address_t nvmcomm_addr;
+        if (addr_zwave_to_nvmcomm(&nvmcomm_addr, payload[1]) && processmessages==1)
+          f(nvmcomm_addr, payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
+      }
+      if (cmd == 0x49 && f_nodeinfo)
+          f_nodeinfo(payload, payload_length);
+    }
+  }
+}
+
+
+
+// Public interface
+void nvmcomm_zwave_init() {
+// TODO: why is this here?
+  // for(i=0;i<100;i++)
+  //   mainloop();
+// TODO: analog read
+  // randomSeed(analogRead(0));
+  // seq = random(255);
+  seq = 42; // temporarily init to fixed value
+  state = ZWAVE_STATUS_WAIT_SOF;
+  f=NULL;
+  f_nodeinfo=NULL;
+  uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
+// TODO
+  // expire = 0;
+}
+
+void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
+  f = func;
+}
+
+void nvmcomm_zwave_poll(void) {
+// TODO
+  // unsigned long now = millis();
+  // 
+  // if (expire && (now > expire)) {
+  //   expire = 0;
+  //   type = 2;
+  //   state = ZWAVE_STATUS_WAIT_SOF;
+  //   if (f!=NULL) f(payload,i);
+  //   Serial.write("timeout...\n");
+  //   return true;
+  // }
+  if (uart_available(ZWAVE_UART))
+    nvmcomm_zwave_receive(1);
+}
+
+// Send ZWave command to another node. This command can be used as wireless repeater between 
+// two nodes. It has no assumption of the payload sent between them.
+int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len, u08_t txoptions) {
+#ifdef DEBUG
+  DEBUGF_COMM("Sending command "DBG8" to "DBG8", length "DBG8": ", nvc3_command, dest, len);
+  for (size8_t i=0; i<len; ++i) {
+    DEBUGF_COMM(" "DBG8"", data[i]);
+  }
+  DEBUGF_COMM("\n");
+#endif
+  u08_t zwave_addr;
+  if (addr_nvmcomm_to_zwave(dest, &zwave_addr))
+    return ZW_sendData(zwave_addr, nvc3_command, data, len, txoptions);
+  else
+    return -1; // Not a ZWave address
+// TODO  expire = millis()+1000;
+}
+
+
+
+
+
+
+
+
 //===================================================================================================================
 // Copied & modified from testrtt.c
 //===================================================================================================================
@@ -77,8 +199,9 @@ int SerialAPI_request(unsigned char *buf, int len)
 
 	while (1) {
 		// read out pending request from Z-Wave
-    nvmcomm_zwave_poll();
-		if (state != ZWAVE_STATUS_WAIT_SOF) {	// wait for WAIT_SOF statie (idle state)
+    if (uart_available(ZWAVE_UART))
+      nvmcomm_zwave_receive(0); // Don't process received messages
+    if (state != ZWAVE_STATUS_WAIT_SOF) {	// wait for WAIT_SOF state (idle state)
 			DEBUGF_COMM("SerialAPI is not in ready state!!!!!!!!!! zstate="DBG8"\n", state);
 			DEBUGF_COMM("Try to send SerialAPI command in a wrong state......\n");
 			delay(MILLISEC(100));
@@ -99,9 +222,10 @@ int SerialAPI_request(unsigned char *buf, int len)
     uart_write_byte(ZWAVE_UART, crc); // LRC checksum
 #ifdef DEBUG
 		DEBUGF_COMM("Send len="DBG8" ", len+1);
-		for(i=0;i<len;i++) 
+		for(i=0;i<len;i++) {
 			DEBUGF_COMM(""DBG8" ", buf[i]);
 			DEBUGF_COMM("CRC="DBG8"\n", crc);
+		}
 #endif
 		state = ZWAVE_STATUS_WAIT_ACK;
 		ack_got = 0;
@@ -157,130 +281,6 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t tx
 //===================================================================================================================
 // End: copied & modified from testrtt.c
 //===================================================================================================================
-
-
-
-
-// Blocking receive.
-// Returns the Z-Wave cmd of the received message.
-// Calls the callback for .... messages?
-void nvmcomm_zwave_receive(void) {
-  while (!uart_available(ZWAVE_UART)) { }
-  while (uart_available(ZWAVE_UART)) {
-// TODO    expire = now + 1000;
-    u08_t c = uart_read_byte(ZWAVE_UART);
-    DEBUGF_ZWAVETRACE("c="DBG8" state="DBG8"\n\r", c, state);
-    if (state == ZWAVE_STATUS_WAIT_ACK) {
-      if (c == ZWAVE_ACK) {
-  			state = ZWAVE_STATUS_WAIT_SOF;
-  			ack_got=1;
-  		} else if (c == 0x15) {
-          // TODO: send: packet is incorrect
-      } else if (c == 0x18) {
-          // TODO: send: chip busy
-      }
-    } else if (state == ZWAVE_STATUS_WAIT_SOF) {
-      if (c == 0x01) {
-        state = ZWAVE_STATUS_WAIT_LEN;
-        len = 0;
-      } else if (c == ZWAVE_ACK) {
-  			DEBUGF_COMM("ZWAVE_STATUS_WAIT_SOF: SerialAPI got unknown ACK ????????\n");
-  			ack_got = 1;
-      }
-    } else if (state == ZWAVE_STATUS_WAIT_LEN) {
-      len = c-3; // 3 bytes for TYPE, CMD, and CRC
-      state = ZWAVE_STATUS_WAIT_TYPE;
-    } else if (state == ZWAVE_STATUS_WAIT_TYPE) {
-      type = c; // 0: request 1: response 2: timeout
-      state = ZWAVE_STATUS_WAIT_CMD;
-    } else if (state == ZWAVE_STATUS_WAIT_CMD) {
-      cmd = c;
-      state = ZWAVE_STATUS_WAIT_DATA;
-      payload_length = 0;
-    } else if (state == ZWAVE_STATUS_WAIT_DATA) {
-      payload[payload_length++] = c;
-      len--;
-      if (len == 0) {
-        state = ZWAVE_STATUS_WAIT_CRC;
-      }
-    } else if (state == ZWAVE_STATUS_WAIT_CRC) {
-      uart_write_byte(ZWAVE_UART, 6);
-      state = ZWAVE_STATUS_WAIT_SOF;
-      if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER)
-      if (f!=NULL) {
-        address_t nvmcomm_addr;
-        if (addr_zwave_to_nvmcomm(&nvmcomm_addr, payload[1]))
-          f(nvmcomm_addr, payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
-      }
-      if (cmd == 0x49 && f_nodeinfo)
-          f_nodeinfo(payload, payload_length);
-    }
-  }
-}
-
-
-
-// Public interface
-void nvmcomm_zwave_init() {
-// TODO: why is this here?
-  // for(i=0;i<100;i++)
-  //   mainloop();
-// TODO: analog read
-  // randomSeed(analogRead(0));
-  // seq = random(255);
-  seq = 42; // temporarily init to fixed value
-  state = ZWAVE_STATUS_WAIT_SOF;
-  f=NULL;
-  f_nodeinfo=NULL;
-  uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
-// TODO
-  // expire = 0;
-}
-
-void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
-  f = func;
-}
-
-void nvmcomm_zwave_poll(void) {
-// TODO
-  // unsigned long now = millis();
-  // 
-  // if (expire && (now > expire)) {
-  //   expire = 0;
-  //   type = 2;
-  //   state = ZWAVE_STATUS_WAIT_SOF;
-  //   if (f!=NULL) f(payload,i);
-  //   Serial.write("timeout...\n");
-  //   return true;
-  // }
-  if (uart_available(ZWAVE_UART))
-    nvmcomm_zwave_receive();
-}
-
-// Send ZWave command to another node. This command can be used as wireless repeater between 
-// two nodes. It has no assumption of the payload sent between them.
-int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len, u08_t txoptions) {
-#ifdef DEBUG
-  DEBUGF_COMM("Sending command "DBG8" to "DBG8", length "DBG8": ", nvc3_command, dest, len);
-  for (size8_t i=0; i<len; ++i) {
-    DEBUGF_COMM(" "DBG8"", data[i]);
-  }
-  DEBUGF_COMM("\n");
-#endif
-  u08_t zwave_addr;
-  if (addr_nvmcomm_to_zwave(dest, &zwave_addr))
-    return ZW_sendData(zwave_addr, nvc3_command, data, len, txoptions);
-  else
-    return -1; // Not a ZWave address
-// TODO  expire = millis()+1000;
-}
-
-
-
-
-
-
-
 
 
 // 
@@ -428,7 +428,6 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 //   }
 // }
 //   
-
 
 
 
