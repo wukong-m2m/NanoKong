@@ -28,8 +28,10 @@ RUNLVL_CONF                  = 0x03
 RUNLVL_RESET                 = 0x04
 
 def sendcmd(dest, cmd, payload=[]):
+  pyzwave.receive(10) # Clear pending messages
   pyzwave.send(dest, [0x88, cmd] + payload)
   if cmd == APPMSG:
+    print "ack?: "
     print pyzwave.receive(5000) # Receive ack of APPMSG, TODO: see if sending succeeded.
 
 def receive(waitmsec):
