@@ -17,7 +17,9 @@ def hello():
 def flaskUpdateStatus():
   reply = getStatus.getStatus(1)
   f = open("/Users/niels/Sites/getStatus","w")
-  if len(reply) == 3:
+  if reply == None:
+    print "---------------------------Fail!"
+  elif len(reply) == 3:
     f.write("""{{"scenario": {0}, "threshold": {1}, "lightsensor": {2}, "lamp_on": {3}}}""".format(1, reply[0], reply[1], reply[2]))
   else:
     f.write("""{{"scenario": {0}, "threshold": {1}, "lightsensor": {2}, "lamp_on": {3}, "occupied": {4}}}""".format(2, reply[0], reply[1], reply[2], reply[3]))
@@ -31,7 +33,9 @@ def flaskGetStatus():
 #                       lightsensor=22,
 #                       lamp_on=0)
   reply = getStatus.getStatus(1)
-  if len(reply) == 3:
+  if reply == None:
+    print "Fail!"
+  elif len(reply) == 3:
     return """{{"scenario": {0},
                 "threshold": {1},
                 "lightsensor": {2},

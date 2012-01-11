@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>VM Demo</title>
+    <meta name="description" content="Test">
+    <meta name="author" content="Janet Huang">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+
+    <!-- Le styles --> 
+    <link type="text/css" href="css/custom-theme/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
+    <link href="bootstrap/bootstrap.css" rel="stylesheet">
+  
+    <link href="css/demo.css" rel="stylesheet">
+    <style type="text/css">
+      /* Override some defaults */
+      html, body {
+        background-color: #eee;
+      }
+      body {
+        padding-top: 40px; /* 40px to make the container go all the way to the bottom of the topbar */
+      }
+      .container > footer p {
+        text-align: center; /* center align it with the container */
+      }
+      .container {
+        width: 820px; /* downsize our container to make the content feel a bit tighter and more cohesive. NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16. */
+      }
+
+      /* The white background content wrapper */
+      .container > .content {
+        background-color: #fff;
+        padding: 20px;
+        margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
+        -webkit-border-radius: 0 0 6px 6px;
+           -moz-border-radius: 0 0 6px 6px;
+                border-radius: 0 0 6px 6px;
+        -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+           -moz-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+                box-shadow: 0 1px 2px rgba(0,0,0,.15);
+      }
+
+      /* Page header tweaks */
+      .page-header {
+        background-color: #f5f5f5;
+        padding: 20px 20px 10px;
+        margin: -20px -20px 20px;
+      }
+
+      /* Styles you shouldn't keep as they are for displaying this base example only */
+      .content .span10,
+      .content .span4 {
+        min-height: 500px;
+      }
+      /* Give a quick and non-cross-browser friendly divider */
+      .content .span4 {
+        margin-left: 0;
+        padding-left: 19px;
+        border-left: 1px solid #eee;
+      }
+      .topbar .btn {
+        border: 0;
+      }
+
+      #scenario_img{        
+        margin: 10px;
+        padding: 10px;
+        display: block;
+        width: 430px;
+        height: 120px;
+        background-color: #fff; 
+        box-shadow: 0 1px 3px rgba(34,25,25,0.4); 
+        -moz-box-shadow: 0 1px 3px rgba(34,25,25,0.4); 
+        -webkit-box-shadow: 0 1px 3px rgba(34,25,25,0.4);
+      }
+      #scenario_img img
+      {
+        width: 430px;
+        height: 120px;
+      }
+      #scenario_status{
+        margin: 10px;
+        padding: 20px;
+        background-color: #eee;
+        display: block;
+      }
+      #loading{
+        float: right;
+        margin: -20px;
+      }
+ 
+    </style>
+
+  </head>
+
+  <body>
+
+
+
+    <div class="topbar">
+      <div class="fill">
+        <div class="container">
+          <a class="brand" href="">VM Demo</a>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="container">
+
+      <div class="content">
+<!--        <div class="page-header">
+          <h1>VM Demo</h1>
+        </div>
+        <div class="row">
+ -->
+          <!--left col-->
+          <div class="span10">
+
+          <!-- Reprogram: Scenario -->
+<!--          <div id="radioset">
+              <input type="radio" id="radio1" name="radio" checked="checked" value="scenario1"/><label for="radio1">Scenario 1</label>
+              <input type="radio" id="radio2" name="radio" value="scenario2"/><label for="radio2">Scenario 2</label>
+          </div>
+-->
+          <div id="uploadbuttonset">
+              <input type="button" id="upload1" name="upload1" value="Upload scenario 1"/>
+              <input type="button" id="upload2" name="upload2" value="Upload scenario 2"/>
+          </div>
+
+          <div id="loading">Loading ...  
+              <img src="./pics/loading2.gif" alt="loading.." />  
+          </div> 
+          <h5 id="current_sceneraio"></h5>
+          <!-- image -->
+          <div id="scenario_img"><img src="pics/scenario1.png"/></div>
+          
+          <h5>Status</h5>
+          <div id="scenario_status"><div id="status_info"></div></div>
+          
+          <h5>Control</h5>
+          <label for="amount">Threshold:</label>
+          <span id="amount" style="border:0; color:#f6931f; font-weight:bold; width: 60px;"></span>
+          <div id="slider-horizontal" style="width:200px; margin-top:3px;"></div>
+          
+          <div id="thresholdbuttonset">
+              <input type="button" id="thresholdLow" name="thresholdLow" value="Dark (15)"/>
+              <input type="button" id="thresholdNormal" name="thresholdNormal" value="Normal (127)"/>
+              <input type="button" id="thresholdMax" name="thresholdMax" value="Bright (255)"/>
+          </div>
+          
+          
+          <div id="format" style="margin-top:10px;" >
+          <input type="checkbox" id="check1" /><label for="check1">Toggle occupancy</label>
+          </div>
+          <!--<span id="count">0</span>-->
+          </div>
+          <!--end col-->
+        </div>
+      </div>
+
+      <footer>
+        <p>Intel Project &copy; NTU CSIE iAgent Lab 2012.</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+
+
+  <!--scripts-->
+
+    <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+    <script type="text/javascript" src="js/demo.js"></script>
+
+  </body>
+</html>

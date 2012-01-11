@@ -88,6 +88,8 @@ $(function () {
 
     //load json file
     loadSenario();
+    
+/*
     $("#slider-horizontal").slider({
         range: "min",
         min: 0,
@@ -104,7 +106,7 @@ $(function () {
 
     });
     $("#amount").text($("#slider-horizontal").slider("value"));
-
+*/
 
     //split button
     $("#rerun").button().click(function () {
@@ -119,8 +121,25 @@ $(function () {
     }).parent().buttonset();
     
 
-    
-    
+
+    $("#upload1").button().click(function () {
+      reprogram(1);
+    });
+    $("#upload2").button().click(function () {
+      reprogram(2);
+    });
+
+    $("#thresholdLow").button().click(function () {
+      setThreshold(15);
+    });
+    $("#thresholdNormal").button().click(function () {
+      setThreshold(127);
+    });
+    $("#thresholdMax").button().click(function () {
+      setThreshold(255);
+    });
+
+/*    
     $("#radioset").buttonset();
     $('#radioset input:radio').change(function() {
         var value = $(this).val();
@@ -133,7 +152,7 @@ $(function () {
                 break;   
         }
     });
-        
+*/        
     
     $("#format").buttonset();
     $('#format input:checkbox').click(function() {
@@ -189,7 +208,7 @@ function loadSenario()
                                        "<li>Lamp: " + data['lamp_on'] + "</li>" +
               						   "</ul>");
               $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario1.png"/></div>');
-			  
+              $("#format").hide()
            } else if(data['scenario'] ==2){
           	  $("#status_info").empty();
               $("#status_info").append("<ul>"+
@@ -197,9 +216,10 @@ function loadSenario()
                                        "<li>Threshold: <span id=\"threshold\">"+ data['threshold'] +"</span></li>" +
                                        "<li>Light Sensor: " + data['lightsensor'] + "</li>" +
                                        "<li>Lamp: " + data['lamp_on'] + "</li>" +
-                                       "<li>occupied: " + data['occupied'] + "</li>" +
+                                       "<li>Occupied: " + data['occupied'] + "</li>" +
               						   "</ul>");
 			        $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario2.png"/></div>');
+			        $("#format").show()
            }
            
            
