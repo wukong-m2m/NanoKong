@@ -224,8 +224,9 @@ int SerialAPI_request(unsigned char *buf, int len)
 		DEBUGF_COMM("Send len="DBG8" ", len+1);
 		for(i=0;i<len;i++) {
 			DEBUGF_COMM(""DBG8" ", buf[i]);
-			DEBUGF_COMM("CRC="DBG8"\n", crc);
 		}
+		DEBUGF_COMM("CRC="DBG8"\n", crc);
+    ;
 #endif
 		state = ZWAVE_STATUS_WAIT_ACK;
 		ack_got = 0;
@@ -247,6 +248,10 @@ int SerialAPI_request(unsigned char *buf, int len)
         break;
 		  }
 		}
+		if (state == ZWAVE_STATUS_WAIT_ACK) {
+      state = ZWAVE_STATUS_WAIT_SOF; // Give up and don't get stuck in the WAIT_ACK state
+			DEBUGF_COMM("Back to WAIT_SOF state.\n");
+    }
 		if (!retry--) {
 			DEBUGF_COMM("SerialAPI request:\n");
 			for (i=0; i<len; i++) {
