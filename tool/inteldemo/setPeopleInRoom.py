@@ -4,7 +4,11 @@ import sys
 import pynvc3
 
 def setPeopleInRoom(destination, input):
-  pynvc3.sendcmd(destination, pynvc3.APPMSG, [5, input])
+  pynvc3.sendWithRetryAndCheckedReceiveAPPMSG(
+                    destination=destination,
+                    command=5,
+                    allowedReplies=[15],
+                    payload=[input])
 
 if __name__ == "__main__":
   pynvc3.init()

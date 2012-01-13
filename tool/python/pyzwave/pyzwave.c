@@ -93,6 +93,7 @@ static PyObject* pyzwave_send(PyObject *self, PyObject *args) {
     DEBUGF("\nPYZWAVE: Done.\n");
     Py_RETURN_NONE;
   } else {
+    DEBUGF("pyzwave.c pyzwave_send: Call to ZW_senddata failed.\n");
     PyErr_SetString(PyExc_IOError, "Call to ZW_senddata failed.");
     return NULL;
   }

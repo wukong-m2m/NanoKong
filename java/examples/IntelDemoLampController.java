@@ -3,6 +3,7 @@ import nanovm.io.*;
 
 class IntelDemoLampController {
   private static final byte COMMAND_SET_LAMP = 1;
+  private static final short COMMAND_SET_LAMP_ACK = 11;
 
   public static void main(String[] args) {
     AVR.portB.setOutput(0);
@@ -19,6 +20,8 @@ class IntelDemoLampController {
           AVR.portB.setBit(0);
           System.out.println("Turning lamp on");
         }
+        byte[] reply = new byte[] {COMMAND_SET_LAMP_ACK};
+        NvmComm3.send((byte)1, reply, (byte)1);
       }
     }
   }

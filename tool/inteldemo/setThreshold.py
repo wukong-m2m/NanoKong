@@ -4,7 +4,11 @@ import sys
 import pynvc3
 
 def setThreshold(destination, threshold):
-  pynvc3.sendcmd(destination, pynvc3.APPMSG, [2, threshold])
+  pynvc3.sendWithRetryAndCheckedReceiveAPPMSG(
+                    destination=destination,
+                    command=2,
+                    allowedReplies=[12],
+                    payload=[threshold])
 
 if __name__ == "__main__":
   pynvc3.init()
