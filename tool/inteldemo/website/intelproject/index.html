@@ -133,6 +133,9 @@
           <div id="uploadbuttonset">
               <input type="button" id="upload1" name="upload1" value="Upload scenario 1"/>
               <input type="button" id="upload2" name="upload2" value="Upload scenario 2"/>
+              <div id="reprogramming">Reprogramming ...  
+                  <img src="./pics/loading2.gif" alt="loading.." />  
+              </div>
           </div>
           <div id="scenario_img"><img src="pics/scenario1.png"/></div>
           <br>
@@ -141,15 +144,16 @@
           <h5>Control</h5>
           <label>Threshold:</label>
           <div id="thresholdbuttonset">
-              <input type="button" id="thresholdLow" name="thresholdLow" value="Low (15)"/>
-              <input type="button" id="thresholdNormal" name="thresholdNormal" value="Normal (127)"/>
-              <input type="button" id="thresholdHigh" name="thresholdHigh" value="High (200)"/>
-              <input type="button" id="thresholdMax" name="thresholdMax" value="Max (255)"/>
+              <input type="button" id="thresholdLow" name="thresholdLow" value="Dark (15)"/>
+              <input type="button" id="thresholdHigh" name="thresholdHigh" value="Shadow (240)"/>
+              <input type="button" id="thresholdMax" name="thresholdMax" value="Always on (255)"/>
           </div>
           <br>
-          <label>Occupancy:</label>
           <div id="format">
+              <label>Occupancy:</label>
+              <div>
               <input type="button" id="toggleOccupancy" name="toggleOccupancy" value="Toggle occupancy"/>
+              </div>
           </div>
 
           <!--<span id="count">0</span>-->

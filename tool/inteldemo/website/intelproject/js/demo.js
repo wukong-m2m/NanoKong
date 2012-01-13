@@ -87,6 +87,7 @@ $(function () {
     $('.ui-dialog :button').blur();
 
     //load json file
+    $("#reprogramming").hide();
     loadSenario();
     
 /*
@@ -132,11 +133,8 @@ $(function () {
     $("#thresholdLow").button().click(function () {
       setThreshold(15);
     });
-    $("#thresholdNormal").button().click(function () {
-      setThreshold(127);
-    });
     $("#thresholdHigh").button().click(function () {
-      setThreshold(200);
+      setThreshold(240);
     });
     $("#thresholdMax").button().click(function () {
       setThreshold(255);
@@ -191,7 +189,13 @@ function setPeopleInRoom(status)
 
 function reprogram(id)
 {
-    $.get('http://nielsmbp.local:5000/reprogram?scenario='+id, function(data){});
+//    $("#reprogramming").show();
+    jQuery.ajaxSetup({async:false});
+    $.get('http://nielsmbp.local:5000/reprogram?scenario='+id, function(data){
+      alert("Done");
+    });
+    jQuery.ajaxSetup({async:true});
+//    $("#reprogramming").hide();
     loadSenario();
 }
 
@@ -210,42 +214,48 @@ function loadSenario()
 		//url: 'http://localhost/~janetyc/intelproject/scenario1.json',
         success:function(data) {
           nodestatus = data;
+          label = "";
 
           x = "<dl>";
-          x += "<dt>Scenario</dt><dd>"+ data['scenario'] +"</dd>";
+          x += "<dt>Current scenario</dt><dd><div style='margin-top:5px'>"+ data['scenario'] +"</div></dd>";
           x += "<br>"
-          x += "<dt>Light sensor (Threshold)</dt>"
+          x += "<br>"
+          x += "<br>"
+          x += "<br>"
+          x += "<dt>Light sensor / Threshold</dt>"
           if (data['threshold'] >= data['lightsensor']) {
-            x += "<dd>"+ data['lightsensor'] +"<span class='label success'>&nbsp&lt=&nbsp</span>"+ data['threshold'] +"</dd>";
+            label = "<span class='label success'>&lt=</span>";
           } else {
-            x += "<dd>"+ data['lightsensor'] +"<span class='label important'>&nbsp&gt&nbsp</span>"+ data['threshold'] +"</dd>";
+            label = "<span class='label important'>&gt</span>";
           }
+          x += "<dd><div style='margin-top:5px'>"+ data['lightsensor'] + "&nbsp&nbsp" + label  + "&nbsp&nbsp" + data['threshold'] +"</div></dd>";
           if (data['scenario'] == 2) {
+            x += "<br>"
+            x += "<br>"
             if (data['occupied'] == 1)
-              x += "<dt>Occupied</dt><dd><span class='label success'>Yes</span></dd>";
+              label = "<span class='label success'>Yes</span>";
             else
-              x += "<dt>Occupied</dt><dd><span class='label important'>No</span></dd>";
+              label = "<span class='label important'>No</span>";
+            x += "<dt>Occupied</dt><dd><div style='margin-top:5px'>" + label + "</div></dd>";
           }
+          x += "<br>"
           x += "<br>"
           if (data['lamp_on'] == 1)
-            x += "<dt>Lamp</dt><dd><span class='label success'>On</span></dd>";
+            label = "<span class='label success'>On</span>";
           else
-            x += "<dt>Lamp</dt><dd><span class='label important'>Off</span></dd>";
+            label = "<span class='label important'>Off</span>";
+          x += "<dt>Lamp</dt><dd><div style='margin-top:5px'>" + label +"</div></dd>";
           x += "</dl>";
           
+          $("#status_info").empty();
+          $("#status_info").append(x);
            if(data['scenario'] == 1){
-              $("#status_info").empty();
-              $("#status_info").append(x);
               $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario1.png"/></div>');
               $("#format").hide()
            } else if(data['scenario'] == 2){
-          	  $("#status_info").empty();
-              $("#status_info").append(x);
 			        $("#scenario_img").replaceWith('<div id="scenario_img"><img src="pics/scenario2.png"/></div>');
 			        $("#format").show()
            }
-           
-           
 //           $("#loading").fadeOut("slow");
         },
         error:function(data){
