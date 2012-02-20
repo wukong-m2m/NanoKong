@@ -41,7 +41,7 @@
 #define DEBUGF_ZWAVETRACE(...)  //debugf(__VA_ARGS__) // Incoming zwave traffic per byte
 #define DEBUGF_FLASH(...)  debugf(__VA_ARGS__) // avr_flash.c
 #define DEBUGF_USART(...)  //debugf(__VA_ARGS__) 
-#define DEBUGF_XBEE(...)  //debugf(__VA_ARGS__) 
+#define DEBUGF_XBEE(...)  debugf(__VA_ARGS__) 
 #define DEBUGF(...)  //debugf(__VA_ARGS__) // All other debug info.
 #define DEBUG_HEXDUMP(a,b) debug_hexdump(a,b)
 void debugf(const char *fmt, ...);

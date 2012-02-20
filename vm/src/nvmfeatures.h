@@ -18,8 +18,8 @@
 # endif
 #else 
 # ifndef NVM_USE_32BIT_WORD
-//#  define NVM_USE_16BIT_WORD
-#  define NVM_USE_32BIT_WORD
+#  define NVM_USE_16BIT_WORD
+//#  define NVM_USE_32BIT_WORD
 # endif
 #endif
 

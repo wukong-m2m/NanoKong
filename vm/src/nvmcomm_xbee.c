@@ -26,14 +26,22 @@
 
 #ifdef NVM_USE_COMMXBEE
 
-#define XBEE_UART 2
+#define XBEE_UART 3
 #define XBEE_UART_BAUDRATE 9600
 
-#if defined(SERIES_1) && defined(SERIES_2)
-#define NUM_ADDR 4
-#else
 #define NUM_ADDR 2
+
+XBee xbeeObj;
+uint32_t addrTable[NUM_ADDR][2] = {
+#ifdef SERIES_1
+    {0x0013A200, 0x407B18B5},{0x0013A200, 0x407B18F3},
 #endif
+#ifdef SERIES_2
+    {0x0013A200, 0x407733F3},{0x0013A200, 0x4077340D}
+#endif
+};
+uint8_t payload[NVC3_MESSAGE_SIZE+1];
+#define BASE_ADDR 64
 
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 
@@ -57,7 +65,7 @@ void XBee_init(XBee* xbee)
     xbee->_nextFrameId = 0;
     XBeeResponse_init(&(xbee->_response));
     xbee->_response._frameDataPtr = xbee->_responseFrameData;
-    if(XBEE_UART) uart_init(XBEE_UART, XBEE_UART_BAUDRATE);
+    if(XBEE_UART) {uart_init(XBEE_UART, XBEE_UART_BAUDRATE);}
 }
 
 void XBeeAddress64_init(XBeeAddress64* addr, uint32_t msb, uint32_t lsb)
@@ -76,8 +84,8 @@ void AtCommandRequest_init(AtCommandRequest* at, uint8_t *command, uint8_t *comm
 {
     XBeeRequest_init(&(at->super), AT_COMMAND_REQUEST, DEFAULT_FRAME_ID);
     at->_command = command;
-	at->_commandValue = commandValue;
-	at->_commandValueLength = commandValueLength;
+    at->_commandValue = commandValue;
+    at->_commandValueLength = commandValueLength;
 }
 
 void AtCommandRequest_init0(AtCommandRequest* at)
@@ -93,17 +101,17 @@ void AtCommandRequest_init1(AtCommandRequest* at, uint8_t *command)
 void RemoteAtCommandRequest_init(RemoteAtCommandRequest* at, XBeeAddress64* remoteAddress64, uint16_t remoteAddress16, uint8_t *command, uint8_t *commandValue, uint8_t commandValueLength)
 {
     AtCommandRequest_init(&(at->super), command, commandValue, commandValueLength);
-	at->super.super._apiId = REMOTE_AT_REQUEST;
-	at->_applyChanges = (commandValue!=NULL ? true:false);
+    at->super.super._apiId = REMOTE_AT_REQUEST;
+    at->_applyChanges = (commandValue!=NULL ? true:false);
     if(remoteAddress64!=NULL){
         at->_remoteAddress64._msb = remoteAddress64->_msb;
         at->_remoteAddress64._lsb = remoteAddress64->_lsb;
-	    // don't worry.. works for series 1 too!
-	    at->_remoteAddress16 = ZB_BROADCAST_ADDRESS;
+        // don't worry.. works for series 1 too!
+        at->_remoteAddress16 = ZB_BROADCAST_ADDRESS;
     }else{
         at->_remoteAddress64._msb = 0x0;
         at->_remoteAddress64._lsb = BROADCAST_ADDRESS;
-	    at->_remoteAddress16 = remoteAddress16;
+        at->_remoteAddress16 = remoteAddress16;
     }
 }
 
@@ -117,8 +125,8 @@ void PayloadRequest_init(PayloadRequest* payldrq, uint8_t apiId, uint8_t frameId
 void Tx16Request_init(Tx16Request* tx16, uint16_t addr16, uint8_t option, uint8_t *data, uint8_t dataLength, uint8_t frameId)
 {
     PayloadRequest_init(&(tx16->super), TX_16_REQUEST, frameId, data, dataLength);
-	tx16->_addr16 = addr16;
-	tx16->_option = option;
+    tx16->_addr16 = addr16;
+    tx16->_option = option;
 }
 
 void Tx16Request_init3(Tx16Request* tx16, uint16_t addr16, uint8_t *data, uint8_t dataLength)
@@ -134,9 +142,9 @@ void Tx16Request_init0(Tx16Request* tx16)
 void Tx64Request_init(Tx64Request* tx64, XBeeAddress64* addr64, uint8_t option, uint8_t *data, uint8_t dataLength, uint8_t frameId)
 {
     PayloadRequest_init(&(tx64->super), TX_64_REQUEST, frameId, data, dataLength);
-	tx64->_addr64._msb = addr64->_msb;
-	tx64->_addr64._lsb = addr64->_lsb;
-	tx64->_option = option;
+    tx64->_addr64._msb = addr64->_msb;
+    tx64->_addr64._lsb = addr64->_lsb;
+    tx64->_option = option;
 }
 
 void Tx64Request_init3(Tx64Request* tx64, XBeeAddress64* addr64, uint8_t *data, uint8_t dataLength)
@@ -724,7 +732,7 @@ uint8_t XBeeResponse_getDataLength(XBeeResponse* source)
             // markers to read data from packet array.  this is the index, so the 12th item in the array
             // offset = 11
             return XBeeResponse_getPacketLength(source) - (11) - 1;
-        // RxResponse (sub)classes
+            // RxResponse (sub)classes
         case RX_16_RESPONSE:
         case RX_16_IO_RESPONSE:
             return XBeeResponse_getPacketLength(source) - (RX_16_RSSI_OFFSET + 2) - 1;
@@ -938,25 +946,15 @@ XBeeResponse* getXBeeResponse(void* response, uint8_t apiId)
  * Begin
  */
 
-XBee xbeeObj;
-uint32_t addrTable[NUM_ADDR][2] = {
-#ifdef SERIES_1
-    {0x0013A200, 0x407B18B5},{0x0013A200, 0x407B18F3},
-#endif
-#ifdef SERIES_2
-    {0x0013A200, 0x407733F3},{0x0013A200, 0x4077340D}
-#endif
-};
-uint8_t payload[NVC3_MESSAGE_SIZE+1];
-
 bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
 {
     // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
-    if (addr<128)
+    if (addr<BASE_ADDR)
       return false;
-    addr -= 128;
+    addr -= BASE_ADDR;
 
     if (addr >= NUM_ADDR) return false;
+
     *msb = addrTable[addr][0];
     *lsb = addrTable[addr][1];
     return true;
@@ -966,8 +964,8 @@ bool addr_xbee_to_nvmcomm(address_t *addr, uint32_t msb, uint32_t lsb)
 {
     int i;
     for (i = 0; i < NUM_ADDR; ++i) {
-        if (addrTable[i][0] == msb && addrTable[i][0] == lsb){
-            *addr = i + 128; // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
+        if (addrTable[i][0] == msb && addrTable[i][1] == lsb){
+            *addr = i + BASE_ADDR; // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
             return true;
         }
     }
@@ -1009,11 +1007,10 @@ void nvmcomm_xbee_receive(void)
             int len = XBeeResponse_getDataLength(response), i;
             for (i = 0; i < len; ++i){
                 uint8_t c = XBee_getDataByIndex(&xbeeObj, i);
-                if (c != -1) {payload[i] = c;}//DEBUGF_XBEE("RECV: data["DBG8"] = "DBG8"\n",i,c);}
-                //else DEBUGF_XBEE("RECV: get TXdata failed\n");
+                if (c != -1) payload[i] = c;
+                else DEBUGF_XBEE("RECV: get TXdata failed\n");
             }
             if(f) f(src, payload[0], payload+1, len-1);
-            //else DEBUGF_XBEE("RECV: f is null\n");
             return;
         }
 #endif
@@ -1036,7 +1033,7 @@ void nvmcomm_xbee_receive(void)
                 if (c != -1) payload[i] = c;
                 else DEBUGF_XBEE("RECV: get TXdata failed\n");
             }
-            address_t dest = 0;
+            address_t dest;
             XBeeAddress64* addr64 = &(zbrxObj._remoteAddress64);
             if(!addr_xbee_to_nvmcomm(&dest, addr64->_msb, addr64->_lsb))
                 DEBUGF_XBEE("RECV: ZB addr translation failed ("DBG32" "DBG32"\n",addr64->_msb,addr64->_lsb);
@@ -1076,7 +1073,7 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
     if (addr_nvmcomm_to_xbee(dest, &h, &l)) {
         DEBUGF_XBEE("SEND: dest(64) "DBG32" "DBG32"\n", h, l);
     } else {
-        DEBUGF_XBEE("SEND: dest. address translation failed\n");
+        DEBUGF_XBEE("SEND: dest. "DBG8" address translation failed\n",dest);
         return -1;
     }
     for (i = 0; i < len; ++i) buf[i+1] = data[i];
@@ -1088,7 +1085,7 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
     DEBUGF_XBEE("SEND: waiting for TX response\n");
 
     // read response
-    if(XBee_readPacket_timeout(&xbeeObj, 5000)){
+    if(XBee_readPacket_timeout(&xbeeObj, 500)){
         uint8_t id = XBee_getResponseApiId(&xbeeObj);
         if(id == TX_STATUS_RESPONSE){
             TxStatusResponse txStatus;
@@ -1112,7 +1109,7 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
     DEBUGF_XBEE("SEND: waiting for ZB response\n");
 
     // read response
-    if(XBee_readPacket_timeout(&xbeeObj, 5000)){
+    if(XBee_readPacket_timeout(&xbeeObj, 500)){
         uint8_t id = XBee_getResponseApiId(&xbeeObj);
         if(id == ZB_TX_STATUS_RESPONSE){
             ZBTxStatusResponse txStatus;
@@ -1125,7 +1122,7 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
                 return 0;
             }
         } else {
-            DEBUGF_XBEE("SEND: no ZB response\n");
+            DEBUGF_XBEE("SEND: not ZB response back\n");
             return -1;
         }
     }
