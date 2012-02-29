@@ -37,6 +37,7 @@
 #include "stack.h"
 #include "uart.h"
 
+#include <avr/sleep.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -382,6 +383,12 @@ void native_avr_avr_invoke(u08_t mref) {
             stack_push(iflag_PCINTA);
             iflag_PCINTA=0;
         }
+    } else if(mref == NATIVE_METHOD_GOTOSLEEP) {
+	set_sleep_mode( SLEEP_MODE_PWR_DOWN );
+	sleep_enable();
+	sei();
+	sleep_cpu();
+    	sleep_disable();
     } else
         error(ERROR_NATIVE_UNKNOWN_METHOD);
 }

@@ -44,6 +44,7 @@ AVR.setPinInterruptMode( AVR.DIGITAL52 , AVR.ANYCHANGE );
 AVR.setPinInterruptMode( AVR.DIGITAL53 , AVR.ANYCHANGE );
 */
 int x1=1;
+int temp=5;
 x1 &= AVR.setPinIOMode( AVR.DIGITAL21 , AVR.INPUT );
 x1 &= AVR.setPinIOMode( AVR.DIGITAL20 , AVR.INPUT );
 x1 &= AVR.setPinIOMode( AVR.DIGITAL19 , AVR.INPUT );
@@ -82,7 +83,17 @@ x1 &= AVR.setPinInterruptMode( AVR.DIGITAL3 , AVR.GND );
 			if( (mask_INT & AVR.MASK_INT5)!=0 )
 			{System.out.println("INT5");}
 
-			AVR.setPinInterruptMode( AVR.DIGITAL20 , AVR.DISABLE );
+			System.out.println("sleep after"+temp);
+			//Timer.wait(1000);
+			temp--;
+			if(temp==0)
+			{
+				System.out.println("go to sleep mode");
+				System.out.println("make interrupt to wake up");
+				temp=5;
+				AVR.gotoSleep();
+			}
+			//AVR.setPinInterruptMode( AVR.DIGITAL20 , AVR.DISABLE );
 
 
 		}

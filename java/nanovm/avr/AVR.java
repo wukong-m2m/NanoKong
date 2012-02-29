@@ -38,6 +38,7 @@ public class AVR {
   static public native int digitalRead(int pin);
   static public native int setPinInterruptMode(int pin, int mode);
   static public native int select(int event_mask, int time);
+  static public native void gotoSleep();
 
   //IO mode
   public static final int OUTPUT     = 0;
