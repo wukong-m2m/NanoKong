@@ -43,7 +43,7 @@ uint32_t addrTable[NUM_ADDR][2] = {
 uint8_t payload[NVC3_MESSAGE_SIZE+1];
 #define BASE_ADDR 64
 
-void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
+void (*nvmcomm_xbee_callback)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 
 /**
  * XBee init code
@@ -1010,7 +1010,7 @@ void nvmcomm_xbee_receive(void)
                 if (c != -1) payload[i] = c;
                 else DEBUGF_XBEE("RECV: get TXdata failed\n");
             }
-            if(f) f(src, payload[0], payload+1, len-1);
+            if(nvmcomm_xbee_callback) nvmcomm_xbee_callback(src, payload[0], payload+1, len-1);
             return;
         }
 #endif
@@ -1037,7 +1037,7 @@ void nvmcomm_xbee_receive(void)
             XBeeAddress64* addr64 = &(zbrxObj._remoteAddress64);
             if(!addr_xbee_to_nvmcomm(&dest, addr64->_msb, addr64->_lsb))
                 DEBUGF_XBEE("RECV: ZB addr translation failed ("DBG32" "DBG32"\n",addr64->_msb,addr64->_lsb);
-            if(f) f(dest, payload[0], payload+1, len-1);
+            if(nvmcomm_xbee_callback) nvmcomm_xbee_callback(dest, payload[0], payload+1, len-1);
             return;
         } else if(id == MODEM_STATUS_RESPONSE) {
             //ModemStatusResponse msrObj;
@@ -1057,12 +1057,12 @@ void nvmcomm_xbee_receive(void)
 void nvmcomm_xbee_init(void)
 {
     XBee_init(&xbeeObj);
-    f = NULL;
+    nvmcomm_xbee_callback = NULL;
 }
 
 void nvmcomm_xbee_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t))
 {
-    f = func;
+    nvmcomm_xbee_callback = func;
 }
 
 int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len, u08_t txoptions)
@@ -1085,7 +1085,7 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
     DEBUGF_XBEE("SEND: waiting for TX response\n");
 
     // read response
-    if(XBee_readPacket_timeout(&xbeeObj, 500)){
+    if(XBee_readPacket_timeout(&xbeeObj, 100)){
         uint8_t id = XBee_getResponseApiId(&xbeeObj);
         if(id == TX_STATUS_RESPONSE){
             TxStatusResponse txStatus;
@@ -1109,7 +1109,7 @@ int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len
     DEBUGF_XBEE("SEND: waiting for ZB response\n");
 
     // read response
-    if(XBee_readPacket_timeout(&xbeeObj, 500)){
+    if(XBee_readPacket_timeout(&xbeeObj, 100)){
         uint8_t id = XBee_getResponseApiId(&xbeeObj);
         if(id == ZB_TX_STATUS_RESPONSE){
             ZBTxStatusResponse txStatus;
