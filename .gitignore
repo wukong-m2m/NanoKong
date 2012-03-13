@@ -4,6 +4,7 @@
 *.hex
 *.d
 *.jar
+*.pyc
 .DS_Store
 vm/build/avr_mega2560/nvmdefault.h
 nanokong.tmproj
