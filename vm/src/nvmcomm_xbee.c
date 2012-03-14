@@ -1033,7 +1033,7 @@ void nvmcomm_xbee_receive(void)
                 if (c != -1) payload[i] = c;
                 else DEBUGF_XBEE("RECV: get TXdata failed\n");
             }
-            address_t dest;
+            address_t dest = 0;
             XBeeAddress64* addr64 = &(zbrxObj._remoteAddress64);
             if(!addr_xbee_to_nvmcomm(&dest, addr64->_msb, addr64->_lsb))
                 DEBUGF_XBEE("RECV: ZB addr translation failed ("DBG32" "DBG32"\n",addr64->_msb,addr64->_lsb);
