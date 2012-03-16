@@ -6,8 +6,8 @@ CONFIG = Mega8.config
 DEVICE = atmega2560
 
 #DEFAULT_FILE = watchdog
-DEFAULT_FILE = javainterrupt
-#DEFAULT_FILE = ReferenceToNativeObjectTest
+#DEFAULT_FILE = javainterrupt
+DEFAULT_FILE = ReferenceToNativeObjectTest
 #DEFAULT_FILE = TimerDemo
 #DEFAULT_FILE = cinterrupt
 
@@ -26,7 +26,7 @@ OBJDUMP = $(PREFIX)avr-objdump
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
-CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x8000,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
@@ -74,14 +74,14 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -p atmega2560 -P /dev/ttyACM0 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -p atmega2560 -P /dev/tty.usbmodem411 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf
 
 upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section
-	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:../../../arduino/arduino-stk500v2-bootloader/stk500boot_v2_mega2560.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
+	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:../../../tools/arduino-stk500v2-bootloader/stk500boot_v2_mega2560.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
