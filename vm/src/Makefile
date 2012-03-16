@@ -30,12 +30,12 @@ endif
 
 nvmdefault.h: $(ROOT_DIR)/java/examples/$(DEFAULT_FILE).java
 	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$(DEFAULT_FILE).java
-	java -cp $(ROOT_DIR)/tool/build/classes org/nanovm/NanoVMTool -c -f $@ $(ROOT_DIR)/tool/config/$(CONFIG) $(ROOT_DIR)/java/examples $(DEFAULT_FILE)
+	java -cp $(ROOT_DIR)/nanovmtool/build/classes org/nanovm/NanoVMTool -c -f $@ $(ROOT_DIR)/nanovmtool/config/$(CONFIG) $(ROOT_DIR)/java/examples $(DEFAULT_FILE)
 
 # convert and upload a class file
 upload-%: $(ROOT_DIR)/java/examples/%.java
 	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$*.java
-	java -jar $(ROOT_DIR)/tool/NanoVMTool.jar $(ROOT_DIR)/tool/config/$(CONFIG) $(ROOT_DIR)/java/examples $*
+	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/$(CONFIG) $(ROOT_DIR)/java/examples $*
 
 %.o:$(NVM_DIR)/%.c Makefile
 	$(COMPILE-CMD)
