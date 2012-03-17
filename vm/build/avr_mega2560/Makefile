@@ -18,7 +18,7 @@ CFLAGS += -DDEBUG
 CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long
 
 # AVR compiler setup
-PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
+PREFIX =
 CC = $(PREFIX)avr-gcc
 OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump
@@ -26,7 +26,7 @@ OBJDUMP = $(PREFIX)avr-objdump
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
-CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x8000,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x8000,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
@@ -62,7 +62,7 @@ endef
 	$(OBJCOPY) -j .text -j .data -j .javabytecode -O ihex $< $@
 
 %_NRWWsection.hex: %.elf
-	$(OBJCOPY) -j .bootloader -O ihex $< $@
+	$(OBJCOPY) -j .reprogram_flash_page -O ihex $< $@
 
 %_eeprom.hex: %.elf
 	$(OBJCOPY) -j .eeprom -O ihex $< $@
