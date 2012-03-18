@@ -10,7 +10,7 @@ method digitalWrite:(II)V     	 3
 method digitalRead:(I)I       	 4
 method setPinInterruptMode:(II)I 5
 method select:(II)I           	 6
-method gotoSleep:()V 	         7
+method sleep:(I)V 	         7
 
 
 
