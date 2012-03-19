@@ -29,7 +29,7 @@
 #define NVM_USE_COMM
 #define NVMCOMM3                // Use Nvmcomm v3.0
 #define NVM_USE_COMMZWAVE       // enable Z-wave support
-#define NVM_USE_COMMXBEE       // enable XBee support
+//#define NVM_USE_COMMXBEE       // enable XBee support
 
 // native setup
 #define NVM_USE_STDIO           // enable native stdio support
