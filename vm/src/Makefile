@@ -7,8 +7,8 @@ VERSION = 1.6
 NVM_DIR = $(ROOT_DIR)/vm/src
 CFLAGS += -I$(NVM_DIR)
 NVM_OBJS = NanoVM.o nvmfile.o vm.o heap.o array.o \
-	error.o loader.o native_stdio.o stack.o \
-	uart.o debug.o native_lcd.o nvmcomm1.o nvmcomm2.o \
+	error.o native_stdio.o stack.o \
+	uart.o debug.o native_lcd.o \
 	native_math.o native_formatter.o nvmstring.o \
 	nvmcomm3.o nvmcomm_zwave.o native_nvmcomm3.o \
 	nvmcomm_xbee.o

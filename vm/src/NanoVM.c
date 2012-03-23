@@ -27,7 +27,6 @@
 #include "config.h"
 #include "debug.h"
 
-#include "loader.h"
 #include "uart.h"
 #include "nvmfile.h"
 #include "vm.h"

@@ -29,7 +29,7 @@ CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSI
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
 
 
-CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 #CLDFLAGS += -Wl,--gc-sections  -mmcu=$(DEVICE)
 
 
