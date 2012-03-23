@@ -82,7 +82,7 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 #error "Unsupported AVR CPU!"
 #endif
 
-volatile static nvm_int_t ticks_1A,ticks_1B;
+volatile static nvm_int_t ticks_1A,ticks_1B,time2_wake;
 volatile static u08_t iflag_INT;
 volatile static u08_t iflag_PCINTA;
 volatile static u08_t ivalue_PCINTA;
@@ -93,15 +93,20 @@ SIGNAL(SIG_OUTPUT_COMPARE1A) {
     ticks++;
 }
 #else
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER1_COMPA_vect)//for wait
 {
     TCNT1 = 0;
     ticks_1A++;
 }
-ISR(TIMER1_COMPB_vect)
+ISR(TIMER1_COMPB_vect)//for select
 {
     TCNT1 = 0;
     ticks_1B++;
+}
+ISR(TIMER2_COMPA_vect)//for sleep
+{
+    TCNT2 = 0;
+    time2_wake=1;
 }
 ISR(INT0_vect)
 {
@@ -383,12 +388,39 @@ void native_avr_avr_invoke(u08_t mref) {
             stack_push(iflag_PCINTA);
             iflag_PCINTA=0;
         }
-    } else if(mref == NATIVE_METHOD_GOTOSLEEP) {
-	set_sleep_mode( SLEEP_MODE_PWR_DOWN );
-	sleep_enable();
-	sei();
-	sleep_cpu();
-    	sleep_disable();
+    } else if(mref == NATIVE_METHOD_SLEEP) {
+    	nvm_int_t time = stack_pop();
+   	TCCR2B |=  ( _BV(CS22) |_BV(CS21) | _BV(CS20));	//prescaler clk/1024, T=64us
+	set_sleep_mode( SLEEP_MODE_PWR_SAVE );
+
+	while(time>0)//sleep and wake until timeout, ex:sleep(38)=sleep 16ms+16ms+4ms+2ms
+	{
+		if(time>=16) {	
+			OCR2A = 255;	//64us*255=16ms(timer2 max sleep time)
+			time -=16;	
+	      } else if(time>=8) {
+			OCR2A = 128;
+			time -=8;
+	      } else if(time>=4) {
+			OCR2A = 64;
+			time -=4;
+	      } else if(time>=2) {
+			OCR2A = 32;
+			time -=2;
+	      } else if(time==1) {
+			OCR2A = 16;	//64us*16=1ms
+			time -=1;
+	      }
+		time2_wake=0;		//to record wake from interrupt or timer2
+		sleep_enable();
+		sei();
+		TIMSK2 |= _BV(OCIE2A);	//output match Interrupt Enable
+		sleep_cpu();
+	    	sleep_disable();
+		if(time2_wake!=1)	//not wake from timer2, wake from interrupt
+		{	break;	}		
+	}
+        TIMSK2 &= ~_BV(OCIE2A);		//output match Interrupt disable
     } else
         error(ERROR_NATIVE_UNKNOWN_METHOD);
 }

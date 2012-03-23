@@ -62,7 +62,7 @@ NanoVM: $(OBJS)
 
 %.nvm: $(ROOT_DIR)/java/examples/%.java
 	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$*.java
-	java -jar $(ROOT_DIR)/tool/NanoVMTool.jar $(ROOT_DIR)/tool/config/$(CONFIG) $(ROOT_DIR)/java/examples $*
+	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/$(CONFIG) $(ROOT_DIR)/java/examples $*
 
 disk: NanoVM $(addsuffix .nvm,$(FILES))
 ifeq ($(TARGET),apple2enh)

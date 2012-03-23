@@ -55,18 +55,18 @@ $(PROJ): $(OBJS)
 # just run target from java directory
 %-run: $(ROOT_DIR)/java/examples/%.java $(PROJ)
 	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$*.java
-	java -jar $(ROOT_DIR)/tool/NanoVMTool.jar $(ROOT_DIR)/tool/config/UnixTest.config $(ROOT_DIR)/java/examples $*
+	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/UnixTest.config $(ROOT_DIR)/java/examples $*
 	./$(PROJ) $*.nvm
 
 %-debug: $(ROOT_DIR)/java/examples/%.java $(PROJ)
 	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$*.java
-	java -jar $(ROOT_DIR)/tool/NanoVMTool.jar $(ROOT_DIR)/tool/config/UnixTest.config $(ROOT_DIR)/java/examples $*
+	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/UnixTest.config $(ROOT_DIR)/java/examples $*
 	./$(PROJ) -d $*.nvm
 
 # run target from java dir and verify with sun-jvm output
 %-verify: $(ROOT_DIR)/java/examples/%.java $(PROJ)
 	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$*.java
-	java -jar $(ROOT_DIR)/tool/NanoVMTool.jar $(ROOT_DIR)/tool/config/UnixTest.config $(ROOT_DIR)/java/examples $*
+	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/UnixTest.config $(ROOT_DIR)/java/examples $*
 	./$(PROJ) -q $*.nvm > $(PROJ).log
 	java -cp $(ROOT_DIR)/java/examples $* > java.log
 	@if [ "`diff $(PROJ).log java.log`" != "" ]; then \

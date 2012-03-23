@@ -52,14 +52,14 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t tx
 
 bool addr_nvmcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
     // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
-    if (nvmcomm_addr>128)
+    if (nvmcomm_addr>63)
       return false;
     *zwave_addr = nvmcomm_addr;
     return true;
 }
 
 bool addr_zwave_to_nvmcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
-  if (zwave_addr>128)
+  if (zwave_addr>63)
     return false;
   *nvmcomm_addr = zwave_addr;
   return true;

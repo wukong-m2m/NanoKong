@@ -10,9 +10,9 @@ NATIVE="nanovm/java/nanovm/*/*.java nanovm/java/nanovm/*/*/*.java"
 
 EXAMPLES="nanovm/java/examples/*.java nanovm/java/examples/*.txt nanovm/java/examples/*/*.java nanovm/java/examples/*/*/*.java"
 
-TOOL="nanovm/tool/src/*.java nanovm/tool/src/*.mf nanovm/tool/src/Makefile nanovm/tool/NanoVMTool.jar nanovm/tool/*.txt"
+TOOL="nanovm/nanovmtool/src/*.java nanovm/nanovmtool/src/*.mf nanovm/nanovmtool/src/Makefile nanovm/nanovmtool/NanoVMTool.jar nanovm/nanovmtool/*.txt"
 
-CONFIG="nanovm/tool/config/*.native nanovm/tool/config/*.config nanovm/tool/config/*/*.native"
+CONFIG="nanovm/nanovmtool/config/*.native nanovm/nanovmtool/config/*.config nanovm/nanovmtool/config/*/*.native"
 
 DOC=" nanovm/doc/*.txt nanovm/doc/schematics/*.sch nanovm/doc/schematics/*.gif nanovm/doc/racetrack.pdf"
 
