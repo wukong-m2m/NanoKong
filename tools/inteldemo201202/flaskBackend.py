@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -69,10 +71,10 @@ def flaskSetPeopleInRoom():
 def flaskReprogram():
   scenario = int(request.args.get("scenario","1"))
   if scenario == 1:
-    reprogram.reprogramNvmdefault(1, "bytecodeV1.h")
+    reprogram.reprogramNvmdefault(1, "bytecodeLightSensorV1.h")
     return "reprogrammed to scenario 1"
   if scenario == 2:
-    reprogram.reprogramNvmdefault(1, "bytecodeV2.h")
+    reprogram.reprogramNvmdefault(1, "bytecodeLightSensorV2.h")
     return "reprogrammed to scenario 2"
   else:
     return ""

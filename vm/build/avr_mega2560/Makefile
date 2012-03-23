@@ -28,6 +28,7 @@ OBJDUMP = $(PREFIX)avr-objdump
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
 
+
 CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.bootloader=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 #CLDFLAGS += -Wl,--gc-sections  -mmcu=$(DEVICE)
 
@@ -66,7 +67,7 @@ endef
 	$(OBJCOPY) -j .text -j .data -j .javabytecode -O ihex $< $@
 
 %_NRWWsection.hex: %.elf
-	$(OBJCOPY) -j .bootloader -O ihex $< $@
+	$(OBJCOPY) -j .reprogram_flash_page -O ihex $< $@
 
 %_eeprom.hex: %.elf
 	$(OBJCOPY) -j .eeprom -O ihex $< $@
@@ -79,7 +80,7 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 
-	avrdude -V -p atmega2560 -P /dev/ttyACM1 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -V -p atmega2560 -P /dev/ttyACM0 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 
 clean:
