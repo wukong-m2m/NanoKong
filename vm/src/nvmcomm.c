@@ -9,10 +9,9 @@
 #include "nvmcomm_xbee.h"
 #endif
 #include "avr/avr_flash.h"
+#include "nvmcomm.h"
 
-#include "nvmcomm3.h"
-
-#ifdef NVMCOMM3
+#ifdef NVM_USE_COMM
 
 uint8_t testretransmission = 0;
 
@@ -23,7 +22,7 @@ uint8_t nvc3_appmsg_buf[NVC3_MESSAGE_SIZE];
 uint8_t nvc3_appmsg_size = 0; // 0 if the buffer is not in use (so we can receive a message), otherwise indicates the length of the received message.
 uint8_t nvc3_appmsg_reply = 0;
 
-void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t length);
+void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length);
 void nvmcomm_init(void) {
 #ifdef NVM_USE_COMMZWAVE
   nvmcomm_zwave_init();
@@ -62,20 +61,20 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
 }
 // Private
 
-void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t length) {
+void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length) {
   u08_t response_size = 0;
   u08_t response_cmd = 0;
   uint16_t pos_in_message;
 
 #ifdef DEBUG
-  DEBUGF_COMM("Handling command "DBG8" from "DBG8", length "DBG8":\n", nvmcomm3_command, src, length);
+  DEBUGF_COMM("Handling command "DBG8" from "DBG8", length "DBG8":\n", nvmcomm_command, src, length);
   for (size8_t i=0; i<length; ++i) {
     DEBUGF_COMM(" "DBG8"", payload[i]);
   }
   DEBUGF_COMM("\n");
 #endif
   
-  switch (nvmcomm3_command) {
+  switch (nvmcomm_command) {
     case NVC3_CMD_REPRG_OPEN:
       DEBUGF_COMM("Initialise reprogramming.\n");
       nvc3_avr_reprogramming = TRUE;
@@ -168,4 +167,4 @@ void handle_message(address_t src, u08_t nvmcomm3_command, u08_t *payload, u08_t
   }
 }
 
-#endif // NVMCOMM3
+#endif // NVM_USE_COMM

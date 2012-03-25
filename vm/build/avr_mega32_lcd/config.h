@@ -15,9 +15,6 @@
 #define UART_BITRATE 9600
 #define UART_BUFFER_BITS 5     // 32 bytes buffer (min. req for loader)
 
-// use new comm protocol
-// #define NVMCOMM2
-
 #define CODESIZE 1024
 #define HEAPSIZE (2048-256)    // NanoVM itself requires 256 Bytes RAM
 

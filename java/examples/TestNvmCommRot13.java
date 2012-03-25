@@ -2,7 +2,7 @@ import java.io.*;
 import nanovm.avr.*;
 import nanovm.io.*;
 
-class TestNvmComm3Rot13 {
+class TestNvmCommRot13 {
   private static void Rot13(byte[] data) {
     for (int i = 0; i < data.length; i++) {
       byte c = data[i];
@@ -18,10 +18,10 @@ class TestNvmComm3Rot13 {
   public static void main(String[] args) throws IOException {
     while(true) {
       System.out.println("Waiting for data.....");
-      byte[] data = NvmComm3.receive(1000);
+      byte[] data = NvmComm.receive(1000);
       if (data != null) {
         Rot13(data);
-        NvmComm3.send((byte)2, data, (byte)data.length);
+        NvmComm.send((byte)2, data, (byte)data.length);
       }
     }
   }

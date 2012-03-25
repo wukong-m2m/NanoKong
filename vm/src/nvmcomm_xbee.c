@@ -22,7 +22,7 @@
 #include "uart.h"
 #include "debug.h"
 #include "delay.h"
-#include "nvmcomm3.h"
+#include "nvmcomm.h"
 
 #ifdef NVM_USE_COMMXBEE
 

@@ -4,7 +4,7 @@
 #include "uart.h"
 #include "debug.h"
 #include "delay.h"
-#include "nvmcomm3.h"
+#include "nvmcomm.h"
 
 #ifdef NVM_USE_COMMZWAVE
 
@@ -276,7 +276,7 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t tx
 	buf[2] = id;
 	buf[3] = len+2;
   buf[4] = COMMAND_CLASS_PROPRIETARY;
-  buf[5] = nvc3_command; // See nvmcomm3.h
+  buf[5] = nvc3_command; // See nvmcomm.h
   for(i=0; i<len; i++)
     buf[i+6] = in[i];
 	buf[6+len] = txoptions;

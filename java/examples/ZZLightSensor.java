@@ -14,14 +14,14 @@ class ZZLightSensor {
 
     private static boolean setLight(boolean turn_on) {
         if(turn_on) {
-            NvmComm3.send(ROUTER_ID, new byte[] {MY_ID, LAMP_NODE_ID, COMMAND_SET_LAMP, 1}, (byte)4);
+            NvmComm.send(ROUTER_ID, new byte[] {MY_ID, LAMP_NODE_ID, COMMAND_SET_LAMP, 1}, (byte)4);
             System.out.println("Sending 'lamp on' command");
         }
         else {
-            NvmComm3.send(ROUTER_ID, new byte[] {MY_ID, LAMP_NODE_ID, COMMAND_SET_LAMP, 0}, (byte)4);
+            NvmComm.send(ROUTER_ID, new byte[] {MY_ID, LAMP_NODE_ID, COMMAND_SET_LAMP, 0}, (byte)4);
             System.out.println("Sending 'lamp off' command");
         }
-        byte[] data = NvmComm3.receive(1000);
+        byte[] data = NvmComm.receive(1000);
         if (data != null && data.length == 1 && data[0] == COMMAND_SET_LAMP_ACK){
             System.out.println("ACK received");
             return true;

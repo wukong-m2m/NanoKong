@@ -1,7 +1,7 @@
-#ifndef NVMCOMM3_H
-#define NVMCOMM3_H
+#ifndef NVMCOMM_H
+#define NVMCOMM_H
 
-#ifdef NVMCOMM3
+#ifdef NVM_USE_COMM
 
 #include "types.h"
 
@@ -53,6 +53,6 @@ extern uint8_t nvc3_appmsg_buf[NVC3_MESSAGE_SIZE];
 extern uint8_t nvc3_appmsg_size;
 
 
-#endif // NVMCOMM3
+#endif // NVM_USE_COMM
 
-#endif // NVMCOMM3_H
+#endif // NVMCOMM_H

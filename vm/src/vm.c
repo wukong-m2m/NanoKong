@@ -41,8 +41,8 @@
 #include "array.h"
 #endif
 
-#ifdef NVMCOMM3
-#include "nvmcomm3.h"
+#ifdef NVM_USE_COMM
+#include "nvmcomm.h"
 #endif
 
 #ifdef AVR
@@ -229,7 +229,7 @@ void   vm_run(u16_t mref) {
   vm_set_runlevel(NVM_RUNLVL_VM);
 
   do {
-#ifdef NVMCOMM3
+#ifdef NVM_USE_COMM
     // Check if there's any packet coming in that we need to handle before processing the next VM instruction.
     nvmcomm_poll();
 #endif

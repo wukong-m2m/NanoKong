@@ -4,10 +4,10 @@
 #include "error.h"
 #include "array.h"
 #include "delay.h"
-#include "native_nvmcomm3.h"
-#include "nvmcomm3.h"
+#include "native_nvmcomm.h"
+#include "nvmcomm.h"
 
-void native_nvmcomm3_invoke(u08_t mref) {
+void native_nvmcomm_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_SEND) {
     uint8_t len = (uint8_t)stack_pop_int();
     uint8_t *buf = (uint8_t *)stack_pop_addr();
@@ -20,7 +20,7 @@ void native_nvmcomm3_invoke(u08_t mref) {
     stack_push(nvmcomm_send(dest, NVC3_CMD_APPMSG, buf+1, len)); // +1 to skip the first byte which indicates the type of the array
   } else if(mref == NATIVE_METHOD_RECEIVE) {
     nvm_int_t waitmsec=stack_pop_int();
-    DEBUGF_COMM("native nvmcomm3.receive: waiting "DBG16" msec\n", waitmsec);
+    DEBUGF_COMM("native nvmcomm.receive: waiting "DBG16" msec\n", waitmsec);
     while (nvc3_appmsg_size==0 && waitmsec>0) {
       delay(MILLISEC(1));
       // Check if there's any packet coming in that we need to handle before processing the next VM instruction.
@@ -32,9 +32,9 @@ void native_nvmcomm3_invoke(u08_t mref) {
     if (nvc3_appmsg_size==0) {
       // Nothing was received, return NULL;
       stack_push(0);
-      DEBUGF_COMM("native nvmcomm3.receive: timeout\n");
+      DEBUGF_COMM("native nvmcomm.receive: timeout\n");
     } else {
-      DEBUGF_COMM("native nvmcomm3.receive: received "DBG8" bytes\n", nvc3_appmsg_size);
+      DEBUGF_COMM("native nvmcomm.receive: received "DBG8" bytes\n", nvc3_appmsg_size);
       // TODO: copy the data to a Java array and return it.
       heap_id_t array = array_new(nvc3_appmsg_size, T_BYTE);
       for (uint8_t i=0; i<nvc3_appmsg_size; i++)

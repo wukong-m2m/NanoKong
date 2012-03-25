@@ -39,7 +39,7 @@ class PeopleCountNode {
                 data[i] = (byte)((data[i]+2) & (0xFF));
             //    System.out.print(data[i]);
             //System.out.print('\n');
-            NvmComm3.send((byte)65, data, (byte)data.length);
+            NvmComm.send((byte)65, data, (byte)data.length);
             Timer.wait(3000);
         }
     }

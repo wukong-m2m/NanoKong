@@ -55,8 +55,8 @@
 #include "native_formatter.h"
 #endif
 
-#ifdef NVMCOMM3
-#include "native_nvmcomm3.h"
+#ifdef NVM_USE_COMM
+#include "native_nvmcomm.h"
 #endif
 
 void native_java_lang_object_invoke(u08_t mref) {
@@ -101,9 +101,9 @@ void native_invoke(u16_t mref) {
     native_formatter_invoke(NATIVE_ID2METHOD(mref));
 #endif
 
-#if defined(NVMCOMM3)
-  } else if(NATIVE_ID2CLASS(mref) == NATIVE_CLASS_NVMCOMM3) {
-    native_nvmcomm3_invoke(NATIVE_ID2METHOD(mref));
+#if defined(NVM_USE_COMM)
+  } else if(NATIVE_ID2CLASS(mref) == NATIVE_CLASS_NVMCOMM) {
+    native_nvmcomm_invoke(NATIVE_ID2METHOD(mref));
 #endif
 
 #if defined(AVR) && !defined(ASURO)

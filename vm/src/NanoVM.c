@@ -30,7 +30,7 @@
 #include "uart.h"
 #include "nvmfile.h"
 #include "vm.h"
-#include "nvmcomm3.h"
+#include "nvmcomm.h"
 
 #include "avr/avr_flash.h"
 #include <avr/boot.h>
@@ -43,17 +43,6 @@
 // hooks for init routines
 
 #include "native_impl.h"
-
-/*
-#ifdef ASURO
-#include "native_asuro.h"
-#endif
-
-#ifdef NATIVE_AVR
-#include "native_avr.h"
-#endif
-
-*/
 
 #ifdef LCD
 #include "native_lcd.h"
@@ -76,7 +65,7 @@ int main(int argc, char **argv) {
   debug_enable(TRUE);
 #endif
 
-#if defined(NVMCOMM3)
+#if defined(NVM_USE_COMM)
   nvmcomm_init();
 #endif
 
@@ -128,11 +117,6 @@ int main(int argc, char **argv) {
   }
 #endif // NVM_USE_DISK_FILE
 #endif // UNIX || __CC65__
-
-#if defined(NVM_USE_COMM) && (defined(NVMCOMM1) || defined(NVMCOMM2))
-  // wait 1 sec for upload
-  loader_receive();
-#endif
 
   nvmfile_init();
 
