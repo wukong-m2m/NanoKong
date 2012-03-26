@@ -40,7 +40,7 @@ uint32_t addrTable[NUM_ADDR][2] = {
     {0x0013A200, 0x407733F3},{0x0013A200, 0x4077340D}
 #endif
 };
-uint8_t payload[NVC3_MESSAGE_SIZE+1];
+uint8_t payload[NVMCOMM_MESSAGE_SIZE+1];
 #define BASE_ADDR 64
 
 void (*nvmcomm_xbee_callback)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
@@ -1067,7 +1067,7 @@ void nvmcomm_xbee_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t))
 
 int nvmcomm_xbee_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t len, u08_t txoptions)
 {
-    uint8_t buf[NVC3_MESSAGE_SIZE+1];
+    uint8_t buf[NVMCOMM_MESSAGE_SIZE+1];
     uint32_t h, l;
     int i;
     if (addr_nvmcomm_to_xbee(dest, &h, &l)) {
