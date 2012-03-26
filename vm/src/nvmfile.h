@@ -76,7 +76,6 @@ void   nvmfile_read(void *dst, const void *src, u16_t len);
 u08_t  nvmfile_read08(const void *addr);
 u16_t  nvmfile_read16(const void *addr);
 u32_t  nvmfile_read32(const void *addr);
-void   nvmfile_write08(void *addr, u08_t data);
 
 #define NVMFILE_SET(a)     (void*)(((ptr_t)a) | NVMFILE_FLAG)
 #define NVMFILE_ISSET(a)   (((ptr_t)a) & NVMFILE_FLAG)
@@ -88,19 +87,10 @@ void   nvmfile_write08(void *addr, u08_t data);
 #define nvmfile_read08(addr)        (*(u08_t*)(addr))
 #define nvmfile_read16(addr)        (*(u16_t*)(addr))
 #define nvmfile_read32(addr)        (*(u32_t*)(addr))
-#define nvmfile_write08(addr, data) (*(u08_t*)(addr) = (data))
 
 #define NVMFILE_SET(addr)           (addr)
 
 #endif // NVM_USE_EEPROM
-
-#ifndef NVM_USE_FLASH_PROGRAM
-#define nvmfile_write_initialize() do {} while(0)
-#define nvmfile_write_finalize() do {} while(0)
-#else
-void nvmfile_write_initialize(void);
-void nvmfile_write_finalize(void);
-#endif
 
 #ifdef NVM_USE_DISK_FILE
 void nvmfile_load(const char *filename, bool_t quiet);

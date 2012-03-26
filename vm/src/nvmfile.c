@@ -164,18 +164,6 @@ u32_t nvmfile_read32(const void *addr) {
   return val;
 }
 
-void nvmfile_write08(void *addr, u08_t data) {
-  //no write
-}
-
-void nvmfile_write_initialize(void) {
-
-}
-
-void nvmfile_write_finalize(void) {
-
-}
-
 #else // NVM_USE_FLASH_PROGRAM
 
 void nvmfile_read(void *dst, const void *src, u16_t len) {
@@ -202,11 +190,6 @@ u32_t nvmfile_read32(const void *addr) {
   addr = NVMFILE_ADDR(addr);  // remove marker (if present)
   eeprom_read_block((u08_t*)&val, (eeprom_addr_t)addr, sizeof(val));
   return val;
-}
-
-void nvmfile_write08(void *addr, u08_t data) {
-  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  eeprom_write_byte((eeprom_addr_t)addr, data);
 }
 
 #endif // NVM_USE_FLASH_PROGRAM
