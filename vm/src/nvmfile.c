@@ -47,8 +47,6 @@
 # include <avr/pgmspace.h>
 
 // buffer for file itself is in eeprom
-#ifdef NVM_USE_DEFAULT_FILE
-
 # ifdef NVM_USE_FLASH_PROGRAM
    static u08_t nvmfile[CODESIZE] PROGMEM =
 # else
@@ -60,20 +58,6 @@
 #  endif
 # endif
 # include "nvmdefault.h"
-
-#else
-
-# ifdef NVM_USE_FLASH_PROGRAM
-   extern u08_t nvmfile[CODESIZE] PROGMEM;
-# else
-#  if defined(NVM_USE_COMM) || defined(NVM_USE_DISK_FILE)
-    extern u08_t EEPROM nvmfile[CODESIZE];
-#  else
-    extern u08_t EEPROM nvmfile[];
-#  endif
-# endif
-
-#endif
 
 u08_t nvmfile_constant_count;
 
@@ -210,6 +194,12 @@ void nvmfile_store(u16_t index, u08_t *buffer, u16_t size) {
 }
 
 #endif // NVM_USE_EEPROM
+
+
+
+
+
+
 
 bool_t nvmfile_init(void) {
   u16_t t;

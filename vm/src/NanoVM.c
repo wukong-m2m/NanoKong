@@ -103,17 +103,7 @@ int main(int argc, char **argv) {
   if((i<argc)&&(argv[i][0] != '-')) {
     nvmfile_load(argv[i], quiet);
   } else {
-#ifdef NVM_USE_DEFAULT_FILE
     printf("running pre-installed default\n");
-#else // NVM_USE_DEFAULT_FILE
-    printf("Usage: NanoVM [-options] nvm-file\n"
-           "Options:\n"
-#ifdef DEBUG
-           "  -d  Debug - Display debug information\n"
-#endif
-           "  -q  Quiet - Display no VM information\n");
-    return -2;
-#endif // NVM_USE_DEFAULT_FILE
   }
 #endif // NVM_USE_DISK_FILE
 #endif // UNIX || __CC65__
