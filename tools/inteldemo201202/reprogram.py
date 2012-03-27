@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
 import sys
-import pynvc3
+import pynvc
 
 def reprogramNvmdefault(destination, filename):
   MESSAGESIZE = 16
-  reply = pynvc3.sendWithRetryAndCheckedReceive(destination=destination,
-                                                command=pynvc3.REPRG_OPEN,
-                                                allowedReplies=[pynvc3.REPRG_OPEN_R],
+  reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                command=pynvc.REPRG_OPEN,
+                                                allowedReplies=[pynvc.REPRG_OPEN_R],
                                                 quitOnFailure=True)
   pagesize = reply[1]*256 + reply[2]
 
@@ -31,17 +31,17 @@ def reprogramNvmdefault(destination, filename):
         # drop this one packet
         packetLost = True
       else:
-        pynvc3.sendcmd(destination, pynvc3.REPRG_WRITE, payload_pos+payload_data)
+        pynvc.sendcmd(destination, pynvc.REPRG_WRITE, payload_pos+payload_data)
       pos += len(payload_data)
     else:
       # Send last packet of this page and wait for a REPRG_WRITE_R_RETRANSMIT after each full page
-      reply = pynvc3.sendWithRetryAndCheckedReceive(destination=destination,
-                                                    command=pynvc3.REPRG_WRITE,
-                                                    allowedReplies=[pynvc3.REPRG_WRITE_R_OK, pynvc3.REPRG_WRITE_R_RETRANSMIT],
+      reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                    command=pynvc.REPRG_WRITE,
+                                                    allowedReplies=[pynvc.REPRG_WRITE_R_OK, pynvc.REPRG_WRITE_R_RETRANSMIT],
                                                     payload=payload_pos+payload_data,
                                                     quitOnFailure=True)
       print "Page boundary reached, wait for REPRG_WRITE_R_OK or REPRG_WRITE_R_RETRANSMIT"
-      if reply[0] == pynvc3.REPRG_WRITE_R_OK:
+      if reply[0] == pynvc.REPRG_WRITE_R_OK:
         print "Received REPRG_WRITE_R_OK in reply to packet writing at", payload_pos
         pos += len(payload_data)
       else:
@@ -50,25 +50,25 @@ def reprogramNvmdefault(destination, filename):
 
     # Send REPRG_COMMIT after last packet
     if pos == len(bytecode):
-      reply = pynvc3.sendWithRetryAndCheckedReceive(
+      reply = pynvc.sendWithRetryAndCheckedReceive(
                         destination=destination,
-                        command=pynvc3.REPRG_COMMIT,
-                        allowedReplies=[pynvc3.REPRG_COMMIT_R_RETRANSMIT,
-                                        pynvc3.REPRG_COMMIT_R_FAILED,
-                                        pynvc3.REPRG_COMMIT_R_OK],
+                        command=pynvc.REPRG_COMMIT,
+                        allowedReplies=[pynvc.REPRG_COMMIT_R_RETRANSMIT,
+                                        pynvc.REPRG_COMMIT_R_FAILED,
+                                        pynvc.REPRG_COMMIT_R_OK],
                         payload=[pos/256, pos%256],
                         quitOnFailure=True)
-      if reply[0] == pynvc3.REPRG_COMMIT_R_OK:
+      if reply[0] == pynvc.REPRG_COMMIT_R_OK:
         print reply
         print "Commit OK."
-      elif reply[0] == pynvc3.REPRG_COMMIT_R_RETRANSMIT:
+      elif reply[0] == pynvc.REPRG_COMMIT_R_RETRANSMIT:
         pos = reply[1]*256 + reply[2]
         print "===========>Received REPRG_COMMIT_R_RETRANSMIT request to retransmit from ", pos
       else:
         print "Commit failed."
         quit()
-  pynvc3.sendcmd(destination, pynvc3.SETRUNLVL, [pynvc3.RUNLVL_RESET])
+  pynvc.sendcmd(destination, pynvc.SETRUNLVL, [pynvc.RUNLVL_RESET])
 
 if __name__ == "__main__":
-  pynvc3.init()
+  pynvc.init()
   reprogramNvmdefault(int(sys.argv[1]), sys.argv[2])
