@@ -19,6 +19,8 @@ SETRUNLVL_R                  = 0x61
 APPMSG                       = 0x80
 APPMSG_R                     = 0x81
 
+WKPF message types here
+
 APPMSG_STATUS_WAIT_ACK       = 0x00
 APPMSG_STATUS_ACK            = 0x01
 APPMSG_STATUS_BUSY           = 0x02

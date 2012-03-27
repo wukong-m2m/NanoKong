@@ -10,6 +10,7 @@
 #endif
 #include "avr/avr_flash.h"
 #include "nvmcomm.h"
+#include "wkpf.h"
 
 #ifdef NVM_USE_COMM
 
@@ -162,6 +163,15 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[0];
     break;
+	case NVMCOMM_WPKF_GET_PROPERTY:
+		// read which property (profile, role, property fields in message payload)
+		profile = payload[....]
+		// get data from framework (first use dummy)
+		wkpf_get_property(profile, role, property);
+		// put data in payload
+		payload = 
+		response_cmd = NVMCOMM_WPKF_GET_PROPERTY_R;
+	break;
   }
   if (response_cmd > 0) {
     nvmcomm_send(src, response_cmd, payload, response_size);
