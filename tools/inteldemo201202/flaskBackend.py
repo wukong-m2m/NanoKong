@@ -9,7 +9,7 @@ import getStatus
 import setThreshold
 import setPeopleInRoom
 import reprogram
-import pynvc3
+import pynvc
 
 @app.route("/")
 def hello():
@@ -80,6 +80,6 @@ def flaskReprogram():
     return ""
 
 if __name__ == "__main__":
-  pynvc3.init()
+  pynvc.init()
   flaskUpdateStatus()
   app.run(host='0.0.0.0')

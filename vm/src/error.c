@@ -34,7 +34,7 @@
 #include "debug.h"
 #include "error.h"
 
-#include "nvmcomm3.h"
+#include "nvmcomm.h"
 
 #if defined(UNIX) || defined(__CC65__)
 char *error_msg[] = {

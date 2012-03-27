@@ -10,7 +10,7 @@ class IntelDemoLampController {
     AVR.portB.clrBit(0);
     while(true) {
       System.out.println("Waiting for data.....");
-      byte[] data = NvmComm3.receive(1000);
+      byte[] data = NvmComm.receive(1000);
       if (data != null && data.length == 2 && data[0] == COMMAND_SET_LAMP) {
         if (data[1] == 0) {
           AVR.portB.clrBit(0);
@@ -21,7 +21,7 @@ class IntelDemoLampController {
           System.out.println("Turning lamp on");
         }
         byte[] reply = new byte[] {COMMAND_SET_LAMP_ACK};
-        NvmComm3.send((byte)1, reply, (byte)1);
+        NvmComm.send((byte)1, reply, (byte)1);
       }
     }
   }

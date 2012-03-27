@@ -1,23 +1,23 @@
 #!/usr/bin/python
 
 import sys
-import pynvc3
+import pynvc
 
 def getStatus(destination):
-  pynvc3.receive(10)
-  pynvc3.sendcmd(destination, pynvc3.APPMSG, [3]);
-  reply = pynvc3.receive(100) # Receive reply
+  pynvc.receive(10)
+  pynvc.sendcmd(destination, pynvc.APPMSG, [3]);
+  reply = pynvc.receive(100) # Receive reply
   if reply != None and reply[1] == 4:
     return reply[2:]
   else:
-    reply = pynvc3.receive(100) # Receive reply
+    reply = pynvc.receive(100) # Receive reply
     if reply != None and reply[1] == 4:
       return reply[2:]
     else:
       return None
 
 if __name__ == "__main__":
-  pynvc3.init()
+  pynvc.init()
   reply = getStatus(int(sys.argv[1]))
   if reply != None:
     print "Threshold: ", reply[0]

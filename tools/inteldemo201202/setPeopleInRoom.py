@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
 import sys
-import pynvc3
+import pynvc
 
 def setPeopleInRoom(destination, input):
-  pynvc3.sendWithRetryAndCheckedReceiveAPPMSG(
+  pynvc.sendWithRetryAndCheckedReceiveAPPMSG(
                     destination=destination,
                     command=5,
                     allowedReplies=[15],
                     payload=[input])
 
 if __name__ == "__main__":
-  pynvc3.init()
+  pynvc.init()
   if len(sys.argv)<3 or not sys.argv[2] in ["0", "1"]:
     print "setPeopleInRoom <nodeid> [0|1]"
   else:

@@ -25,9 +25,7 @@
 #define NVM_USE_UTILS           // enable inline utils
 //#define NVM_USE_EEPROM          // nvm file resides in EEPROM (or flash)
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
-#define NVM_USE_DEFAULT_FILE    // enable pre-installed default file
 #define NVM_USE_COMM
-#define NVMCOMM3                // Use Nvmcomm v3.0
 #define NVM_USE_COMMZWAVE       // enable Z-wave support
 //#define NVM_USE_COMMXBEE       // enable XBee support
 

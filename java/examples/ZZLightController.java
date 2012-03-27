@@ -12,7 +12,7 @@ class ZZLightController {
         AVR.digitalWrite(AVR.DIGITAL32, 0);
         System.out.println("This is Controller speaking.....");
         while(true) {
-            byte[] data = NvmComm3.receive(1000);
+            byte[] data = NvmComm.receive(1000);
             if (data != null && data.length == 3 && data[1] == COMMAND_SET_LAMP) {
                 if (data[2] == 0) {
                     AVR.digitalWrite(AVR.DIGITAL32, 0);
@@ -22,7 +22,7 @@ class ZZLightController {
                     AVR.digitalWrite(AVR.DIGITAL32, 1);
                     System.out.println("Light ON");
                 }
-                NvmComm3.send(ROUTER_ID, new byte[]{data[0], COMMAND_SET_LAMP_ACK}, (byte)2);
+                NvmComm.send(ROUTER_ID, new byte[]{data[0], COMMAND_SET_LAMP_ACK}, (byte)2);
             }
         }
     }

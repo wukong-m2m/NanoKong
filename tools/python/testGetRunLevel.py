@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
 import sys
-import pynvc3
+import pynvc
 
 def getRunLevelTest(destination):
-  pynvc3.sendcmd(destination, pynvc3.GETRUNLVL)
-  received_data = pynvc3.receive(5000)
+  pynvc.sendcmd(destination, pynvc.GETRUNLVL)
+  received_data = pynvc.receive(5000)
   if not received_data == None:
     print "Received runlevel:", received_data[1]
 
-pynvc3.init()
+pynvc.init()
 getRunLevelTest(int(sys.argv[1]))
