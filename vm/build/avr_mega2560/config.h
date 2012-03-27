@@ -23,11 +23,14 @@
 #define NVM_USE_SWITCH          // support switch instruction
 #define NVM_USE_INHERITANCE     // support for inheritance
 #define NVM_USE_UTILS           // enable inline utils
-//#define NVM_USE_EEPROM          // nvm file resides in EEPROM (or flash)
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_COMM
 #define NVM_USE_COMMZWAVE       // enable Z-wave support
 //#define NVM_USE_COMMXBEE       // enable XBee support
+
+// bytecode location (choose one)
+//#define NVM_USE_FLASH_PROGRAM	// execute directly from FLASH
+#define NVM_USE_RAM_PROGRAM		// copy to RAM at startup
 
 // native setup
 #define NVM_USE_STDIO           // enable native stdio support
