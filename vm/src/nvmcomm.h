@@ -15,15 +15,6 @@
 #define NVMCOMM_CMD_REPRG_COMMIT_R_RETRANSMIT    0x32
 #define NVMCOMM_CMD_REPRG_COMMIT_R_FAILED        0x33
 
-/* TODO: turn this into EEPROM file access
-#define NVMCOMM_CMD_FOPEN                        0x70
-#define NVMCOMM_CMD_FCLOSE                       0x72
-#define NVMCOMM_CMD_FSEEK                        0x74
-#define NVMCOMM_CMD_RDFILE                       0x76
-#define NVMCOMM_CMD_RDFILE_R                     0x77
-#define NVMCOMM_CMD_WRFILE                       0x78
-*/
-
 #define NVMCOMM_CMD_GETRUNLVL                    0x50
 #define NVMCOMM_CMD_GETRUNLVL_R                  0x51
 #define NVMCOMM_CMD_SETRUNLVL                    0x60
