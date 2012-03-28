@@ -23,6 +23,11 @@ uint8_t nvc3_appmsg_buf[NVMCOMM_MESSAGE_SIZE];
 uint8_t nvc3_appmsg_size = 0; // 0 if the buffer is not in use (so we can receive a message), otherwise indicates the length of the received message.
 uint8_t nvc3_appmsg_reply = 0;
 
+uint16_t profile_id;
+uint8_t role_id;
+uint8_t property_id;
+int32_t property_read_value;
+
 void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length);
 
 void nvmcomm_init(void) {
@@ -163,14 +168,28 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[0];
     break;
-	case NVMCOMM_WPKF_GET_PROPERTY:
+	case NVMCOMM_WKPF_GET_PROFILE_LIST:
 		// read which property (profile, role, property fields in message payload)
-		profile = payload[....]
+
+		profile_id = (uint16_t)(payload[0]<<8)+(uint16_t)(payload[1]);
+		role_id = payload[2];
+		property_id = payload[3];
+
 		// get data from framework (first use dummy)
-		wkpf_get_property(profile, role, property);
-		// put data in payload
-		payload = 
-		response_cmd = NVMCOMM_WPKF_GET_PROPERTY_R;
+		//wkpf_get_property(profile, role, property);
+		property_read_value = get_profile_list( profile_id, role_id, property_id );
+		//property_read_value = get_profile_list( 1, 1, 1 );
+		//property_read_value=48;
+		payload[0] = (uint8_t)(profile_id>>8);
+		payload[1] = (uint8_t)(profile_id);
+		payload[2] = (uint8_t)(role_id);
+		payload[3] = (uint8_t)(property_id);
+		payload[4] = (uint8_t)(property_read_value>>24);
+		payload[5] = (uint8_t)(property_read_value>>16);
+		payload[6] = (uint8_t)(property_read_value>>8);
+		payload[7] = (uint8_t)(property_read_value);
+		response_size = 8;
+		response_cmd = NVMCOMM_WKPF_GET_PROFILE_LIST_R;
 	break;
   }
   if (response_cmd > 0) {
