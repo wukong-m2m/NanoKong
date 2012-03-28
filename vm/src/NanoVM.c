@@ -100,6 +100,8 @@ int main(int argc, char **argv) {
     printf("NanoVM " VERSION " runtime (c) 2005-2007 by Till Harbaum <till@harbaum.org>\n");
 #endif // UNIX || __CC65__
 
+DEBUGF("NanoVM\n");
+DEBUGF_COMM("NanoVM\n");
   nvmfile_init();
 
   vm_init();

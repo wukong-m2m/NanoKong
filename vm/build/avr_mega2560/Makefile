@@ -8,12 +8,11 @@ DEVICE = atmega2560
 #DEFAULT_FILE = watchdog
 #DEFAULT_FILE = javainterrupt
 #DEFAULT_FILE = ReferenceToNativeObjectTest
-DEFAULT_FILE = SleepDemo
+DEFAULT_FILE = HelloWorld
 #DEFAULT_FILE = TimerDemo
 #DEFAULT_FILE = AdcDemo
 
 ROOT_DIR = ../../..
-#CFLAGS += -DDEBUG
 
 # general GCC compiler flags
 CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long
@@ -29,7 +28,7 @@ CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSI
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
 
 
-CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x6000,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 #CLDFLAGS += -Wl,--gc-sections  -mmcu=$(DEVICE)
 
 
@@ -79,8 +78,7 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-
-	avrdude -V -p atmega2560 -P /dev/ttyACM0 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -V -p atmega2560 -P /dev/tty.usbmodem411 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 
 clean:

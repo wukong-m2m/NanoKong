@@ -27,6 +27,8 @@
 #include "types.h"
 #include "vm.h"
 
+# include <avr/pgmspace.h>
+
 typedef struct {
   u08_t super;
   u08_t fields;
@@ -42,7 +44,7 @@ typedef struct {
 } PACKED nvm_method_hdr_t;
 
 typedef struct {
-  u32_t magic_feature;    // old 32 bit magic is replaced by 8 bit magic and 24 feauture bits
+  u32_t magic_feature;    // old 32 bit magic is replaced by 8 bit magic and 24 feature bits
   u08_t version;
   u08_t methods;          // number of methods in this file
   u16_t main;             // index of main method

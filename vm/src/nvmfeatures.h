@@ -1,5 +1,5 @@
-#ifndef _NVMFEAUTURES_H_
-#define _NVMFEAUTURES_H_
+#ifndef _NVMFEATURES_H_
+#define _NVMFEATURES_H_
 
 // checking flags...
 #ifdef NVM_USE_SWITCH
@@ -35,57 +35,57 @@
 #define NVMFILE_MAGIC      0xBE000000L
 
 
-#define NVM_FEAUTURE_LOOKUPSWITCH (1L<<0)
-#define NVM_FEAUTURE_TABLESWITCH  (1L<<1)
-#define NVM_FEAUTURE_32BIT        (1L<<2)
-#define NVM_FEAUTURE_FLOAT        (1L<<3)
-#define NVM_FEAUTURE_ARRAY        (1L<<4)
-#define NVM_FEAUTURE_INHERITANCE  (1L<<5)
-#define NVM_FEAUTURE_EXTSTACK     (1L<<6)
+#define NVM_FEATURE_LOOKUPSWITCH (1L<<0)
+#define NVM_FEATURE_TABLESWITCH  (1L<<1)
+#define NVM_FEATURE_32BIT        (1L<<2)
+#define NVM_FEATURE_FLOAT        (1L<<3)
+#define NVM_FEATURE_ARRAY        (1L<<4)
+#define NVM_FEATURE_INHERITANCE  (1L<<5)
+#define NVM_FEATURE_EXTSTACK     (1L<<6)
 
 #ifndef NVM_USE_LOOKUPSWITCH
-# undef NVM_FEAUTURE_LOOKUPSWITCH
-# define NVM_FEAUTURE_LOOKUPSWITCH 0
+# undef NVM_FEATURE_LOOKUPSWITCH
+# define NVM_FEATURE_LOOKUPSWITCH 0
 #endif
 
 #ifndef NVM_USE_TABLESWITCH
-# undef NVM_FEAUTURE_TABLESWITCH
-# define NVM_FEAUTURE_TABLESWITCH 0
+# undef NVM_FEATURE_TABLESWITCH
+# define NVM_FEATURE_TABLESWITCH 0
 #endif
 
 #ifndef NVM_USE_32BIT_WORD
-# undef NVM_FEAUTURE_32BIT
-# define NVM_FEAUTURE_32BIT 0
+# undef NVM_FEATURE_32BIT
+# define NVM_FEATURE_32BIT 0
 #endif
 
 #ifndef NVM_USE_FLOAT
-# undef NVM_FEAUTURE_FLOAT
-# define NVM_FEAUTURE_FLOAT 0
+# undef NVM_FEATURE_FLOAT
+# define NVM_FEATURE_FLOAT 0
 #endif
 
 #ifndef NVM_USE_ARRAY
-# undef NVM_FEAUTURE_ARRAY
-# define NVM_FEAUTURE_ARRAY 0
+# undef NVM_FEATURE_ARRAY
+# define NVM_FEATURE_ARRAY 0
 #endif
 
 #ifndef NVM_USE_INHERITANCE
-# undef NVM_FEAUTURE_INHERITANCE
-# define NVM_FEAUTURE_INHERITANCE 0
+# undef NVM_FEATURE_INHERITANCE
+# define NVM_FEATURE_INHERITANCE 0
 #endif
 
 #ifndef NVM_USE_EXTSTACKOPS
-# undef NVM_FEAUTURE_EXTSTACK
-# define NVM_FEAUTURE_EXTSTACK 0
+# undef NVM_FEATURE_EXTSTACK
+# define NVM_FEATURE_EXTSTACK 0
 #endif
 
 
-#define NVM_MAGIC_FEAUTURE (NVMFILE_MAGIC\
-                           |NVM_FEAUTURE_LOOKUPSWITCH\
-                           |NVM_FEAUTURE_TABLESWITCH\
-                           |NVM_FEAUTURE_32BIT\
-                           |NVM_FEAUTURE_FLOAT\
-                           |NVM_FEAUTURE_ARRAY\
-                           |NVM_FEAUTURE_INHERITANCE)
+#define NVM_MAGIC_FEATURE (NVMFILE_MAGIC\
+                           |NVM_FEATURE_LOOKUPSWITCH\
+                           |NVM_FEATURE_TABLESWITCH\
+                           |NVM_FEATURE_32BIT\
+                           |NVM_FEATURE_FLOAT\
+                           |NVM_FEATURE_ARRAY\
+                           |NVM_FEATURE_INHERITANCE)
 
 
-#endif // _NVMFEAUTURES_H_
+#endif // _NVMFEATURES_H_

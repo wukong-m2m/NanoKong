@@ -11,11 +11,14 @@
 #define ATMEGA2560
 #define CLOCK 16000000
 
-#define CODESIZE 4096
+#define CODESIZE 2048
 #define HEAPSIZE 768
 
 // avr specific native init routines
 #define NATIVE_INIT  native_init()
+
+// enable debug info
+#define DEBUG
 
 // vm setup
 #undef NVM_USE_STACK_CHECK      // enable check if method returns empty stack
@@ -26,11 +29,11 @@
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_COMM
 #define NVM_USE_COMMZWAVE       // enable Z-wave support
-//#define NVM_USE_COMMXBEE       // enable XBee support
+#define NVM_USE_COMMXBEE        // enable XBee support
 
 // bytecode location (choose one)
-//#define NVM_USE_FLASH_PROGRAM	// execute directly from FLASH
-#define NVM_USE_RAM_PROGRAM		// copy to RAM at startup
+#define NVM_USE_FLASH_PROGRAM	// execute directly from FLASH
+//#define NVM_USE_RAM_PROGRAM		// copy to RAM at startup
 
 // native setup
 #define NVM_USE_STDIO           // enable native stdio support

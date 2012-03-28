@@ -38,8 +38,6 @@
 #include "eeprom.h"
 #include "nvmfeatures.h"
 
-// TODONR: need io.h?
-# include <avr/io.h>
 # include <avr/pgmspace.h>
 
 #ifdef NVM_USE_FLASH_PROGRAM
@@ -57,36 +55,36 @@ u08_t nvmfile_constant_count;
 
 #ifdef NVM_USE_FLASH_PROGRAM
 void nvmfile_read(void *dst, const void *src, u16_t len) {
-  src = NVMFILE_ADDR(src);  // remove marker (if present)
-fadfa  eeprom_read_block(dst, (eeprom_addr_t)src, len);
+  // TODONR: pgm_read_word is probably faster
+  int i;
+  u08_t *source, *dest;
+  source = (u08_t*)NVMFILE_ADDR(src);  // remove marker (if present)
+  dest = (u08_t*)dst;
+  for (i=0; i<len; i++) {
+    dest[i] = pgm_read_byte(source+i);
+  }
 }
 
 u08_t nvmfile_read08(const void *addr) {
-  u08_t val;
   addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  eeprom_read_block((u08_t*)&val, (eeprom_addr_t)addr, sizeof(val));
-  return val;
+	DEBUGF_READFLASH("nvmfile_read08 addr: %x\n", addr);
+  return pgm_read_byte(addr);
 }
 
 u16_t nvmfile_read16(const void *addr) {
-  u16_t val;
   addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  eeprom_read_block((u08_t*)&val, (eeprom_addr_t)addr, sizeof(val));
-  return val;
+	DEBUGF_READFLASH("nvmfile_read16 addr: %x\n", addr);
+  return pgm_read_word(addr);
 }
 
 u32_t nvmfile_read32(const void *addr) {
-  u32_t val;
   addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  eeprom_read_block((u08_t*)&val, (eeprom_addr_t)addr, sizeof(val));
-  return val;
+	DEBUGF_READFLASH("nvmfile_read32 addr: %x\n", addr);
+	u32_t val;
+	nvmfile_read(&val, addr, 4);
+	return val;
 }
 #endif // NVM_USE_FLASH_PROGRAM
-
-
-
-
-
 
 
 
@@ -102,10 +100,10 @@ bool_t nvmfile_init(void) {
 #endif // NVM_USE_RAM_PROGRAM
   
   u32_t features = nvmfile_read32(&nvm_header->magic_feature);
-  DEBUGF("NVM_MAGIC_FEAUTURE[file] = %x\n", features);
-  DEBUGF("NVM_MAGIC_FEAUTURE[vm] = %x\n", NVM_MAGIC_FEAUTURE);
+  DEBUGF("NVM_MAGIC_FEATURE[file] = %x\n", features);
+  DEBUGF("NVM_MAGIC_FEATURE[vm] = %x\n", NVM_MAGIC_FEATURE);
 
-  if ((features&NVM_MAGIC_FEAUTURE)!=(features|NVMFILE_MAGIC)) {
+  if ((features&NVM_MAGIC_FEATURE)!=(features|NVMFILE_MAGIC)) {
     error(ERROR_NVMFILE_MAGIC);
     return FALSE;
   }
