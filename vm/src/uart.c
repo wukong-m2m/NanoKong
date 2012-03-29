@@ -32,6 +32,7 @@
 
 #include "uart.h"
 #include "delay.h"
+#include "nvmfile.h"
 
 // unix uart emulation
 #ifdef UNIX
@@ -260,7 +261,7 @@ void uart_init_impl(u08_t uart, u32_t baudrate, u08_t stopbit, u08_t parity){
 }
 
 void uart_native_print(char *str, bool_t ret, u08_t uart){
-#ifdef NVM_USE_EEPROM
+#ifdef NVM_USE_FLASH_PROGRAM
   u08_t chr;
   // check if source string is within internal nvm file, otherwise 
   // it's directly being read from ram
@@ -268,7 +269,7 @@ void uart_native_print(char *str, bool_t ret, u08_t uart){
     while((chr = nvmfile_read08(str++)))
       uart_putc(uart, chr);
   } else
-#endif
+#endif // NVM_USE_FLASH_PROGRAM
     while(*str)
       uart_putc(uart, *str++);
 

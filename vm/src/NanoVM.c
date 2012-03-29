@@ -101,7 +101,6 @@ int main(int argc, char **argv) {
 #endif // UNIX || __CC65__
 
 DEBUGF("NanoVM\n");
-DEBUGF_COMM("NanoVM\n");
   nvmfile_init();
 
   vm_init();
