@@ -72,24 +72,27 @@ u08_t  nvmfile_get_method_by_class_and_id(u08_t class, u08_t id);
 nvm_method_hdr_t *nvmfile_get_method_hdr(u16_t index);
 
 #ifdef NVM_USE_FLASH_PROGRAM
-void   nvmfile_read(void *dst, const void *src, u16_t len);
-u08_t  nvmfile_read08(const void *addr);
-u16_t  nvmfile_read16(const void *addr);
-u32_t  nvmfile_read32(const void *addr);
-
-// TODONR: need these?
 #define NVMFILE_SET(a)     (void*)(((ptr_t)a) | NVMFILE_FLAG)
 #define NVMFILE_ISSET(a)   (((ptr_t)a) & NVMFILE_FLAG)
 #define NVMFILE_ADDR(a)    (void*)(((ptr_t)a) & ~NVMFILE_FLAG)
-#endif
+
+#ifdef NVM_USE_FLASH_PROGRAM_INLINE
+#define nvmfile_read08(addr)   pgm_read_byte(NVMFILE_ADDR(addr))
+#else // NVM_USE_FLASH_PROGRAM_INLINE
+u08_t  nvmfile_read08(const void *addr);
+#endif // NVM_USE_FLASH_PROGRAM_INLINE
+void   nvmfile_read(void *dst, const void *src, u16_t len);
+u16_t  nvmfile_read16(const void *addr);
+u32_t  nvmfile_read32(const void *addr);
+#endif // NVM_USE_FLASH_PROGRAM
 
 #ifdef NVM_USE_RAM_PROGRAM
+#define NVMFILE_SET(addr)           (addr)
+
 #define nvmfile_read                memcpy
 #define nvmfile_read08(addr)        (*(u08_t*)(addr))
 #define nvmfile_read16(addr)        (*(u16_t*)(addr))
 #define nvmfile_read32(addr)        (*(u32_t*)(addr))
-
-#define NVMFILE_SET(addr)           (addr)
 #endif // NVM_USE_RAM_PROGRAM
 
 #endif // NVMFILE_H

@@ -18,7 +18,7 @@
 #define NATIVE_INIT  native_init()
 
 // enable debug info
-#define DEBUG
+//#define DEBUG
 
 // vm setup
 #undef NVM_USE_STACK_CHECK      // enable check if method returns empty stack
@@ -33,6 +33,7 @@
 
 // bytecode location (choose one)
 #define NVM_USE_FLASH_PROGRAM	// execute directly from FLASH
+#define NVM_USE_FLASH_PROGRAM_INLINE	// execute directly from FLASH
 //#define NVM_USE_RAM_PROGRAM		// copy to RAM at startup
 
 // native setup

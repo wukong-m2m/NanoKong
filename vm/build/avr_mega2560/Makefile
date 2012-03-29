@@ -8,14 +8,14 @@ DEVICE = atmega2560
 #DEFAULT_FILE = watchdog
 #DEFAULT_FILE = javainterrupt
 #DEFAULT_FILE = ReferenceToNativeObjectTest
-DEFAULT_FILE = HelloWorld
+DEFAULT_FILE = BubbleSort
 #DEFAULT_FILE = TimerDemo
 #DEFAULT_FILE = AdcDemo
 
 ROOT_DIR = ../../..
 
 # general GCC compiler flags
-CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long
+CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
 
 # AVR compiler setup
 PREFIX =

@@ -65,11 +65,13 @@ void nvmfile_read(void *dst, const void *src, u16_t len) {
   }
 }
 
+#ifndef NVM_USE_FLASH_PROGRAM_INLINE
 u08_t nvmfile_read08(const void *addr) {
   addr = NVMFILE_ADDR(addr);  // remove marker (if present)
 	DEBUGF_READFLASH("nvmfile_read08 addr: %x\n", addr);
   return pgm_read_byte(addr);
 }
+#endif
 
 u16_t nvmfile_read16(const void *addr) {
   addr = NVMFILE_ADDR(addr);  // remove marker (if present)
