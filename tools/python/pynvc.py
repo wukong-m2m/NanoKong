@@ -19,7 +19,13 @@ SETRUNLVL_R                  = 0x61
 APPMSG                       = 0x80
 APPMSG_R                     = 0x81
 
-WKPF message types here
+#WKPF message types here
+WKPF_GET_PROFILE_LIST	     =	0X90
+WKPF_GET_PROFILE_LIST_R	     =	0X91
+WKPF_READ_PROPERTY	     =	0XA0
+WKPF_READ_PROPERTY_R	     =	0XA1
+WKPF_WRITE_PROPERTY	     =	0XB0
+WKPF_WRITE_PROPERTY_R	     =	0XB1
 
 APPMSG_STATUS_WAIT_ACK       = 0x00
 APPMSG_STATUS_ACK            = 0x01

@@ -27,6 +27,7 @@ uint16_t profile_id;
 uint8_t role_id;
 uint8_t property_id;
 int32_t property_read_value;
+int32_t property_write_value;
 
 void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length);
 
@@ -168,29 +169,54 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[0];
     break;
-	case NVMCOMM_WKPF_GET_PROFILE_LIST:
-		// read which property (profile, role, property fields in message payload)
-
-		profile_id = (uint16_t)(payload[0]<<8)+(uint16_t)(payload[1]);
-		role_id = payload[2];
-		property_id = payload[3];
-
-		// get data from framework (first use dummy)
-		//wkpf_get_property(profile, role, property);
-		property_read_value = get_profile_list( profile_id, role_id, property_id );
-		//property_read_value = get_profile_list( 1, 1, 1 );
-		//property_read_value=48;
-		payload[0] = (uint8_t)(profile_id>>8);
-		payload[1] = (uint8_t)(profile_id);
-		payload[2] = (uint8_t)(role_id);
-		payload[3] = (uint8_t)(property_id);
-		payload[4] = (uint8_t)(property_read_value>>24);
-		payload[5] = (uint8_t)(property_read_value>>16);
-		payload[6] = (uint8_t)(property_read_value>>8);
-		payload[7] = (uint8_t)(property_read_value);
-		response_size = 8;
-		response_cmd = NVMCOMM_WKPF_GET_PROFILE_LIST_R;
-	break;
+    case NVMCOMM_WKPF_GET_PROFILE_LIST:
+	profile_id = (uint16_t)(payload[0]<<8)+(uint16_t)(payload[1]);
+	role_id = payload[2];
+	property_id = payload[3];
+	property_read_value = wkpf_get_profile_list();
+	payload[0] = (uint8_t)(profile_id>>8);
+	payload[1] = (uint8_t)(profile_id);
+	payload[2] = (uint8_t)(role_id);
+	payload[3] = (uint8_t)(property_id);
+	payload[4] = (uint8_t)(property_read_value>>24);
+	payload[5] = (uint8_t)(property_read_value>>16);
+	payload[6] = (uint8_t)(property_read_value>>8);
+	payload[7] = (uint8_t)(property_read_value);
+	response_size = 8;
+	response_cmd = NVMCOMM_WKPF_GET_PROFILE_LIST_R;
+    break;
+    case NVMCOMM_WKPF_READ_PROPERTY:
+	profile_id = (uint16_t)(payload[0]<<8)+(uint16_t)(payload[1]);
+	role_id = payload[2];
+	property_id = payload[3];
+	property_read_value = wkpf_read_property( profile_id, role_id, property_id );
+	payload[0] = (uint8_t)(profile_id>>8);
+	payload[1] = (uint8_t)(profile_id);
+	payload[2] = (uint8_t)(role_id);
+	payload[3] = (uint8_t)(property_id);
+	payload[4] = (uint8_t)(property_read_value>>24);
+	payload[5] = (uint8_t)(property_read_value>>16);
+	payload[6] = (uint8_t)(property_read_value>>8);
+	payload[7] = (uint8_t)(property_read_value);
+	response_size = 8;
+	response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;
+    break;
+    case NVMCOMM_WKPF_WRITE_PROPERTY:
+	profile_id = (uint16_t)(payload[0]<<8)+(uint16_t)(payload[1]);
+	role_id = payload[2];
+	property_id = payload[3];
+	property_write_value = (int32_t)(payload[4]);
+	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[5]);
+	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[6]);
+	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[7]);
+	wkpf_write_property( profile_id, role_id, property_id, property_write_value);
+	payload[0] = (uint8_t)(profile_id>>8);
+	payload[1] = (uint8_t)(profile_id);
+	payload[2] = (uint8_t)(role_id);
+	payload[3] = (uint8_t)(property_id);
+	response_size = 4;
+	response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;
+    break;
   }
   if (response_cmd > 0) {
     nvmcomm_send(src, response_cmd, payload, response_size);
