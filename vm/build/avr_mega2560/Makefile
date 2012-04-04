@@ -8,9 +8,11 @@ DEVICE = atmega2560
 #DEFAULT_FILE = watchdog
 #DEFAULT_FILE = javainterrupt
 #DEFAULT_FILE = ReferenceToNativeObjectTest
-DEFAULT_FILE = SleepDemo
+DEFAULT_FILE = ZZTrafficLightAlert
 #DEFAULT_FILE = TimerDemo
 #DEFAULT_FILE = AdcDemo
+
+PORT = /dev/ttyACM0
 
 ROOT_DIR = ../../..
 #CFLAGS += -DDEBUG
@@ -29,7 +31,7 @@ CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSI
 #CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
 
 
-CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x4000,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x8000,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 #CLDFLAGS += -Wl,--gc-sections  -mmcu=$(DEVICE)
 
 
@@ -80,11 +82,11 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 
-	avrdude -V -p atmega2560 -P /dev/ttyACM0 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 
 clean:
-	rm -f *.d *.o *~ nvmdefault.h *.elf
+	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
 
 upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section

@@ -27,7 +27,7 @@
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_COMM
 #define NVM_USE_COMMZWAVE       // enable Z-wave support
-//#define NVM_USE_COMMXBEE       // enable XBee support
+#define NVM_USE_COMMXBEE       // enable XBee support
 
 // native setup
 #define NVM_USE_STDIO           // enable native stdio support
