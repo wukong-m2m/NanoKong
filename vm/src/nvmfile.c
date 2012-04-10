@@ -38,184 +38,74 @@
 #include "eeprom.h"
 #include "nvmfeatures.h"
 
-#ifdef NVM_USE_FLASH_PROGRAM
-# include <avr/io.h>
 # include <avr/pgmspace.h>
+
+#ifdef NVM_USE_FLASH_PROGRAM
+static u08_t __attribute__ ((section (".javabytecode"))) nvmfile[CODESIZE] =
+#include "nvmdefault.h"
 #endif
 
-// TODO: needed for very dirty hack in nvmfile_init
-# include <avr/pgmspace.h>
-
-// buffer for file itself is in eeprom
-# ifdef NVM_USE_FLASH_PROGRAM
-   static u08_t nvmfile[CODESIZE] PROGMEM =
-# else
-#  if defined(NVM_USE_COMM) || defined(NVM_USE_DISK_FILE)
-     static u08_t EEPROM nvmfile[CODESIZE];
-     static u08_t __attribute__ ((section (".javabytecode"))) nvmfileflash[CODESIZE] =
-#  else
-    static u08_t EEPROM nvmfile[] =
-#  endif
-# endif
-# include "nvmdefault.h"
+#ifdef NVM_USE_RAM_PROGRAM
+static u08_t EEPROM nvmfile[CODESIZE];
+static u08_t __attribute__ ((section (".javabytecode"))) nvmfileflash[CODESIZE] =
+#include "nvmdefault.h"
+#endif
 
 u08_t nvmfile_constant_count;
 
-#ifdef NVM_USE_DISK_FILE
-void nvmfile_load(const char *filename, bool_t quiet) {
-  FILE *file;
-  u16_t size;
-
-  file = fopen(filename, "rb");
-  if(!file) {
-    printf("Unable to open file %s\n", filename);
-    exit(-1);
-  }
-
-#ifdef NVM_USE_EEPROM
-
-  // get file size
-  fseek(file, 0l, SEEK_END);
-  size = ftell(file);
-  fseek(file, 0l, SEEK_SET);
-
-  {
-    u08_t *buffer = malloc(size);
-
-    if(!quiet) printf("Loading %s, size %d\n", filename, size);
-
-    if(fread(buffer, 1, size, file) != size) {
-      perror("fread()");
-      exit(-1);
-    }
-
-    DEBUG_HEXDUMP(buffer, size);
-
-    // store in nvm buffer
-    nvmfile_store(0, buffer, size);
-  }
-
-#else // NVM_USE_EEPROM
-
-  if(!quiet) printf("Loading %s", filename);
-
-  size = fread(nvmfile, 1, CODESIZE, file);
-  if(ferror(file)) {
-    perror("fread()");
-    exit(-1);
-  }
-
-  if(!quiet) printf(", size %d\n", size);
-
-  DEBUG_HEXDUMP(nvmfile, size);
-
-#endif // NVM_USE_EEPROM
-
-  fclose(file);
-}
-#endif // NVM_USE_DISK_FILE
-
-void *nvmfile_get_base(void) {
-  return nvmfile;
-}
-
-#ifdef NVM_USE_EEPROM
 #ifdef NVM_USE_FLASH_PROGRAM
-
 void nvmfile_read(void *dst, const void *src, u16_t len) {
-  src = NVMFILE_ADDR(src);  // remove marker (if present)
-  memcpy_P(dst, (PGM_P)src, len);
-}
-
-u08_t nvmfile_read08(const void *addr) {
-  u08_t val;
-  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  memcpy_P((u08_t*)&val, (PGM_P)addr, sizeof(val));
-  return val;
-}
-
-u16_t nvmfile_read16(const void *addr) {
-  u16_t val;
-  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  memcpy_P((u08_t*)&val, (PGM_P)addr, sizeof(val));
-  return val;
-}
-
-u32_t nvmfile_read32(const void *addr) {
-  u32_t val;
-  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  memcpy_P((u08_t*)&val, (PGM_P)addr, sizeof(val));
-  return val;
-}
-
-#else // NVM_USE_FLASH_PROGRAM
-
-void nvmfile_read(void *dst, const void *src, u16_t len) {
-  src = NVMFILE_ADDR(src);  // remove marker (if present)
-  eeprom_read_block(dst, (eeprom_addr_t)src, len);
-}
-
-u08_t nvmfile_read08(const void *addr) {
-  u08_t val;
-  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  eeprom_read_block((u08_t*)&val, (eeprom_addr_t)addr, sizeof(val));
-  return val;
-}
-
-u16_t nvmfile_read16(const void *addr) {
-  u16_t val;
-  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  eeprom_read_block((u08_t*)&val, (eeprom_addr_t)addr, sizeof(val));
-  return val;
-}
-
-u32_t nvmfile_read32(const void *addr) {
-  u32_t val;
-  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
-  eeprom_read_block((u08_t*)&val, (eeprom_addr_t)addr, sizeof(val));
-  return val;
-}
-
-#endif // NVM_USE_FLASH_PROGRAM
-
-void nvmfile_store(u16_t index, u08_t *buffer, u16_t size) {
-#ifdef DEBUG
-  // this check is not required in real life, since the code
-  // limit is verified by the upload tool and by the compiler for
-  // the default code
-  if(size > CODESIZE) {
-    DEBUGF("Code size exceeds buffer size (%d > %d)\n",
-	   size, CODESIZE);
-    for(;;);
+  // TODONR: pgm_read_word is probably faster
+  int i;
+  u08_t *source, *dest;
+  source = (u08_t*)NVMFILE_ADDR(src);  // remove marker (if present)
+  dest = (u08_t*)dst;
+  for (i=0; i<len; i++) {
+    dest[i] = pgm_read_byte(source+i);
   }
+}
+
+#ifndef NVM_USE_FLASH_PROGRAM_INLINE
+u08_t nvmfile_read08(const void *addr) {
+  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
+	DEBUGF_READFLASH("nvmfile_read08 addr: %x\n", addr);
+  return pgm_read_byte(addr);
+}
 #endif
 
-  eeprom_write_block(buffer, (eeprom_addr_t)(nvmfile + index), size);
+u16_t nvmfile_read16(const void *addr) {
+  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
+	DEBUGF_READFLASH("nvmfile_read16 addr: %x\n", addr);
+  return pgm_read_word(addr);
 }
 
-#endif // NVM_USE_EEPROM
-
-
-
-
+u32_t nvmfile_read32(const void *addr) {
+  addr = NVMFILE_ADDR(addr);  // remove marker (if present)
+	DEBUGF_READFLASH("nvmfile_read32 addr: %x\n", addr);
+	u32_t val;
+	nvmfile_read(&val, addr, 4);
+	return val;
+}
+#endif // NVM_USE_FLASH_PROGRAM
 
 
 
 bool_t nvmfile_init(void) {
   u16_t t;
   nvm_header_t * nvm_header = (nvm_header_t *)nvmfile;
-  
-  // TODO: Get rid of this really bad hack
+ 
+#ifdef NVM_USE_RAM_PROGRAM
   int i;
   for (i=0; i<CODESIZE; i++) {
     nvmfile[i] = pgm_read_byte(nvmfileflash+i);
   }
+#endif // NVM_USE_RAM_PROGRAM
   
   u32_t features = nvmfile_read32(&nvm_header->magic_feature);
-  DEBUGF("NVM_MAGIC_FEAUTURE[file] = %x\n", features);
-  DEBUGF("NVM_MAGIC_FEAUTURE[vm] = %x\n", NVM_MAGIC_FEAUTURE);
+  DEBUGF("NVM_MAGIC_FEATURE[file] = %x\n", features);
+  DEBUGF("NVM_MAGIC_FEATURE[vm] = %x\n", NVM_MAGIC_FEATURE);
 
-  if ((features&NVM_MAGIC_FEAUTURE)!=(features|NVMFILE_MAGIC)) {
+  if ((features&NVM_MAGIC_FEATURE)!=(features|NVMFILE_MAGIC)) {
     error(ERROR_NVMFILE_MAGIC);
     return FALSE;
   }

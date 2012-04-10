@@ -26,7 +26,7 @@
 #include "config.h"
 #include "error.h"
 
-#ifdef NVM_USE_EEPROM
+#ifdef NVM_USE_FLASH_PROGRAM
 
 #ifdef NVM_USE_STDIO
 
@@ -37,7 +37,7 @@
 #ifdef NVM_USE_FORMATTER
 
 char native_getchar(const char* src) {
-  // check if string resides in nvm file memory (e.g. eeprom)
+  // check if string resides in nvm file memory (e.g. flash)
   if(NVMFILE_ISSET(src))
     return nvmfile_read08(src);
   else
@@ -46,7 +46,7 @@ char native_getchar(const char* src) {
 
 /* string copy to ram */
 void native_strncpy(char *dst, const char* src, int n) {
-  // check if string resides in nvm file memory (e.g. eeprom)
+  // check if string resides in nvm file memory (e.g. flash)
   if(NVMFILE_ISSET(src))
     while(n--&&(*dst++ = nvmfile_read08(src++)));
   else
@@ -63,7 +63,7 @@ void native_strncat(char *dst, const char *src, int n) {
 
 /* string copy to ram */
 void native_strcpy(char *dst, const char* src) {
-  // check if string resides in nvm file memory (e.g. eeprom)
+  // check if string resides in nvm file memory (e.g. flash)
   if(NVMFILE_ISSET(src))
     while((*dst++ = nvmfile_read08(src++)));
   else
@@ -74,7 +74,7 @@ void native_strcpy(char *dst, const char* src) {
 u16_t native_strlen(const char *str) {
   u16_t len=0;
 
-  // check if string resides in nvm file memory (e.g. eeprom)
+  // check if string resides in nvm file memory (e.g. flash)
   if(NVMFILE_ISSET(str))
     while(nvmfile_read08(str++)) len++;
   else
@@ -91,4 +91,4 @@ void native_strcat(char *dst, const char *src) {
 
 #endif // NVM_USE_STDIO
 
-#endif // NVM_USE_EEPROM
+#endif // NVM_USE_FLASH_PROGRAM
