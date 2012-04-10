@@ -75,8 +75,8 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
   uint8_t profile_read_data;
   uint8_t role_id;
   uint8_t property_id;
-  int32_t property_read_value;
-  int32_t property_write_value;
+  int32_t property_read_value = 0;
+  int32_t property_write_value = 0;
 
 #ifdef DEBUG
   DEBUGF_COMM("Handling command "DBG8" from "DBG8", length "DBG8":\n", nvmcomm_command, src, length);
@@ -188,7 +188,7 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
 	profile_id = (uint16_t)(payload[2]<<8)+(uint16_t)(payload[3]);
 	role_id = payload[4];
 	property_id = payload[5];
-	property_read_value = wkpf_read_property( profile_id, role_id, property_id );
+	// TODONR property_read_value = wkpf_read_property( profile_id, role_id, property_id );
 	payload[6] = (uint8_t)(property_read_value>>24);
 	payload[7] = (uint8_t)(property_read_value>>16);
 	payload[8] = (uint8_t)(property_read_value>>8);
@@ -204,7 +204,7 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
 	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[7]);
 	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[8]);
 	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[9]);
-	wkpf_write_property( profile_id, role_id, property_id, property_write_value);
+	// TODONR wkpf_write_property( profile_id, role_id, property_id, property_write_value);
 	response_size = 6;//payload size
 	response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;
     break;

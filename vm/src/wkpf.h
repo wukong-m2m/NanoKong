@@ -10,6 +10,8 @@
 #define WKPF_ERR_READ_ONLY               4
 #define WKPF_ERR_WRITE_ONLY              5
 #define WKPF_ERR_PORT_IN_USE             6
+#define WKPF_ERR_PROFILE_ID_IN_USE       7
+#define WKPF_ERR_OUT_OF_MEMORY           8
 
 typedef struct {
     uint16_t node_address;

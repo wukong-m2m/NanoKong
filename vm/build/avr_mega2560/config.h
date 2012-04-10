@@ -18,7 +18,14 @@
 #define NATIVE_INIT  native_init()
 
 // enable debug info
-//#define DEBUG
+#define DEBUG
+
+// enable simple unittests for profile framework (choose 1)
+//#define TEST_WKPF_PROFILES
+#define TEST_WKPF_ENDPOINTS
+#if defined(TEST_WKPF_PROFILES) || defined(TEST_WKPF_ENDPOINTS)
+#define TEST_WKPF // General WKPF test support
+#endif
 
 // vm setup
 #undef NVM_USE_STACK_CHECK      // enable check if method returns empty stack

@@ -50,6 +50,10 @@
 #include <avr/wdt.h>
 #endif
 
+#ifdef TEST_WKPF
+#include "test_wkpf.h"
+#endif
+
 
 #ifdef NVM_USE_32BIT_WORD
 # define DBG_INT "0x" DBG32
@@ -192,6 +196,13 @@ void   vm_run(u16_t mref) {
   register nvm_int_t tmp2;
   register vm_arg_t arg0;
   nvm_method_hdr_t mhdr, *mhdr_ptr;
+
+#ifdef TEST_WKPF_PROFILES
+  test_profiles();
+#endif
+#ifdef TEST_WKPF_ENDPOINTS
+  test_endpoints();
+#endif
 
 #ifdef NVM_USE_FLOAT
   nvm_float_t f0;
