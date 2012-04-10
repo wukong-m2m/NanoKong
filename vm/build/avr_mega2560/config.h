@@ -11,7 +11,7 @@
 #define ATMEGA2560
 #define CLOCK 16000000
 
-#define CODESIZE 2048
+#define CODESIZE 0x7F00
 #define HEAPSIZE 768
 
 // avr specific native init routines
@@ -39,7 +39,7 @@
 // native setup
 #define NVM_USE_STDIO           // enable native stdio support
 
-// marker used to indicate, that this item is stored in eeprom
+// marker used to indicate, that this item is stored in flash
 #define NVMFILE_FLAG     0x8000
 
 // uart setup

@@ -5,12 +5,7 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-#DEFAULT_FILE = watchdog
-#DEFAULT_FILE = javainterrupt
-#DEFAULT_FILE = ReferenceToNativeObjectTest
-DEFAULT_FILE = BubbleSort
-#DEFAULT_FILE = TimerDemo
-#DEFAULT_FILE = AdcDemo
+DEFAULT_FILE = Rot13
 
 ROOT_DIR = ../../..
 
@@ -25,12 +20,8 @@ OBJDUMP = $(PREFIX)avr-objdump
 
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
-#CLDFLAGS += -Wl,--gc-sections -T$(ROOT_DIR)/vm/build/ldscripts/avr4_keep.x -mmcu=$(DEVICE)
 
-
-CLDFLAGS += -Wl,--gc-sections,--section-start=.javabytecode=0x6000,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
-#CLDFLAGS += -Wl,--gc-sections  -mmcu=$(DEVICE)
-
+CLDFLAGS += -Wl,--gc-sections,-Tavr4_nanokong.x,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
@@ -63,7 +54,7 @@ endef
 	avr-size -A $@
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -j .javabytecode -O ihex $< $@
+	$(OBJCOPY) -j .text -j .lowtext -j .data -j .javabytecode -O ihex $< $@
 
 %_NRWWsection.hex: %.elf
 	$(OBJCOPY) -j .reprogram_flash_page -O ihex $< $@
