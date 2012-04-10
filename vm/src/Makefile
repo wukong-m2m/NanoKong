@@ -10,8 +10,8 @@ NVM_OBJS = NanoVM.o nvmfile.o vm.o heap.o array.o \
 	error.o native_stdio.o stack.o \
 	uart.o debug.o native_lcd.o \
 	native_math.o native_formatter.o nvmstring.o \
-	nvmcomm.o nvmcomm_zwave.o native_nvmcomm.o \
-	nvmcomm_xbee.o wkpf.o
+	nvmcomm.o nvmcomm_zwave.o native_nvmcomm.o nvmcomm_xbee.o \
+	wkpf.o wkpf_properties.o wkpf_endpoints.o wkpf_profiles.o
 
 OBJS += $(NVM_OBJS)
 
