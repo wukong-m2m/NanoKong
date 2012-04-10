@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bajaObjectGraph version="1.0">
+<p h="1" c="1" m="b=baja" t="b:Station">
+ <!-- /Services -->
+ <p n="Services" h="2" t="b:ServiceContainer">
+  <!-- /Services/UserService -->
+  <p n="UserService" h="3" t="b:UserService">
+   <p n="admin" h="4" t="b:User">
+    <p n="enabled" f="r"/>
+    <p n="expiration" f="r"/>
+    <p n="permissions" f="r" v="super"/>
+    <p n="version" v="WuKongHAScenario:1333786643691"/>
+    <!-- /Services/UserService/admin/web_WebProfileConfig -->
+    <p n="web_WebProfileConfig" h="37" m="w=web" t="w:WebProfileConfig">
+     <p n="typeSpec" v="workbench:DefaultWbWebProfile"/>
+    </p>
+   </p>
+   <p n="guest" h="5" t="b:User">
+    <p n="enabled" v="false"/>
+    <p n="version" v="WuKongHAScenario:1333786643691"/>
+    <!-- /Services/UserService/guest/web_WebProfileConfig -->
+    <p n="web_WebProfileConfig" h="36" t="w:WebProfileConfig">
+     <p n="typeSpec" v="workbench:DefaultWbWebProfile"/>
+    </p>
+   </p>
+   <p n="userPrototypes" h="6" t="b:UserPrototypes">
+    <p n="defaultPrototype" h="7" t="b:User">
+     <p n="permissions" f="1"/>
+     <p n="navFile" f="1"/>
+     <p n="version" v="WuKongHAScenario:1333786643691"/>
+     <!-- /Services/UserService/userPrototypes/defaultPrototype/web_WebProfileConfig -->
+     <p n="web_WebProfileConfig" h="35" t="w:WebProfileConfig">
+      <p n="typeSpec" v="workbench:DefaultWbWebProfile"/>
+     </p>
+    </p>
+   </p>
+  </p>
+  <!-- /Services/CategoryService -->
+  <p n="CategoryService" h="8" t="b:CategoryService">
+  </p>
+  <!-- /Services/JobService -->
+  <p n="JobService" h="9" t="b:JobService">
+  </p>
+  <!-- /Services/AlarmService -->
+  <p n="AlarmService" h="a" m="a=alarm" t="a:AlarmService">
+   <p n="defaultAlarmClass" h="b" t="a:AlarmClass">
+   </p>
+  </p>
+  <!-- /Services/HistoryService -->
+  <p n="HistoryService" h="c" m="h=history" t="h:HistoryService">
+   <p n="historyGroupings" h="d">
+   </p>
+  </p>
+  <!-- /Services/AuditHistory -->
+  <p n="AuditHistory" h="e" t="h:AuditHistoryService">
+   <p n="historyConfig" h="f" t="h:HistoryConfig">
+    <p n="id" v="/WuKongHAScenario/AuditHistory"/>
+    <p n="source" v="station:|h:e"/>
+    <p n="timeZone" v="Asia/Taipei;28800000;0;null;null"/>
+    <p n="recordType" v="history:AuditRecord"/>
+    <p n="schema" v="timestamp,baja:AbsTime;operation,baja:String;target,baja:String;slotName,baja:String;oldValue,baja:String;value,baja:String;userName,baja:String"/>
+   </p>
+   <p n="lastRecord" t="h:AuditRecord">
+    <p n="timestamp" v="2012-04-07T17:12:30.840+08:00"/>
+    <p n="operation" v="Invoked"/>
+    <p n="target" v="/"/>
+    <p n="slotName" v="save"/>
+    <p n="userName" v="admin"/>
+   </p>
+  </p>
+  <!-- /Services/LogHistory -->
+  <p n="LogHistory" h="10" t="h:LogHistoryService">
+   <p n="historyConfig" h="11" t="h:HistoryConfig">
+    <p n="id" v="/WuKongHAScenario/LogHistory"/>
+    <p n="source" v="station:|h:10"/>
+    <p n="timeZone" v="Asia/Taipei;28800000;0;null;null"/>
+    <p n="recordType" v="history:LogRecord"/>
+    <p n="schema" v="timestamp,baja:AbsTime;logName,baja:String;severity,baja:Integer;message,baja:String;exception,baja:String"/>
+   </p>
+   <p n="lastRecord" t="h:LogRecord">
+    <p n="timestamp" v="2012-04-07T17:12:30.840+08:00"/>
+    <p n="logName" v="sys"/>
+    <p n="severity" v="1"/>
+    <p n="message" v="Saving station..."/>
+   </p>
+  </p>
+  <!-- /Services/ProgramService -->
+  <p n="ProgramService" h="12" m="p=program" t="p:ProgramService">
+  </p>
+  <!-- /Services/BackupService -->
+  <p n="BackupService" h="13" m="bk=backup" t="bk:BackupService">
+  </p>
+  <!-- /Services/WebService -->
+  <p n="WebService" h="14" t="w:WebService">
+  </p>
+ </p>
+ <!-- /Drivers -->
+ <p n="Drivers" h="15" m="d=driver" t="d:DriverContainer">
+  <!-- /Drivers/NiagaraNetwork -->
+  <p n="NiagaraNetwork" h="16" m="nd=niagaraDriver" t="nd:NiagaraNetwork">
+   <p n="health" t="d:PingHealth">
+    <p n="lastOkTime" v="2012-04-07T17:07:32.921+08:00"/>
+   </p>
+   <p n="alarmSourceInfo" h="17" t="a:AlarmSourceInfo">
+    <p n="toOffnormalText" v="%lexicon(driver:pingFail)%"/>
+    <p n="toNormalText" v="%lexicon(driver:pingSuccess)%"/>
+   </p>
+   <p n="monitor" h="18" t="d:PingMonitor">
+   </p>
+   <p n="localStation" h="19" t="nd:LocalSysDefStation">
+    <p n="stationName" v="WuKongHAScenario"/>
+    <p n="address" v="140.112.30.180"/>
+    <p n="foxPort" v="1913"/>
+    <p n="httpPort" v="80"/>
+    <p n="httpsPort" v="443"/>
+    <p n="niagaraDaemonPort" v="3011"/>
+    <p n="foxTunneling" v="disabled"/>
+    <p n="httpTunneling" v="disabled"/>
+    <p n="onlyTunnelKnownStations" v="disabled"/>
+    <p n="proxyAuthenticationWhenTunneling" v="disabled"/>
+    <p n="services" v="platform$3aLicensePlatformService;baja$3aUserService;history$3aLogHistoryService;platform$3aTcpIpPlatformService;alarm$3aAlarmService;web$3aWebService;niagaraDriver$3aNiagaraFoxService;platBacnet$3aBacnetEthernetPlatformServiceWin32;platform$3aStationOutputServlet;platSerialWin32$3aSerialPortPlatformServiceWin32;backup$3aBackupService;program$3aProgramService;platLon$3aLonPlatformServiceWin32;platform$3aPlatformServiceContainer;baja$3aJobService;platform$3aSystemPlatformServiceWin32;niagaraDriver$3aNiagaraNetwork;history$3aAuditHistoryService;driver$3aDriverContainer;baja$3aCategoryService;baja$3aServiceContainer;platform$3aNtpPlatformServiceWin32;platBport$3aBPortPlatformServiceWin32;history$3aHistoryService"/>
+    <p n="stationVersion" v="1333786643654;19"/>
+    <p n="networkVersion" v="1333786643654;0"/>
+    <p n="persistTask" h="1a" t="nd:PersistTask">
+     <p n="lastSuccess" v="2012-04-07T16:52:22.914+08:00"/>
+     <p n="lastAttempt" v="2012-04-07T16:52:22.914+08:00"/>
+    </p>
+   </p>
+   <p n="sysDefProvider" h="1b" t="nd:BogProvider">
+    <!-- /Drivers/NiagaraNetwork/sysDefProvider/WuKongHAScenario -->
+    <p n="WuKongHAScenario" f="h" h="98" t="nd:ProviderStation">
+     <p n="stationName" v="WuKongHAScenario"/>
+     <p n="address" v="140.112.30.180"/>
+     <p n="foxPort" v="1913"/>
+     <p n="httpPort" v="80"/>
+     <p n="httpsPort" v="443"/>
+     <p n="niagaraDaemonPort" v="3011"/>
+     <p n="foxTunneling" v="disabled"/>
+     <p n="httpTunneling" v="disabled"/>
+     <p n="onlyTunnelKnownStations" v="disabled"/>
+     <p n="proxyAuthenticationWhenTunneling" v="disabled"/>
+     <p n="services" v="platform$3aLicensePlatformService;baja$3aUserService;history$3aLogHistoryService;platform$3aTcpIpPlatformService;alarm$3aAlarmService;web$3aWebService;niagaraDriver$3aNiagaraFoxService;platBacnet$3aBacnetEthernetPlatformServiceWin32;platform$3aStationOutputServlet;platSerialWin32$3aSerialPortPlatformServiceWin32;backup$3aBackupService;program$3aProgramService;platLon$3aLonPlatformServiceWin32;platform$3aPlatformServiceContainer;baja$3aJobService;platform$3aSystemPlatformServiceWin32;niagaraDriver$3aNiagaraNetwork;history$3aAuditHistoryService;driver$3aDriverContainer;baja$3aCategoryService;baja$3aServiceContainer;platform$3aNtpPlatformServiceWin32;platBport$3aBPortPlatformServiceWin32;history$3aHistoryService"/>
+     <p n="stationVersion" v="1333786643654;19"/>
+     <p n="networkVersion" v="1333786643654;0"/>
+    </p>
+   </p>
+   <p n="foxService" h="1c" t="nd:NiagaraFoxService">
+    <p n="port" v="1913"/>
+    <p n="serverConnections" h="1d" m="f=fox" t="f:ServerConnections">
+    </p>
+   </p>
+   <p n="tuningPolicies" h="1e" t="nd:NiagaraTuningPolicyMap">
+    <p n="defaultPolicy" h="1f" t="nd:NiagaraTuningPolicy">
+    </p>
+   </p>
+   <p n="historyPolicies" h="20" t="d:HistoryNetworkExt">
+    <p n="onDemandPollScheduler" h="21" t="d:HistoryPollScheduler">
+    </p>
+    <p n="defaultRule" h="22" t="d:ConfigRule">
+     <p n="capacity" t="h:Capacity" v="0:0"/>
+     <p n="fullPolicy" t="h:FullPolicy" v="roll"/>
+    </p>
+   </p>
+   <p n="workers" h="23" t="nd:CyclicThreadPoolWorker">
+    <p n="maxThreads" v="max"/>
+   </p>
+  </p>
+ </p>
+ <!-- /HAScenario -->
+ <p n="HAScenario" h="77" t="b:Folder">
+  <!-- /HAScenario/ThermostatController -->
+  <p n="ThermostatController" h="79" m="c=control" t="c:NumericPoint">
+   <p n="wsAnnotation" t="b:WsAnnotation" v="7,22,12"/>
+  </p>
+  <!-- /HAScenario/TemperatureSensor -->
+  <p n="TemperatureSensor" h="7b" m="kitControl=kitControl" t="kitControl:SineWave">
+   <p n="amplitude" v="5.0"/>
+   <p n="offset" v="20.0"/>
+   <p n="wsAnnotation" t="b:WsAnnotation" v="7,16,12"/>
+  </p>
+  <!-- /HAScenario/Heater -->
+  <p n="Heater" h="7d" t="c:BooleanWritable">
+   <p n="wsAnnotation" t="b:WsAnnotation" v="52,19,11"/>
+   <p n="Link" t="b:Link"><p n="sourceOrd" v="h:7f"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="in9"/></p>
+  </p>
+  <!-- /HAScenario/Threshold -->
+  <p n="Threshold" h="7f" t="kitControl:LessThanEqual">
+   <p n="inA" t="b:StatusNumeric"><p n="value" v="24.64733880171888"/><p n="status" v="0;activeLevel=e:2@control:PriorityLevel"/></p>
+   <p n="inB" t="b:StatusNumeric"><p n="value" v="0.0"/></p>
+   <p n="wsAnnotation" t="b:WsAnnotation" v="37,20,10"/>
+   <p n="Link1" t="b:Link"><p n="sourceOrd" v="h:79"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="inB"/></p>
+   <p n="Link" t="b:Link"><p n="sourceOrd" v="h:c4"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="inA"/></p>
+  </p>
+  <!-- /HAScenario/LinkProperties -->
+  <p n="LinkProperties" h="c4" t="c:NumericWritable">
+   <p n="facets" v="minChange=f:2.0"/>
+   <p n="wsAnnotation" t="b:WsAnnotation" v="20,15,11"/>
+   <p n="Link" t="b:Link"><p n="sourceOrd" v="h:7b"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="in2"/></p>
+  </p>
+ </p>
+</p>
+</bajaObjectGraph>
