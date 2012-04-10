@@ -98,16 +98,9 @@ int main(int argc, char **argv) {
 
   if(!quiet)
     printf("NanoVM " VERSION " runtime (c) 2005-2007 by Till Harbaum <till@harbaum.org>\n");
-#ifdef NVM_USE_DISK_FILE
-  // load translated class file
-  if((i<argc)&&(argv[i][0] != '-')) {
-    nvmfile_load(argv[i], quiet);
-  } else {
-    printf("running pre-installed default\n");
-  }
-#endif // NVM_USE_DISK_FILE
 #endif // UNIX || __CC65__
 
+DEBUGF("NanoVM\n");
   nvmfile_init();
 
   vm_init();

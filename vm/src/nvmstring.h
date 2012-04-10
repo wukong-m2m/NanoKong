@@ -24,7 +24,7 @@
 #ifndef NVMSTRING_H
 #define NVMSTRING_H
 
-#ifdef NVM_USE_EEPROM
+#ifdef NVM_USE_FLASH_PROGRAM
 
 void native_strcpy(char *dst, const char* src);
 void native_strncpy(char *dst, const char* src, int n);
@@ -33,7 +33,7 @@ void native_strcat(char *dst, const char *src);
 void native_strncat(char *dst, const char *src, int n);
 char native_getchar(const char* src);
 
-#else // NVM_USE_EEPROM
+#else // NVM_USE_FLASH_PROGRAM
 
 #define native_strcpy       strcpy
 #define native_strncpy      strncpy
@@ -42,6 +42,6 @@ char native_getchar(const char* src);
 #define native_strncat      strncat
 #define native_getchar(src) (*(src))
 
-#endif // NVM_USE_EEPROM
+#endif // NVM_USE_FLASH_PROGRAM
 
 #endif // NVMSTRING_H

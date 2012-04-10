@@ -90,7 +90,7 @@ void native_ftoa(char *str, nvm_float_t val) {
 
 // send a string to the console and append return if ret is true
 static void native_print(char *str, bool_t ret) {
-#ifdef NVM_USE_EEPROM
+#ifdef NVM_USE_FLASH_PROGRAM
   u08_t chr;
   // check if source string is within internal nvm file, otherwise 
   // it's directly being read from ram
@@ -98,7 +98,7 @@ static void native_print(char *str, bool_t ret) {
     while((chr = nvmfile_read08(str++)))
       uart_putc(0, chr);
   } else
-#endif
+#endif // NVM_USE_FLASH_PROGRAM
     while(*str)
       uart_putc(0, *str++);
 
