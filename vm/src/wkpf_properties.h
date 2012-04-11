@@ -1,11 +1,15 @@
-#ifndef WKPF_PROPERTYSTOREH
-#define WKPF_PROPERTYSTOREH
+#ifndef WKPF_PROPERTIESH
+#define WKPF_PROPERTIESH
 
 #include "types.h"
+#include "wkpf_endpoints.h"
 
-extern int8_t wkpf_read_property_int32(uint8_t port_number, uint8_t property_number, int32_t *value);
-extern int8_t wkpf_write_property_int32(uint8_t port_number, uint8_t property_number, int32_t value);
-extern int8_t wkpf_read_property_int8(uint8_t port_number, uint8_t property_number, int32_t *value);
-extern int8_t wkpf_write_property_int8(uint8_t port_number, uint8_t property_number, int32_t value);
+extern uint8_t wkpf_read_property_int16(wkpf_local_endpoint *endpoint, uint8_t property_number, int16_t *value);
+extern uint8_t wkpf_write_property_int16(wkpf_local_endpoint *endpoint, uint8_t property_number, int16_t value);
+extern uint8_t wkpf_read_property_boolean(wkpf_local_endpoint *endpoint, uint8_t property_number, int8_t *value);
+extern uint8_t wkpf_write_property_boolean(wkpf_local_endpoint *endpoint, uint8_t property_number, int8_t value);
 
-#endif // WKPF_PROPERTYSTOREH
+extern uint8_t wkpf_alloc_properties_for_endpoint(wkpf_local_endpoint *endpoint);
+extern uint8_t wkpf_free_properties_for_endpoint(wkpf_local_endpoint *endpoint);
+
+#endif // WKPF_PROPERTIESH

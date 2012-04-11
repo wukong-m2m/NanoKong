@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "wkpf.h"
 #include "wkpf_endpoints.h"
+#include "wkpf_properties.h"
 
 #define MAX_NUMBER_OF_ENDPOINTS 10
 uint8_t number_of_endpoints;
@@ -19,9 +20,12 @@ uint8_t wkpf_create_endpoint(wkpf_profile_definition *profile, uint8_t port_numb
       return WKPF_ERR_PORT_IN_USE;
     }
   }
-  DEBUGF_WKPF("WKPF: creating endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
   endpoints[number_of_endpoints].profile = profile;
   endpoints[number_of_endpoints].port_number = port_number;
+  uint8_t retval = wkpf_alloc_properties_for_endpoint(&endpoints[number_of_endpoints]);
+  if (retval != WKPF_OK)
+    return retval;
+  DEBUGF_WKPF("WKPF: creating endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
   number_of_endpoints++;
   return WKPF_OK;  
 }

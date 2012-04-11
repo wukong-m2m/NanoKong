@@ -4,13 +4,14 @@
 #include "wkpf.h"
 #include "wkpf_profiles.h"
 #include "wkpf_endpoints.h"
+#include "wkpf_properties.h"
 
 #ifdef TEST_WKPF
 
 uint16_t passed_count=0;
 uint16_t failed_count=0;
 
-void assert_equal_uint(uint32_t a, uint32_t b, char* desc) {
+void assert_equal_uint(uint16_t a, uint16_t b, char* desc) {
   if (a==b) {
     DEBUGF_TEST("OK: ");
     passed_count++;
@@ -36,9 +37,9 @@ void print_ok_b() {
 
 
 uint8_t profile_a_properties[] = {
-  WKPF_PROPERTY_TYPE_INT+WKPF_PROPERTY_ACCESS_RO,
+  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_READ,
   WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_RW,
-  WKPF_PROPERTY_TYPE_INT+WKPF_PROPERTY_ACCESS_RW
+  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_RW
 };
 wkpf_profile_definition profile_a = {
   0xFF42, // profile id
@@ -49,7 +50,7 @@ wkpf_profile_definition profile_a = {
 };
 
 uint8_t profile_b_properties[] = {
-  WKPF_PROPERTY_TYPE_INT+WKPF_PROPERTY_ACCESS_RW
+  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_RW
 };
 wkpf_profile_definition profile_b = {
   0x43FF, // profile id
@@ -98,9 +99,9 @@ void test_profiles() {
   assert_equal_uint(retval, WKPF_OK, "retrieving profile by index 0");
   assert_equal_uint(profile->profile_id, 0xFF42, "retrieved profile: id matches");
   assert_equal_uint(profile->number_of_properties, 3, "retrieved profile: 3 properties");
-  assert_equal_uint(profile->properties[0], WKPF_PROPERTY_TYPE_INT+WKPF_PROPERTY_ACCESS_RO, "retrieved profile: property 0");  
+  assert_equal_uint(profile->properties[0], WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_READ, "retrieved profile: property 0");  
   assert_equal_uint(profile->properties[1], WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_RW, "retrieved profile: property 1");  
-  assert_equal_uint(profile->properties[2], WKPF_PROPERTY_TYPE_INT+WKPF_PROPERTY_ACCESS_RW, "retrieved profile: property 2");  
+  assert_equal_uint(profile->properties[2], WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_RW, "retrieved profile: property 2");  
 
   retval = wkpf_get_profile_by_index(1, &profile);
   assert_equal_uint(retval, WKPF_OK, "retrieving profile by index 1");
@@ -190,4 +191,61 @@ void test_endpoints() {
   while(1) {}
 }
 
+void test_properties() {
+  int8_t retval;
+  int16_t value_int16=42;
+  int8_t value_boolean=42;
+  wkpf_local_endpoint *endpoint_a;
+  wkpf_local_endpoint *endpoint_b;
+  
+  retval = wkpf_register_profile(profile_a);
+  retval = wkpf_register_profile(profile_b);
+  retval = wkpf_create_endpoint(&profile_a, 0x40);
+  retval = wkpf_create_endpoint(&profile_b, 0x80);
+  retval = wkpf_get_endpoint_by_port(0x40, &endpoint_a);
+  retval = wkpf_get_endpoint_by_port(0x40, &endpoint_b);
+  
+  retval = wkpf_read_property_int16(endpoint_a, 2, &value_int16);
+  assert_equal_uint(retval, WKPF_OK, "reading property 2 of endpoint at port 0x40");
+  assert_equal_uint(value_int16, 0, "initially 0");
+  retval = wkpf_write_property_int16(endpoint_a, 2, 0x1234);
+  assert_equal_uint(retval, WKPF_OK, "writing 0x1234 to property 2 of endpoint at port 0x40");
+  retval = wkpf_read_property_int16(endpoint_a, 2, &value_int16);
+  assert_equal_uint(retval, WKPF_OK, "reading property 2 of endpoint at port 0x40");
+  assert_equal_uint(value_int16, 0x1234, "value is now 0x1234");
+
+  retval = wkpf_write_property_int16(endpoint_a, 0, 0x1234);
+  assert_equal_uint(retval, WKPF_ERR_READ_ONLY, "writing to property 0 of endpoint at port 0x40 is not allowed (read only)");
+  retval = wkpf_read_property_int16(endpoint_a, 0,  &value_int16);
+  assert_equal_uint(retval, WKPF_OK, "but reading property 0 of endpoint at port 0x40 is allowed");
+  assert_equal_uint(value_int16, 0, "initially 0");
+
+  retval = wkpf_read_property_int16(endpoint_a, 1,  &value_int16);
+  assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, reading as int16 should fail");
+  retval = wkpf_write_property_int16(endpoint_a, 1,  1);
+  assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, writing as int16 should fail");
+  
+  retval = wkpf_read_property_boolean(endpoint_a, 1,  &value_boolean);
+  assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, reading as boolean");
+  assert_equal_uint(value_boolean, 0, "initially 0");
+  retval = wkpf_write_property_boolean(endpoint_a, 1,  1);
+  assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, writing as boolean");
+  retval = wkpf_read_property_boolean(endpoint_a, 1,  &value_boolean);
+  assert_equal_uint(value_boolean, 0, "value is now 1");
+
+  print_test_summary();
+  while(1) {}
+}
+
+void test_wkpf() {
+#ifdef TEST_WKPF_PROFILES
+  test_profiles();
+#endif
+#ifdef TEST_WKPF_ENDPOINTS
+  test_endpoints();
+#endif
+#ifdef TEST_WKPF_PROPERTIES
+  test_properties();
+#endif
+}
 #endif // TEST_WKPF

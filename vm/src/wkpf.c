@@ -65,6 +65,8 @@ uint8_t wkpf_get_profile_list() {
 	return value;
 }
 
+/*
+
 int32_t wkpf_read_property(uint16_t profile_id, uint8_t role_id, uint8_t property_id) {
 	if(!is_first)	profile_init();
 	if(profile_id>=0 && profile_id<3 && property_id>=0 && property_id<2)
@@ -83,7 +85,6 @@ void wkpf_write_property(uint16_t profile_id, uint8_t role_id, uint8_t property_
 	}
 	return ;
 }
-/*
 
 void *getProperty(profile_id, role_id, property_id) {
 	dummy = profile_id+property_id;
