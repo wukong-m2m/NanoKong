@@ -7,7 +7,7 @@ DEVICE = atmega2560
 
 DEFAULT_FILE = ZZTrafficLightAlert
 
-PORT = /dev/ttyACM0
+PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 

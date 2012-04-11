@@ -43,7 +43,7 @@ uint8_t wkpf_verify_property(wkpf_local_endpoint *endpoint, uint8_t property_num
     return WKPF_ERR_WRITE_ONLY;
   if (access == WKPF_PROPERTY_ACCESS_WRITE && WKPF_IS_READONLY_PROPERTY(property))
     return WKPF_ERR_READ_ONLY;
-  if (type != (property & !WKPF_PROPERTY_ACCESS_RW))
+  if (type != (property & ~WKPF_PROPERTY_ACCESS_RW))
     return WKPF_ERR_WRONG_DATATYPE;
   return WKPF_OK;
 }
@@ -67,10 +67,11 @@ uint8_t wkpf_read_property_boolean(wkpf_local_endpoint *endpoint, uint8_t proper
   uint8_t retval = wkpf_verify_property(endpoint, property_number, WKPF_PROPERTY_ACCESS_READ, WKPF_PROPERTY_TYPE_BOOLEAN);
 
   if (retval == WKPF_OK) {
-    int16_t value_32bit;
-    retval = wkpf_read_property_int16(endpoint, property_number, &value_32bit);
-    if (retval == WKPF_OK)
-      *value = (uint8_t)value_32bit;
+    int16_t value_16bit;
+    retval = wkpf_read_property(endpoint, property_number, &value_16bit);
+    if (retval == WKPF_OK) {
+      *value = (int8_t)value_16bit;
+    }
     return retval;
   }
   else

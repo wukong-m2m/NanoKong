@@ -16,7 +16,7 @@ void assert_equal_uint(uint16_t a, uint16_t b, char* desc) {
     DEBUGF_TEST("OK: ");
     passed_count++;
   } else {
-    DEBUGF_TEST("FAIL: ");
+    DEBUGF_TEST("----------->FAIL: ");
     failed_count++;
   }
   DEBUGF_TEST(desc);
@@ -226,12 +226,12 @@ void test_properties() {
   assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, writing as int16 should fail");
   
   retval = wkpf_read_property_boolean(endpoint_a, 1,  &value_boolean);
-  assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, reading as boolean");
+  assert_equal_uint(retval, WKPF_OK, "property 1 is a boolean, reading as boolean");
   assert_equal_uint(value_boolean, 0, "initially 0");
   retval = wkpf_write_property_boolean(endpoint_a, 1,  1);
-  assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, writing as boolean");
+  assert_equal_uint(retval, WKPF_OK, "property 1 is a boolean, writing as boolean");
   retval = wkpf_read_property_boolean(endpoint_a, 1,  &value_boolean);
-  assert_equal_uint(value_boolean, 0, "value is now 1");
+  assert_equal_uint(value_boolean, 1, "value is now 1");
 
   print_test_summary();
   while(1) {}
