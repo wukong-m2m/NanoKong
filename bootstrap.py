@@ -8,18 +8,18 @@ CWD = os.getcwd()
 
 print "== NanoKong Bootstrap Script =="
 
-print "This script assumes you are going to compile avr_mega2560, if you need to compile for a different arch, change the VERSION in this script"
+print "\n\n\nThis script assumes you are going to compile avr_mega2560, if you need to compile for a different arch, change the VERSION in this script\n\n\n"
 
 VERSION = '2560'
 
 if platform.system() == 'Linux':
-  print "== Determing the port =="
+  print "== Determing device port =="
   port = ''
 elif platform.system() == 'Window':
-  print "== Determing the port =="
+  print "== Determing device port =="
   port = ''
 elif platform.system() == 'Darwin':
-  print "== Determing the port =="
+  print "== Determing device port =="
   paths = []
   index = 0
 
@@ -42,6 +42,8 @@ elif platform.system() == 'Darwin':
   port = os.path.join('/dev', paths[index])
   print "port is %s" % (port)
 
+  print "\n\n\n"
+
   print "== Setting up Arduino =="
 
   # Default path
@@ -53,16 +55,21 @@ elif platform.system() == 'Darwin':
   arduino = os.path.join(arduino, 'Contents', 'Resources', 'Java', 'hardware', 'tools', 'avr', 'bin')
   print "arduino is %s" % (arduino)
 
+print "\n\n\n"
+
 print "== Building NanoVMTool =="
 nanovmtool = os.path.join(CWD, 'nanovmtool')
-os.system("cd %s" % (nanovmtool))
+os.chdir(nanovmtool)
 os.system("ant")
-os.system("cd ..")
+
+print "\n\n\n"
 
 print "== Compiling VM =="
 vm = os.path.join(CWD, 'vm', 'build', 'avr_mega%s' % (VERSION))
 os.chdir(vm)
 os.system("make PREFIX=%s PORT=%s" % (arduino, port))
+
+print "\n\n\n"
 
 print "== Uploading VM =="
 vm = os.path.join(CWD, 'vm', 'build', 'avr_mega%s' % (VERSION))
@@ -72,6 +79,8 @@ os.chdir(vm)
 os.system("make avrdude PREFIX=%s PORT=%s" % (arduino, port))
 
 os.chdir(CWD)
+
+print "\n\n\n"
 
 choice = raw_input("Do you want to see the program's ouput? [Y/N]")
 
