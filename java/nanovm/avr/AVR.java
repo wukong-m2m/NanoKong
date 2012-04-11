@@ -43,6 +43,8 @@ public class AVR {
   //IO mode
   public static final int OUTPUT     = 0;
   public static final int INPUT	     = 1;
+  public static final int LOW	     = 0;
+  public static final int HIGH	     = 1;
 
   //interrupt mode
   public static final int GND        = 0;

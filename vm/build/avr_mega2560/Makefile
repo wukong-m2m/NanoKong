@@ -5,15 +5,17 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_FILE = Rot13
+DEFAULT_FILE = ZZTrafficLightAlert
+
+PORT = /dev/ttyACM0
 
 ROOT_DIR = ../../..
 
 # general GCC compiler flags
-CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
+CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
 
 # AVR compiler setup
-PREFIX =
+PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
 CC = $(PREFIX)avr-gcc
 OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump
@@ -69,11 +71,10 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -V -p atmega2560 -P /dev/tty.usbmodem411 -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
-
+	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 clean:
-	rm -f *.d *.o *~ nvmdefault.h *.elf
+	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
 
 upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section

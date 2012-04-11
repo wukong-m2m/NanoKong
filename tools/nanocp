@@ -1,0 +1,4 @@
+#!/bin/sh
+java -cp ${NANOKONG}/nanovmtool/build/classes org/nanovm/NanoVMTool -c -f $2.h ${NANOKONG}/nanovmtool/config/Mega8.config . $2
+export PYTHONPATH=${NANOKONG}/tools/python
+python2.7 ${NANOKONG}/tools/python/reprogram.py $1 $2.h

@@ -948,7 +948,7 @@ XBeeResponse* getXBeeResponse(void* response, uint8_t apiId)
 
 bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
 {
-    // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
+    // Temporary: addresses <64 are ZWave, addresses >=64 are XBee
     if (addr<BASE_ADDR)
       return false;
     addr -= BASE_ADDR;
