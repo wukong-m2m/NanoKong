@@ -12,10 +12,10 @@ PORT = /dev/ttyACM0
 ROOT_DIR = ../../..
 
 # general GCC compiler flags
-CFLAGS += -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
+CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
 
 # AVR compiler setup
-PREFIX =
+PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
 CC = $(PREFIX)avr-gcc
 OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump
