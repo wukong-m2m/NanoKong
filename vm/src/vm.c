@@ -51,7 +51,7 @@
 #endif
 
 #ifdef TEST_WKPF
-#include "test_wkpf.h"
+#include "tests/test_wkpf.h"
 #endif
 
 

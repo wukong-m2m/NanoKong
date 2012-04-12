@@ -30,6 +30,7 @@ all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
 
 include ../../src/Makefile
 include ../../src/avr/Makefile
+include ../../src/tests/Makefile
 
 nvmdefault.h: Makefile
 
