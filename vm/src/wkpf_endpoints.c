@@ -35,6 +35,8 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number) {
     return retval;
   DEBUGF_WKPF("WKPF: creating endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
   number_of_endpoints++;
+  endpoints[number_of_endpoints].profile->update(&endpoints[number_of_endpoints]);
+  // Call update function once to initialise properties (if necessary)
   return WKPF_OK;  
 }
 

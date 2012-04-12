@@ -31,6 +31,7 @@
 #include "nvmfile.h"
 #include "vm.h"
 #include "nvmcomm.h"
+#include "wkpf.h"
 
 #include "avr/avr_flash.h"
 #include <avr/boot.h>
@@ -84,6 +85,8 @@ int main(int argc, char **argv) {
 #ifdef TEST_WKPF
   test_wkpf();
 #endif
+
+  wkpf_init();
 
   DEBUGF("NanoVM\n");
 

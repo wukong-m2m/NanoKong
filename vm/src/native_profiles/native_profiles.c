@@ -1,15 +1,15 @@
-#include <wkpf_profiles.h>
-#include <wkpf_endpoints.h>
+#include <wkpf.h>
 
 #include "native_profiles.h"
 
-uint8_t register_profile_and_create_endpoint(wpkf_profile *profile, uint8_t port_number) {
-  retval = wkpf_register_profile(*profile);
+uint8_t register_profile_and_create_endpoint(wkpf_profile_definition *profile, uint8_t port_number) {
+  uint8_t retval = wkpf_register_profile(*profile);
   if (retval != WKPF_OK)
     return retval;
   retval = wkpf_create_endpoint(profile->profile_id, port_number);
   if (retval != WKPF_OK)
     return retval;
+  return WKPF_OK;
 }
 
 uint8_t native_profiles_init() {

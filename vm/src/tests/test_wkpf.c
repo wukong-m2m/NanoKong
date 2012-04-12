@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "types.h"
 #include "wkpf.h"
+#include "native_profiles/native_profiles.h"
 
 #ifdef TEST_WKPF
 
@@ -255,6 +256,23 @@ void test_properties() {
   while(1) {}
 }
 
+void test_native_profiles() {
+  int8_t retval;
+  int16_t value_int16=0;
+  wkpf_local_endpoint *endpoint;
+
+  wkpf_init();
+
+  retval = wkpf_get_endpoint_by_port(0x0, &endpoint);
+  assert_equal_uint(retval, WKPF_OK, "get generic profile endpoint (port 0x0)");
+  retval = wkpf_read_property_int16(endpoint, 0, &value_int16);
+  assert_equal_uint(retval, WKPF_OK, "reading property 0");
+  assert_equal_uint(retval, 42, "value is 42");
+
+  print_test_summary();
+  while(1) {}
+}
+
 void test_wkpf() {
 #ifdef TEST_WKPF_PROFILES
   test_profiles();
@@ -264,6 +282,9 @@ void test_wkpf() {
 #endif
 #ifdef TEST_WKPF_PROPERTIES
   test_properties();
+#endif
+#ifdef TEST_WKPF_NATIVE_PROFILES
+  test_native_profiles();
 #endif
 }
 #endif // TEST_WKPF
