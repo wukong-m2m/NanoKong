@@ -1,4 +1,5 @@
 #include <wkpf.h>
+#include <debug.h>
 #include "native_profiles.h"
 
 void profile_generic_update(wkpf_local_endpoint *endpoint);
@@ -8,7 +9,7 @@ uint8_t profile_generic_properties[] = {
 };
 
 wkpf_profile_definition profile_generic = {
-  0xFF42, // profile id
+  WKPF_PROFILE_ID_GENERIC, // profile id
   profile_generic_update, // update function pointer
   NULL, // Java object
   3, // Number of properties
@@ -16,6 +17,7 @@ wkpf_profile_definition profile_generic = {
 };
 
 void profile_generic_update(wkpf_local_endpoint *endpoint) {
-
+  DEBUGF_WKPF("WKPF: Update called for generic profile\n");
+  wkpf_internal_write_property_int16(endpoint, WKPF_PROPERTY_ID_GENERIC_DUMMY, 42);
 }
 

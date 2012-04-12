@@ -2,7 +2,6 @@
 #include "debug.h"
 #include "types.h"
 #include "wkpf.h"
-#include "native_profiles/native_profiles.h"
 
 #ifdef TEST_WKPF
 
@@ -203,52 +202,57 @@ void test_properties() {
   retval = wkpf_get_endpoint_by_port(0x40, &endpoint_a);
   retval = wkpf_get_endpoint_by_port(0x80, &endpoint_b);
   
-  retval = wkpf_read_property_int16(endpoint_a, 2, &value_int16);
+  retval = wkpf_checked_read_property_int16(endpoint_a, 2, &value_int16);
   assert_equal_uint(retval, WKPF_OK, "reading property 2 of endpoint at port 0x40");
   assert_equal_uint(value_int16, 0, "initially 0");
-  retval = wkpf_write_property_int16(endpoint_a, 2, 0x1234);
+  retval = wkpf_checked_write_property_int16(endpoint_a, 2, 0x1234);
   assert_equal_uint(retval, WKPF_OK, "writing 0x1234 to property 2 of endpoint at port 0x40");
-  retval = wkpf_read_property_int16(endpoint_a, 2, &value_int16);
+  retval = wkpf_checked_read_property_int16(endpoint_a, 2, &value_int16);
   assert_equal_uint(retval, WKPF_OK, "reading property 2 of endpoint at port 0x40");
   assert_equal_uint(value_int16, 0x1234, "value is now 0x1234");
 
-  retval = wkpf_write_property_int16(endpoint_a, 4, 0x1234);
+  retval = wkpf_checked_write_property_int16(endpoint_a, 4, 0x1234);
   assert_equal_uint(retval, WKPF_ERR_PROPERTY_NOT_FOUND, "writing to property 4 of endpoint at port 0x40 fails (only 3 properties)");
-  retval = wkpf_write_property_int16(endpoint_a, 0, 0x1234);
+  retval = wkpf_checked_write_property_int16(endpoint_a, 0, 0x1234);
   assert_equal_uint(retval, WKPF_ERR_READ_ONLY, "writing to property 0 of endpoint at port 0x40 is not allowed (read only)");
-  retval = wkpf_read_property_int16(endpoint_a, 0,  &value_int16);
+  retval = wkpf_checked_read_property_int16(endpoint_a, 0,  &value_int16);
   assert_equal_uint(retval, WKPF_OK, "but reading property 0 of endpoint at port 0x40 is allowed");
   assert_equal_uint(value_int16, 0, "initially 0");
 
-  retval = wkpf_read_property_int16(endpoint_a, 1,  &value_int16);
+  retval = wkpf_internal_write_property_int16(endpoint_a, 0, 0x1234);
+  assert_equal_uint(retval, WKPF_OK, "writing to property 0 of endpoint at port 0x40 is allowed internally for profile implementation (read only)");
+  retval = wkpf_checked_read_property_int16(endpoint_a, 0,  &value_int16);
+  assert_equal_uint(value_int16, 0x1234, "value changed to 0x1234");
+
+  retval = wkpf_checked_read_property_int16(endpoint_a, 1,  &value_int16);
   assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, reading as int16 should fail");
-  retval = wkpf_write_property_int16(endpoint_a, 1,  1);
+  retval = wkpf_checked_write_property_int16(endpoint_a, 1,  1);
   assert_equal_uint(retval, WKPF_ERR_WRONG_DATATYPE, "property 1 is a boolean, writing as int16 should fail");
   
-  retval = wkpf_read_property_boolean(endpoint_a, 1,  &value_boolean);
+  retval = wkpf_checked_read_property_boolean(endpoint_a, 1,  &value_boolean);
   assert_equal_uint(retval, WKPF_OK, "property 1 is a boolean, reading as boolean");
   assert_equal_uint(value_boolean, 0, "initially 0");
-  retval = wkpf_write_property_boolean(endpoint_a, 1,  1);
+  retval = wkpf_checked_write_property_boolean(endpoint_a, 1,  1);
   assert_equal_uint(retval, WKPF_OK, "property 1 is a boolean, writing as boolean");
-  retval = wkpf_read_property_boolean(endpoint_a, 1,  &value_boolean);
+  retval = wkpf_checked_read_property_boolean(endpoint_a, 1,  &value_boolean);
   assert_equal_uint(value_boolean, 1, "value is now 1");
 
 
-  retval = wkpf_write_property_int16(endpoint_b, 0, 0xF1F1);
+  retval = wkpf_checked_write_property_int16(endpoint_b, 0, 0xF1F1);
   assert_equal_uint(retval, WKPF_OK, "writing 0xF1F1 to property 0 of endpoint at port 0x80");
-  retval = wkpf_read_property_int16(endpoint_b, 0, &value_int16);
+  retval = wkpf_checked_read_property_int16(endpoint_b, 0, &value_int16);
   assert_equal_uint(retval, WKPF_OK, "reading property 0 of endpoint at port 0x80");
   assert_equal_uint(value_int16, 0xF1F1, "value is now 0xF1F1");
 
   retval = wkpf_remove_endpoint(0x40);
   assert_equal_uint(retval, WKPF_OK, "Remove endpoint at port 0x40");
-  retval = wkpf_read_property_int16(endpoint_b, 0, &value_int16);
+  retval = wkpf_checked_read_property_int16(endpoint_b, 0, &value_int16);
   assert_equal_uint(retval, WKPF_OK, "reading property 0 of endpoint at port 0x80");
   assert_equal_uint(value_int16, 0xF1F1, "value is still 0xF1F1");
 
-  retval = wkpf_write_property_int16(endpoint_b, 0, 0x1111);
+  retval = wkpf_checked_write_property_int16(endpoint_b, 0, 0x1111);
   assert_equal_uint(retval, WKPF_OK, "writing 0x1111 to property 0 of endpoint at port 0x80");
-  retval = wkpf_read_property_int16(endpoint_b, 0, &value_int16);
+  retval = wkpf_checked_read_property_int16(endpoint_b, 0, &value_int16);
   assert_equal_uint(retval, WKPF_OK, "reading property 0 of endpoint at port 0x80");
   assert_equal_uint(value_int16, 0x1111, "value is now 0x1111");
 
@@ -265,7 +269,7 @@ void test_native_profiles() {
 
   retval = wkpf_get_endpoint_by_port(0x0, &endpoint);
   assert_equal_uint(retval, WKPF_OK, "get generic profile endpoint (port 0x0)");
-  retval = wkpf_read_property_int16(endpoint, 0, &value_int16);
+  retval = wkpf_checked_read_property_int16(endpoint, 0, &value_int16);
   assert_equal_uint(retval, WKPF_OK, "reading property 0");
   assert_equal_uint(retval, 42, "value is 42");
 

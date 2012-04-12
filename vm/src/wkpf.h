@@ -19,6 +19,11 @@
 #define WKPF_ERR_ENDPOINT_ALREADY_ALLOCATED        10
 #define WKPF_ERR_SHOULDNT_HAPPEN                 0xFF
 
+#define WKPF_PROFILE_ID_GENERIC                     0
+#define WKPF_PROPERTY_ID_GENERIC_DUMMY              0
+
+#define WKPF_PROFILE_ID_DUMMY                       1
+
 /* typedef struct {
     uint16_t node_address;
     uint8_t port_number;

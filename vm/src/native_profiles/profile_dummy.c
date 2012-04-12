@@ -12,7 +12,7 @@ uint8_t profile_dummy_properties[] = {
 };
 
 wkpf_profile_definition profile_dummy = {
-  0xFF42, // profile id
+  WKPF_PROFILE_ID_DUMMY, // profile id
   profile_dummy_update, // update function pointer
   NULL, // Java object
   3, // Number of properties

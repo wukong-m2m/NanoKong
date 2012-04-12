@@ -1,3 +1,4 @@
+#include <debug.h>
 #include <wkpf.h>
 
 #include "native_profiles.h"

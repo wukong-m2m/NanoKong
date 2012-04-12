@@ -11,7 +11,7 @@
 #define ATMEGA2560
 #define CLOCK 16000000
 
-#define CODESIZE 0x7F00
+#define CODESIZE 0x7E00
 #define HEAPSIZE 768
 
 // avr specific native init routines
@@ -25,7 +25,7 @@
 //#define TEST_WKPF_ENDPOINTS
 //#define TEST_WKPF_PROPERTIES
 #define TEST_WKPF_NATIVE_PROFILES
-#if defined(TEST_WKPF_PROFILES) || defined(TEST_WKPF_ENDPOINTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_PROFIL)
+#if defined(TEST_WKPF_PROFILES) || defined(TEST_WKPF_ENDPOINTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_PROFILES)
 #define TEST_WKPF // General WKPF test support
 #endif
 
