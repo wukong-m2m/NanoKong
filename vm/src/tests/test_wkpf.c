@@ -139,19 +139,19 @@ void test_endpoints() {
   
   assert_equal_uint(wkpf_get_number_of_endpoints(), 0, "number of endpoints 0");
 
-  retval = wkpf_create_endpoint(&profile_a, 0x40);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40);
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile A at port 40");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 1, "number of endpoints 1");
 
-  retval = wkpf_create_endpoint(&profile_b, 0x80);
+  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80);
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile B at port 80");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 2, "number of endpoints 2");
 
-  retval = wkpf_create_endpoint(&profile_a, 0x80);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x80);
   assert_equal_uint(retval, WKPF_ERR_PORT_IN_USE, "create another endpoint at port 80 should fail");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 2, "number of still endpoints 2");
 
-  retval = wkpf_create_endpoint(&profile_a, 0x81);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x81);
   assert_equal_uint(retval, WKPF_OK, "but creating another instance of profile A at port 81 is allowed");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 3, "number of endpoints 3");
 
@@ -200,8 +200,8 @@ void test_properties() {
   
   retval = wkpf_register_profile(profile_a);
   retval = wkpf_register_profile(profile_b);
-  retval = wkpf_create_endpoint(&profile_a, 0x40);
-  retval = wkpf_create_endpoint(&profile_b, 0x80);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40);
+  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80);
   retval = wkpf_get_endpoint_by_port(0x40, &endpoint_a);
   retval = wkpf_get_endpoint_by_port(0x80, &endpoint_b);
   

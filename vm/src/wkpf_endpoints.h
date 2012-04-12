@@ -10,7 +10,7 @@ typedef struct {
     uint8_t port_number;
 } wkpf_local_endpoint;
 
-extern uint8_t wkpf_create_endpoint(wkpf_profile_definition *profile, uint8_t port_number);
+extern uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number);
 extern uint8_t wkpf_remove_endpoint(uint8_t port_number);
 extern uint8_t wkpf_get_endpoint_by_port(uint8_t port_number, wkpf_local_endpoint **endpoint);
 extern uint8_t wkpf_get_endpoint_by_index(uint8_t index, wkpf_local_endpoint **endpoint);

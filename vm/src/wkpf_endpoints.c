@@ -9,7 +9,10 @@
 uint8_t number_of_endpoints;
 wkpf_local_endpoint endpoints[MAX_NUMBER_OF_ENDPOINTS];
 
-uint8_t wkpf_create_endpoint(wkpf_profile_definition *profile, uint8_t port_number) {
+uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number) {
+  uint8_t retval;
+  wkpf_profile_definition *profile;
+
   if (number_of_endpoints == MAX_NUMBER_OF_ENDPOINTS) {
     DEBUGF_WKPF("WKPF: out of memory while creating endpoint for profile %x at port: FAILED\n", profile->profile_id, port_number);
     return WKPF_ERR_OUT_OF_MEMORY;
@@ -20,9 +23,14 @@ uint8_t wkpf_create_endpoint(wkpf_profile_definition *profile, uint8_t port_numb
       return WKPF_ERR_PORT_IN_USE;
     }
   }
+
+  retval = wkpf_get_profile_by_id(profile_id, &profile);
+  if (retval != WKPF_OK)
+    return retval;
+  
   endpoints[number_of_endpoints].profile = profile;
   endpoints[number_of_endpoints].port_number = port_number;
-  uint8_t retval = wkpf_alloc_properties_for_endpoint(&endpoints[number_of_endpoints]);
+  retval = wkpf_alloc_properties_for_endpoint(&endpoints[number_of_endpoints]);
   if (retval != WKPF_OK)
     return retval;
   DEBUGF_WKPF("WKPF: creating endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
