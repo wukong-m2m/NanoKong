@@ -2,9 +2,6 @@
 #include "debug.h"
 #include "types.h"
 #include "wkpf.h"
-#include "wkpf_profiles.h"
-#include "wkpf_endpoints.h"
-#include "wkpf_properties.h"
 
 #ifdef TEST_WKPF
 
@@ -28,10 +25,10 @@ void print_test_summary() {
 }
 
 int8_t test_update_dummy = 0;
-void print_ok_a() {
+void print_ok_a(wkpf_local_endpoint *endpoint) {
   test_update_dummy = 1;
 }
-void print_ok_b() {
+void print_ok_b(wkpf_local_endpoint *endpoint) {
   test_update_dummy = 2;
 }
 
@@ -84,7 +81,7 @@ void test_profiles() {
   assert_equal_uint(profile->profile_id, 0xFF42, "retrieved profile: id matches");
   assert_equal_uint(profile->number_of_properties, 3, "retrieved profile: 3 properties");
   test_update_dummy = 0;
-  profile->update();
+  profile->update(NULL);
   assert_equal_uint(test_update_dummy, 1, "retrieved profile: update function");
 
   retval = wkpf_get_profile_by_id(0x43FF, &profile);
@@ -92,7 +89,7 @@ void test_profiles() {
   assert_equal_uint(profile->profile_id, 0x43FF, "retrieved profile: id matches");
   assert_equal_uint(profile->number_of_properties, 1, "retrieved profile: 1 property");
   test_update_dummy = 0;
-  profile->update();
+  profile->update(NULL);
   assert_equal_uint(test_update_dummy, 2, "retrieved profile: update function");
 
   retval = wkpf_get_profile_by_index(0, &profile);

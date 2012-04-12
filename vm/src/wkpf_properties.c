@@ -4,7 +4,7 @@
 #include "wkpf.h"
 #include "wkpf_properties.h"
 
-typedef struct {
+typedef struct property_entry_struct {
   wkpf_local_endpoint *endpoint;
   int8_t property_number;
   int16_t value;

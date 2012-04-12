@@ -2,6 +2,9 @@
 #define WKPF_H
 
 #include "types.h"
+#include "wkpf_profiles.h"
+#include "wkpf_endpoints.h"
+#include "wkpf_properties.h"
 
 #define WKPF_OK                                     0
 #define WKPF_ERR_ENDPOINT_NOT_FOUND                 1
@@ -16,12 +19,11 @@
 #define WKPF_ERR_ENDPOINT_ALREADY_ALLOCATED        10
 #define WKPF_ERR_SHOULDNT_HAPPEN                 0xFF
 
-typedef struct {
+/* typedef struct {
     uint16_t node_address;
     uint8_t port_number;
-} wkpf_remote_endpoint;
+} wkpf_remote_endpoint; */
 
-void profile_init();
-extern uint8_t wkpf_get_profile_list();
+extern void wkpf_init();
 
 #endif // WKPF_H

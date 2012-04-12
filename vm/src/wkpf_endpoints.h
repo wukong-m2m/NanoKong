@@ -2,10 +2,9 @@
 #define WKPF_ENDPOINTSH
 
 #include "types.h"
-#include "wkpf.h"
 #include "wkpf_profiles.h"
 
-typedef struct {
+typedef struct wkpf_local_endpoint_struct {
     wkpf_profile_definition *profile;
     uint8_t port_number;
 } wkpf_local_endpoint;

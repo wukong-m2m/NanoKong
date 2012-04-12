@@ -71,8 +71,8 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
   uint16_t pos_in_message;
 
   uint16_t profile_id;
-  uint16_t profile_size;
-  uint8_t profile_read_data;
+  uint16_t profile_size = 0;
+  uint8_t profile_read_data = 0;
   uint8_t role_id;
   uint8_t property_id;
   int32_t property_read_value = 0;
@@ -174,11 +174,11 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       nvc3_appmsg_reply = payload[0];
     break;
     case NVMCOMM_WKPF_GET_PROFILE_LIST:
-	profile_size=(uint8_t)(wkpf_get_profile_list());
+// TODONR 	profile_size=(uint8_t)(wkpf_get_profile_list());
 	payload[2] = profile_size;
 	profile_size=profile_size*3+3;
         for (size8_t i=3; i<profile_size; i++) {
-		profile_read_data=wkpf_get_profile_list();
+	// TODONR 	profile_read_data=wkpf_get_profile_list();
          	payload[i]=(uint8_t)(profile_read_data);
         }
 	response_size = profile_size;//payload size

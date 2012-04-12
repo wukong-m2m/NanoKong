@@ -1,5 +1,15 @@
+#include "error.h"
 #include "wkpf.h"
+#include "wkpf_profiles.h"
 
+#include "native_profiles/native_profiles.h"
+
+void wkpf_init() {
+  if (native_profiles_init() != WKPF_OK)
+    error(ERROR_WKPF_INIT_FAILED);
+}
+
+/*
 uint8_t is_first=0;
 uint8_t profile_pointer=0;
 uint8_t profile_number=3;
@@ -20,6 +30,7 @@ struct profile_instance
 
 } profile[3];
 
+
 void profile_init()
 {
 	is_first=1;
@@ -36,6 +47,7 @@ void profile_init()
 	}
 
 }
+
 
 uint8_t wkpf_get_profile_list() {
 	if(!is_first)	profile_init();
@@ -65,7 +77,6 @@ uint8_t wkpf_get_profile_list() {
 	return value;
 }
 
-/*
 
 int32_t wkpf_read_property(uint16_t profile_id, uint8_t role_id, uint8_t property_id) {
 	if(!is_first)	profile_init();

@@ -21,9 +21,9 @@
 #define DEBUG
 
 // enable simple unittests for profile framework (choose 1)
-//#define TEST_WKPF_PROFILES
+#define TEST_WKPF_PROFILES
 //#define TEST_WKPF_ENDPOINTS
-#define TEST_WKPF_PROPERTIES
+//#define TEST_WKPF_PROPERTIES
 #if defined(TEST_WKPF_PROFILES) || defined(TEST_WKPF_ENDPOINTS) || defined(TEST_WKPF_PROPERTIES)
 #define TEST_WKPF // General WKPF test support
 #endif
