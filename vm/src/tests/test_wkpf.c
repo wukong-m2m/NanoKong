@@ -25,10 +25,12 @@ void print_test_summary() {
 }
 
 int8_t test_update_dummy = 0;
-void print_ok_a(wkpf_local_endpoint *endpoint) {
+void update_a(wkpf_local_endpoint *endpoint) {
+  DEBUGF_WKPF("UPDATE_A\n");
   test_update_dummy = 1;
 }
-void print_ok_b(wkpf_local_endpoint *endpoint) {
+void update_b(wkpf_local_endpoint *endpoint) {
+  DEBUGF_WKPF("UPDATE_B\n");
   test_update_dummy = 2;
 }
 
@@ -40,7 +42,7 @@ uint8_t profile_a_properties[] = {
 };
 wkpf_profile_definition profile_a = {
   0xFF42, // profile id
-  print_ok_a, // update function pointer
+  update_a, // update function pointer
   NULL, // Java object
   3, // Number of properties
   profile_a_properties
@@ -51,7 +53,7 @@ uint8_t profile_b_properties[] = {
 };
 wkpf_profile_definition profile_b = {
   0x43FF, // profile id
-  print_ok_b, // update function pointer
+  update_b, // update function pointer
   NULL, // Java object
   1, // Number of properties
   profile_b_properties
@@ -111,14 +113,14 @@ void test_profiles() {
   retval = wkpf_get_profile_by_id(0x1234, &profile);
   assert_equal_uint(retval, WKPF_ERR_PROFILE_NOT_FOUND, "retrieving profile by id 0x1234 should fail");
 
-  wkpf_profile_definition profile_3 = { 0x3, print_ok_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_3 = { 0x3, update_b, NULL, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_3);
-  wkpf_profile_definition profile_4 = { 0x4, print_ok_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_4 = { 0x4, update_b, NULL, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_4);
-  wkpf_profile_definition profile_5 = { 0x5, print_ok_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_5 = { 0x5, update_b, NULL, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_5);
   assert_equal_uint(retval, WKPF_OK, "registered 5 profiles");
-  wkpf_profile_definition profile_6 = { 0x6, print_ok_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_6 = { 0x6, update_b, NULL, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_6);
   assert_equal_uint(retval, WKPF_ERR_OUT_OF_MEMORY, "registering profile 6 should fail (out of memory)");
 
@@ -140,9 +142,11 @@ void test_endpoints() {
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile A at port 40");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 1, "number of endpoints 1");
 
+  test_update_dummy = 0;
   retval = wkpf_create_endpoint(profile_b.profile_id, 0x80);
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile B at port 80");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 2, "number of endpoints 2");
+  assert_equal_uint(test_update_dummy, 2, "update function was called when creating endpoint");
 
   retval = wkpf_create_endpoint(profile_a.profile_id, 0x80);
   assert_equal_uint(retval, WKPF_ERR_PORT_IN_USE, "create another endpoint at port 80 should fail");
@@ -269,9 +273,10 @@ void test_native_profiles() {
 
   retval = wkpf_get_endpoint_by_port(0x0, &endpoint);
   assert_equal_uint(retval, WKPF_OK, "get generic profile endpoint (port 0x0)");
+  assert_equal_uint(endpoint->profile->profile_id, WKPF_PROFILE_ID_GENERIC, "profile id is that of the generic profile");
   retval = wkpf_checked_read_property_int16(endpoint, 0, &value_int16);
   assert_equal_uint(retval, WKPF_OK, "reading property 0");
-  assert_equal_uint(retval, 42, "value is 42");
+  assert_equal_uint(value_int16, 42, "value is 42");
 
   print_test_summary();
   while(1) {}
