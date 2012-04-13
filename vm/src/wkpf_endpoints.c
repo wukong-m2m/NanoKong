@@ -45,6 +45,8 @@ uint8_t wkpf_remove_endpoint(uint8_t port_number) {
   for (int8_t i=0; i<number_of_endpoints; i++) {
     if (endpoints[i].port_number == port_number) {
       // Endpoint at index i will be removed:
+      // Free allocated properties
+      wkpf_free_properties_for_endpoint(&endpoints[i]);
       // Move endpoints at higher indexes on index down
       for (int8_t j=i+1; j<number_of_endpoints; j++) {
         endpoints[j-1] = endpoints[j];
