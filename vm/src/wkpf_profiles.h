@@ -8,8 +8,7 @@ typedef void (*update_function_t)(struct wkpf_local_endpoint_struct *);
 
 typedef struct wkpf_profile_definition {
     uint16_t profile_id;
-    update_function_t update;
-    void *java_object; // TODO: datatype?
+    update_function_t update; // Set for native profiles, NULL for virtual profiles
     uint8_t number_of_properties;
     uint8_t *properties;
 } wkpf_profile_definition;

@@ -5,7 +5,7 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_FILE = ZZTrafficLightAlert
+DEFAULT_FILE = TestWKPF
 
 PORT = /dev/tty.usbmodem411
 

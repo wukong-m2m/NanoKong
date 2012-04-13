@@ -130,6 +130,11 @@
 // nanovm/util/Formatter
 #define NATIVE_CLASS_FORMATTER      (NATIVE_CLASS_BASE+28)
 
+// nanovm/wkpf/WKPF
+#define NATIVE_CLASS_WKPF           (NATIVE_CLASS_BASE+29)
+#define NATIVE_METHOD_REGISTER_PROFILE  1
+#define NATIVE_METHOD_CREATE_ENDPOINT   2
+#define NATIVE_METHOD_REMOVE_ENDPOINT   3
 
 #define NATIVE_ID(c,m)  ((c<<8)|m)
 

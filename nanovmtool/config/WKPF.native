@@ -1,0 +1,9 @@
+#
+# WKPF.native
+#
+
+class nanovm/wkpf/WKPF 45
+
+method registerProfile:(S[BB)B   	      	1
+method createEndpoint:(SB)B					2
+method removeEndpoint:(B)B					3

@@ -44,7 +44,6 @@ uint8_t profile_a_properties[] = {
 wkpf_profile_definition profile_a = {
   0xFF42, // profile id
   update_a, // update function pointer
-  NULL, // Java object
   3, // Number of properties
   profile_a_properties
 };
@@ -55,7 +54,6 @@ uint8_t profile_b_properties[] = {
 wkpf_profile_definition profile_b = {
   0x43FF, // profile id
   update_b, // update function pointer
-  NULL, // Java object
   1, // Number of properties
   profile_b_properties
 };
@@ -114,14 +112,14 @@ void test_profiles() {
   retval = wkpf_get_profile_by_id(0x1234, &profile);
   assert_equal_uint(retval, WKPF_ERR_PROFILE_NOT_FOUND, "retrieving profile by id 0x1234 should fail");
 
-  wkpf_profile_definition profile_3 = { 0x3, update_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_3 = { 0x3, update_b, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_3);
-  wkpf_profile_definition profile_4 = { 0x4, update_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_4 = { 0x4, update_b, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_4);
-  wkpf_profile_definition profile_5 = { 0x5, update_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_5 = { 0x5, update_b, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_5);
   assert_equal_uint(retval, WKPF_OK, "registered 5 profiles");
-  wkpf_profile_definition profile_6 = { 0x6, update_b, NULL, 1, profile_b_properties };
+  wkpf_profile_definition profile_6 = { 0x6, update_b, 1, profile_b_properties };
   retval = wkpf_register_profile(profile_6);
   assert_equal_uint(retval, WKPF_ERR_OUT_OF_MEMORY, "registering profile 6 should fail (out of memory)");
 

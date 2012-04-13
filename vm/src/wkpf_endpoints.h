@@ -7,6 +7,7 @@
 typedef struct wkpf_local_endpoint_struct {
     wkpf_profile_definition *profile;
     uint8_t port_number;
+    void* virtual_profile_instance; // Set for virtual profiles, NULL for native profiles
 } wkpf_local_endpoint;
 
 extern uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number);

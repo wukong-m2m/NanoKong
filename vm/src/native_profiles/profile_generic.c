@@ -11,7 +11,6 @@ uint8_t profile_generic_properties[] = {
 wkpf_profile_definition profile_generic = {
   WKPF_PROFILE_ID_GENERIC, // profile id
   profile_generic_update, // update function pointer
-  NULL, // Java object
   1, // Number of properties
   profile_generic_properties
 };

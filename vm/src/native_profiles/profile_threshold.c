@@ -17,7 +17,6 @@ uint8_t profile_threshold_properties[] = {
 wkpf_profile_definition profile_threshold = {
   WKPF_PROFILE_ID_THRESHOLD, // profile id
   profile_threshold_update, // update function pointer
-  NULL, // Java object
   4, // Number of properties
   profile_threshold_properties
 };
