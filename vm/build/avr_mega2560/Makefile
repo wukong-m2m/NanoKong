@@ -75,6 +75,10 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
+avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
+	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	screen $(PORT) 115200
+
 clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
 

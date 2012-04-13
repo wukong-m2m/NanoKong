@@ -82,3 +82,10 @@ uint8_t wkpf_get_endpoint_by_index(uint8_t index, wkpf_local_endpoint **endpoint
 uint8_t wkpf_get_number_of_endpoints() {
   return number_of_endpoints;
 }
+
+void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
+  // TODONR: for now just call directly, but should probably be scheduled to run from the Java wait()?
+  endpoint->profile->update(endpoint);
+}
+
+

@@ -20,11 +20,11 @@ uint8_t native_profiles_init() {
   if (retval != WKPF_OK)
     return retval;
   
-#ifdef ENABLE_PROFILE_DUMMY
-  retval = register_profile_and_create_endpoint(&profile_dummy, 0x1);
+#ifdef ENABLE_PROFILE_THRESHOLD
+  retval = register_profile_and_create_endpoint(&profile_threshold, 0x1);
   if (retval != WKPF_OK)
     return retval;
-#endif // ENABLE_PROFILE_DUMMY
+#endif // ENABLE_PROFILE_THRESHOLD
 
   return WKPF_OK;
 }

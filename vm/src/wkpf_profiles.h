@@ -3,15 +3,6 @@
 
 #include "types.h"
 
-#define WKPF_PROPERTY_TYPE_INT16        0
-#define WKPF_PROPERTY_TYPE_BOOLEAN      1
-#define WKPF_PROPERTY_ACCESS_READ       (1 << 7)
-#define WKPF_PROPERTY_ACCESS_WRITE      (1 << 6)
-#define WKPF_PROPERTY_ACCESS_RW         (WKPF_PROPERTY_ACCESS_READ+WKPF_PROPERTY_ACCESS_WRITE)
-
-#define WKPF_IS_READONLY_PROPERTY(x)    ((~x) & WKPF_PROPERTY_ACCESS_WRITE)
-#define WKPF_IS_WRITEONLY_PROPERTY(x)   ((~x) & WKPF_PROPERTY_ACCESS_READ)
-
 struct wkpf_local_endpoint_struct;
 typedef void (*update_function_t)(struct wkpf_local_endpoint_struct *);
 

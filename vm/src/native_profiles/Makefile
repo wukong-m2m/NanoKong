@@ -6,7 +6,7 @@ NATIVE_PROFILES_DIR = $(ROOT_DIR)/vm/src/native_profiles
 NATIVE_PROFILES_OBJS = \
     native_profiles/native_profiles.o \
     native_profiles/profile_generic.o \
-    native_profiles/profile_dummy.o
+    native_profiles/profile_threshold.o
 
 OBJS += $(NATIVE_PROFILES_OBJS)
 
