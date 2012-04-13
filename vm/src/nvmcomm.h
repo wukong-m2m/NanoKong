@@ -27,6 +27,14 @@
 #define NVMCOMM_APPMSG_ACK        0x01
 #define NVMCOMM_APPMSG_BUSY       0x02
 
+#define NVMCOMM_WKPF_GET_PROFILE_LIST		0X90
+#define NVMCOMM_WKPF_GET_PROFILE_LIST_R		0X91
+#define NVMCOMM_WKPF_READ_PROPERTY		0XA0
+#define NVMCOMM_WKPF_READ_PROPERTY_R		0XA1
+#define NVMCOMM_WKPF_WRITE_PROPERTY		0XB0
+#define NVMCOMM_WKPF_WRITE_PROPERTY_R		0XB1
+//#define NVMCOMM_WKPF_...
+
 #define NVMCOMM_MAX_FID 0           // maximum supported file id
 #define NVMCOMM_FILE_FIRMWARE 0x00  // firmware file id
 #define NVMCOMM_FILE_DATA 0x01  // data file id (not yet supported)

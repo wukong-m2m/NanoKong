@@ -10,6 +10,7 @@
 #endif
 #include "avr/avr_flash.h"
 #include "nvmcomm.h"
+#include "wkpf.h"
 
 #ifdef NVM_USE_COMM
 
@@ -21,6 +22,8 @@ uint16_t nvc3_avr_reprogramming_pos;
 uint8_t nvc3_appmsg_buf[NVMCOMM_MESSAGE_SIZE];
 uint8_t nvc3_appmsg_size = 0; // 0 if the buffer is not in use (so we can receive a message), otherwise indicates the length of the received message.
 uint8_t nvc3_appmsg_reply = 0;
+
+
 
 void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length);
 
@@ -66,6 +69,14 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
   u08_t response_size = 0;
   u08_t response_cmd = 0;
   uint16_t pos_in_message;
+
+  uint16_t profile_id;
+  uint16_t profile_size = 0;
+  uint8_t profile_read_data = 0;
+  uint8_t role_id;
+  uint8_t property_id;
+  int32_t property_read_value = 0;
+  int32_t property_write_value = 0;
 
 #ifdef DEBUG
   DEBUGF_COMM("Handling command "DBG8" from "DBG8", length "DBG8":\n", nvmcomm_command, src, length);
@@ -161,6 +172,41 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     case NVMCOMM_CMD_APPMSG_R:
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[0];
+    break;
+    case NVMCOMM_WKPF_GET_PROFILE_LIST:
+// TODONR 	profile_size=(uint8_t)(wkpf_get_profile_list());
+	payload[2] = profile_size;
+	profile_size=profile_size*3+3;
+        for (size8_t i=3; i<profile_size; i++) {
+	// TODONR 	profile_read_data=wkpf_get_profile_list();
+         	payload[i]=(uint8_t)(profile_read_data);
+        }
+	response_size = profile_size;//payload size
+	response_cmd = NVMCOMM_WKPF_GET_PROFILE_LIST_R;
+    break;
+    case NVMCOMM_WKPF_READ_PROPERTY:
+	profile_id = (uint16_t)(payload[2]<<8)+(uint16_t)(payload[3]);
+	role_id = payload[4];
+	property_id = payload[5];
+	// TODONR property_read_value = wkpf_read_property( profile_id, role_id, property_id );
+	payload[6] = (uint8_t)(property_read_value>>24);
+	payload[7] = (uint8_t)(property_read_value>>16);
+	payload[8] = (uint8_t)(property_read_value>>8);
+	payload[9] = (uint8_t)(property_read_value);
+	response_size = 10;//payload size
+	response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;
+    break;
+    case NVMCOMM_WKPF_WRITE_PROPERTY:
+	profile_id = (uint16_t)(payload[2]<<8)+(uint16_t)(payload[3]);
+	role_id = payload[4];
+	property_id = payload[5];
+	property_write_value = (int32_t)(payload[6]);
+	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[7]);
+	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[8]);
+	property_write_value = (int32_t)(property_write_value<<8) + (int32_t)(payload[9]);
+	// TODONR wkpf_write_property( profile_id, role_id, property_id, property_write_value);
+	response_size = 6;//payload size
+	response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;
     break;
   }
   if (response_cmd > 0) {

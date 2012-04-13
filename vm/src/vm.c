@@ -50,7 +50,6 @@
 #include <avr/wdt.h>
 #endif
 
-
 #ifdef NVM_USE_32BIT_WORD
 # define DBG_INT "0x" DBG32
 #else

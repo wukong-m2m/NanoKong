@@ -31,6 +31,7 @@
 #include "nvmfile.h"
 #include "vm.h"
 #include "nvmcomm.h"
+#include "wkpf.h"
 
 #include "avr/avr_flash.h"
 #include <avr/boot.h>
@@ -39,6 +40,9 @@
 #include <avr/wdt.h>
 #endif
 
+#ifdef TEST_WKPF
+#include "tests/test_wkpf.h"
+#endif
 
 // hooks for init routines
 
@@ -69,41 +73,22 @@ int main(int argc, char **argv) {
   nvmcomm_init();
 #endif
 
-  // call native initialization (e.g. hardware setup)
+// call native initialization (e.g. hardware setup)
 #ifdef NATIVE_INIT
   NATIVE_INIT;
 #endif
 
-#if defined(UNIX) || defined(__CC65__)
-  // parse unix command line options and load 
-  // nvm file if requested
-  int i = 1, quiet = 0;
-
-#ifdef DEBUG
-  debug_enable(FALSE);
-#endif
-
-  // parse options
-  while((i<argc)&&(argv[i][0] == '-')) {
-#ifdef DEBUG
-    if(argv[i][1] == 'd')
-      debug_enable(TRUE);
-#endif
-
-    if(argv[i][1] == 'q')
-      quiet = TRUE;
-
-    i++;
-  }
-
-  if(!quiet)
-    printf("NanoVM " VERSION " runtime (c) 2005-2007 by Till Harbaum <till@harbaum.org>\n");
-#endif // UNIX || __CC65__
-
-DEBUGF("NanoVM\n");
   nvmfile_init();
 
   vm_init();
+
+#ifdef TEST_WKPF
+  test_wkpf();
+#endif
+
+  wkpf_init();
+
+  DEBUGF("NanoVM\n");
 
   nvmfile_call_main();
 

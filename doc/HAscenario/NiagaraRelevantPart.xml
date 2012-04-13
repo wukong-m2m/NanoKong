@@ -1,0 +1,32 @@
+<!-- /HAScenario -->
+<p n="HAScenario" h="77" t="b:Folder">
+ <!-- /HAScenario/ThermostatController -->
+ <p n="ThermostatController" h="79" m="c=control" t="c:NumericPoint">
+  <p n="wsAnnotation" t="b:WsAnnotation" v="7,22,12"/>
+ </p>
+ <!-- /HAScenario/TemperatureSensor -->
+ <p n="TemperatureSensor" h="7b" m="kitControl=kitControl" t="kitControl:SineWave">
+  <p n="amplitude" v="5.0"/>
+  <p n="offset" v="20.0"/>
+  <p n="wsAnnotation" t="b:WsAnnotation" v="7,16,12"/>
+ </p>
+ <!-- /HAScenario/Heater -->
+ <p n="Heater" h="7d" t="c:BooleanWritable">
+  <p n="wsAnnotation" t="b:WsAnnotation" v="52,19,11"/>
+  <p n="Link" t="b:Link"><p n="sourceOrd" v="h:7f"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="in9"/></p>
+ </p>
+ <!-- /HAScenario/Threshold -->
+ <p n="Threshold" h="7f" t="kitControl:LessThanEqual">
+  <p n="inA" t="b:StatusNumeric"><p n="value" v="24.64733880171888"/><p n="status" v="0;activeLevel=e:2@control:PriorityLevel"/></p>
+  <p n="inB" t="b:StatusNumeric"><p n="value" v="0.0"/></p>
+  <p n="wsAnnotation" t="b:WsAnnotation" v="37,20,10"/>
+  <p n="Link1" t="b:Link"><p n="sourceOrd" v="h:79"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="inB"/></p>
+  <p n="Link" t="b:Link"><p n="sourceOrd" v="h:c4"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="inA"/></p>
+ </p>
+ <!-- /HAScenario/LinkProperties -->
+ <p n="LinkProperties" h="c4" t="c:NumericWritable">
+  <p n="facets" v="minChange=f:2.0"/>
+  <p n="wsAnnotation" t="b:WsAnnotation" v="20,15,11"/>
+  <p n="Link" t="b:Link"><p n="sourceOrd" v="h:7b"/><p n="sourceSlotName" v="out"/><p n="targetSlotName" v="in2"/></p>
+ </p>
+</p>

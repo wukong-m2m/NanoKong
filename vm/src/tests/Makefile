@@ -2,20 +2,18 @@
 # Makefile include for NanoVM core files
 #
 
-AVR_DIR = $(ROOT_DIR)/vm/src/avr
-AVR_OBJS = \
-  avr/native_avr.o \
-  avr/native_impl.o \
-  avr/avr_flash.o
+TESTS_DIR = $(ROOT_DIR)/vm/src/tests
+TESTS_OBJS = \
+  tests/test_wkpf.o
 
-OBJS += $(AVR_OBJS)
+OBJS += $(TESTS_OBJS)
 
 # convert and upload a class file
 
-avr/%.o:$(AVR_DIR)/%.c Makefile
+tests/%.o:$(TESTS_DIR)/%.c Makefile
 	$(CC) $(CFLAGS) -c $< -o $@
 
-avr/%.d:$(AVR_DIR)/%.c
+tests/%.d:$(TESTS_DIR)/%.c
 	set -e; $(CC) -MM $(CFLAGS) $< \
 	| sed 's#\($*\)\.o[ :]*#\1.o $@ : #g' > $@ ; \
 	[ -s $@ ] || rm -f $@
