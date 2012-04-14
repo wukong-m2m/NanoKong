@@ -1,5 +1,5 @@
 package nanovm.wkpf;
 
 public abstract class VirtualProfile {
-    public abstract void update();
+    public void update() {} // TODO: this should be abstract, but nanovmtool chokes on abstract methods :-(
 }

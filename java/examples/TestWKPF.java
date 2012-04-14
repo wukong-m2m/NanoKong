@@ -21,6 +21,7 @@ public class TestWKPF {
 
       System.out.println("Creating profile instance\n");
       VirtualThresholdProfile profileInstance = new VirtualThresholdProfile();
+      profileInstance.update();
       System.out.println("Created profile instance\n");
 //	  retval = WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstance);
       System.out.println(retval);      
