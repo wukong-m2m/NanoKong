@@ -8,5 +8,7 @@ method getErrorCode:()B   	      							1
 method registerProfile:(S[BB)V   	      					2
 method createEndpoint:(SBLnanovm/wkpf/VirtualProfile;)V		3
 method removeEndpoint:(B)V									4
-
-field errorCode:B 0
+method getPropertyShort:(Lnanovm/wkpf/VirtualProfile;B)S	5
+method setPropertyShort:(Lnanovm/wkpf/VirtualProfile;BS)V	6
+method getPropertyBoolean:(Lnanovm/wkpf/VirtualProfile;B)Z	7
+method setPropertyBoolean:(Lnanovm/wkpf/VirtualProfile;BZ)V	8

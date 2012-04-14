@@ -85,6 +85,17 @@ uint8_t wkpf_get_endpoint_by_index(uint8_t index, wkpf_local_endpoint **endpoint
   return WKPF_OK;  
 }
 
+uint8_t wkpf_get_endpoint_by_heap_id(heap_id_t virtual_profile_instance_heap_id, wkpf_local_endpoint **endpoint) {
+  for (int8_t i=0; i<number_of_endpoints; i++) {
+    if (endpoints[i].virtual_profile_instance_heap_id == virtual_profile_instance_heap_id) {
+      *endpoint = &endpoints[i];
+      return WKPF_OK;
+    }
+  }
+  DEBUGF_WKPF("WKPF: no endpoint for heap_id %x found: FAILED\n", virtual_profile_instance_heap_id);
+  return WKPF_ERR_ENDPOINT_NOT_FOUND;
+}
+
 uint8_t wkpf_get_number_of_endpoints() {
   return number_of_endpoints;
 }

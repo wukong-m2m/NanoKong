@@ -43,9 +43,9 @@
 #define DEBUGF_USART(...) // debugf(__VA_ARGS__) 
 #define DEBUGF_XBEE(...) // debugf(__VA_ARGS__) 
 #define DEBUGF_READFLASH(...) // debugf(__VA_ARGS__) 
-#define DEBUGF_WKPF(...) debugf(__VA_ARGS__) 
+#define DEBUGF_WKPF(...) // debugf(__VA_ARGS__) 
 #define DEBUGF_TEST(...)  // debugf(__VA_ARGS__) 
-#define DEBUGF(...) debugf(__VA_ARGS__) // All other debug info.
+#define DEBUGF(...) // debugf(__VA_ARGS__) // All other debug info.
 #define DEBUG_HEXDUMP(a,b) debug_hexdump(a,b)
 void debugf(const char *fmt, ...);
 void debug_hexdump(const void *data, u16_t size);
