@@ -15,24 +15,28 @@ public class TestWKPF {
   public static void main(String[] args) {
       System.out.println("WuKong Profile Framework test\n");
 	  byte retval = WKPF.registerProfile((short)0x42, properties, (byte)properties.length);
-      System.out.println(retval);
+      System.out.println("======="+WKPF.getErrorCode());
 
       System.out.println("Creating profile instance and endpoint\n");
       VirtualThresholdProfile profileInstanceA = new VirtualThresholdProfile();
-	  retval = WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceA);
+	  WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceA);
+      System.out.println("======="+WKPF.getErrorCode());
       System.out.println("Created profile instance\n");
 
       System.out.println("Creating profile instance and endpoint\n");
       VirtualThresholdProfile profileInstanceB = new VirtualThresholdProfile();
-	  retval = WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceB);
+	  WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceB);
+      System.out.println("======="+WKPF.getErrorCode());
       System.out.println("Created profile instance\n");
 
       System.out.println("Removing profile instance and endpoint\n");
-	  retval = WKPF.removeEndpoint((byte)0x2);
+	  WKPF.removeEndpoint((byte)0x2);
+      System.out.println("======="+WKPF.getErrorCode());
       System.out.println("Removed profile instance\n");
 
       System.out.println("Creating profile instance and endpoint\n");
-	  retval = WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceB);
+	  WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceB);
+      System.out.println("======="+WKPF.getErrorCode());
       System.out.println("Created profile instance\n");
 
       System.out.println("WuKong Profile Framework test - done\n");

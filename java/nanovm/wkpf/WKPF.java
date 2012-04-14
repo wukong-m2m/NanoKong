@@ -1,10 +1,27 @@
 package nanovm.wkpf;
 
 public class WKPF {
+    public static native byte getErrorCode(); // Since we can't raise exceptions, I'll use this to signal whether a call succeeds or not.
+
+    // Profile and endpoint maintenance
     public static native byte registerProfile(short profileId, byte[] properties, byte numberOfProperties); // TODONR: numberOfProperties shouldn't be necessary, but I can't figure out how to get the array size in native code (need heap ID)
     public static native byte createEndpoint(short profileId, byte portNumber, VirtualProfile virtualProfileInstance); // byte or short? No unsigned byte in Java ><
     public static native byte removeEndpoint(byte portNumber);
+
+    // Property access
+    public static native short getPropertyShort(VirtualProfile virtualProfileInstance, byte propertyNumber);
+
+/*
+        #define wkpf_internal_read_property_int16(endpoint, property_number, value)      wkpf_read_property_int16(endpoint, property_number, FALSE, value)
+        #define wkpf_internal_write_property_int16(endpoint, property_number, value)     wkpf_write_property_int16(endpoint, property_number, FALSE, value)
+        #define wkpf_internal_read_property_boolean(endpoint, property_number, value)    wkpf_read_property_boolean(endpoint, property_number, FALSE, value)
+        #define wkpf_internal_write_property_boolean(endpoint, property_number, value)   wkpf_write_property_boolean(endpoint, property_number, FALSE, value)
+*/
+
+
+
     
+    // Select function for main loop
     public static native VirtualProfile select();
 
     // Note: need to match definitions in wkpf.h
