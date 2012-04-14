@@ -5,7 +5,7 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_FILE = TestWKPF
+DEFAULT_CLASS = TestWKPF
 
 PORT = /dev/tty.usbmodem411
 
@@ -89,4 +89,4 @@ upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
 
-include $(OBJS:.o=.d)
+#include $(OBJS:.o=.d)
