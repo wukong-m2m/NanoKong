@@ -9,7 +9,7 @@
 uint8_t number_of_endpoints;
 wkpf_local_endpoint endpoints[MAX_NUMBER_OF_ENDPOINTS];
 
-uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number) {
+uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, void* virtual_profile_instance) {
   uint8_t retval;
   wkpf_profile_definition *profile;
 
@@ -30,6 +30,7 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number) {
   
   endpoints[number_of_endpoints].profile = profile;
   endpoints[number_of_endpoints].port_number = port_number;
+  endpoints[number_of_endpoints].virtual_profile_instance = virtual_profile_instance;
   retval = wkpf_alloc_properties_for_endpoint(&endpoints[number_of_endpoints]);
   if (retval != WKPF_OK)
     return retval;

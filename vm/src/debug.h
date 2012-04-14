@@ -35,17 +35,17 @@
 
 #ifdef DEBUG
 // Turn off specific DEBUGF types by commenting "debugf(__VA_ARGS__)"
-#define DEBUGF_INSTR(...)  debugf(__VA_ARGS__)
-#define DEBUGF_HEAP(...)  //debugf(__VA_ARGS__) // Heap operations
-#define DEBUGF_COMM(...)  // debugf(__VA_ARGS__) // Nvmcomm
+#define DEBUGF_INSTR(...) // debugf(__VA_ARGS__)
+#define DEBUGF_HEAP(...) // debugf(__VA_ARGS__) // Heap operations
+#define DEBUGF_COMM(...) // debugf(__VA_ARGS__) // Nvmcomm
 #define DEBUGF_ZWAVETRACE(...) // debugf(__VA_ARGS__) // Incoming zwave traffic per byte
-#define DEBUGF_FLASH(...)  //debugf(__VA_ARGS__) // avr_flash.c
-#define DEBUGF_USART(...)  //debugf(__VA_ARGS__) 
-#define DEBUGF_XBEE(...)  //debugf(__VA_ARGS__) 
-#define DEBUGF_READFLASH(...)  //debugf(__VA_ARGS__) 
-#define DEBUGF_WKPF(...)  // debugf(__VA_ARGS__) 
-#define DEBUGF_TEST(...)  // debugf(__VA_ARGS__) 
-#define DEBUGF(...)  // debugf(__VA_ARGS__) // All other debug info.
+#define DEBUGF_FLASH(...) // debugf(__VA_ARGS__) // avr_flash.c
+#define DEBUGF_USART(...) // debugf(__VA_ARGS__) 
+#define DEBUGF_XBEE(...) // debugf(__VA_ARGS__) 
+#define DEBUGF_READFLASH(...) // debugf(__VA_ARGS__) 
+#define DEBUGF_WKPF(...)  debugf(__VA_ARGS__) 
+#define DEBUGF_TEST(...)  debugf(__VA_ARGS__) 
+#define DEBUGF(...) // debugf(__VA_ARGS__) // All other debug info.
 #define DEBUG_HEXDUMP(a,b) debug_hexdump(a,b)
 void debugf(const char *fmt, ...);
 void debug_hexdump(const void *data, u16_t size);
@@ -58,9 +58,9 @@ void debug_hexdump(const void *data, u16_t size);
 #define DEBUGF_USART(...)
 #define DEBUGF_XBEE(...)
 #define DEBUGF_READFLASH(...)
-#define DEBUGF(...)
 #define DEBUGF_WKPF(...)
 #define DEBUGF_TEST(...)
+#define DEBUGF(...)
 #define DEBUG_HEXDUMP(a,b)
 #endif
 
