@@ -14,7 +14,7 @@ public class TestWKPF {
 
   public static void main(String[] args) {
       System.out.println("WuKong Profile Framework test\n");
-	  byte retval = WKPF.registerProfile((short)0x42, properties, (byte)properties.length);
+	  WKPF.registerProfile((short)0x42, properties, (byte)properties.length);
       System.out.println("======="+WKPF.getErrorCode());
 
       System.out.println("Creating profile instance and endpoint\n");

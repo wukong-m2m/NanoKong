@@ -5,8 +5,8 @@
 class nanovm/wkpf/WKPF										45
 
 method getErrorCode:()B   	      							1
-method registerProfile:(S[BB)B   	      					2
-method createEndpoint:(SBLnanovm/wkpf/VirtualProfile;)B		3
-method removeEndpoint:(B)B									4
+method registerProfile:(S[BB)V   	      					2
+method createEndpoint:(SBLnanovm/wkpf/VirtualProfile;)V		3
+method removeEndpoint:(B)V									4
 
 field errorCode:B 0
