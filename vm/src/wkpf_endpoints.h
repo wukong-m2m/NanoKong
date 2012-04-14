@@ -5,6 +5,10 @@
 #include "heap.h"
 #include "wkpf_profiles.h"
 
+// TODONR: only works if heap id 0 isn't used.
+#define WKPF_IS_NATIVE_ENDPOINT(x)               (x->virtual_profile_instance_heap_id == 0)
+#define WKPF_IS_VIRTUAL_ENDPOINT(x)              (x->virtual_profile_instance_heap_id != 0)
+
 typedef struct wkpf_local_endpoint_struct {
     wkpf_profile_definition *profile;
     uint8_t port_number;

@@ -24,5 +24,8 @@ void native_wkpf_invoke(u08_t mref) {
     DEBUGF_WKPF("WKPF: Creating endpoint for virtual profile with id %x at port %x (heap_id: %x)\n", profile_id, port_number, virtual_profile_instance_heap_id);
     stack_push(wkpf_create_endpoint(profile_id, port_number, virtual_profile_instance_heap_id));
   } else if(mref == NATIVE_METHOD_REMOVE_ENDPOINT) {
+    uint8_t port_number = (uint8_t)stack_pop_int();
+    DEBUGF_WKPF("WKPF: Removing endpoint at port %x\n", port_number);
+    stack_push(wkpf_remove_endpoint(port_number));
   }
 }

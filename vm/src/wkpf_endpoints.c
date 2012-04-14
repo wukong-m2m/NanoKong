@@ -88,7 +88,7 @@ uint8_t wkpf_get_number_of_endpoints() {
 void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
   // TODONR: for now just call directly for native profiles
   // Java update should be handled by returning from the WKPF.select() function
-  if (WKPF_IS_NATIVE_PROFILE(endpoint->profile))
+  if (WKPF_IS_NATIVE_ENDPOINT(endpoint))
     endpoint->profile->update(endpoint);
 }
 

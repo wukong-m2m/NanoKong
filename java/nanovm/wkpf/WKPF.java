@@ -2,7 +2,7 @@ package nanovm.wkpf;
 
 public class WKPF {
     public static native byte registerProfile(short profileId, byte[] properties, byte numberOfProperties); // TODONR: numberOfProperties shouldn't be necessary, but I can't figure out how to get the array size in native code (need heap ID)
-    public static native byte createEndpoint(short profileId, byte portNumber, VirtualProfile virtualProfileInstance); // byte or port? No unsigned byte in Java ><
+    public static native byte createEndpoint(short profileId, byte portNumber, VirtualProfile virtualProfileInstance); // byte or short? No unsigned byte in Java ><
     public static native byte removeEndpoint(byte portNumber);
     
     public static native VirtualProfile select();

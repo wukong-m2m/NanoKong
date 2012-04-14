@@ -24,7 +24,15 @@ public class TestWKPF {
 
       System.out.println("Creating profile instance and endpoint\n");
       VirtualThresholdProfile profileInstanceB = new VirtualThresholdProfile();
-	  retval = WKPF.createEndpoint((short)0x42, (byte)0x3, profileInstanceB);
+	  retval = WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceB);
+      System.out.println("Created profile instance\n");
+
+      System.out.println("Removing profile instance and endpoint\n");
+	  retval = WKPF.removeEndpoint((byte)0x2);
+      System.out.println("Removed profile instance\n");
+
+      System.out.println("Creating profile instance and endpoint\n");
+	  retval = WKPF.createEndpoint((short)0x42, (byte)0x2, profileInstanceB);
       System.out.println("Created profile instance\n");
 
       System.out.println("WuKong Profile Framework test - done\n");
