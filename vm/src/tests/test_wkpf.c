@@ -136,21 +136,21 @@ void test_endpoints() {
   
   assert_equal_uint(wkpf_get_number_of_endpoints(), 0, "number of endpoints 0");
 
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, 0);
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile A at port 40");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 1, "number of endpoints 1");
 
   test_update_dummy = 0;
-  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, NULL);
+  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, 0);
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile B at port 80");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 2, "number of endpoints 2");
   assert_equal_uint(test_update_dummy, 2, "update function was called when creating endpoint");
 
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x80, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x80, 0);
   assert_equal_uint(retval, WKPF_ERR_PORT_IN_USE, "create another endpoint at port 80 should fail");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 2, "number of still endpoints 2");
 
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x81, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x81, 0);
   assert_equal_uint(retval, WKPF_OK, "but creating another instance of profile A at port 81 is allowed");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 3, "number of endpoints 3");
 
@@ -198,8 +198,8 @@ void test_properties() {
   
   retval = wkpf_register_profile(profile_a);
   retval = wkpf_register_profile(profile_b);
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, NULL);
-  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, 0);
+  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, 0);
   retval = wkpf_get_endpoint_by_port(0x40, &endpoint_a);
   retval = wkpf_get_endpoint_by_port(0x80, &endpoint_b);
   
@@ -283,7 +283,7 @@ void test_update_for_native_profiles() {
   wkpf_local_endpoint *endpoint;
   
   retval = wkpf_register_profile(profile_threshold);
-  retval &= wkpf_create_endpoint(profile_threshold.profile_id, 1, NULL);
+  retval &= wkpf_create_endpoint(profile_threshold.profile_id, 1, 0);
   retval &= wkpf_get_endpoint_by_port(1, &endpoint);
   assert_equal_uint(retval, WKPF_OK, "register threshold profile and create endpoint");
 

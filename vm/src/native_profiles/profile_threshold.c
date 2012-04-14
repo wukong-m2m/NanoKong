@@ -22,7 +22,6 @@ wkpf_profile_definition profile_threshold = {
 };
 
 void profile_threshold_update(wkpf_local_endpoint *endpoint) {
-  DEBUGF_WKPF("WKPF Update called for threshold profile\n");
   int16_t operator;
   int16_t threshold;
   int16_t value;
@@ -34,13 +33,10 @@ void profile_threshold_update(wkpf_local_endpoint *endpoint) {
 	if ((operator == THRESHOLD_PROFILE_OPERATOR_GT && value > threshold)
 	 || (operator == THRESHOLD_PROFILE_OPERATOR_LT && value < threshold)) {
     wkpf_internal_write_property_boolean(endpoint, WKPF_PROPERTY_ID_THRESHOLD_OUTPUT, TRUE);
-    DEBUGF_WKPF("-----TRUE\n");
   }
 	else {
     wkpf_internal_write_property_boolean(endpoint, WKPF_PROPERTY_ID_THRESHOLD_OUTPUT, FALSE);
-    DEBUGF_WKPF("-----FALSE\n");
   }
-  DEBUGF_WKPF("-----DONE\n");
 }
 
 #endif // ENABLE_PROFILE_THRESHOLD

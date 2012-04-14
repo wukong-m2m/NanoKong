@@ -1,6 +1,7 @@
 #include "config.h"
 #include "types.h"
 #include "debug.h"
+#include "heap.h"
 #include "wkpf.h"
 #include "wkpf_endpoints.h"
 #include "wkpf_properties.h"
@@ -9,7 +10,7 @@
 uint8_t number_of_endpoints;
 wkpf_local_endpoint endpoints[MAX_NUMBER_OF_ENDPOINTS];
 
-uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, void* virtual_profile_instance) {
+uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t virtual_profile_instance_heap_id) {
   uint8_t retval;
   wkpf_profile_definition *profile;
 
@@ -30,13 +31,13 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, void* vir
   
   endpoints[number_of_endpoints].profile = profile;
   endpoints[number_of_endpoints].port_number = port_number;
-  endpoints[number_of_endpoints].virtual_profile_instance = virtual_profile_instance;
+  endpoints[number_of_endpoints].virtual_profile_instance_heap_id = virtual_profile_instance_heap_id;
   retval = wkpf_alloc_properties_for_endpoint(&endpoints[number_of_endpoints]);
   if (retval != WKPF_OK)
     return retval;
   DEBUGF_WKPF("WKPF: creating endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
-  // Call update function once to initialise properties (if necessary)
-  endpoints[number_of_endpoints].profile->update(&endpoints[number_of_endpoints]);
+  // Run update function once to initialise properties.
+  wkpf_need_to_call_update_for_endpoint(&endpoints[number_of_endpoints]);
 
   number_of_endpoints++;
   return WKPF_OK;
@@ -85,8 +86,10 @@ uint8_t wkpf_get_number_of_endpoints() {
 }
 
 void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
-  // TODONR: for now just call directly, but should probably be scheduled to run from the Java wait()?
-  endpoint->profile->update(endpoint);
+  // TODONR: for now just call directly for native profiles
+  // Java update should be handled by returning from the WKPF.select() function
+  if (WKPF_IS_NATIVE_PROFILE(endpoint->profile))
+    endpoint->profile->update(endpoint);
 }
 
 
