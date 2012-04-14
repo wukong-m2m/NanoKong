@@ -58,6 +58,12 @@ wkpf_profile_definition profile_b = {
   profile_b_properties
 };
 
+wkpf_profile_definition profile_virtual = {
+  0x1234, // profile id
+  NULL, // update function pointer
+  1, // Number of properties
+  profile_b_properties
+};
 
 void test_profiles() {
   int8_t retval;
@@ -185,6 +191,13 @@ void test_endpoints() {
   assert_equal_uint(retval, WKPF_OK, "retrieving endpoint by index 1 (was at index 2 before)");
   assert_equal_uint(endpoint->profile->profile_id, 0xFF42, "running profile 0xFF42");
   assert_equal_uint(endpoint->port_number, 0x81, "running on port 81");
+
+  retval = wkpf_register_profile(profile_virtual);
+  assert_equal_uint(retval, WKPF_OK, "registered fake virtual profile with id 0x1234");
+  retval = wkpf_create_endpoint(profile_virtual.profile_id, 0x82, 0);
+  assert_equal_uint(retval, WKPF_ERR_NEED_VIRTUAL_PROFILE_INSTANCE, "Can't create endpoint for virtual profile without an instance");
+  retval = wkpf_create_endpoint(profile_virtual.profile_id, 0x82, 1);
+  assert_equal_uint(retval, WKPF_OK, "Created endpoint for virtual profile with a profile instance");
 
   print_test_summary();
 }

@@ -26,6 +26,7 @@
 #define WKPF_ERR_OUT_OF_MEMORY                      8
 #define WKPF_ERR_WRONG_DATATYPE                     9
 #define WKPF_ERR_ENDPOINT_ALREADY_ALLOCATED        10
+#define WKPF_ERR_NEED_VIRTUAL_PROFILE_INSTANCE     11
 #define WKPF_ERR_SHOULDNT_HAPPEN                 0xFF
 
 #define WKPF_PROFILE_ID_GENERIC                     0

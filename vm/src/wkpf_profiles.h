@@ -3,6 +3,9 @@
 
 #include "types.h"
 
+#define WKPF_IS_NATIVE_PROFILE(x)               (x->update != NULL)
+#define WKPF_IS_VIRTUAL_PROFILE(x)              (x->update == NULL)
+
 struct wkpf_local_endpoint_struct;
 typedef void (*update_function_t)(struct wkpf_local_endpoint_struct *);
 

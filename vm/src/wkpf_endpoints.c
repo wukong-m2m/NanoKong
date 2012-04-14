@@ -18,6 +18,7 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t
     DEBUGF_WKPF("WKPF: out of memory while creating endpoint for profile %x at port: FAILED\n", profile->profile_id, port_number);
     return WKPF_ERR_OUT_OF_MEMORY;
   }
+  
   for (int8_t i=0; i<number_of_endpoints; i++) {
     if (endpoints[i].port_number == port_number) {
       DEBUGF_WKPF("WKPF: port %x in use while creating endpoint for profile id %x: FAILED\n", port_number, profile->profile_id);
@@ -28,7 +29,10 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t
   retval = wkpf_get_profile_by_id(profile_id, &profile);
   if (retval != WKPF_OK)
     return retval;
-  
+
+  if (WKPF_IS_VIRTUAL_PROFILE(profile) && virtual_profile_instance_heap_id==0)
+    return WKPF_ERR_NEED_VIRTUAL_PROFILE_INSTANCE;
+
   endpoints[number_of_endpoints].profile = profile;
   endpoints[number_of_endpoints].port_number = port_number;
   endpoints[number_of_endpoints].virtual_profile_instance_heap_id = virtual_profile_instance_heap_id;
