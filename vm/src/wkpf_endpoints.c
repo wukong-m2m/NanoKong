@@ -92,4 +92,12 @@ void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
     endpoint->profile->update(endpoint);
 }
 
+bool wkpf_heap_id_in_use(heap_id_t heap_id) {
+ // To prevent virtual profile objects from being garbage collected  
+  for (int i=0; i<number_of_endpoints; i++)
+    if (endpoints[i].virtual_profile_instance_heap_id == heap_id)
+      return TRUE;
+  return FALSE;
+}
+
 
