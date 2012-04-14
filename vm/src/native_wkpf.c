@@ -57,7 +57,24 @@ void native_wkpf_invoke(u08_t mref) {
       wkpf_error_code = wkpf_internal_write_property_int16(endpoint, property_number, value);
     }
   } else if(mref == NATIVE_METHOD_GETPROPERTYBOOLEAN) {
-
+    uint8_t property_number = (uint8_t)stack_pop_int();
+    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+    wkpf_local_endpoint *endpoint;
+    wkpf_error_code = wkpf_get_endpoint_by_heap_id(virtual_profile_instance_heap_id, &endpoint);
+    if (wkpf_error_code == WKPF_OK) {
+      bool value;
+      wkpf_error_code = wkpf_internal_read_property_boolean(endpoint, property_number, &value);
+      if (wkpf_error_code == WKPF_OK)
+        stack_push(value);
+    }
   } else if(mref == NATIVE_METHOD_SETPROPERTYBOOLEAN) {
+    bool value = (int16_t)stack_pop_int();
+    uint8_t property_number = (uint8_t)stack_pop_int();
+    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+    wkpf_local_endpoint *endpoint;
+    wkpf_error_code = wkpf_get_endpoint_by_heap_id(virtual_profile_instance_heap_id, &endpoint);
+    if (wkpf_error_code == WKPF_OK) {
+      wkpf_error_code = wkpf_internal_write_property_boolean(endpoint, property_number, value);
+    }
   }
 }
