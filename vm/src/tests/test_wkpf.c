@@ -300,7 +300,7 @@ void test_update_for_native_profiles() {
   retval &= wkpf_get_endpoint_by_port(1, &endpoint);
   assert_equal_uint(retval, WKPF_OK, "register threshold profile and create endpoint");
 
-//  retval = wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_OPERATOR, THRESHOLD_PROFILE_OPERATOR_GT);
+  retval = wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_OPERATOR, THRESHOLD_PROFILE_OPERATOR_GT);
   retval &= wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_THRESHOLD, 1000);
   retval &= wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_VALUE, 800);
   assert_equal_uint(retval, WKPF_OK, "setup initial properties: operator=>, threshold=1000, value=800");

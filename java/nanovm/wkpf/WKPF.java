@@ -36,5 +36,11 @@ public class WKPF {
 	public static final byte ERR_WRONG_DATATYPE                     = 9;
 	public static final byte ERR_ENDPOINT_ALREADY_ALLOCATED        = 10;
     public static final byte ERR_NEED_VIRTUAL_PROFILE_INSTANCE     = 11;
-	public static final byte ERR_SHOULDNT_HAPPEN                 = (byte)0xFF;
+	public static final byte ERR_SHOULDNT_HAPPEN           = (byte)0xFF;
+
+    public static final byte PROFILE_ID_THRESHOLD                   = 1;
+    public static final byte PROPERTY_ID_THRESHOLD_OPERATOR         = 0;
+    public static final byte PROPERTY_ID_THRESHOLD_THRESHOLD        = 1;
+    public static final byte PROPERTY_ID_THRESHOLD_VALUE            = 2;
+    public static final byte PROPERTY_ID_THRESHOLD_OUTPUT           = 3;
 }
