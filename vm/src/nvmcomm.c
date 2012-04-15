@@ -214,4 +214,7 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
   }
 }
 
+address_t nvmcomm_get_node_id() {
+  return 77;
+}
 #endif // NVM_USE_COMM

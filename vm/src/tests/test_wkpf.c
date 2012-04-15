@@ -58,6 +58,12 @@ wkpf_profile_definition profile_b = {
   profile_b_properties
 };
 
+wkpf_profile_definition profile_virtual = {
+  0x1234, // profile id
+  NULL, // update function pointer
+  1, // Number of properties
+  profile_b_properties
+};
 
 void test_profiles() {
   int8_t retval;
@@ -136,21 +142,21 @@ void test_endpoints() {
   
   assert_equal_uint(wkpf_get_number_of_endpoints(), 0, "number of endpoints 0");
 
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, 0);
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile A at port 40");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 1, "number of endpoints 1");
 
   test_update_dummy = 0;
-  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, NULL);
+  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, 0);
   assert_equal_uint(retval, WKPF_OK, "create endpoint for profile B at port 80");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 2, "number of endpoints 2");
   assert_equal_uint(test_update_dummy, 2, "update function was called when creating endpoint");
 
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x80, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x80, 0);
   assert_equal_uint(retval, WKPF_ERR_PORT_IN_USE, "create another endpoint at port 80 should fail");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 2, "number of still endpoints 2");
 
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x81, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x81, 0);
   assert_equal_uint(retval, WKPF_OK, "but creating another instance of profile A at port 81 is allowed");
   assert_equal_uint(wkpf_get_number_of_endpoints(), 3, "number of endpoints 3");
 
@@ -186,6 +192,13 @@ void test_endpoints() {
   assert_equal_uint(endpoint->profile->profile_id, 0xFF42, "running profile 0xFF42");
   assert_equal_uint(endpoint->port_number, 0x81, "running on port 81");
 
+  retval = wkpf_register_profile(profile_virtual);
+  assert_equal_uint(retval, WKPF_OK, "registered fake virtual profile with id 0x1234");
+  retval = wkpf_create_endpoint(profile_virtual.profile_id, 0x82, 0);
+  assert_equal_uint(retval, WKPF_ERR_NEED_VIRTUAL_PROFILE_INSTANCE, "Can't create endpoint for virtual profile without an instance");
+  retval = wkpf_create_endpoint(profile_virtual.profile_id, 0x82, 1);
+  assert_equal_uint(retval, WKPF_OK, "Created endpoint for virtual profile with a profile instance");
+
   print_test_summary();
 }
 
@@ -198,8 +211,8 @@ void test_properties() {
   
   retval = wkpf_register_profile(profile_a);
   retval = wkpf_register_profile(profile_b);
-  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, NULL);
-  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, NULL);
+  retval = wkpf_create_endpoint(profile_a.profile_id, 0x40, 0);
+  retval = wkpf_create_endpoint(profile_b.profile_id, 0x80, 0);
   retval = wkpf_get_endpoint_by_port(0x40, &endpoint_a);
   retval = wkpf_get_endpoint_by_port(0x80, &endpoint_b);
   
@@ -283,11 +296,11 @@ void test_update_for_native_profiles() {
   wkpf_local_endpoint *endpoint;
   
   retval = wkpf_register_profile(profile_threshold);
-  retval &= wkpf_create_endpoint(profile_threshold.profile_id, 1, NULL);
+  retval &= wkpf_create_endpoint(profile_threshold.profile_id, 1, 0);
   retval &= wkpf_get_endpoint_by_port(1, &endpoint);
   assert_equal_uint(retval, WKPF_OK, "register threshold profile and create endpoint");
 
-//  retval = wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_OPERATOR, THRESHOLD_PROFILE_OPERATOR_GT);
+  retval = wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_OPERATOR, THRESHOLD_PROFILE_OPERATOR_GT);
   retval &= wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_THRESHOLD, 1000);
   retval &= wkpf_external_write_property_int16(endpoint, WKPF_PROPERTY_ID_THRESHOLD_VALUE, 800);
   assert_equal_uint(retval, WKPF_OK, "setup initial properties: operator=>, threshold=1000, value=800");

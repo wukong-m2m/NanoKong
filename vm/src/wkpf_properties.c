@@ -5,7 +5,7 @@
 #include "wkpf_properties.h"
 
 typedef struct property_entry_struct {
-  wkpf_local_endpoint *endpoint;
+  uint8_t endpoint_port_number;
   int8_t property_number;
   int16_t value;
 } property_entry;
@@ -16,7 +16,7 @@ property_entry properties[MAX_NUMBER_OF_PROPERTIES];
 
 uint8_t wkpf_read_property(wkpf_local_endpoint *endpoint, uint8_t property_number, int16_t *value) {
   for (int i=0; i<number_of_properties; i++) {
-    if (properties[i].endpoint == endpoint && properties[i].property_number == property_number) {
+    if (properties[i].endpoint_port_number == endpoint->port_number && properties[i].property_number == property_number) {
       DEBUGF_WKPF("WKPF read_property: value found at index %x: %x\n", i, properties[i].value);
       *value = properties[i].value;
       return WKPF_OK;
@@ -26,7 +26,7 @@ uint8_t wkpf_read_property(wkpf_local_endpoint *endpoint, uint8_t property_numbe
 }
 uint8_t wkpf_write_property(wkpf_local_endpoint *endpoint, uint8_t property_number, bool external_access, int16_t value) {
   for (int i=0; i<number_of_properties; i++) {
-    if (properties[i].endpoint == endpoint && properties[i].property_number == property_number) {
+    if (properties[i].endpoint_port_number == endpoint->port_number && properties[i].property_number == property_number) {
       DEBUGF_WKPF("WKPF write_property: writing value %x to property at index %x\n", properties[i].value, i);
       if (properties[i].value != value) {
         properties[i].value = value;
@@ -93,13 +93,13 @@ uint8_t wkpf_write_property_boolean(wkpf_local_endpoint *endpoint, uint8_t prope
 
 uint8_t wkpf_alloc_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
   for (int i=0; i<number_of_properties; i++)
-    if (properties[number_of_properties+i].endpoint == endpoint)
+    if (properties[i].endpoint_port_number == endpoint->port_number)
       return WKPF_ERR_ENDPOINT_ALREADY_ALLOCATED;
   if (number_of_properties+endpoint->profile->number_of_properties > MAX_NUMBER_OF_PROPERTIES)
     return WKPF_ERR_OUT_OF_MEMORY;
   DEBUGF_WKPF("WKPF: allocating properties for endpoint at port %x\n", endpoint->port_number);
   for (int i=0; i<endpoint->profile->number_of_properties; i++) {
-    properties[number_of_properties+i].endpoint = endpoint;
+    properties[number_of_properties+i].endpoint_port_number = endpoint->port_number;
     properties[number_of_properties+i].property_number = i;
     properties[number_of_properties+i].value = 0;
   }
@@ -111,9 +111,9 @@ uint8_t wkpf_free_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
   int16_t first=-1, last=-1;
   // Find the sequence of properties corresponding to this endpoint
   for (int i=0; i<number_of_properties; i++) {
-    if (first==-1 && properties[i].endpoint==endpoint)
+    if (first==-1 && properties[i].endpoint_port_number==endpoint->port_number)
       first = i;
-    if (first!=-1 && properties[i].endpoint!=endpoint)
+    if (first!=-1 && properties[i].endpoint_port_number!=endpoint->port_number)
       last = i;
   }
   if (last != -1) // If there are any, and there are other properties following after, shift them down to compact the property list

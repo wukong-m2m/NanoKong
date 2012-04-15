@@ -39,6 +39,8 @@
 #include "stack.h"
 #include "vm.h"
 
+#include "wkpf_endpoints.h"
+
 u08_t heap[HEAPSIZE];
 u16_t heap_base = 0;
 
@@ -427,12 +429,11 @@ void heap_garbage_collect(void) {
 #ifdef NVM_USE_HEAP_IDMAP
       if(!heap_id_marked(h->id)) {
 #else
-      if((!stack_heap_id_in_use(h->id))&&(!heap_fieldref(h->id))) {
+      if((!stack_heap_id_in_use(h->id))&&(!heap_fieldref(h->id))&&(!wkpf_heap_id_in_use(h->id))) {
 #endif
 	// it is not used, remove it
 	DEBUGF_HEAP("HEAP: removing unused object with id 0x%04x (len %d)\n",
 	       h->id, len);
-      
 	// move everything before to the top
 #ifdef NVM_USE_MEMCPY_UP
 	heap_memcpy_up(heap+heap_base+len, heap+heap_base, current-heap_base);
