@@ -110,9 +110,13 @@ void native_wkpf_invoke(u08_t mref) {
       if (endpoint->need_to_call_update) {
         endpoint->need_to_call_update = FALSE;
         stack_push(endpoint->virtual_profile_instance_heap_id | NVM_TYPE_MASK);
+        DEBUGF_WKPF("WKPF: WKPF.select returning profile at port %x.\n", endpoint->port_number);
         return;
       }
     }
-    stack_push(0); // null, I hope.
+    DEBUGF_WKPF("WKPF: WKPF.select didn't find any profile to return\n");
+    stack_push(0);
+  } else if (mref == NATIVE_WKPF_METHOD_GETNEXTDIRTYPROPERTY) {
+    stack_push(wkpf_get_next_dirty_property());
   }
 }

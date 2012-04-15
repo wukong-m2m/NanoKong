@@ -24,4 +24,6 @@ extern uint8_t wkpf_write_property_boolean(wkpf_local_endpoint *endpoint, uint8_
 extern uint8_t wkpf_alloc_properties_for_endpoint(wkpf_local_endpoint *endpoint);
 extern uint8_t wkpf_free_properties_for_endpoint(wkpf_local_endpoint *endpoint);
 
+extern uint16_t wkpf_get_next_dirty_property();
+
 #endif // WKPF_PROPERTIESH

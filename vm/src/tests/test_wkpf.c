@@ -251,6 +251,16 @@ void test_properties() {
   retval = wkpf_external_read_property_boolean(endpoint_a, 1,  &value_boolean);
   assert_equal_uint(value_boolean, TRUE, "value is now 1");
 
+  while(wkpf_get_next_dirty_property()) { } // Clear all dirty bits
+  retval = wkpf_external_write_property_boolean(endpoint_a, 1, TRUE);
+  retval = wkpf_external_write_property_boolean(endpoint_a, 1, FALSE);
+  assert_equal_uint(retval, WKPF_OK, "writing FALSE to property 1 of endpoint at port 0x40 using external write");
+  retval = wkpf_internal_write_property_int16(endpoint_a, 2, 0x2222);
+  assert_equal_uint(retval, WKPF_OK, "writing 0x2222 to property 2 of endpoint at port 0x40 using internal write");
+  value_int16 = wkpf_get_next_dirty_property();
+  assert_equal_uint(value_int16, 0x4001, "property 1 returned by wkpf_get_next_dirty_property");
+  value_int16 = wkpf_get_next_dirty_property();
+  assert_equal_uint(value_int16, 0x4002, "property 2 returned by wkpf_get_next_dirty_property");
 
   retval = wkpf_external_write_property_int16(endpoint_b, 0, 0xF1F1);
   assert_equal_uint(retval, WKPF_OK, "writing 0xF1F1 to property 0 of endpoint at port 0x80");

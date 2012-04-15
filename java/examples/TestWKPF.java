@@ -6,6 +6,12 @@ import java.io.*;
 import nanovm.wkpf.*;
 
 public class TestWKPF {
+    private static void callVirtualProfileUpdates() {
+        VirtualProfile profile;
+        while ((profile=WKPF.select())!=null)
+            profile.update();
+    }
+    
     public static void main(String[] args) {
         System.out.println("WuKong Profile Framework test");
 
@@ -82,7 +88,7 @@ public class TestWKPF {
         System.out.println("======="+WKPF.getErrorCode());
 
         System.out.println("Calling update() on profile returned by WKPF.select() (the threshold profile instance should be returned)");
-        WKPF.select().update();
+        callVirtualProfileUpdates();
 
         System.out.print("Getting output of threshold profile:");
         if(WKPF.getPropertyBoolean(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_OUTPUT))
@@ -96,7 +102,7 @@ public class TestWKPF {
         System.out.println("======="+WKPF.getErrorCode());
 
         System.out.println("Calling update() on profile returned by WKPF.select() (the threshold profile instance should be returned)");
-        WKPF.select().update();
+        callVirtualProfileUpdates();
 
         System.out.print("Getting output of threshold profile:");
         if(WKPF.getPropertyBoolean(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_OUTPUT))
@@ -116,12 +122,27 @@ public class TestWKPF {
         WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_VALUE, (short)123);
 
         System.out.println("Calling WKPF.select() again. It should still return null");
-        WKPF.select().update();
         nullProfile = WKPF.select();
         if (nullProfile == null)
             System.out.println("OK");
         else
             System.out.println("FAILED!");
+
+        System.out.println("Clearing dirty properties");
+        int dirtyProperty = 0;
+        while((dirtyProperty = WKPF.getNextDirtyProperty()) != 0) { }
+        
+        System.out.println("Setting value (property " + WKPF.PROPERTY_ID_THRESHOLD_VALUE + ") using external setPropertyShort method");
+        WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_ID_THRESHOLD_VALUE, (short)100);
+        System.out.println("Setting threshold (property " + WKPF.PROPERTY_ID_THRESHOLD_THRESHOLD + ") using internal setPropertyShort method (the one the profiles should use internally)");
+        WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_THRESHOLD, (short)200);
+        System.out.println("Both should be returned by WKPF.getNextDirtyProperty()");        
+        while((dirtyProperty = WKPF.getNextDirtyProperty()) != 0) {
+            int portNumber = (short)(dirtyProperty >> 8) & (short)0xFF;
+            int propertyNumber = dirtyProperty & (short)0xFF;
+            System.out.println("port: " + portNumber + " property: " + propertyNumber);
+        }
+        System.out.println("Done");
 
         System.out.println("WuKong Profile Framework test - done");
     }

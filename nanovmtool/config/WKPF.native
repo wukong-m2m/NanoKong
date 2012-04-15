@@ -15,3 +15,4 @@ method setPropertyBoolean:(Lnanovm/wkpf/VirtualProfile;BZ)V	8
 method setPropertyShort:(SBBS)V								9
 method setPropertyBoolean:(SBBZ)V							10
 method select:()Lnanovm/wkpf/VirtualProfile;				11
+method getNextDirtyProperty:()S								12

@@ -21,6 +21,9 @@ public class WKPF {
     // Select function for main loop
     public static native VirtualProfile select();
 
+    // Getting the properties which values have to be propagated in propertyDispatch
+    public static native short getNextDirtyProperty();
+
     // Note: need to match definitions in wkpf.h
 	public static final byte PROPERTY_TYPE_SHORT                         = 0;
 	public static final byte PROPERTY_TYPE_BOOLEAN                       = 1;
