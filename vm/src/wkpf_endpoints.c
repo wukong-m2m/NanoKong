@@ -36,6 +36,7 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t
   endpoints[number_of_endpoints].profile = profile;
   endpoints[number_of_endpoints].port_number = port_number;
   endpoints[number_of_endpoints].virtual_profile_instance_heap_id = virtual_profile_instance_heap_id;
+  endpoints[number_of_endpoints].need_to_call_update = FALSE;
   retval = wkpf_alloc_properties_for_endpoint(&endpoints[number_of_endpoints]);
   if (retval != WKPF_OK)
     return retval;
@@ -105,6 +106,8 @@ void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
   // Java update should be handled by returning from the WKPF.select() function
   if (WKPF_IS_NATIVE_ENDPOINT(endpoint))
     endpoint->profile->update(endpoint);
+  else
+    endpoint->need_to_call_update = TRUE;
 }
 
 bool wkpf_heap_id_in_use(heap_id_t heap_id) {

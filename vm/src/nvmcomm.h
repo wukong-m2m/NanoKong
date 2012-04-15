@@ -47,10 +47,11 @@ extern void nvmcomm_init(void);
 extern int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length);
 // Call this periodically to receive data
 extern void nvmcomm_poll(void);
+// Get my own node id
+extern address_t nvmcomm_get_node_id();
 
 extern uint8_t nvc3_appmsg_buf[NVMCOMM_MESSAGE_SIZE];
 extern uint8_t nvc3_appmsg_size;
-
 
 #endif // NVM_USE_COMM
 

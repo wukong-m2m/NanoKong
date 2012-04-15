@@ -73,16 +73,30 @@ public class TestWKPF {
         WKPF.createEndpoint((short)WKPF.PROFILE_ID_THRESHOLD, (byte)0x20, profileInstanceThreshold);
         System.out.println("======="+WKPF.getErrorCode());
 
-        System.out.println("setup initial properties: operator=>, threshold=1000, value=800");
-        WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_OPERATOR, VirtualThresholdProfile.THRESHOLD_PROFILE_OPERATOR_GT);
+        System.out.println("setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): operator=>, threshold=1000, value=1200");
+        WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_ID_THRESHOLD_OPERATOR, VirtualThresholdProfile.THRESHOLD_PROFILE_OPERATOR_GT);
         System.out.println("======="+WKPF.getErrorCode());
-        WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_THRESHOLD, (short)1000);
+        WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_ID_THRESHOLD_THRESHOLD, (short)1000);
         System.out.println("======="+WKPF.getErrorCode());
-        WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_VALUE, (short)800);
+        WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_ID_THRESHOLD_VALUE, (short)1200);
         System.out.println("======="+WKPF.getErrorCode());
 
-        System.out.println("Calling update() on profile manually (should be done by the framework eventually)");
-        profileInstanceThreshold.update();
+        System.out.println("Calling update() on profile returned by WKPF.select() (the threshold profile instance should be returned)");
+        WKPF.select().update();
+
+        System.out.print("Getting output of threshold profile:");
+        if(WKPF.getPropertyBoolean(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_OUTPUT))
+            System.out.println("TRUE");
+        else
+            System.out.println("FALSE");
+        System.out.println("======="+WKPF.getErrorCode());
+
+        System.out.println("setting value to 800");
+        WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_ID_THRESHOLD_VALUE, (short)800);
+        System.out.println("======="+WKPF.getErrorCode());
+
+        System.out.println("Calling update() on profile returned by WKPF.select() (the threshold profile instance should be returned)");
+        WKPF.select().update();
 
         System.out.print("Getting output of threshold profile:");
         if(WKPF.getPropertyBoolean(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_OUTPUT))
@@ -91,19 +105,23 @@ public class TestWKPF {
             System.out.println("FALSE");
         System.out.println("======="+WKPF.getErrorCode());
 
-        System.out.print("setting value to 1200");
-        WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_VALUE, (short)1200);
-        System.out.println("======="+WKPF.getErrorCode());
-
-        System.out.println("Calling update() on profile manually (should be done by the framework eventually)");
-        profileInstanceThreshold.update();
-
-        System.out.print("Getting output of threshold profile:");
-        if(WKPF.getPropertyBoolean(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_OUTPUT))
-            System.out.println("TRUE");
+        System.out.println("Calling WKPF.select() again. Should return null now");
+        VirtualProfile nullProfile = WKPF.select();
+        if (nullProfile == null)
+            System.out.println("OK");
         else
-            System.out.println("FALSE");
-        System.out.println("======="+WKPF.getErrorCode());
+            System.out.println("FAILED!");
+
+        System.out.println("Setting value using internal setPropertyShort method (the one the profiles should use internally)");
+        WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_ID_THRESHOLD_VALUE, (short)123);
+
+        System.out.println("Calling WKPF.select() again. It should still return null");
+        WKPF.select().update();
+        nullProfile = WKPF.select();
+        if (nullProfile == null)
+            System.out.println("OK");
+        else
+            System.out.println("FAILED!");
 
         System.out.println("WuKong Profile Framework test - done");
     }

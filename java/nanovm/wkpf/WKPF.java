@@ -14,6 +14,10 @@ public class WKPF {
     public static native boolean getPropertyBoolean(VirtualProfile virtualProfileInstance, byte propertyNumber);
     public static native void setPropertyBoolean(VirtualProfile virtualProfileInstance, byte propertyNumber, boolean value);
 
+    // Property setters used in propertyDispatch
+    public static native void setPropertyShort(short nodeId, byte portNumber, byte propertyNumber, short value);
+    public static native void setPropertyBoolean(short nodeId, byte portNumber, byte propertyNumber, boolean value);
+
     // Select function for main loop
     public static native VirtualProfile select();
 

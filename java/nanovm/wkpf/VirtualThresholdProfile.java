@@ -11,6 +11,10 @@ public class VirtualThresholdProfile extends VirtualProfile {
     public static final short THRESHOLD_PROFILE_OPERATOR_GT = 0;
     public static final short THRESHOLD_PROFILE_OPERATOR_LT = 1;
 
+    public void tmp2() {return;}
+
+    public void tmp() {return;}
+
     public void update() {
         // TODONR: replace these calls with convenience methods in VirtualProfile once we get the inheritance issue sorted out.
         short operator = WKPF.getPropertyShort(this, WKPF.PROPERTY_ID_THRESHOLD_OPERATOR);

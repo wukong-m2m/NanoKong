@@ -13,6 +13,7 @@ typedef struct wkpf_local_endpoint_struct {
     wkpf_profile_definition *profile;
     uint8_t port_number;
     heap_id_t virtual_profile_instance_heap_id; // Set for virtual profiles, 0 for native profiles
+    bool need_to_call_update;
 } wkpf_local_endpoint;
 
 extern uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t virtual_profile_instance_heap_id);
