@@ -1,5 +1,6 @@
 import java.io.*;
 import nanovm.wkpf.*;
+import nanovm.lang.Math;
 
 public class HAScenario {    
   private static final int COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1 = 0;
@@ -11,46 +12,22 @@ public class HAScenario {
   private static int lastPropagatedValue;
   
   private static final Endpoint[] componentInstanceToEndpointMapping = { // Indexed by component instance id.
-    new Endpoint(77, 1), // Thermostat
-    new Endpoint(77, 2), // Temperature sensor
-    new Endpoint(77, 3), // Threshold
-    new Endpoint(77, 4), // Heater
-  }
+    new Endpoint((byte)77, (byte)1), // Thermostat
+    new Endpoint((byte)77, (byte)2), // Temperature sensor
+    new Endpoint((byte)77, (byte)3), // Threshold
+    new Endpoint((byte)77, (byte)4), // Heater
+  };
   
-  public static EndPointId ComponentInstancetoEndpoint(int componentInstanceId) {
+  public static Endpoint ComponentInstancetoEndpoint(int componentInstanceId) {
     // INITIAL STATIC VERSION: This could later be replaced by something more dynamic, for now the table is a hardcoded constant
-    return endpointToComponentInstanceMapping[componentInstanceId];
+    return componentInstanceToEndpointMapping[componentInstanceId];
   }
 
-  public static void main(String[] args) {
-      myNodeId = WKPF.getMyNodeId();
-
-/*    if (myNodeId == 1) {
-      WKPF.setPropertyInt(ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_TEMPARATURESENSOR1), WKPF.PROFILEDEF_GENERAL_REFRESHRATE, 5000); // Sample the temperature every 5 seconds
-    }
-    if (myNodeId == 2) {
-      WKPF.addProfile(new ThresholdProfile(), 1); // Instantiate the threshold profile. INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new profile
-      WKPF.setPropertyInt(ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1), ThresholdProfile.PROFILEDEF_THRESHOLD_OPERATOR, ThresholdProfile.OPERATOR_LT); // Sample the temperature every 5 seconds
-    }*/
-
-
-    while(true) {
-      VirtualProfile profile = WKPF.select();
-      if (profile != null) {
-        profile.update();
-      }
-      propertyDispatch();
-    }
-  }
-
-  private static boolean match(short dirtyProperty, int componentInstanceId, byte portNumber) {
-    int portNumber = (short)(dirtyProperty >> 8) & (short)0xFF;
-    int dirtyPropertyNumber = dirtyProperty & (short)0xFF;  
+  private static boolean matchDirtyProperty(int componentInstanceId, byte propertyNumber) {
     Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
-
     return endpoint.nodeId == myNodeId
-        && endpoint.portNumber == portNumber
-        && portNumber == dirtyPortNumber;
+        && endpoint.portNumber == WKPF.getDirtyPropertyPortNumber()
+        && propertyNumber == WKPF.getDirtyPropertyNumber();
   }
   private static void setPropertyShort(int componentInstanceId, byte propertyNumber, short value) {      
       Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
@@ -61,19 +38,52 @@ public class HAScenario {
       WKPF.setPropertyBoolean(endpoint.nodeId, endpoint.portNumber, propertyNumber,value);
   }
 
-  public static void propertyDispatch() {
-    short dirtyProperty = null;
+  public static void main(String[] args) {
+    myNodeId = WKPF.getMyNodeId();
 
-    while((dirtyProperty = WKPF.getNextDirtyProperty()) != 0) {
-      if (Match(dirtyProperty, COMPONENT_INSTANCE_ID_TEMPARATURESENSOR1, WKPF.PROPERTY_TEMPERATURE_SENSOR_CURRENT_TEMPERATURE)) {
-        if (Math.Abs(lastPropagatedValue - dirtyProperty.valueInt) > 2) {
-          lastPropagatedValue = dirtyProperty.valueInt;
-          setPropertyInt(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROFILEDEF_THRESHOLD_VALUE, dirtyProperty.valueInt);
+    // ----- REGISTER VIRTUAL PROFILES -----
+    // Won't work now since we already have a native profile
+    // WKPF.registerProfile((short)WKPF.PROFILE_THRESHOLD, VirtualThresholdProfile.properties, (byte)VirtualThresholdProfile.properties.length);
+
+
+    // ----- INIT -----
+    // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new profile
+    // Setup the temperature sensor
+    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_TEMPARATURESENSOR1).nodeId == myNodeId) { 
+      setPropertyShort(COMPONENT_INSTANCE_ID_TEMPARATURESENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
+    }
+    // Create and setup the virtual threshold
+    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).nodeId == myNodeId) {
+      VirtualProfile profileInstanceThreshold = new VirtualThresholdProfile();
+      WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).portNumber, profileInstanceThreshold);
+      setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.OPERATOR_LT); // Sample the temperature every 5 seconds
+    }
+
+    // ----- MAIN LOOP -----
+    while(true) {
+      VirtualProfile profile = WKPF.select();
+      if (profile != null) {
+        profile.update();
+      }
+      propertyDispatch();
+    }
+  }
+
+  public static void propertyDispatch() {
+    while(WKPF.loadNextDirtyProperty()) {
+
+      if (matchDirtyProperty(COMPONENT_INSTANCE_ID_TEMPARATURESENSOR1, WKPF.PROPERTY_TEMPERATURE_SENSOR_CURRENT_TEMPERATURE)) {
+        short value = WKPF.getDirtyPropertyShortValue();
+        if (Math.abs(lastPropagatedValue - value) > 2) {
+          lastPropagatedValue = value;
+          setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_VALUE, value);
         }
-      } else if (Match(dirtyProperty, COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1, WKPF.PROFILEDEF_NUMERICCONTROLLER_OUT)) {
-          WKPF.setPropertyInt(ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1), WKPF.PROFILEDEF_THRESHOLD_THRESHOLD, dirtyProperty.valueInt);
-      } else if (Match(dirtyProperty, COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROFILEDEF_THRESHOLD_EXCEEDED)) {
-          WKPF.setPropertyBoolean(ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_HEATER1), WKPF.PROFILEDEF_HEATER_ONOFF, dirtyProperty.valueBoolean);
+
+      } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLER_OUTPUT)) {
+        setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_THRESHOLD, WKPF.getDirtyPropertyShortValue());
+
+      } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OUTPUT)) {
+        setPropertyBoolean(COMPONENT_INSTANCE_ID_HEATER1, WKPF.PROPERTY_HEATER_ONOFF, WKPF.getDirtyPropertyBooleanValue());
       }
     }
   }

@@ -8,8 +8,8 @@ public class VirtualThresholdProfile extends VirtualProfile {
             WKPF.PROPERTY_TYPE_BOOLEAN|WKPF.PROPERTY_ACCESS_READ // PROPERTY_THRESHOLD_OUTPUT
     };
 
-    public static final short THRESHOLD_PROFILE_OPERATOR_GT = 0;
-    public static final short THRESHOLD_PROFILE_OPERATOR_LT = 1;
+    public static final short OPERATOR_GT = 0;
+    public static final short OPERATOR_LT = 1;
 
     public void update() {
         // TODONR: replace these calls with convenience methods in VirtualProfile once we get the inheritance issue sorted out.
@@ -17,8 +17,8 @@ public class VirtualThresholdProfile extends VirtualProfile {
         short threshold = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_THRESHOLD);
         short value = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_VALUE);
 
-      	if ((operator == THRESHOLD_PROFILE_OPERATOR_GT && value > threshold)
-      	 || (operator == THRESHOLD_PROFILE_OPERATOR_LT && value < threshold)) {
+      	if ((operator == OPERATOR_GT && value > threshold)
+      	 || (operator == OPERATOR_LT && value < threshold)) {
             WKPF.setPropertyBoolean(this, WKPF.PROPERTY_THRESHOLD_OUTPUT, true);
         } else {
             WKPF.setPropertyBoolean(this, WKPF.PROPERTY_THRESHOLD_OUTPUT, false);
