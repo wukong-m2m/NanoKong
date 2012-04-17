@@ -5,6 +5,7 @@
 #include "wkpf_profiles.h"
 #include "wkpf_endpoints.h"
 #include "wkpf_properties.h"
+#include "wkpf_profile_library.h"
 
 #define WKPF_PROPERTY_TYPE_INT16        0
 #define WKPF_PROPERTY_TYPE_BOOLEAN      1
@@ -28,15 +29,6 @@
 #define WKPF_ERR_ENDPOINT_ALREADY_ALLOCATED        10
 #define WKPF_ERR_NEED_VIRTUAL_PROFILE_INSTANCE     11
 #define WKPF_ERR_SHOULDNT_HAPPEN                 0xFF
-
-#define WKPF_PROFILE_ID_GENERIC                     0
-#define WKPF_PROPERTY_ID_GENERIC_DUMMY              0
-
-#define WKPF_PROFILE_ID_THRESHOLD                   1
-#define WKPF_PROPERTY_ID_THRESHOLD_OPERATOR         0
-#define WKPF_PROPERTY_ID_THRESHOLD_THRESHOLD        1
-#define WKPF_PROPERTY_ID_THRESHOLD_VALUE            2
-#define WKPF_PROPERTY_ID_THRESHOLD_OUTPUT           3
 
 extern void wkpf_init();
 

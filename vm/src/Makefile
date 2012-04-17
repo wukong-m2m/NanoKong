@@ -22,7 +22,7 @@ CLASSES_PATH = $(ROOT_DIR)/java/classes
 EXAMPLES_PATH = $(ROOT_DIR)/java/examples
 NANOVM_PATH = $(ROOT_DIR)/java/nanovm
 WKPF_PATH = $(NANOVM_PATH)/wkpf
-JAVA_FILES += $(WKPF_PATH)/VirtualProfile.java $(WKPF_PATH)/VirtualThresholdProfile.java $(WKPF_PATH)/VirtualTestProfile.java $(WKPF_PATH)/WKPF.java $(DEFAULT_FILE)
+JAVA_FILES += $(WKPF_PATH)/VirtualProfile.java $(WKPF_PATH)/VirtualThresholdProfile.java $(WKPF_PATH)/Endpoint.java $(WKPF_PATH)/WKPF.java $(DEFAULT_FILE)
 
 JAR_FILE = NanoKong.jar
 

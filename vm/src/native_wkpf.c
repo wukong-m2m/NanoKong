@@ -8,6 +8,9 @@
 
 uint8_t wkpf_error_code = 0;
 
+uint8_t wkpf_dirty_property_port_number;
+uint8_t wkpf_dirty_property_number;
+
 void native_wkpf_invoke(u08_t mref) {
   
   if(mref == NATIVE_WKPF_METHOD_GETERRORCODE) {
@@ -59,14 +62,7 @@ void native_wkpf_invoke(u08_t mref) {
     }
   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYBOOLEAN) {
     uint8_t property_number = (uint8_t)stack_pop_int();
-//    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-
-    heap_id_t virtual_profile_instance_heap_id = stack_pop();
-    DEBUGF_WKPF("==================  %x\n", virtual_profile_instance_heap_id);
-    virtual_profile_instance_heap_id &= ~NVM_TYPE_MASK;
-
-
-
+    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
     wkpf_local_endpoint *endpoint;
     wkpf_error_code = wkpf_get_endpoint_by_heap_id(virtual_profile_instance_heap_id, &endpoint);
     if (wkpf_error_code == WKPF_OK) {
@@ -102,6 +98,22 @@ void native_wkpf_invoke(u08_t mref) {
       wkpf_error_code = WKPF_OK;
     }
   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYBOOLEAN_REMOTE) {
+    bool value = (int16_t)stack_pop_int();
+    uint8_t property_number = (uint8_t)stack_pop_int();
+    uint8_t port_number = (uint8_t)stack_pop_int();
+    int16_t node_id = (int16_t)stack_pop_int();
+    address_t my_node_id = nvmcomm_get_node_id();
+    if (node_id == my_node_id) {
+      wkpf_local_endpoint *endpoint;
+      wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
+      if (wkpf_error_code == WKPF_OK) {
+        DEBUGF_WKPF("Local property update from propertyDispatch. Port %x, property %x, value %x\n", port_number, property_number, value);
+        wkpf_error_code = wkpf_external_write_property_boolean(endpoint, property_number, value);
+      }
+    } else {
+      DEBUGF_WKPF("Remote property updates not yet implemented.\n");
+      wkpf_error_code = WKPF_OK;
+    }
   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
     uint8_t number_of_endpoints = wkpf_get_number_of_endpoints();
     for (int i=0; i<number_of_endpoints; i++) {
@@ -116,7 +128,31 @@ void native_wkpf_invoke(u08_t mref) {
     }
     DEBUGF_WKPF("WKPF: WKPF.select didn't find any profile to return\n");
     stack_push(0);
-  } else if (mref == NATIVE_WKPF_METHOD_GETNEXTDIRTYPROPERTY) {
-    stack_push(wkpf_get_next_dirty_property());
+  } else if (mref == NATIVE_WKPF_METHOD_GETMYNODEID) {
+    stack_push(nvmcomm_get_node_id());    
+  } else if (mref == NATIVE_WKPF_METHOD_LOADNEXTDIRTYPROPERTY) {
+    stack_push(wkpf_get_next_dirty_property(&wkpf_dirty_property_port_number, &wkpf_dirty_property_number));
+  } else if (mref == NATIVE_WKPF_METHOD_GETDIRTYPROPERTYPORTNUMBER) {
+    stack_push(wkpf_dirty_property_port_number);
+  } else if (mref == NATIVE_WKPF_METHOD_GETDIRTYPROPERTYNUMBER) {
+    stack_push(wkpf_dirty_property_number);
+  } else if (mref == NATIVE_WKPF_METHOD_GETDIRTYPROPERTYSHORTVALUE) {
+    wkpf_local_endpoint *endpoint;
+    wkpf_error_code = wkpf_get_endpoint_by_port(wkpf_dirty_property_port_number, &endpoint);
+    if (wkpf_error_code == WKPF_OK) {
+      int16_t value;
+      wkpf_error_code = wkpf_internal_read_property_int16(endpoint, wkpf_dirty_property_number, &value);
+      if (wkpf_error_code == WKPF_OK)
+        stack_push(value);
+    }
+  } else if (mref == NATIVE_WKPF_METHOD_GETDIRTYPROPERTYBOOLEANVALUE) {
+    wkpf_local_endpoint *endpoint;
+    wkpf_error_code = wkpf_get_endpoint_by_port(wkpf_dirty_property_port_number, &endpoint);
+    if (wkpf_error_code == WKPF_OK) {
+      bool value;
+      wkpf_error_code = wkpf_internal_read_property_boolean(endpoint, wkpf_dirty_property_number, &value);
+      if (wkpf_error_code == WKPF_OK)
+        stack_push(value);
+    }
   }
 }

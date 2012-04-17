@@ -127,14 +127,16 @@ uint8_t wkpf_free_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
   return WKPF_OK;
 }
 
-uint16_t wkpf_get_next_dirty_property() {
+bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number) {
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].is_dirty && properties[i].endpoint_port_number!=0) { // Skip the generic profile
       properties[i].is_dirty = FALSE;
 //      DEBUGF_WKPF("DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
-      return ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number;
+      *port_number = properties[i].endpoint_port_number;
+      *property_number = properties[i].property_number;
+      return TRUE;
     }
 //    DEBUGF_WKPF("NOT DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
   }
-  return 0; // property 0 on port 0 will never be dirty since it's in the generic profile.
+  return FALSE;
 }

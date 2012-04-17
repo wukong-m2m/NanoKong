@@ -8,7 +8,7 @@ public class WKPF {
     public static native void createEndpoint(short profileId, byte portNumber, VirtualProfile virtualProfileInstance); // byte or short? No unsigned byte in Java ><
     public static native void removeEndpoint(byte portNumber);
 
-    // Property access
+    // Property access for virtual profiles
     public static native short getPropertyShort(VirtualProfile virtualProfileInstance, byte propertyNumber);
     public static native void setPropertyShort(VirtualProfile virtualProfileInstance, byte propertyNumber, short value);
     public static native boolean getPropertyBoolean(VirtualProfile virtualProfileInstance, byte propertyNumber);
@@ -22,7 +22,14 @@ public class WKPF {
     public static native VirtualProfile select();
 
     // Getting the properties which values have to be propagated in propertyDispatch
-    public static native short getNextDirtyProperty();
+    public static native boolean loadNextDirtyProperty();
+    public static native byte getDirtyPropertyPortNumber();
+    public static native byte getDirtyPropertyNumber();
+    public static native short getDirtyPropertyShortValue();
+    public static native boolean getDirtyPropertyBooleanValue();
+
+    // Who am I?
+    public static native short getMyNodeId();
 
     // Note: need to match definitions in wkpf.h
 	public static final byte PROPERTY_TYPE_SHORT                         = 0;
@@ -45,9 +52,25 @@ public class WKPF {
     public static final byte ERR_NEED_VIRTUAL_PROFILE_INSTANCE     = 11;
 	public static final byte ERR_SHOULDNT_HAPPEN           = (byte)0xFF;
 
-    public static final byte PROFILE_ID_THRESHOLD                   = 1;
-    public static final byte PROPERTY_ID_THRESHOLD_OPERATOR         = 0;
-    public static final byte PROPERTY_ID_THRESHOLD_THRESHOLD        = 1;
-    public static final byte PROPERTY_ID_THRESHOLD_VALUE            = 2;
-    public static final byte PROPERTY_ID_THRESHOLD_OUTPUT           = 3;
+    // Profile library
+    public static final byte PROPERTY_COMMON_REFRESHRATE                         = 0; // TODO: implement this
+    public static final byte PROP_BASE                                           = 0;
+
+    public static final byte PROFILE_GENERIC                                     = 0;
+    public static final byte PROPERTY_GENERIC_DUMMY                              = (WKPF.PROP_BASE+0);
+
+    public static final byte PROFILE_THRESHOLD                                   = 1;
+    public static final byte PROPERTY_THRESHOLD_OPERATOR                         = (WKPF.PROP_BASE+0);
+    public static final byte PROPERTY_THRESHOLD_THRESHOLD                        = (WKPF.PROP_BASE+1);
+    public static final byte PROPERTY_THRESHOLD_VALUE                            = (WKPF.PROP_BASE+2);
+    public static final byte PROPERTY_THRESHOLD_OUTPUT                           = (WKPF.PROP_BASE+3);
+
+    public static final byte PROFILE_TEMPERATURE_SENSOR                          = 2;
+    public static final byte PROPERTY_TEMPERATURE_SENSOR_CURRENT_TEMPERATURE     = (WKPF.PROP_BASE+0);
+
+    public static final byte PROFILE_NUMERIC_CONTROLER                           = 3;
+    public static final byte PROPERTY_NUMERIC_CONTROLER_OUTPUT                   = (WKPF.PROP_BASE+0);
+
+    public static final byte PROFILE_HEATER                                      = 4;
+    public static final byte PROPERTY_HEATER_ONOFF                               = (WKPF.PROP_BASE+0);
 }
