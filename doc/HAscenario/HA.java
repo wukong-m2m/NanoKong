@@ -34,7 +34,7 @@ public class HA {
   private final int COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1 = 0;
   private final int COMPONENT_INSTANCE_ID_TEMPARATURESENSOR1 = 1;
   private final int COMPONENT_INSTANCE_ID_THRESHOLD1 = 2;
-  private final int COMPONENT_INSTANCE_ID_HEATER1 = 3;
+  private final int COMPONENT_INSTANCE_ID_LIGHT1 = 3;
   
   private final Endpoint[] componentInstanceToEndpointMapping = { // Indexed by component instance id.
     new EndpointId(0x1234, 0), // Thermostat controller at node 0, port 0
@@ -82,7 +82,7 @@ public class HA {
           WKPF.setPropertyInt(ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1), WKPF.PROFILEDEF_THRESHOLD_THRESHOLD, dirtyProperty.valueInt);
       } else if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1) == dirtyProperty.endpointId
                  && dirtyProperty.propertyId == WKPF.PROFILEDEF_THRESHOLD_EXCEEDED) {
-          WKPF.setPropertyBoolean(ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_HEATER1), WKPF.PROFILEDEF_HEATER_ONOFF, dirtyProperty.valueBoolean);
+          WKPF.setPropertyBoolean(ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHT1), WKPF.PROFILEDEF_LIGHT_ONOFF, dirtyProperty.valueBoolean);
       }
     }
   }

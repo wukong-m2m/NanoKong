@@ -32,7 +32,7 @@ public final static class WKPF {
 	// Profile IDs
 	public static final int PROFILEDEF_TEMPERATURESENSOR = 0;
 	public static final int PROFILEDEF_NUMERICCONTROLLER = 1;
-	public static final int PROFILEDEF_HEATER = 2;
+	public static final int PROFILEDEF_LIGHT = 2;
 
 	// Property IDs	
 	public static final int PROFILEDEF_GENERAL_REFRESHRATE = 0; // Common for all profiles
@@ -41,7 +41,7 @@ public final static class WKPF {
 
 	public static final int PROFILEDEF_NUMERICCONTROLLER_OUT = 1;
 
-	public static final int PROFILEDEF_HEATER_ONOFF = 1;
+	public static final int PROFILEDEF_LIGHT_ONOFF = 1;
 
 
 	public static int getMyNodeId() { ... }
