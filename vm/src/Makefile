@@ -12,7 +12,7 @@ NVM_OBJS = NanoVM.o nvmfile.o vm.o heap.o array.o \
 	native_math.o native_formatter.o nvmstring.o \
 	nvmcomm.o nvmcomm_zwave.o native_nvmcomm.o nvmcomm_xbee.o \
 	wkpf.o wkpf_properties.o wkpf_endpoints.o wkpf_profiles.o \
-	native_wkpf.o
+	wkpf_comm.o native_wkpf.o
 
 OBJS += $(NVM_OBJS)
 
@@ -22,7 +22,7 @@ CLASSES_PATH = $(ROOT_DIR)/java/classes
 EXAMPLES_PATH = $(ROOT_DIR)/java/examples
 NANOVM_PATH = $(ROOT_DIR)/java/nanovm
 WKPF_PATH = $(NANOVM_PATH)/wkpf
-JAVA_FILES += $(WKPF_PATH)/VirtualProfile.java $(WKPF_PATH)/VirtualThresholdProfile.java $(WKPF_PATH)/VirtualTestProfile.java $(WKPF_PATH)/WKPF.java $(WKPF_PATH)/TestInheritanceSuper.java $(WKPF_PATH)/TestInheritanceSub.java $(DEFAULT_FILE)
+JAVA_FILES += $(WKPF_PATH)/VirtualProfile.java $(WKPF_PATH)/VirtualThresholdProfile.java $(WKPF_PATH)/Endpoint.java $(WKPF_PATH)/WKPF.java $(NANOVM_PATH)/lang/Math.java $(DEFAULT_FILE)
 
 JAR_FILE = NanoKong.jar
 

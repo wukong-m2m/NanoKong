@@ -143,5 +143,4 @@ public class AVR {
   public static final int ANALOG13    = 67;
   public static final int ANALOG14    = 68;
   public static final int ANALOG15    = 69;
-
 }
