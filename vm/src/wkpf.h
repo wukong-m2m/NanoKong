@@ -6,6 +6,7 @@
 #include "wkpf_endpoints.h"
 #include "wkpf_properties.h"
 #include "wkpf_profile_library.h"
+#include "wkpf_comm.h"
 
 #define WKPF_PROPERTY_TYPE_INT16        0
 #define WKPF_PROPERTY_TYPE_BOOLEAN      1
@@ -15,6 +16,8 @@
 
 #define WKPF_IS_READONLY_PROPERTY(x)    ((~x) & WKPF_PROPERTY_ACCESS_WRITE)
 #define WKPF_IS_WRITEONLY_PROPERTY(x)   ((~x) & WKPF_PROPERTY_ACCESS_READ)
+#define WKPF_GET_PROPERTY_DATATYPE(x)   ((x) & ~WKPF_PROPERTY_ACCESS_RW)
+
 
 #define WKPF_OK                                     0
 #define WKPF_ERR_ENDPOINT_NOT_FOUND                 1
@@ -28,6 +31,8 @@
 #define WKPF_ERR_WRONG_DATATYPE                     9
 #define WKPF_ERR_ENDPOINT_ALREADY_ALLOCATED        10
 #define WKPF_ERR_NEED_VIRTUAL_PROFILE_INSTANCE     11
+#define WKPF_ERR_NVMCOMM_SEND_ERROR                12
+#define WKPF_ERR_NVMCOMM_NO_REPLY                  13
 #define WKPF_ERR_SHOULDNT_HAPPEN                 0xFF
 
 extern void wkpf_init();

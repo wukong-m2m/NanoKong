@@ -12,10 +12,10 @@ public class HAScenario {
   private static int lastPropagatedValue;
   
   private static final Endpoint[] componentInstanceToEndpointMapping = { // Indexed by component instance id.
-    new Endpoint((byte)77, (byte)1), // Thermostat
-    new Endpoint((byte)77, (byte)2), // Temperature sensor
-    new Endpoint((byte)77, (byte)3), // Threshold
-    new Endpoint((byte)77, (byte)4), // Heater
+    new Endpoint((byte)77, (byte)1, WKPF.PROFILE_NUMERIC_CONTROLLER), // Thermostat
+    new Endpoint((byte)77, (byte)2, WKPF.PROFILE_TEMPERATURE_SENSOR), // Temperature sensor
+    new Endpoint((byte)77, (byte)3, WKPF.PROFILE_THRESHOLD), // Threshold
+    new Endpoint((byte)77, (byte)4, WKPF.PROFILE_HEATER), // Heater
   };
   
   public static Endpoint ComponentInstancetoEndpoint(int componentInstanceId) {
@@ -31,11 +31,11 @@ public class HAScenario {
   }
   private static void setPropertyShort(int componentInstanceId, byte propertyNumber, short value) {      
       Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
-      WKPF.setPropertyShort(endpoint.nodeId, endpoint.portNumber, propertyNumber,value);
+      WKPF.setPropertyShort(endpoint.nodeId, endpoint.portNumber, propertyNumber, endpoint.profileId, value);
   }
   private static void setPropertyBoolean(int componentInstanceId, byte propertyNumber, boolean value) {
       Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
-      WKPF.setPropertyBoolean(endpoint.nodeId, endpoint.portNumber, propertyNumber,value);
+      WKPF.setPropertyBoolean(endpoint.nodeId, endpoint.portNumber, propertyNumber, endpoint.profileId, value);
   }
 
   public static void main(String[] args) {
@@ -79,7 +79,7 @@ public class HAScenario {
           setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_VALUE, value);
         }
 
-      } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLER_OUTPUT)) {
+      } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT)) {
         setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_THRESHOLD, WKPF.getDirtyPropertyShortValue());
 
       } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OUTPUT)) {

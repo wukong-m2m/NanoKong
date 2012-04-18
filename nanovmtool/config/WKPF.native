@@ -12,8 +12,8 @@ method getPropertyShort:(Lnanovm/wkpf/VirtualProfile;B)S	5
 method setPropertyShort:(Lnanovm/wkpf/VirtualProfile;BS)V	6
 method getPropertyBoolean:(Lnanovm/wkpf/VirtualProfile;B)Z	7
 method setPropertyBoolean:(Lnanovm/wkpf/VirtualProfile;BZ)V	8
-method setPropertyShort:(SBBS)V								9
-method setPropertyBoolean:(SBBZ)V							10
+method setPropertyShort:(SBBSS)V							9
+method setPropertyBoolean:(SBBSZ)V							10
 method select:()Lnanovm/wkpf/VirtualProfile;				11
 method getMyNodeId:()S										12
 method loadNextDirtyProperty:()Z							13

@@ -51,7 +51,7 @@ uint8_t wkpf_verify_property(wkpf_local_endpoint *endpoint, uint8_t property_num
     if (access == WKPF_PROPERTY_ACCESS_WRITE && WKPF_IS_READONLY_PROPERTY(property))
       return WKPF_ERR_READ_ONLY;
   }
-  if (type != (property & ~WKPF_PROPERTY_ACCESS_RW))
+  if (type != WKPF_GET_PROPERTY_DATATYPE(property))
     return WKPF_ERR_WRONG_DATATYPE;
   return WKPF_OK;
 }

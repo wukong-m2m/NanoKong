@@ -14,8 +14,8 @@
 #define WKPF_PROFILE_TEMPERATURE_SENSOR                           2
 #define WKPF_PROPERTY_TEMPERATURE_SENSOR_CURRENT_TEMPERATURE      (WKPF_PROP_BASE+0)
 
-#define WKPF_PROFILE_NUMERIC_CONTROLER                            3
-#define WKPF_PROPERTY_NUMERIC_CONTROLER_OUTPUT                    (WKPF_PROP_BASE+0)
+#define WKPF_PROFILE_NUMERIC_CONTROLLER                            3
+#define WKPF_PROPERTY_NUMERIC_CONTROLLER_OUTPUT                    (WKPF_PROP_BASE+0)
 
 #define WKPF_PROFILE_HEATER                                       4
 #define WKPF_PROPERTY_HEATER_ONOFF                                (WKPF_PROP_BASE+0)

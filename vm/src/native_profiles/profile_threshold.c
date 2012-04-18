@@ -30,8 +30,8 @@ void profile_threshold_update(wkpf_local_endpoint *endpoint) {
   wkpf_internal_read_property_int16(endpoint, WKPF_PROPERTY_THRESHOLD_THRESHOLD, &threshold);
   wkpf_internal_read_property_int16(endpoint, WKPF_PROPERTY_THRESHOLD_VALUE, &value);
 
-	if ((operator == THRESHOLD_PROFILE_OPERATOR_GT && value > threshold)
-	 || (operator == THRESHOLD_PROFILE_OPERATOR_LT && value < threshold)) {
+	if ((operator == OPERATOR_GT && value > threshold)
+	 || (operator == OPERATOR_LT && value < threshold)) {
     wkpf_internal_write_property_boolean(endpoint, WKPF_PROPERTY_THRESHOLD_OUTPUT, TRUE);
   }
 	else {
