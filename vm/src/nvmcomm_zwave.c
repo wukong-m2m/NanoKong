@@ -28,6 +28,7 @@
 #define COMMAND_CLASS_PROPRIETARY   0x88
 
 #define ZWAVE_REQ_SENDDATA     0x13
+#define FUNC_ID_MEMORY_GET_ID  0x20
 
 #define ZWAVE_ACK              0x06
 
@@ -49,6 +50,7 @@ void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // T
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
 int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t txoptions);
+int SerialAPI_request(unsigned char *buf, int len);
 
 bool addr_nvmcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
     // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
@@ -178,6 +180,12 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
   else
     return -1; // Not a ZWave address
 // TODO  expire = millis()+1000;
+}
+
+// Get the ID of this node
+address_t nvmcomm_zwave_get_node_id() {
+  unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
+	return (address_t)SerialAPI_request(buf, 2);
 }
 
 

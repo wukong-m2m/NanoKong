@@ -217,6 +217,10 @@ nvmcomm_message *nvmcomm_wait(u16_t wait_msec, u08_t *commands, u08_t number_of_
 }
 
 address_t nvmcomm_get_node_id() {
-  return 77;
+#ifdef NVM_USE_COMMZWAVE
+  return nvmcomm_zwave_get_node_id();
+#else
+  return 0;
+#endif // NVM_USE_COMMZWAVE
 }
 #endif // NVM_USE_COMM
