@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#define MAX_NUMBER_OF_PROFILES 6
 #define WKPF_IS_NATIVE_PROFILE(x)               (x->update != NULL)
 #define WKPF_IS_VIRTUAL_PROFILE(x)              (x->update == NULL)
 

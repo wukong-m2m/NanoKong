@@ -56,7 +56,7 @@ public class WKPF {
   public static final byte PROPERTY_COMMON_REFRESHRATE                         = 0; // TODO: implement this
   public static final byte PROP_BASE                                           = 0;
 
-  public static final short PROFILE_GENERIC                                   = 0;
+  public static final short PROFILE_GENERIC                                    = 0;
   public static final byte PROPERTY_GENERIC_DUMMY                              = (WKPF.PROP_BASE+0);
 
   public static final short PROFILE_THRESHOLD                                  = 1;
@@ -68,9 +68,12 @@ public class WKPF {
   public static final short PROFILE_TEMPERATURE_SENSOR                         = 2;
   public static final byte PROPERTY_TEMPERATURE_SENSOR_CURRENT_TEMPERATURE     = (WKPF.PROP_BASE+0);
 
-  public static final short PROFILE_NUMERIC_CONTROLLER                          = 3;
-  public static final byte PROPERTY_NUMERIC_CONTROLLER_OUTPUT                   = (WKPF.PROP_BASE+0);
+  public static final short PROFILE_NUMERIC_CONTROLLER                         = 3;
+  public static final byte PROPERTY_NUMERIC_CONTROLLER_OUTPUT                  = (WKPF.PROP_BASE+0);
 
-  public static final short PROFILE_HEATER                                     = 4;
-  public static final byte PROPERTY_HEATER_ONOFF                               = (WKPF.PROP_BASE+0);
+  public static final short PROFILE_LIGHT                                      = 4;
+  public static final byte PROPERTY_LIGHT_ONOFF                                = (WKPF.PROP_BASE+0);
+
+  public static final short PROFILE_LIGHT_SENSOR                               = 5;
+  public static final byte PROPERTY_LIGHT_SENSOR_CURRENT_VALUE                 = (WKPF.PROP_BASE+0);
 }

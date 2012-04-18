@@ -23,7 +23,7 @@
 // enable simple unittests for profile framework (choose 1)
 //#define TEST_WKPF_PROFILES
 //#define TEST_WKPF_ENDPOINTS
-//#define TEST_WKPF_PROPERTIES
+#define TEST_WKPF_PROPERTIES
 //#define TEST_WKPF_NATIVE_PROFILES
 //#define TEST_WKPF_UPDATE_FOR_NATIVE_PROFILES
 #if defined(TEST_WKPF_PROFILES) || defined(TEST_WKPF_ENDPOINTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_PROFILES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_PROFILES)

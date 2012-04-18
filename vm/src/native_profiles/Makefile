@@ -6,7 +6,10 @@ NATIVE_PROFILES_DIR = $(ROOT_DIR)/vm/src/native_profiles
 NATIVE_PROFILES_OBJS = \
     native_profiles.o \
     profile_generic.o \
-    profile_threshold.o
+    profile_threshold.o \
+    profile_numeric_controller.o \
+    profile_light.o \
+    profile_light_sensor.o
 
 OBJS += $(NATIVE_PROFILES_OBJS)
 
