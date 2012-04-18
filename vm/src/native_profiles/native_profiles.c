@@ -21,10 +21,29 @@ uint8_t native_profiles_init() {
     return retval;
   
 #ifdef ENABLE_PROFILE_THRESHOLD
-  retval = register_profile_and_create_endpoint(&profile_threshold, 0x1);
+  retval = wkpf_register_profile(profile_threshold);
   if (retval != WKPF_OK)
     return retval;
 #endif // ENABLE_PROFILE_THRESHOLD
+
+#ifdef ENABLE_PROFILE_NUMERIC_CONTROLER
+  retval = wkpf_register_profile(profile_numeric_controller);
+  if (retval != WKPF_OK)
+    return retval;
+#endif // ENABLE_PROFILE_NUMERIC_CONTROLER
+
+#ifdef ENABLE_PROFILE_LIGHT
+  retval = wkpf_register_profile(profile_light);
+  if (retval != WKPF_OK)
+    return retval;
+#endif // ENABLE_PROFILE_LIGHT
+
+#ifdef ENABLE_PROFILE_LIGHT_SENSOR
+  retval = wkpf_register_profile(profile_light_sensor);
+  if (retval != WKPF_OK)
+    return retval;
+#endif // ENABLE_PROFILE_LIGHT_SENSOR
+
 
   return WKPF_OK;
 }
