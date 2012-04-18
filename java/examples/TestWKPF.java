@@ -29,6 +29,7 @@ public class TestWKPF {
       passedCount++;
     } else {
       System.out.println("----------->FAIL: " + message);
+      System.out.println("Expected: " + expected + " Got: " + value);
       failedCount++;
     }
   }
@@ -94,18 +95,18 @@ public class TestWKPF {
     WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, (byte)0x20, profileInstanceThreshold);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating endpoint for virtual Threshold profile at port 0x20.");
 
-    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.THRESHOLD_PROFILE_OPERATOR_GT);
+    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.PROFILE_THRESHOLD, VirtualThresholdProfile.OPERATOR_GT);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): operator=>");
-    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)1000);
+    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_THRESHOLD, WKPF.PROFILE_THRESHOLD, (short)1000);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): threshold=1000");
-    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
+    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_VALUE, WKPF.PROFILE_THRESHOLD, (short)1200);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): value=1200");
 
     callVirtualProfileUpdates();
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Calling update() on profile returned by WKPF.select() (the threshold profile instance should be returned).");
     assertEqualBoolean(WKPF.getPropertyBoolean(profileInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), true, "Getting output of threshold profile, should be true.");
 
-    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_VALUE, (short)800);
+    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_VALUE, WKPF.PROFILE_THRESHOLD, (short)800);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting value to 800");
     callVirtualProfileUpdates();
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Calling update() on profile returned by WKPF.select() (the threshold profile instance should be returned).");
@@ -122,7 +123,7 @@ public class TestWKPF {
 
     WKPF.setPropertyShort(profileInstanceThreshold, WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)200);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting threshold (property " + WKPF.PROPERTY_THRESHOLD_THRESHOLD + ") to 200 using internal setPropertyShort method (the one the profiles should use internally)");
-    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_VALUE, (short)500);
+    WKPF.setPropertyShort((short)77, (byte)0x20, WKPF.PROPERTY_THRESHOLD_VALUE, WKPF.PROFILE_THRESHOLD, (short)500);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting value (property " + WKPF.PROPERTY_THRESHOLD_VALUE + ") to 500 using external setPropertyShort method.");
     callVirtualProfileUpdates();
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Calling update() on profile returned by WKPF.select() (the threshold profile instance should be returned).");

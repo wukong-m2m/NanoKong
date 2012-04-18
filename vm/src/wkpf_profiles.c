@@ -4,7 +4,6 @@
 #include "wkpf.h"
 #include "wkpf_profiles.h"
 
-#define MAX_NUMBER_OF_PROFILES 5
 uint8_t number_of_profiles;
 wkpf_profile_definition profiles[MAX_NUMBER_OF_PROFILES];
 

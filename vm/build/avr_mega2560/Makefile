@@ -5,8 +5,8 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-#DEFAULT_CLASS = TestWKPF
-DEFAULT_CLASS = HAScenario
+DEFAULT_CLASS = TestWKPF
+#DEFAULT_CLASS = HAScenario
 
 PORT = /dev/tty.usbmodem411
 
