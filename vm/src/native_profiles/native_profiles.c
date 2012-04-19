@@ -46,11 +46,14 @@ uint8_t native_profiles_init() {
 
   // TODONR TMP hard code everything on this node
   retval = wkpf_create_endpoint(profile_numeric_controller.profile_id, 1, 0); // Thermostat
-  DEBUGF_WKPF("retval = %x\n", retval);
+  if (retval != WKPF_OK)
+    DEBUGF_WKPF("retval = %x\n", retval);
   retval = wkpf_create_endpoint(profile_light_sensor.profile_id, 2, 0); // Light sensor
-  DEBUGF_WKPF("retval = %x\n", retval);
+  if (retval != WKPF_OK)
+    DEBUGF_WKPF("retval = %x\n", retval);
   retval = wkpf_create_endpoint(profile_light.profile_id, 4, 0); // Light
-  DEBUGF_WKPF("retval = %x\n", retval);
+  if (retval != WKPF_OK)
+    DEBUGF_WKPF("retval = %x\n", retval);
 
   return WKPF_OK;
 }

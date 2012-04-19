@@ -18,7 +18,7 @@ property_entry properties[MAX_NUMBER_OF_PROPERTIES];
 uint8_t wkpf_read_property(wkpf_local_endpoint *endpoint, uint8_t property_number, int16_t *value) {
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].endpoint_port_number == endpoint->port_number && properties[i].property_number == property_number) {
-      DEBUGF_WKPF("WKPF read_property: value found at index %x (port %x, property %x): %x\n", i, endpoint->port_number, property_number, properties[i].value);
+      DEBUGF_WKPF("WKPF read_property: (index %x port %x, property %x): %x\n", i, endpoint->port_number, property_number, properties[i].value);
       *value = properties[i].value;
       return WKPF_OK;
     }
@@ -28,7 +28,7 @@ uint8_t wkpf_read_property(wkpf_local_endpoint *endpoint, uint8_t property_numbe
 uint8_t wkpf_write_property(wkpf_local_endpoint *endpoint, uint8_t property_number, bool external_access, int16_t value) {
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].endpoint_port_number == endpoint->port_number && properties[i].property_number == property_number) {
-      DEBUGF_WKPF("WKPF write_property: writing value %x to property at index %x (port %x, property %x)\n", properties[i].value, i, endpoint->port_number, property_number);
+      DEBUGF_WKPF("WKPF write_property: (index %x port %x, property %x): %x->%x\n", i, endpoint->port_number, property_number, properties[i].value, value);
       if (properties[i].value != value) {
         properties[i].value = value;
         properties[i].is_dirty = TRUE;
@@ -139,7 +139,7 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].is_dirty) {
       properties[i].is_dirty = FALSE;
-//      DEBUGF_WKPF("DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
+      DEBUGF_WKPF("DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
       *port_number = properties[i].endpoint_port_number;
       *property_number = properties[i].property_number;
       return TRUE;

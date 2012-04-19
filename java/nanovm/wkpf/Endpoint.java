@@ -1,6 +1,7 @@
 package nanovm.wkpf;
 
 public class Endpoint {
+    public Endpoint() {}
     public byte nodeId;
     public byte portNumber;
     public short profileId; // Actually not necessary, but added to check if a node doing a remote update is really writing to the profile it wants to write to.

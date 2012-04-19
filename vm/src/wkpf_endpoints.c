@@ -117,9 +117,12 @@ bool wkpf_endpoint_at_index_needs_update(uint8_t index) {
 
 bool wkpf_heap_id_in_use(heap_id_t heap_id) {
  // To prevent virtual profile objects from being garbage collected  
-  for (int i=0; i<number_of_endpoints; i++)
-    if (endpoints[i].virtual_profile_instance_heap_id == heap_id)
+  for (int i=0; i<number_of_endpoints; i++) {
+    if (endpoints[i].virtual_profile_instance_heap_id == heap_id) {
+      DEBUGF_WKPF("--- HEAP %x should be prevented from GC!\n", heap_id);
       return TRUE;
+    }
+  }
   return FALSE;
 }
 

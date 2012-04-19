@@ -376,13 +376,19 @@ void heap_realloc(heap_id_t id, u16_t size) {
 
 u16_t heap_get_len(heap_id_t id) {
   heap_t *h = heap_search(id);
-  if(!h) error(ERROR_HEAP_CHUNK_DOES_NOT_EXIST);
+  if(!h) {
+    DEBUGF_HEAP("Chunk does not exist for heap_id: %x\n", id);
+    error(ERROR_HEAP_CHUNK_DOES_NOT_EXIST); 
+  }
   return h->len & HEAP_LEN_MASK;
 }
 
 void *heap_get_addr(heap_id_t id) {
   heap_t *h = heap_search(id);
-  if(!h) error(ERROR_HEAP_CHUNK_DOES_NOT_EXIST);
+  if(!h) {
+    DEBUGF_HEAP("Chunk does not exist for heap_id: %x\n", id);
+    error(ERROR_HEAP_CHUNK_DOES_NOT_EXIST); 
+  }
   return h+1;
 }
 
