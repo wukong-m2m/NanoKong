@@ -184,8 +184,13 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
+  // TODONR: TMP
+  return 77;
+  
+/*  
   unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
 	return (address_t)SerialAPI_request(buf, 2);
+*/
 }
 
 

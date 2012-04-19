@@ -33,7 +33,7 @@ uint8_t wkpf_write_property(wkpf_local_endpoint *endpoint, uint8_t property_numb
         properties[i].value = value;
         properties[i].is_dirty = TRUE;
         if (external_access) // Only call update() when someone else writes to the property, not for internal writes (==writes that are already coming from update())
-          wkpf_need_to_call_update_for_endpoint(endpoint);
+          wkpf_set_need_to_call_update_for_endpoint(endpoint);
       }
       return WKPF_OK;
     }
@@ -127,9 +127,17 @@ uint8_t wkpf_free_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
   return WKPF_OK;
 }
 
+bool wkpf_any_property_dirty() {
+  for (int i=0; i<number_of_properties; i++) {
+    if (properties[i].is_dirty)
+      return TRUE;
+  }
+  return FALSE;
+}
+
 bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number) {
   for (int i=0; i<number_of_properties; i++) {
-    if (properties[i].is_dirty && properties[i].endpoint_port_number!=0) { // Skip the generic profile
+    if (properties[i].is_dirty) {
       properties[i].is_dirty = FALSE;
 //      DEBUGF_WKPF("DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
       *port_number = properties[i].endpoint_port_number;

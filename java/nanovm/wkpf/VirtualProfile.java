@@ -3,10 +3,6 @@ package nanovm.wkpf;
 public abstract class VirtualProfile {
     public void update() {} // TODO: this should be abstract, but nanovmtool chokes on abstract methods :-(
 
-    public void helloworld() {
-        System.out.println("hello world");
-    }
-
 /* TODO: wanted to create these methods for convenience, but it seems inheritance doesn't fully work yet. nanovmtool gets into an endless loop loading subclasses while looking for these methods
     protected short getPropertyShort(byte propertyNumber) {
         return WKPF.getPropertyShort(this, propertyNumber);

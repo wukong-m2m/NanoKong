@@ -468,7 +468,7 @@ void heap_steal(u16_t bytes) {
   DEBUGF_HEAP("HEAP: request to steal %d bytes\n", bytes);
 
   if(h->id != HEAP_ID_FREE) {
-    DEBUGF_HEAP("heap_steal(%d): start element not free element\n", bytes);
+    DEBUGF_HEAP("heap_steal(%d): start element not free element: %x\n", bytes, h->id);
     error(ERROR_HEAP_CORRUPTED);
   }
 

@@ -11,13 +11,14 @@
 void profile_light_sensor_update(wkpf_local_endpoint *endpoint);
 
 uint8_t profile_light_sensor_properties[] = {
-  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_READ // WKPF_PROPERTY_LIGHT_SENSOR_CURRENT_VALUE
+  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_READ, // WKPF_PROPERTY_LIGHT_SENSOR_CURRENT_VALUE
+  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_RW // TODONR: Temporary dummy property to trigger updates while don't have a scheduling mechanism yet.
 };
 
 wkpf_profile_definition profile_light_sensor = {
   WKPF_PROFILE_LIGHT_SENSOR, // profile id
   profile_light_sensor_update, // update function pointer
-  1, // Number of properties
+  2, // Number of properties
   profile_light_sensor_properties
 };
 

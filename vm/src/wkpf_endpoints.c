@@ -40,9 +40,9 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t
   retval = wkpf_alloc_properties_for_endpoint(&endpoints[number_of_endpoints]);
   if (retval != WKPF_OK)
     return retval;
-  DEBUGF_WKPF("WKPF: creating endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
   // Run update function once to initialise properties.
-  wkpf_need_to_call_update_for_endpoint(&endpoints[number_of_endpoints]);
+  wkpf_set_need_to_call_update_for_endpoint(&endpoints[number_of_endpoints]);
+  DEBUGF_WKPF("WKPF: created endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
 
   number_of_endpoints++;
   return WKPF_OK;
@@ -101,7 +101,7 @@ uint8_t wkpf_get_number_of_endpoints() {
   return number_of_endpoints;
 }
 
-void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
+void wkpf_set_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
   // TODONR: for now just call directly for native profiles
   // Java update should be handled by returning from the WKPF.select() function
   if (WKPF_IS_NATIVE_ENDPOINT(endpoint))
@@ -109,6 +109,11 @@ void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
   else
     endpoint->need_to_call_update = TRUE;
 }
+
+bool wkpf_endpoint_at_index_needs_update(uint8_t index) {
+  return endpoints[index].need_to_call_update;
+}
+
 
 bool wkpf_heap_id_in_use(heap_id_t heap_id) {
  // To prevent virtual profile objects from being garbage collected  

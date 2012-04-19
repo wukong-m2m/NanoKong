@@ -33,6 +33,7 @@ public class HAScenario {
   private static final int COMPONENT_INSTANCE_ID_LIGHT1 = 3;
   
   private static int lastPropagatedValue;
+  private static short tmpDummy = 0;
   
   private static final Endpoint[] componentInstanceToEndpointMapping = { // Indexed by component instance id.
     new Endpoint((byte)77, (byte)1, WKPF.PROFILE_NUMERIC_CONTROLLER), // Thermostat
@@ -42,6 +43,7 @@ public class HAScenario {
   };
   
   public static void main(String[] args) {
+    System.out.println("HAScenario");
     myNodeId = WKPF.getMyNodeId();
 
     // ----- REGISTER VIRTUAL PROFILES -----
@@ -63,16 +65,21 @@ public class HAScenario {
     }
 
     // ----- MAIN LOOP -----
+    System.out.println("HAScenario - Entering main loop");
     while(true) {
       VirtualProfile profile = WKPF.select();
       if (profile != null) {
         profile.update();
       }
-      propertyDispatch();
+      propagateDirtyProperties();
+      
+      // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.
+      tmpDummy += 1;
+      setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
     }
   }
 
-  public static void propertyDispatch() {
+  public static void propagateDirtyProperties() {
     while(WKPF.loadNextDirtyProperty()) {
 
       if (matchDirtyProperty(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE)) {
