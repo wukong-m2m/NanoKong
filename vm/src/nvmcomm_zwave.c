@@ -46,6 +46,9 @@ u08_t last_node = 0;
 u08_t seq;          // Sequence number which is used to match the callback function
 u08_t ack_got = 0;
 // u32_t expire;  // The expire time of the last command
+
+address_t nvmcomm_zwave_my_address;
+
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
@@ -184,13 +187,12 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
-  // TODONR: TMP
-  return 77;
-  
-/*  
-  unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
-	return (address_t)SerialAPI_request(buf, 2);
-*/
+  if (nvmcomm_zwave_my_address == 0) { // There won't be a node with address 0, right?
+    unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
+    nvmcomm_zwave_my_address = (address_t)SerialAPI_request(buf, 2);
+    DEBUGF_COMM("My Zwave address: %x", nvmcomm_zwave_my_address);
+  }
+  return nvmcomm_zwave_my_address;
 }
 
 

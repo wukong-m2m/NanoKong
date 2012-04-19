@@ -70,6 +70,8 @@ public class HAScenario {
     }*/
 
     myNodeId = WKPF.getMyNodeId();
+    
+    System.out.println("MY NODE ID:" + myNodeId);
 
     // ----- REGISTER VIRTUAL PROFILES -----
     // Won't work now since we already have a native profile
