@@ -117,22 +117,34 @@ void native_wkpf_invoke(u08_t mref) {
     } else {
       wkpf_error_code = send_set_property_boolean(dest_node_id, port_number, property_number, profile_id, value);
     }
-    
   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
     uint8_t number_of_endpoints = wkpf_get_number_of_endpoints();
-    for (int i=0; i<number_of_endpoints; i++) {
-      wkpf_local_endpoint *endpoint;
-      wkpf_get_endpoint_by_index(i, &endpoint);
-      if (endpoint->need_to_call_update) {
-        endpoint->need_to_call_update = FALSE;
-        stack_push(endpoint->virtual_profile_instance_heap_id | NVM_TYPE_MASK);
-        DEBUGF_WKPF("WKPF: WKPF.select returning profile at port %x.\n", endpoint->port_number);
-        return;
+//TODONR: TMP    while(true) {
+      // Process incoming messages
+      nvmcomm_poll();
+      // Check if any endpoints need updates
+      for (int i=0; i<number_of_endpoints; i++) {
+        if (wkpf_endpoint_at_index_needs_update(i)) {
+          wkpf_local_endpoint *endpoint;
+          wkpf_get_endpoint_by_index(i, &endpoint);
+          if (endpoint->need_to_call_update) {
+            endpoint->need_to_call_update = FALSE;
+            stack_push(endpoint->virtual_profile_instance_heap_id | NVM_TYPE_MASK);
+            DEBUGF_WKPF("WKPF: WKPF.select returning profile at port %x.\n", endpoint->port_number);
+            return;
+          }
+        }
       }
-    }
-    DEBUGF_WKPF("WKPF: WKPF.select didn't find any profile to return\n");
-    stack_push(0);
-    
+      // Check if there are any dirty properties that need to be propagated
+      if (wkpf_any_property_dirty()) {
+        DEBUGF_WKPF("WKPF: WKPF.select returning null because a dirty property needs to be propagated.\n");
+        stack_push(0);
+      }
+      // TODONR: Temporarily return null anyway to allow Java to trigger updates while don't have a scheduling mechanism yet.
+      // In the final version select() should just wait until either there's a dirty property, or a profile needs to be updated.
+      DEBUGF_WKPF("WKPF: WKPF.select returning null because a dirty property needs to be propagated.\n");
+      stack_push(0);
+//TODONR: TMP    }
   } else if (mref == NATIVE_WKPF_METHOD_GETMYNODEID) {
     stack_push(nvmcomm_get_node_id());
     

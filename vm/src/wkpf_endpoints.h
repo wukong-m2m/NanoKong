@@ -22,7 +22,8 @@ extern uint8_t wkpf_get_endpoint_by_port(uint8_t port_number, wkpf_local_endpoin
 extern uint8_t wkpf_get_endpoint_by_index(uint8_t index, wkpf_local_endpoint **endpoint);
 extern uint8_t wkpf_get_endpoint_by_heap_id(heap_id_t virtual_profile_instance_heap_id, wkpf_local_endpoint **endpoint);
 extern uint8_t wkpf_get_number_of_endpoints();
-extern void wkpf_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint);
+extern void wkpf_set_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint);
+extern bool wkpf_endpoint_at_index_needs_update(uint8_t index);
 extern bool wkpf_heap_id_in_use(heap_id_t heap_id); // To prevent virtual profile objects from being garbage collected
 
 #endif // WKPF_ENDPOINTSH

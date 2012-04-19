@@ -4,6 +4,7 @@
 #include <wkpf.h>
 #include <avr/native_avr.h>
 #include <avr/native.h>
+#include <avr/io.h>
 #include "native_profiles.h"
 #include "profile_light.h"
 
@@ -25,18 +26,14 @@ wkpf_profile_definition profile_light = {
 void profile_light_update(wkpf_local_endpoint *endpoint) {
   bool onOff;
   wkpf_internal_read_property_boolean(endpoint, WKPF_PROPERTY_LIGHT_ONOFF, &onOff);
-  
-  // Abuse native AVR code for now.
+
   // Connect light to port B, bit 0
-  stack_push(1); // Port B
-  stack_push(0); // Bit 0
-  native_avr_port_invoke(NATIVE_METHOD_SETOUTPUT);
-  stack_push(1); // Port B
-  stack_push(0); // Bit 0
+  // SETOUPUT
+  DDRB |= _BV(0);
   if (onOff)
-    native_avr_port_invoke(NATIVE_METHOD_SETBIT);
+    PORTB |= _BV(0);
   else
-    native_avr_port_invoke(NATIVE_METHOD_CLRBIT);
+    PORTB &= ~_BV(0);
 }
 
 #endif // ENABLE_PROFILE_LIGHT

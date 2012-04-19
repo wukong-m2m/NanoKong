@@ -23,7 +23,7 @@
 // enable simple unittests for profile framework (choose 1)
 //#define TEST_WKPF_PROFILES
 //#define TEST_WKPF_ENDPOINTS
-#define TEST_WKPF_PROPERTIES
+//#define TEST_WKPF_PROPERTIES
 //#define TEST_WKPF_NATIVE_PROFILES
 //#define TEST_WKPF_UPDATE_FOR_NATIVE_PROFILES
 #if defined(TEST_WKPF_PROFILES) || defined(TEST_WKPF_ENDPOINTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_PROFILES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_PROFILES)
@@ -33,6 +33,7 @@
 // vm setup
 #undef NVM_USE_STACK_CHECK      // enable check if method returns empty stack
 #define NVM_USE_ARRAY           // enable arrays
+#define NVM_USE_OBJ_ARRAY       // enable object arrays
 #define NVM_USE_SWITCH          // support switch instruction
 #define NVM_USE_INHERITANCE     // support for inheritance
 #define NVM_USE_UTILS           // enable inline utils
