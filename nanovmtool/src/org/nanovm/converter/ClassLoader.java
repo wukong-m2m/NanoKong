@@ -73,15 +73,15 @@ public class ClassLoader {
   }
 
   public static boolean methodExists(String className, 
-				     String name, String type) {
+             String name, String type) {
     // search through all classes
 
     for(int i=0;i<classes.size();i++) {
       ClassInfo classInfo = getClassInfo(i);
 
       if((classInfo.getName().equals(className)) &&
-	 (classInfo.providesMethod(name, type)))
-	return true;
+         (classInfo.providesMethod(name, type)))
+        return true;
     }
     return false;
   }
@@ -278,6 +278,10 @@ public class ClassLoader {
 
   public static void constantRelocate(int i) {
     System.out.println("request to relocate " + i);
+  }
+
+  public static boolean isLoaded(String className) {
+    return (getClassIndex(className) != -1);
   }
 
   static public void load(String name) {

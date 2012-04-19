@@ -491,29 +491,35 @@ public class ConstPool {
   public void resolveMethodRefs() {
     System.out.println("Resolving method references ...");
 
-    for(int i=0;i<size();i++) {
+    for(int i=0; i<size(); i++) {
       ConstPoolEntry entry = getEntryAtIndex(i);
 
       // check for method references only
       if(entry.typecode() == ConstPoolEntry.METHODREF) {
-	// get everything we need to know about the methods
-	System.out.print("Method " + getClassName(entry) +"."+ 
-			 getMethodName(entry) +":"+ getMethodType(entry));
+        // get everything we need to know about the methods
+        System.out.print("Method " + getClassName(entry) +"."+ 
+             getMethodName(entry) +":"+ getMethodType(entry));
 
-	if(!NativeMapper.methodIsNative(getClassName(entry), 
-				getMethodName(entry), getMethodType(entry))) {
+        if(!NativeMapper.methodIsNative(getClassName(entry), 
+              getMethodName(entry), getMethodType(entry))) {
 
-	  // check if we already know a method like this
-	  if(!ClassLoader.methodExists(getClassName(entry), 
-		       getMethodName(entry), getMethodType(entry))) {
-	     System.out.println(" -> missing");
+          // check if we already know a method like this
+          if(!ClassLoader.methodExists(getClassName(entry), 
+                 getMethodName(entry), getMethodType(entry))) {
+            System.out.println(" -> missing");
 
-	    // try to load appropriate class
-	    ClassLoader.load(getClassName(entry));
-	  } else
-	    System.out.println(" -> already present");
-	} else
-	  System.out.println(" -> native");
+            if (!ClassLoader.isLoaded(getClassName(entry))) {
+              // try to load appropriate class
+              ClassLoader.load(getClassName(entry));
+            } else {
+              System.out.println(" -> already loaded");
+            }
+          } else {
+            System.out.println(" -> already present");
+          }
+        } else {
+          System.out.println(" -> native");
+        }
       }
     }
   }
