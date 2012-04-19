@@ -20,8 +20,10 @@ public class VirtualThresholdProfile extends VirtualProfile {
       	if ((operator == OPERATOR_GT && value > threshold)
       	 || (operator == OPERATOR_LT && value < threshold)) {
             WKPF.setPropertyBoolean(this, WKPF.PROPERTY_THRESHOLD_OUTPUT, true);
+            System.out.println("threshold " + threshold + " value " + value + " operator " + operator + " -> TRUE");
         } else {
             WKPF.setPropertyBoolean(this, WKPF.PROPERTY_THRESHOLD_OUTPUT, false);
+            System.out.println("threshold " + threshold + " value " + value + " operator " + operator + " -> FALSE");
         }
     }
 }

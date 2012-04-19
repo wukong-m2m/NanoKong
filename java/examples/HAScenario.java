@@ -1,4 +1,5 @@
 import java.io.*;
+import nanovm.avr.*;
 import nanovm.wkpf.*;
 import nanovm.lang.Math;
 
@@ -7,6 +8,12 @@ public class HAScenario {
   private static int myNodeId;
 
   private static boolean matchDirtyProperty(int componentInstanceId, byte propertyNumber) {
+    System.out.println("===== MATCH -----");
+    System.out.println(componentInstanceToEndpointMapping[0].nodeId);
+    System.out.println(componentInstanceToEndpointMapping[1].nodeId);
+    System.out.println(componentInstanceToEndpointMapping[2].nodeId);
+    System.out.println(componentInstanceToEndpointMapping[3].nodeId);
+    System.out.println("===== MATCH -----2");
     Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
     return endpoint.nodeId == myNodeId
         && endpoint.portNumber == WKPF.getDirtyPropertyPortNumber()
@@ -44,6 +51,14 @@ public class HAScenario {
   
   public static void main(String[] args) {
     System.out.println("HAScenario");
+    
+/*    while(true) {
+      setPropertyBoolean(COMPONENT_INSTANCE_ID_LIGHT1, WKPF.PROPERTY_LIGHT_ONOFF, false);
+      Timer.wait(100);
+      setPropertyBoolean(COMPONENT_INSTANCE_ID_LIGHT1, WKPF.PROPERTY_LIGHT_ONOFF, true);
+      Timer.wait(100);
+    }*/
+
     myNodeId = WKPF.getMyNodeId();
 
     // ----- REGISTER VIRTUAL PROFILES -----
@@ -56,6 +71,10 @@ public class HAScenario {
     // Setup the temperature sensor
     if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHTSENSOR1).nodeId == myNodeId) { 
       setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
+    }
+    // Setup the numeric input
+    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1).nodeId == myNodeId) { 
+      setPropertyShort(COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127); // Sample the temperature every 5 seconds
     }
     // Create and setup the virtual threshold
     if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).nodeId == myNodeId) {
@@ -75,26 +94,38 @@ public class HAScenario {
       
       // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.
       tmpDummy += 1;
+//      System.out.println("HAScenario - updating dummy variable to trigger lightsensor update ");
       setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
+      byte x = WKPF.getErrorCode();
+      System.out.println("============Result: " + x);
+      Timer.wait(500);
     }
   }
 
   public static void propagateDirtyProperties() {
+    System.out.println("HAScenario - start propagateDirtyProperties");
     while(WKPF.loadNextDirtyProperty()) {
-
+      
       if (matchDirtyProperty(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE)) {
-        short value = WKPF.getDirtyPropertyShortValue();
+        System.out.println("HAScenario - propagating lightsensor.currentvalue");
+
+/*  TODONR: Math.abs doesn't work
+      short value = WKPF.getDirtyPropertyShortValue();
         if (Math.abs(lastPropagatedValue - value) > 2) {
           lastPropagatedValue = value;
           setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_VALUE, value);
-        }
-
+        } */
+      setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_VALUE, WKPF.getDirtyPropertyShortValue());
+      
       } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_THERMOSTATCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT)) {
+        System.out.println("HAScenario - propagating numericcontroller.output");
         setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_THRESHOLD, WKPF.getDirtyPropertyShortValue());
 
       } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OUTPUT)) {
+        System.out.println("HAScenario - propagating threshold.output");
         setPropertyBoolean(COMPONENT_INSTANCE_ID_LIGHT1, WKPF.PROPERTY_LIGHT_ONOFF, WKPF.getDirtyPropertyBooleanValue());
       }
     }
+    System.out.println("HAScenario - end propagateDirtyProperties");
   }
 }

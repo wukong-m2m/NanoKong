@@ -27,13 +27,14 @@ void profile_light_update(wkpf_local_endpoint *endpoint) {
   bool onOff;
   wkpf_internal_read_property_boolean(endpoint, WKPF_PROPERTY_LIGHT_ONOFF, &onOff);
 
-  // Connect light to port B, bit 0
+  // Connect light to port L, bit 3 (Arduino digital pin 46)
   // SETOUPUT
-  DDRB |= _BV(0);
+  DDRL |= _BV(3);
   if (onOff)
-    PORTB |= _BV(0);
+    PORTL |= _BV(3);
   else
-    PORTB &= ~_BV(0);
+    PORTL &= ~_BV(3);
+  DEBUGF_WKPFUPDATE("Setting light to: %x\n", onOff);
 }
 
 #endif // ENABLE_PROFILE_LIGHT
