@@ -28,5 +28,5 @@ def testProfile(destination):
 
 
 
-pynvc.init()
+pynvc.init(0)
 testProfile(int(sys.argv[1]))

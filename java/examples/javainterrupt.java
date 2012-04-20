@@ -91,7 +91,7 @@ x1 &= AVR.setPinInterruptMode( AVR.DIGITAL3 , AVR.GND );
 				System.out.println("go to sleep mode");
 				System.out.println("make interrupt to wake up");
 				temp=5;
-				AVR.gotoSleep();
+				AVR.sleep(30000);
 			}
 			//AVR.setPinInterruptMode( AVR.DIGITAL20 , AVR.DISABLE );
 

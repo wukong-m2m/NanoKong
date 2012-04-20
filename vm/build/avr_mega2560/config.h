@@ -40,7 +40,7 @@
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_COMM
 #define NVM_USE_COMMZWAVE       // enable Z-wave support
-#define NVM_USE_COMMXBEE        // enable XBee support
+//#define NVM_USE_COMMXBEE        // enable XBee support
 // bytecode location (choose one)
 #define NVM_USE_FLASH_PROGRAM	// execute directly from FLASH
 #define NVM_USE_FLASH_PROGRAM_INLINE	// execute directly from FLASH

@@ -110,7 +110,7 @@ public class HAScenario {
       setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
       if (WKPF.getErrorCode() != WKPF.OK)
         System.out.println("Error: " + WKPF.getErrorCode());
-      Timer.wait(100);
+      Timer.wait(1000);
     }
   }
 

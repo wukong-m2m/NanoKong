@@ -93,18 +93,20 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      if (WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number] == WKPF_PROPERTY_TYPE_INT16)) {
+      if (WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number]) == WKPF_PROPERTY_TYPE_INT16) {
         int16_t value;
         retval = wkpf_external_read_property_int16(endpoint, property_number, &value);
-        payload[6] = (uint8_t)(value>>8);
-        payload[7] = (uint8_t)(value);
-        *response_size = 8;//payload size
+        payload[6] = WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number]);
+        payload[7] = (uint8_t)(value>>8);
+        payload[8] = (uint8_t)(value);
+        *response_size = 9;//payload size
         *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;        
       } else {
         bool value;
         retval = wkpf_external_read_property_boolean(endpoint, property_number, &value);
-        payload[6] = (uint8_t)(value);
-        *response_size = 7;//payload size
+        payload[6] = WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number]);
+        payload[7] = (uint8_t)(value);
+        *response_size = 8;//payload size
         *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;                
       }
       if (retval != WKPF_OK) {
@@ -124,19 +126,19 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      if (WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number] == WKPF_PROPERTY_TYPE_INT16)) {
+      if (payload[7] == WKPF_PROPERTY_TYPE_INT16) {
         int16_t value;
-        value = (int16_t)(payload[6]);
-        value = (int16_t)(value<<8) + (int16_t)(payload[7]);
+        value = (int16_t)(payload[7]);
+        value = (int16_t)(value<<8) + (int16_t)(payload[8]);
         retval = wkpf_external_write_property_int16(endpoint, property_number, value);
         *response_size = 6;//payload size
-        *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;        
+        *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;        
       } else {
         bool value;
-        value = (bool)(payload[6]);
+        value = (bool)(payload[7]);
         retval = wkpf_external_write_property_boolean(endpoint, property_number, value);
         *response_size = 6;//payload size
-        *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;                
+        *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;                
       }
       if (retval != WKPF_OK) {
         payload [2] = retval;
