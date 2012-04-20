@@ -59,6 +59,12 @@ x1 &= AVR.setPinInterruptMode( AVR.DIGITAL18 , AVR.GND );
 x1 &= AVR.setPinInterruptMode( AVR.DIGITAL2 , AVR.GND );
 x1 &= AVR.setPinInterruptMode( AVR.DIGITAL3 , AVR.GND );
 
+x1 &= AVR.setPinIOMode( AVR.ANALOG15 , AVR.INPUT );
+x1 &= AVR.setPinInterruptMode( AVR.ANALOG15 , AVR.ANYCHANGE );
+x1 &= AVR.setPinIOMode( AVR.DIGITAL14 , AVR.INPUT );
+x1 &= AVR.setPinInterruptMode( AVR.DIGITAL14 , AVR.ANYCHANGE );
+x1 &= AVR.setPinIOMode( AVR.DIGITAL15 , AVR.INPUT );
+x1 &= AVR.setPinInterruptMode( AVR.DIGITAL15 , AVR.ANYCHANGE );
 
 	if( x1==1 ) {
 
@@ -82,6 +88,8 @@ x1 &= AVR.setPinInterruptMode( AVR.DIGITAL3 , AVR.GND );
 			{System.out.println("INT4");}
 			if( (mask_INT & AVR.MASK_INT5)!=0 )
 			{System.out.println("INT5");}
+			//if( (mask_INT & AVR.MASK_PCINT16)!=0 )
+			//{System.out.println("PCINT16");}
 
 			System.out.println("sleep after"+temp);
 			//Timer.wait(1000);
@@ -94,8 +102,6 @@ x1 &= AVR.setPinInterruptMode( AVR.DIGITAL3 , AVR.GND );
 				AVR.sleep(30000);
 			}
 			//AVR.setPinInterruptMode( AVR.DIGITAL20 , AVR.DISABLE );
-
-
 		}
 	}
   }
