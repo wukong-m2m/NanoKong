@@ -1,0 +1,15 @@
+<application name="HAScenario">
+	<component type="NumericController" instanceId="ThermostatController1">
+		<link fromProperty="out" toInstance="Threshold1" toProperty="threshold" />		
+	</component>
+	<component type="TemperatureSensor" instanceId="TemparatureSensor1">
+		<link fromProperty="currentTemperature" toInstanceId="Threshold1" toProperty="value">
+			<filter type="minChange" value="2">
+		</link>
+	</component>
+	<component type="Threshold" instanceId="Threshold1">
+		<property name="operator" value="<"/>
+		<link fromProperty="exceeded" toInstanceId="Heater1" toProperty="onOff" />
+	</component>
+	<component type="Heater" instanceId="Heater1" />
+</application>

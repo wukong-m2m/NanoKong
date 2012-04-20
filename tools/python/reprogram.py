@@ -70,5 +70,5 @@ def reprogramNvmdefault(destination, filename):
   pynvc.sendcmd(destination, pynvc.SETRUNLVL, [pynvc.RUNLVL_RESET])
 
 if __name__ == "__main__":
-  pynvc.init()
+  pynvc.init(1) # 0: zwave, 1: zigbee
   reprogramNvmdefault(int(sys.argv[1]), sys.argv[2])

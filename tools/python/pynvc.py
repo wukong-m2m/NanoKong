@@ -1,4 +1,8 @@
-import pyzwave
+try:
+    import pyzwave
+except ImportError:
+    pyzwave = 0
+import pyzigbee
 
 
 REPRG_OPEN                   = 0x10
@@ -35,11 +39,18 @@ RUNLVL_VM                    = 0x02
 RUNLVL_CONF                  = 0x03
 RUNLVL_RESET                 = 0x04
 
+pymodule = 0
+
 def sendcmd(dest, cmd, payload=[], retries=3):
-  pyzwave.receive(10) # Clear pending messages
+  global pymodule
+  pymodule.receive(10) # Clear pending messages
   while retries >= 0:
     try:
-      pyzwave.send(dest, [0x88, cmd] + payload)
+      if pymodule == pyzwave:
+        pymodule.send(dest, [0x88, cmd] + payload)
+      else:
+        pymodule.send(dest, [cmd] + payload)
+
     except:
       print "=============IOError============ retries remaining:"
       print retries
@@ -49,21 +60,24 @@ def sendcmd(dest, cmd, payload=[], retries=3):
         retries -= 1
     else:
       if cmd == APPMSG:
-        ack = pyzwave.receive(5000) # Receive ack of APPMSG, TODO: see if sending succeeded.
+        ack = pymodule.receive(5000) # Receive ack of APPMSG, TODO: see if sending succeeded.
         print "APPMSG ACK:", ack
       return
 
 def receive(waitmsec=1000):
-  return pyzwave.receive(waitmsec)
+  global pymodule
+  return pymodule.receive(waitmsec)
 
 def checkedReceive(allowedReplies, waitmsec=1000):
-  reply = pyzwave.receive(waitmsec)
+  global pymodule
+  reply = pymodule.receive(waitmsec)
   if reply == None:
     print "No reply received. One of", allowedReplies, "expected."
     return None
   if not reply[0] in allowedReplies:
     print "Incorrect reply received. One of", allowedReplies, "expected, but got", reply
     return None
+  print reply
   return reply
 
 def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload=[], waitmsec=1000, retries=10, quitOnFailure=False):
@@ -112,5 +126,12 @@ def sendWithRetryAndCheckedReceiveAPPMSG(destination, command, allowedReplies, p
     quit()
   else:
     return None
-def init():
-  pyzwave.init("10.3.36.231")
+
+def init(option):
+    global pymodule
+    if option == 0:
+        pyzwave.init("10.3.36.231")
+        pymodule = pyzwave
+    elif option == 1:
+        pyzigbee.init()
+        pymodule = pyzigbee

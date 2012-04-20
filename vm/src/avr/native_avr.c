@@ -531,28 +531,28 @@ void native_avr_port_invoke(u08_t mref) {
     if(mref == NATIVE_METHOD_SETINPUT) {
         u08_t bit  = stack_pop();
         u08_t port = stack_pop();
-        DEBUGF("native setinput %bd/%bd\n", port, bit);
+        DEBUGF("native setinput %bd/%bd \n\n", port, bit);
         *ddrs[port] &= ~_BV(bit);
         *ports[port] |= _BV(bit);	//pull high
     } else if(mref == NATIVE_METHOD_SETOUTPUT) {
         u08_t bit  = stack_pop();
         u08_t port = stack_pop();
-        DEBUGF("native setoutput %bd/%bd\n", port, bit);
+        DEBUGF("native setoutput %bd/%bd \n\n", port, bit);
         *ddrs[port] |= _BV(bit);
     } else if(mref == NATIVE_METHOD_SETBIT) {
         u08_t bit  = stack_pop();
         u08_t port = stack_pop();
-        DEBUGF("native setbit %bd/%bd\n", port, bit);
+        DEBUGF("native setbit %bd/%bd \n\n", port, bit);
         *ports[port] |= _BV(bit);
     } else if(mref == NATIVE_METHOD_CLRBIT) {
         u08_t bit  = stack_pop();
         u08_t port = stack_pop();
-        DEBUGF("native clrbit %bd/%bd\n", port, bit);
+        DEBUGF("native clrbit %bd/%bd \n\n", port, bit);
         *ports[port] &= ~_BV(bit);
     } else if(mref == NATIVE_METHOD_GETINPUT) {
         u08_t bit  = stack_pop();
         u08_t port = stack_pop();
-        DEBUGF("native getinput %bd/%bd\n", port, bit);
+        DEBUGF("native getinput %bd/%bd \n\n", port, bit);
         stack_push( (*pins[port]>>bit) & 0x01);
     } else
         error(ERROR_NATIVE_UNKNOWN_METHOD);

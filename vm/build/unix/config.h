@@ -24,7 +24,6 @@
 #define NVM_USE_UTILS            // enable inline utils
 #define NVM_USE_EEPROM           // nvm file resides in EEPROM (or flash)
 #define NVM_USE_MEMCPY_UP        // enable custom memcpy for heap compacting
-#define NVM_USE_DISK_FILE        // enable disk file loading
 #define NVM_USE_DEFAULT_FILE     // enable pre-installed default file
 
 // native setup
