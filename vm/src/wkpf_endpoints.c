@@ -106,12 +106,29 @@ void wkpf_set_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
   // Java update should be handled by returning from the WKPF.select() function
   if (WKPF_IS_NATIVE_ENDPOINT(endpoint))
     endpoint->profile->update(endpoint);
-  else
+  else {
     endpoint->need_to_call_update = TRUE;
+  }
 }
 
-bool wkpf_endpoint_at_index_needs_update(uint8_t index) {
-  return endpoints[index].need_to_call_update;
+bool wkpf_get_next_endpoint_to_update(wkpf_local_endpoint **endpoint) {
+  static uint8_t last_updated_endpoint_index = 0;
+  if (number_of_endpoints == 0)
+    return FALSE;
+  if (last_updated_endpoint_index >= number_of_endpoints)
+    last_updated_endpoint_index = number_of_endpoints-1; // Could happen if endpoints were removed
+  int i = last_updated_endpoint_index;
+  do {
+    i = (i+1) % number_of_endpoints;
+    if (endpoints[i].need_to_call_update) {
+      last_updated_endpoint_index = i;
+      endpoints[i].need_to_call_update = FALSE;
+      *endpoint = &endpoints[i];
+      DEBUGF_WKPFUPDATE("Update virtual profile endpoint at port %x\n", endpoints[i].port_number);
+      return TRUE;
+    }
+  } while(i != last_updated_endpoint_index);
+  return FALSE;
 }
 
 
