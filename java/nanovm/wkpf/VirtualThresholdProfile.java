@@ -19,8 +19,8 @@ public class VirtualThresholdProfile extends VirtualProfile {
         short threshold = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_THRESHOLD);
         short value = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_VALUE);
 
-      	if ((operator == OPERATOR_GT && value > threshold)
-      	 || (operator == OPERATOR_LT && value < threshold)
+      	if (((operator == OPERATOR_GT || operator == OPERATOR_GTE) && value > threshold)
+      	 || ((operator == OPERATOR_LT || operator == OPERATOR_LTE) && value < threshold)
       	 || ((operator == OPERATOR_GTE || operator == OPERATOR_LTE) && value == threshold)) {
             WKPF.setPropertyBoolean(this, WKPF.PROPERTY_THRESHOLD_OUTPUT, true);
             System.out.println("threshold " + threshold + " value " + value + " operator " + operator + " -> TRUE");
