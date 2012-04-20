@@ -84,8 +84,8 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 
 volatile static nvm_int_t ticks_1A,ticks_1B,time2_wake;
 volatile static u08_t iflag_INT;
-volatile static u08_t iflag_PCINTA;
-volatile static u08_t ivalue_PCINTA;
+volatile static u08_t iflag_PCINTA,iflag_PCINTB,iflag_PCINTC;
+volatile static u08_t ivalue_PCINTA,ivalue_PCINTB,ivalue_PCINTC;
 
 #ifndef ATMEGA2560
 SIGNAL(SIG_OUTPUT_COMPARE1A) {
@@ -134,12 +134,29 @@ ISR(INT5_vect)
 }
 ISR(PCINT0_vect)
 {
-    u08_t now_value=(*pins[1]);
+    u08_t now_value=(*pins[1]);//port B
     u08_t change;
     change = (now_value^ivalue_PCINTA) & PCMSK0; //different bit & mask
     //ivalue_PCINTA=now_value;
     ivalue_PCINTA = now_value | ~PCMSK0;
     iflag_PCINTA |= change;
+}
+ISR(PCINT1_vect)
+{
+    u08_t now_value=(*pins[8]);//port J
+    now_value=now_value<<1;//	PJ0= PCINT9 (not PCINT8)
+    u08_t change;
+    change = (now_value^ivalue_PCINTB) & PCMSK1; //different bit & mask
+    ivalue_PCINTB = now_value | ~PCMSK1;
+    iflag_PCINTB |= change;
+}
+ISR(PCINT2_vect)
+{
+    u08_t now_value=(*pins[9]);//port K
+    u08_t change;
+    change = (now_value^ivalue_PCINTC) & PCMSK2; //different bit & mask
+    ivalue_PCINTC = now_value | ~PCMSK2;
+    iflag_PCINTC |= change;
 }
 #endif
 
@@ -280,9 +297,13 @@ void native_init(void) {
     //initial global value
     iflag_INT=0;
     iflag_PCINTA=0;
+    iflag_PCINTB=0;
+    iflag_PCINTC=0;
     ivalue_PCINTA=0xff;
+    ivalue_PCINTB=0xff;
+    ivalue_PCINTC=0xff;
     //PCINT
-    PCICR=_BV(PCIE0);	//enable interrupt PCINT0~7
+    PCICR=_BV(PCIE0) | _BV(PCIE1) | _BV(PCIE2);	//enable interrupt PCINT0~7,PCINT16~23
 
 #else
     TCCR1B = _BV(CS11);           // clk/8
@@ -371,6 +392,24 @@ void native_avr_avr_invoke(u08_t mref) {
                 PCMSK0 &= ~_BV(port);   
                 stack_push(1);
             } else {	stack_push(0);} 
+        } else if(pin==14 || pin==15 ) {	//PCINT10,9	
+            u08_t port = 16-pin;		//PCINT9(digital15)=PJ0
+            if(mode==1) { 
+                PCMSK1 |=_BV(port);	
+                stack_push(1);
+            } else if(mode==4){ 
+                PCMSK1 &= ~_BV(port);   
+                stack_push(1);
+            } else {	stack_push(0);} 
+        } else if(pin>=62 && pin<=69 ) {	//PCINT16~23	
+            u08_t port = pin-62;		
+            if(mode==1) { 
+                PCMSK2 |=_BV(port);	
+                stack_push(1);
+            } else if(mode==4){ 
+                PCMSK2 &= ~_BV(port);   
+                stack_push(1);
+            } else {	stack_push(0);} 
         } else
             stack_push(0);
     } else if(mref == NATIVE_METHOD_SELECT) {
@@ -387,6 +426,12 @@ void native_avr_avr_invoke(u08_t mref) {
         } else if(event_mask==1) {//PCINTA
             stack_push(iflag_PCINTA);
             iflag_PCINTA=0;
+        } else if(event_mask==2) {//PCINTB
+            stack_push(iflag_PCINTB);
+            iflag_PCINTB=0;
+        } else if(event_mask==3) {//PCINTC
+            stack_push(iflag_PCINTC);
+            iflag_PCINTC=0;
         }
     } else if(mref == NATIVE_METHOD_SLEEP) {
     	nvm_int_t time = stack_pop();
