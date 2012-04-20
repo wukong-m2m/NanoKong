@@ -92,7 +92,7 @@ public class HAScenario {
     if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).nodeId == myNodeId) {
       VirtualProfile profileInstanceThreshold = new VirtualThresholdProfile();
       WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).portNumber, profileInstanceThreshold);
-      setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.OPERATOR_LT); // Sample the temperature every 5 seconds
+      setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.OPERATOR_LTE); // Sample the temperature every 5 seconds
     }
 
     // ----- MAIN LOOP -----

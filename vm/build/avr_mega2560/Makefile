@@ -16,8 +16,7 @@ DEFAULT_FILE = javainterrupt
 
 DEFAULT_CLASS = HAScenario
 
-PORT = /dev/ttyACM0
-
+PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 
