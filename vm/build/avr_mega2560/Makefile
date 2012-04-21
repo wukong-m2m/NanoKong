@@ -15,7 +15,7 @@ ROOT_DIR = ../../..
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
 
 # AVR compiler setup
-PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
+#PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
 CC = $(PREFIX)avr-gcc
 OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump
