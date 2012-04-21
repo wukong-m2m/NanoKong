@@ -25,7 +25,7 @@ class AdcDemo {
       // display ADC15 value with 10 bits resolution
       System.out.println("Value CH15: " + Adc.getValue(Adc.CHANNEL15));
 
-      // display ADC15 value with 8 bits resolution
+      // display ADC0 value with 8 bits resolution
       System.out.println("Byte CH15:  " + Adc.getByte(Adc.CHANNEL15));
 
       // wait a second for next run
