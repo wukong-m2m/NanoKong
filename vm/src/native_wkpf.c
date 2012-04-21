@@ -118,22 +118,15 @@ void native_wkpf_invoke(u08_t mref) {
       wkpf_error_code = send_set_property_boolean(dest_node_id, port_number, property_number, profile_id, value);
     }
   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
-    uint8_t number_of_endpoints = wkpf_get_number_of_endpoints();
+    wkpf_local_endpoint *endpoint;
 //TODONR: TMP    while(true) {
       // Process incoming messages
       nvmcomm_poll();
       // Check if any endpoints need updates
-      for (int i=0; i<number_of_endpoints; i++) {
-        if (wkpf_endpoint_at_index_needs_update(i)) {
-          wkpf_local_endpoint *endpoint;
-          wkpf_get_endpoint_by_index(i, &endpoint);
-          if (endpoint->need_to_call_update) {
-            endpoint->need_to_call_update = FALSE;
-            stack_push(endpoint->virtual_profile_instance_heap_id | NVM_TYPE_MASK);
-            DEBUGF_WKPF("WKPF: WKPF.select returning profile at port %x.\n", endpoint->port_number);
-            return;
-          }
-        }
+      if (wkpf_get_next_endpoint_to_update(&endpoint)) {
+        stack_push(endpoint->virtual_profile_instance_heap_id | NVM_TYPE_MASK);
+        DEBUGF_WKPF("WKPF: WKPF.select returning profile at port %x.\n", endpoint->port_number);
+        return;
       }
       // Check if there are any dirty properties that need to be propagated
       if (wkpf_any_property_dirty()) {

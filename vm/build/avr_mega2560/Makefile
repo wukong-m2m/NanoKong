@@ -5,19 +5,9 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
+DEFAULT_CLASS = HAScenario1
 
-#DEFAULT_FILE = watchdog
-DEFAULT_FILE = javainterrupt
-#DEFAULT_FILE = ReferenceToNativeObjectTest
-#DEFAULT_FILE = TestNvmCommRot13
-#DEFAULT_FILE = TimerDemo
-#DEFAULT_FILE = SleepDemo
-
-
-DEFAULT_CLASS = HAScenario
-
-PORT = /dev/ttyACM0
-
+PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 

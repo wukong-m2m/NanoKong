@@ -11,6 +11,7 @@
 #include "avr/avr_flash.h"
 #include "nvmcomm.h"
 #include "delay.h"
+#include "nvmfile.h"
 #include "wkpf_comm.h"
 
 #ifdef NVM_USE_COMM
@@ -100,7 +101,7 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       DEBUGF_COMM("Initialise reprogramming.\n");
       nvc3_avr_reprogramming = TRUE;
       nvc3_avr_reprogramming_pos = 0;
-      avr_flash_open(0x8000); // TODO: ugly hack
+      avr_flash_open(bytecode_address);
       DEBUGF_COMM("Going to runlevel NVM_RUNLVL_CONF.\n");
       vm_set_runlevel(NVM_RUNLVL_CONF);
       response_cmd = NVMCOMM_CMD_REPRG_OPEN_R;

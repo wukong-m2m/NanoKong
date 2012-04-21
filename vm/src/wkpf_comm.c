@@ -1,6 +1,7 @@
 #include "types.h"
 #include "nvmcomm.h"
 #include "wkpf.h"
+#include "debug.h"
 
 #define WKFPCOMM_SET_MESSAGE_HEADER_LEN 6
 
@@ -82,7 +83,7 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
       *response_size = 3*number_of_endpoints + 3;//payload size 3*endpoints + 2 bytes seqnr + 1 byte number of profiles
       *response_cmd = NVMCOMM_WKPF_GET_ENDPOINT_LIST_R;
     break;
-    case NVMCOMM_WKPF_READ_PROPERTY:
+    case NVMCOMM_WKPF_READ_PROPERTY: // TODONR: check profileid
       port_number = payload[2];
       profile_id = (uint16_t)(payload[3]<<8)+(uint16_t)(payload[4]);
       property_number = payload[5];
@@ -93,18 +94,20 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      if (WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number] == WKPF_PROPERTY_TYPE_INT16)) {
+      if (WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number]) == WKPF_PROPERTY_TYPE_INT16) {
         int16_t value;
         retval = wkpf_external_read_property_int16(endpoint, property_number, &value);
-        payload[6] = (uint8_t)(value>>8);
-        payload[7] = (uint8_t)(value);
-        *response_size = 8;//payload size
+        payload[6] = WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number]);
+        payload[7] = (uint8_t)(value>>8);
+        payload[8] = (uint8_t)(value);
+        *response_size = 9;//payload size
         *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;        
       } else {
         bool value;
         retval = wkpf_external_read_property_boolean(endpoint, property_number, &value);
-        payload[6] = (uint8_t)(value);
-        *response_size = 7;//payload size
+        payload[6] = WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number]);
+        payload[7] = (uint8_t)(value);
+        *response_size = 8;//payload size
         *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;                
       }
       if (retval != WKPF_OK) {
@@ -124,19 +127,21 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      if (WKPF_GET_PROPERTY_DATATYPE(endpoint->profile->properties[property_number] == WKPF_PROPERTY_TYPE_INT16)) {
+      for(int i=0;i<9;i++)
+        DEBUGF_WKPFUPDATE("[%x] ", payload[i]);
+      if (payload[6] == WKPF_PROPERTY_TYPE_INT16) {
         int16_t value;
-        value = (int16_t)(payload[6]);
-        value = (int16_t)(value<<8) + (int16_t)(payload[7]);
+        value = (int16_t)(payload[7]);
+        value = (int16_t)(value<<8) + (int16_t)(payload[8]);
         retval = wkpf_external_write_property_int16(endpoint, property_number, value);
         *response_size = 6;//payload size
-        *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;        
+        *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;        
       } else {
         bool value;
-        value = (bool)(payload[6]);
+        value = (bool)(payload[7]);
         retval = wkpf_external_write_property_boolean(endpoint, property_number, value);
         *response_size = 6;//payload size
-        *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;                
+        *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;                
       }
       if (retval != WKPF_OK) {
         payload [2] = retval;

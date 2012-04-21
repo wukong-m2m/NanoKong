@@ -14,7 +14,7 @@
 // boot_page_fill, and then writing the buffer to flash in a separate
 // function.
 uint8_t avr_flash_pagebuffer[AVR_FLASH_PAGESIZE];
-uint32_t avr_flash_pageaddress = -1;
+int32_t avr_flash_pageaddress = -1;
 uint16_t avr_flash_buf_len = 0;
 
 // This function should be in the NRWW section to allow it to write to flash

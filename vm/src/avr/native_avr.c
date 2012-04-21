@@ -36,6 +36,7 @@
 #include "native_stdio.h"
 #include "stack.h"
 #include "uart.h"
+#include "nvmcomm.h"
 
 #include <avr/sleep.h>
 #include <avr/io.h>
@@ -569,7 +570,8 @@ void native_avr_timer_invoke(u08_t mref) {
         nvm_int_t wait = stack_pop();
         TIMSK1 |= _BV(OCIE1A);		//output compare interrupt enable
         ticks_1A = 0;
-        while(ticks_1A < wait);		//wait until time out
+        while(ticks_1A < wait)
+          nvmcomm_poll();		//wait until time out, but still handle messages
         TIMSK1 &= ~_BV(OCIE1A);		//output compare interrupt disable
     } else if(mref == NATIVE_METHOD_SETPRESCALER) {
         TCCR1B = stack_pop();
