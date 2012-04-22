@@ -41,7 +41,7 @@ void profile_light_sensor_update(wkpf_local_endpoint *endpoint) {
   ADCSRA |= _BV(ADSC);                  // Start conversion
   while(!(ADCSRA & _BV(ADIF)));         // wait for conversion complete
   ADCSRA |= _BV(ADIF);                  // clear ADCIF
-  DEBUGF_WKPFUPDATE("Sensed light value: %x\n", ADCH);
+  DEBUGF_WKPFUPDATE("WKPFUPDATE(LightSensor): Sensed light value: %x\n", ADCH);
   wkpf_internal_write_property_int16(endpoint, WKPF_PROPERTY_LIGHT_SENSOR_CURRENT_VALUE, ADCH);
 }
 

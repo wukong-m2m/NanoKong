@@ -18,7 +18,7 @@ property_entry properties[MAX_NUMBER_OF_PROPERTIES];
 uint8_t wkpf_read_property(wkpf_local_endpoint *endpoint, uint8_t property_number, int16_t *value) {
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].endpoint_port_number == endpoint->port_number && properties[i].property_number == property_number) {
-      DEBUGF_WKPF("WKPF read_property: (index %x port %x, property %x): %x\n", i, endpoint->port_number, property_number, properties[i].value);
+      DEBUGF_WKPF("WKPF: read_property: (index %x port %x, property %x): %x\n", i, endpoint->port_number, property_number, properties[i].value);
       *value = properties[i].value;
       return WKPF_OK;
     }
@@ -28,7 +28,7 @@ uint8_t wkpf_read_property(wkpf_local_endpoint *endpoint, uint8_t property_numbe
 uint8_t wkpf_write_property(wkpf_local_endpoint *endpoint, uint8_t property_number, bool external_access, int16_t value) {
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].endpoint_port_number == endpoint->port_number && properties[i].property_number == property_number) {
-      DEBUGF_WKPF("WKPF write_property: (index %x port %x, property %x): %x->%x\n", i, endpoint->port_number, property_number, properties[i].value, value);
+      DEBUGF_WKPF("WKPF: write_property: (index %x port %x, property %x): %x->%x\n", i, endpoint->port_number, property_number, properties[i].value, value);
       if (properties[i].value != value) {
         properties[i].value = value;
         properties[i].is_dirty = TRUE;
@@ -99,7 +99,6 @@ uint8_t wkpf_alloc_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
       return WKPF_ERR_ENDPOINT_ALREADY_ALLOCATED;
   if (number_of_properties+endpoint->profile->number_of_properties > MAX_NUMBER_OF_PROPERTIES)
     return WKPF_ERR_OUT_OF_MEMORY;
-  DEBUGF_WKPF("WKPF: allocating %x properties for endpoint at port %x\n", endpoint->profile->number_of_properties, endpoint->port_number);
   for (int i=0; i<endpoint->profile->number_of_properties; i++) {
     properties[number_of_properties+i].endpoint_port_number = endpoint->port_number;
     properties[number_of_properties+i].property_number = i;
@@ -107,7 +106,7 @@ uint8_t wkpf_alloc_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
     properties[number_of_properties+i].is_dirty = FALSE;
   }
   number_of_properties += endpoint->profile->number_of_properties;
-  DEBUGF_WKPF("WKPF: number of properties is now %x\n", number_of_properties);
+  DEBUGF_WKPF("WKPF: Allocated %x properties for endpoint at port %x. number of properties is now %x\n", endpoint->profile->number_of_properties, endpoint->port_number, number_of_properties);
   return WKPF_OK;
 }
 
@@ -139,7 +138,7 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].is_dirty) {
       properties[i].is_dirty = FALSE;
-      DEBUGF_WKPF("DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
+//      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
       *port_number = properties[i].endpoint_port_number;
       *property_number = properties[i].property_number;
       return TRUE;

@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "debug.h"
 #include "delay.h"
+#include "error.h"
 #include "nvmcomm.h"
 
 #ifdef NVM_USE_COMMZWAVE
@@ -150,6 +151,23 @@ void nvmcomm_zwave_init() {
   uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 // TODO
   // expire = 0;
+  
+  // Find my zwave node id
+  nvmcomm_zwave_my_address_loaded = TRUE;
+  nvmcomm_zwave_my_address = 3;  
+/*
+  Doesn't work after all :-(
+  unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
+  nvmcomm_poll();
+  uint8_t retries = 10;
+  while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
+    SerialAPI_request(buf, 2);
+    nvmcomm_poll();
+  }
+  DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
+  if(!nvmcomm_zwave_my_address_loaded)
+    error(ERROR_COMM_INIT_FAILED);
+*/
 }
 
 void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
@@ -192,18 +210,6 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
-  if (!nvmcomm_zwave_my_address_loaded) { // There won't be a node with address 0, right? Even if there is, this will still work, just not as efficiently.
-    unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
-    SerialAPI_request(buf, 2);
-
-    int16_t wait_msec = 200;
-    while(!nvmcomm_zwave_my_address_loaded && wait_msec>0) {
-      nvmcomm_poll();
-      delay(MILLISEC(10));
-      wait_msec -= 10;
-    }
-    DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
-  }
   return nvmcomm_zwave_my_address;
 }
 

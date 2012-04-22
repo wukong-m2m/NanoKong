@@ -94,11 +94,11 @@ void native_wkpf_invoke(u08_t mref) {
       wkpf_local_endpoint *endpoint;
       wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
       if (wkpf_error_code == WKPF_OK) {
-        DEBUGF_WKPF("WKPF.setPropertyShort (propagateDirtyProperty, local). Port %x, property %x, value %x\n", port_number, property_number, value);
+        DEBUGF_WKPF("WKPF: setPropertyShort (local). Port %x, property %x, value %x\n", port_number, property_number, value);
         wkpf_error_code = wkpf_external_write_property_int16(endpoint, property_number, value);
       }
     } else {
-      DEBUGF_WKPF("WKPF.setPropertyShort (propagateDirtyProperty, remote). Node %x, port %x, property %x, value %x\n", dest_node_id, port_number, property_number, value);
+      DEBUGF_WKPF("WKPF: setPropertyShort (remote). Node %x, port %x, property %x, value %x\n", dest_node_id, port_number, property_number, value);
       wkpf_error_code = send_set_property_int16(dest_node_id, port_number, property_number, profile_id, value);
     }    
   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYBOOLEAN_REMOTE) {
@@ -112,11 +112,11 @@ void native_wkpf_invoke(u08_t mref) {
       wkpf_local_endpoint *endpoint;
       wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
       if (wkpf_error_code == WKPF_OK) {
-        DEBUGF_WKPF("WKPF.setPropertyBoolean (propagateDirtyProperty, local). Port %x, property %x, value %x\n", port_number, property_number, value);
+        DEBUGF_WKPF("WKPF: setPropertyBoolean (local). Port %x, property %x, value %x\n", port_number, property_number, value);
         wkpf_error_code = wkpf_external_write_property_boolean(endpoint, property_number, value);
       }
     } else {
-      DEBUGF_WKPF("WKPF.setPropertyShort (propagateDirtyProperty, remote). Node %x, port %x, property %x, value %x\n", dest_node_id, port_number, property_number, value);
+      DEBUGF_WKPF("WKPF: setPropertyShort (remote). Node %x, port %x, property %x, value %x\n", dest_node_id, port_number, property_number, value);
       wkpf_error_code = send_set_property_boolean(dest_node_id, port_number, property_number, profile_id, value);
     }
   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
@@ -138,7 +138,7 @@ void native_wkpf_invoke(u08_t mref) {
       }
       // TODONR: Temporarily return null anyway to allow Java to trigger updates while don't have a scheduling mechanism yet.
       // In the final version select() should just wait until either there's a dirty property, or a profile needs to be updated.
-      DEBUGF_WKPF("WKPF: WKPF.select temporarily returning null. Our busy loop will be in Java until we can schedule update() properly.\n");
+      DEBUGF_WKPF("WKPF: WKPF.select temporarily returning null until we can schedule update() properly.\n");
       stack_push(0);
 //TODONR: TMP    }
   } else if (mref == NATIVE_WKPF_METHOD_GETMYNODEID) {

@@ -68,7 +68,7 @@ public class HAScenario2 {
   };
   
   public static void main(String[] args) {
-    System.out.println("HAScenario");
+    System.out.println("HAScenario 2");
     
     myNodeId = WKPF.getMyNodeId();
     

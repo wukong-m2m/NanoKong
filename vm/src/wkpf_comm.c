@@ -128,8 +128,6 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      for(int i=0;i<9;i++)
-        DEBUGF_WKPFUPDATE("[%x] ", payload[i]);
       if (payload[6] == WKPF_PROPERTY_TYPE_INT16) {
         int16_t value;
         value = (int16_t)(payload[7]);
