@@ -187,13 +187,12 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
-  if (nvmcomm_zwave_my_address == 0) { // There won't be a node with address 0, right?
-  /*
+  if (nvmcomm_zwave_my_address == 0) { // There won't be a node with address 0, right? Even if there is, this will still work, just not as efficiently.
     unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
-    nvmcomm_zwave_my_address = (address_t)SerialAPI_request(buf, 2);
-    DEBUGF_COMM("My Zwave address: %x", nvmcomm_zwave_my_address);
-    */
-    nvmcomm_zwave_my_address = 77;
+    SerialAPI_request(buf, 2);
+    nvmcomm_zwave_poll();
+    nvmcomm_zwave_my_address = payload[4];
+    DEBUGF_COMM("My Zwave node_id: %x", nvmcomm_zwave_my_address);
   }
   return nvmcomm_zwave_my_address;
 }

@@ -61,16 +61,10 @@ public class HAScenario1 {
   
   public static void main(String[] args) {
     System.out.println("HAScenario");
-    
-/*    while(true) {
-      setPropertyBoolean(COMPONENT_INSTANCE_ID_LIGHT1, WKPF.PROPERTY_LIGHT_ONOFF, false);
-      Timer.wait(100);
-      setPropertyBoolean(COMPONENT_INSTANCE_ID_LIGHT1, WKPF.PROPERTY_LIGHT_ONOFF, true);
-      Timer.wait(100);
-    }*/
 
     myNodeId = WKPF.getMyNodeId();
-    
+
+ /*   
     System.out.println("MY NODE ID:" + myNodeId);
 
     // ----- REGISTER VIRTUAL PROFILES -----
@@ -111,7 +105,7 @@ public class HAScenario1 {
       if (WKPF.getErrorCode() != WKPF.OK)
         System.out.println("Error: " + WKPF.getErrorCode());
       Timer.wait(1000);
-    }
+    }*/
   }
 
   public static void propagateDirtyProperties() {
