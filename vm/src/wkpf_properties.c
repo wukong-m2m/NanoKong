@@ -4,11 +4,15 @@
 #include "wkpf.h"
 #include "wkpf_properties.h"
 
+#define DIRTY_STATE_CLEAN     0
+#define DIRTY_STATE_DIRTY     1
+#define DIRTY_STATE_FAILED    2
+
 typedef struct property_entry_struct {
   uint8_t endpoint_port_number;
   int8_t property_number;
   int16_t value;
-  bool is_dirty;
+  uint8_t dirty_state;
 } property_entry;
 
 #define MAX_NUMBER_OF_PROPERTIES 100
@@ -31,7 +35,7 @@ uint8_t wkpf_write_property(wkpf_local_endpoint *endpoint, uint8_t property_numb
       DEBUGF_WKPF("WKPF: write_property: (index %x port %x, property %x): %x->%x\n", i, endpoint->port_number, property_number, properties[i].value, value);
       if (properties[i].value != value) {
         properties[i].value = value;
-        properties[i].is_dirty = TRUE;
+        properties[i].dirty_state = DIRTY_STATE_DIRTY;
         if (external_access) // Only call update() when someone else writes to the property, not for internal writes (==writes that are already coming from update())
           wkpf_set_need_to_call_update_for_endpoint(endpoint);
       }
@@ -103,7 +107,7 @@ uint8_t wkpf_alloc_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
     properties[number_of_properties+i].endpoint_port_number = endpoint->port_number;
     properties[number_of_properties+i].property_number = i;
     properties[number_of_properties+i].value = 0;
-    properties[number_of_properties+i].is_dirty = FALSE;
+    properties[number_of_properties+i].dirty_state = DIRTY_STATE_DIRTY;
   }
   number_of_properties += endpoint->profile->number_of_properties;
   DEBUGF_WKPF("WKPF: Allocated %x properties for endpoint at port %x. number of properties is now %x\n", endpoint->profile->number_of_properties, endpoint->port_number, number_of_properties);
@@ -127,23 +131,44 @@ uint8_t wkpf_free_properties_for_endpoint(wkpf_local_endpoint *endpoint) {
 }
 
 bool wkpf_any_property_dirty() {
+  // This will be called from the native select() function. Mark updates that have failed as dirty again to give them another chance.
+  bool dirty = FALSE;
   for (int i=0; i<number_of_properties; i++) {
-    if (properties[i].is_dirty)
-      return TRUE;
+    if (properties[i].dirty_state == DIRTY_STATE_DIRTY)
+      dirty = TRUE;
+    if (properties[i].dirty_state == DIRTY_STATE_FAILED)
+      properties[i].dirty_state = DIRTY_STATE_DIRTY;
   }
-  return FALSE;
+  return dirty;
 }
 
+static uint8_t last_returned_dirty_property_index = 0;
 bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number) {
-  for (int i=0; i<number_of_properties; i++) {
-    if (properties[i].is_dirty) {
-      properties[i].is_dirty = FALSE;
-//      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
+  if (last_returned_dirty_property_index >= number_of_properties)
+    last_returned_dirty_property_index = number_of_properties-1; // Could happen if endpoints were removed
+  int i = last_returned_dirty_property_index;
+
+  do {
+    i = (i+1) % number_of_properties;
+    if (properties[i].dirty_state == DIRTY_STATE_DIRTY) {
+      last_returned_dirty_property_index = i;
       *port_number = properties[i].endpoint_port_number;
       *property_number = properties[i].property_number;
+      properties[i].dirty_state = DIRTY_STATE_CLEAN;
+//      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
       return TRUE;
     }
 //    DEBUGF_WKPF("NOT DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
-  }
+  } while(i != last_returned_dirty_property_index);
   return FALSE;
 }
+
+void wkpf_propagating_dirty_property_failed(uint8_t port_number, uint8_t property_number) {
+  for (int i=0; i<number_of_properties; i++) {
+    if (properties[i].endpoint_port_number == port_number
+        && properties[i].property_number == property_number)
+      // Mark them as failed and not as dirty again to prevent endless retries. Now we wait until the next call to update() which will be some time later as long as we have the main loop in Java.
+      properties[i].dirty_state = DIRTY_STATE_FAILED;
+  }
+}
+

@@ -154,7 +154,7 @@ void nvmcomm_zwave_init() {
   
   // Find my zwave node id
   nvmcomm_zwave_my_address_loaded = TRUE;
-  nvmcomm_zwave_my_address = 3;  
+  nvmcomm_zwave_my_address = 1;  
 /*
   Doesn't work after all :-(
   unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
