@@ -88,12 +88,12 @@ def flaskSetPeopleInRoom():
 def flaskReprogram():
   scenario = int(request.args.get("scenario","1"))
   if scenario == 1:
-    reprogram.reprogramNvmdefault(1, "bytecodeHA1.h")
     reprogram.reprogramNvmdefault(3, "bytecodeHA1.h")
+    reprogram.reprogramNvmdefault(1, "bytecodeHA1.h")
     return "reprogrammed to scenario 1"
   if scenario == 2:
-    reprogram.reprogramNvmdefault(1, "bytecodeHA2.h")
     reprogram.reprogramNvmdefault(3, "bytecodeHA2.h")
+    reprogram.reprogramNvmdefault(1, "bytecodeHA2.h")
     return "reprogrammed to scenario 2"
   else:
     return ""
