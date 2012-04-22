@@ -41,14 +41,14 @@ public class HAScenario1 {
   private static short tmpDummy = 0;
   
   private static final byte[] componentInstanceToEndpointMapping_nodeId = { // Indexed by component instance id.
-    (byte)77, // Input
-    (byte)77, // Temperature sensor
-    (byte)77, // Threshold
-    (byte)77, // Light    
+    (byte)1, // Input
+    (byte)1, // Light sensor
+    (byte)1, // Threshold
+    (byte)3, // Light    
   };
   private static final byte[] componentInstanceToEndpointMapping_portNumber = { // Indexed by component instance id.
     (byte)1, // Input
-    (byte)2, // Temperature sensor
+    (byte)2, // Light sensor
     (byte)3, // Threshold
     (byte)4, // Light    
   };
@@ -64,7 +64,6 @@ public class HAScenario1 {
 
     myNodeId = WKPF.getMyNodeId();
 
- /*   
     System.out.println("MY NODE ID:" + myNodeId);
 
     // ----- REGISTER VIRTUAL PROFILES -----
@@ -84,8 +83,7 @@ public class HAScenario1 {
     }
     // Create and setup the virtual threshold
     if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).nodeId == myNodeId) {
-      VirtualProfile profileInstanceThreshold = new VirtualThresholdProfile();
-      WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).portNumber, profileInstanceThreshold);
+      WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).portNumber, null);
       setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.OPERATOR_LTE); // Sample the temperature every 5 seconds
     }
 
@@ -99,13 +97,15 @@ public class HAScenario1 {
       propagateDirtyProperties();
       
       // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.
-      tmpDummy += 1;
-//      System.out.println("HAScenario - updating dummy variable to trigger lightsensor update ");
-      setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
-      if (WKPF.getErrorCode() != WKPF.OK)
-        System.out.println("Error: " + WKPF.getErrorCode());
+      if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHTSENSOR1).nodeId == myNodeId) { 
+        tmpDummy += 1;
+        System.out.println("HAScenario - updating dummy variable to trigger lightsensor update ");
+        setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
+        if (WKPF.getErrorCode() != WKPF.OK)
+          System.out.println("Error: " + WKPF.getErrorCode());
+      }
       Timer.wait(1000);
-    }*/
+    }
   }
 
   public static void propagateDirtyProperties() {

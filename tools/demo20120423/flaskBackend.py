@@ -12,10 +12,10 @@ import pynvc
 import wkpf
 from wkpf import Endpoint
 
-numericInputEndpoint = Endpoint(nodeId=3, portNumber=1, profileId=3)
-lightSensorEndpoint = Endpoint(nodeId=3, portNumber=2, profileId=5)
+numericInputEndpoint = Endpoint(nodeId=1, portNumber=1, profileId=3)
+lightSensorEndpoint = Endpoint(nodeId=1, portNumber=2, profileId=5)
 lightEndpoint = Endpoint(nodeId=3, portNumber=4, profileId=4)
-occupancyEndpoint = Endpoint(nodeId=3, portNumber=5, profileId=0x1005)
+occupancyEndpoint = Endpoint(nodeId=1, portNumber=5, profileId=0x1005)
 
 @app.route("/")
 def hello():
@@ -83,9 +83,11 @@ def flaskSetPeopleInRoom():
 def flaskReprogram():
   scenario = int(request.args.get("scenario","1"))
   if scenario == 1:
+    reprogram.reprogramNvmdefault(1, "bytecodeHA1.h")
     reprogram.reprogramNvmdefault(3, "bytecodeHA1.h")
     return "reprogrammed to scenario 1"
   if scenario == 2:
+    reprogram.reprogramNvmdefault(1, "bytecodeHA2.h")
     reprogram.reprogramNvmdefault(3, "bytecodeHA2.h")
     return "reprogrammed to scenario 2"
   else:

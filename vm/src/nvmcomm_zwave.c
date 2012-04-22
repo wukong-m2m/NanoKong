@@ -47,6 +47,7 @@ u08_t seq;          // Sequence number which is used to match the callback funct
 u08_t ack_got = 0;
 // u32_t expire;  // The expire time of the last command
 
+bool nvmcomm_zwave_my_address_loaded = FALSE;
 address_t nvmcomm_zwave_my_address;
 
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
@@ -122,6 +123,10 @@ void nvmcomm_zwave_receive(int processmessages) {
         if (addr_zwave_to_nvmcomm(&nvmcomm_addr, payload[1]) && processmessages==1)
           f(nvmcomm_addr, payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
       }
+      if (cmd == FUNC_ID_MEMORY_GET_ID) {
+        nvmcomm_zwave_my_address = payload[4];
+        nvmcomm_zwave_my_address_loaded = TRUE;
+      }
       if (cmd == 0x49 && f_nodeinfo)
           f_nodeinfo(payload, payload_length);
     }
@@ -187,12 +192,17 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
-  if (nvmcomm_zwave_my_address == 0) { // There won't be a node with address 0, right? Even if there is, this will still work, just not as efficiently.
+  if (!nvmcomm_zwave_my_address_loaded) { // There won't be a node with address 0, right? Even if there is, this will still work, just not as efficiently.
     unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
     SerialAPI_request(buf, 2);
-    nvmcomm_zwave_poll();
-    nvmcomm_zwave_my_address = payload[4];
-    DEBUGF_COMM("My Zwave node_id: %x", nvmcomm_zwave_my_address);
+
+    int16_t wait_msec = 200;
+    while(!nvmcomm_zwave_my_address_loaded && wait_msec>0) {
+      nvmcomm_poll();
+      delay(MILLISEC(10));
+      wait_msec -= 10;
+    }
+    DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
   }
   return nvmcomm_zwave_my_address;
 }

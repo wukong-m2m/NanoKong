@@ -94,10 +94,11 @@ void native_wkpf_invoke(u08_t mref) {
       wkpf_local_endpoint *endpoint;
       wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
       if (wkpf_error_code == WKPF_OK) {
-        DEBUGF_WKPF("WKPF.setPropertyShort (propagateDirtyProperty). Port %x, property %x, value %x\n", port_number, property_number, value);
+        DEBUGF_WKPF("WKPF.setPropertyShort (propagateDirtyProperty, local). Port %x, property %x, value %x\n", port_number, property_number, value);
         wkpf_error_code = wkpf_external_write_property_int16(endpoint, property_number, value);
       }
     } else {
+      DEBUGF_WKPF("WKPF.setPropertyShort (propagateDirtyProperty, remote). Node %x, port %x, property %x, value %x\n", dest_node_id, port_number, property_number, value);
       wkpf_error_code = send_set_property_int16(dest_node_id, port_number, property_number, profile_id, value);
     }    
   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYBOOLEAN_REMOTE) {
@@ -111,10 +112,11 @@ void native_wkpf_invoke(u08_t mref) {
       wkpf_local_endpoint *endpoint;
       wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
       if (wkpf_error_code == WKPF_OK) {
-        DEBUGF_WKPF("WKPF.setPropertyBoolean (propagateDirtyProperty). Port %x, property %x, value %x\n", port_number, property_number, value);
+        DEBUGF_WKPF("WKPF.setPropertyBoolean (propagateDirtyProperty, local). Port %x, property %x, value %x\n", port_number, property_number, value);
         wkpf_error_code = wkpf_external_write_property_boolean(endpoint, property_number, value);
       }
     } else {
+      DEBUGF_WKPF("WKPF.setPropertyShort (propagateDirtyProperty, remote). Node %x, port %x, property %x, value %x\n", dest_node_id, port_number, property_number, value);
       wkpf_error_code = send_set_property_boolean(dest_node_id, port_number, property_number, profile_id, value);
     }
   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {

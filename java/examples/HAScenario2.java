@@ -43,16 +43,16 @@ public class HAScenario2 {
   private static short tmpDummy = 0;
   
   private static final byte[] componentInstanceToEndpointMapping_nodeId = { // Indexed by component instance id.
-    (byte)77, // Input
-    (byte)77, // Temperature sensor
-    (byte)77, // Threshold
-    (byte)77, // Light    
-    (byte)77, // Occupancy    
-    (byte)77, // And gate    
+    (byte)1, // Input
+    (byte)1, // Light sensor
+    (byte)3, // Threshold
+    (byte)3, // Light    
+    (byte)1, // Occupancy    
+    (byte)3, // And gate    
   };
   private static final byte[] componentInstanceToEndpointMapping_portNumber = { // Indexed by component instance id.
     (byte)1, // Input
-    (byte)2, // Temperature sensor
+    (byte)2, // Light sensor
     (byte)3, // Threshold
     (byte)4, // Light    
     (byte)5, // Occupancy    
@@ -70,13 +70,6 @@ public class HAScenario2 {
   public static void main(String[] args) {
     System.out.println("HAScenario");
     
-/*    while(true) {
-      setPropertyBoolean(COMPONENT_INSTANCE_ID_LIGHT1, WKPF.PROPERTY_LIGHT_ONOFF, false);
-      Timer.wait(100);
-      setPropertyBoolean(COMPONENT_INSTANCE_ID_LIGHT1, WKPF.PROPERTY_LIGHT_ONOFF, true);
-      Timer.wait(100);
-    }*/
-
     myNodeId = WKPF.getMyNodeId();
     
     System.out.println("MY NODE ID:" + myNodeId);
@@ -128,11 +121,13 @@ public class HAScenario2 {
       propagateDirtyProperties();
       
       // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.
-      tmpDummy += 1;
-//      System.out.println("HAScenario - updating dummy variable to trigger lightsensor update ");
-      setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
-      if (WKPF.getErrorCode() != WKPF.OK)
-        System.out.println("Error: " + WKPF.getErrorCode());
+      if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHTSENSOR1).nodeId == myNodeId) { 
+        tmpDummy += 1;
+        System.out.println("HAScenario - updating dummy variable to trigger lightsensor update ");
+        setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
+        if (WKPF.getErrorCode() != WKPF.OK)
+          System.out.println("Error: " + WKPF.getErrorCode());
+      }
       Timer.wait(1000);
     }
   }
