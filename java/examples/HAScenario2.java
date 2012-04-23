@@ -76,14 +76,14 @@ public class HAScenario2 {
 
     // ----- REGISTER VIRTUAL PROFILES -----
     // Won't work now since we already have a native profile
-    // WKPF.registerProfile((short)WKPF.PROFILE_THRESHOLD, VirtualThresholdProfile.properties, (byte)VirtualThresholdProfile.properties.length);
+    // WKPF.registerProfile((short)WKPF.PROFILE_THRESHOLD, VirtualThresholdProfile.properties);
 
 
     // ----- INIT -----
     // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new profile
     // Register Occupancy sensor and AND gate profiles.
-    WKPF.registerProfile(VirtualOccupancySensorProfile.PROFILE_OCCUPANCY_SENSOR, VirtualOccupancySensorProfile.properties, (byte)VirtualOccupancySensorProfile.properties.length); // TODONR: numberOfProperties shouldn't be necessary, but I can't figure out how to get the array size in native code (need heap ID)
-    WKPF.registerProfile(VirtualANDGateProfile.PROFILE_AND_GATE, VirtualANDGateProfile.properties, (byte)VirtualANDGateProfile.properties.length); // TODONR: numberOfProperties shouldn't be necessary, but I can't figure out how to get the array size in native code (need heap ID)
+    WKPF.registerProfile(VirtualOccupancySensorProfile.PROFILE_OCCUPANCY_SENSOR, VirtualOccupancySensorProfile.properties);
+    WKPF.registerProfile(VirtualANDGateProfile.PROFILE_AND_GATE, VirtualANDGateProfile.properties);
     
     // Setup the temperature sensor
     if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHTSENSOR1).nodeId == myNodeId) { 

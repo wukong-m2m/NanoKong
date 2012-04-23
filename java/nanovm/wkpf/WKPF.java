@@ -4,7 +4,7 @@ public class WKPF {
   public static native byte getErrorCode(); // Since we can't raise exceptions, I'll use this to signal whether a call succeeds or not.
 
   // Profile and endpoint maintenance
-  public static native void registerProfile(short profileId, byte[] properties, byte numberOfProperties); // TODONR: numberOfProperties shouldn't be necessary, but I can't figure out how to get the array size in native code (need heap ID)
+  public static native void registerProfile(short profileId, byte[] properties);
   public static native void createEndpoint(short profileId, byte portNumber, VirtualProfile virtualProfileInstance); // byte or short? No unsigned byte in Java ><
   public static native void removeEndpoint(byte portNumber);
 

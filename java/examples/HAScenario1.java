@@ -68,7 +68,7 @@ public class HAScenario1 {
 
     // ----- REGISTER VIRTUAL PROFILES -----
     // Won't work now since we already have a native profile
-    // WKPF.registerProfile((short)WKPF.PROFILE_THRESHOLD, VirtualThresholdProfile.properties, (byte)VirtualThresholdProfile.properties.length);
+    // WKPF.registerProfile((short)WKPF.PROFILE_THRESHOLD, VirtualThresholdProfile.properties);
 
 
     // ----- INIT -----
