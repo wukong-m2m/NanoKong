@@ -22,6 +22,9 @@ class Endpoint:
   def __repr__(self):
     return 'endpoint(node %d port %d profile %d)' % (self.nodeId, self.portNumber, self.profileId)
 
+def verifyWKPFmsg(messageStart, minAdditionalBytes):
+  # minPayloadLength should not include the command or the 2 byte sequence number
+  return lambda command, payload: (command == pynvc.WKPF_ERROR_R) or (payload != None and payload[0:len(messageStart)]==messageStart and len(payload) >= len(messageStart)+minAdditionalBytes)
 
 def getProfileList(destination):
   sn = getNextSequenceNumberAsList()
@@ -29,9 +32,11 @@ def getProfileList(destination):
                                                 command=pynvc.WKPF_GET_PROFILE_LIST,
                                                 payload=sn,
                                                 allowedReplies=[pynvc.WKPF_GET_PROFILE_LIST_R, pynvc.WKPF_ERROR_R],
-                                                quitOnFailure=True)
-  if len(reply) < 4 or reply[0:3] != [pynvc.WKPF_GET_PROFILE_LIST_R] + sn:
-    print "Incorrect reply: ", reply
+                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of profiles
+  if reply == None:
+    return None
+  if reply[0] == pynvc.WKPF_ERROR_R:
+    print "WKPF RETURNED ERROR ", reply[3]
     return None
   profiles = []
   reply = reply[4:]
@@ -46,16 +51,18 @@ def getEndpointList(destination):
                                                 command=pynvc.WKPF_GET_ENDPOINT_LIST,
                                                 payload=sn,
                                                 allowedReplies=[pynvc.WKPF_GET_ENDPOINT_LIST_R, pynvc.WKPF_ERROR_R],
-                                                quitOnFailure=True)
-  if len(reply) < 4 or reply[0:3] != ([pynvc.WKPF_GET_ENDPOINT_LIST_R] + sn):
-    print "Incorrect reply: ", reply
+                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of endpoints
+  if reply == None:
     return None
-  profiles = []
+  if reply[0] == pynvc.WKPF_ERROR_R:
+    print "WKPF RETURNED ERROR ", reply[3]
+    return None
+  endpoints = []
   reply = reply[4:]
   while len(reply) > 1:
-    profiles.append(Endpoint(destination, reply[0], (reply[1] <<8) + reply[2]))
+    endpoints.append(Endpoint(destination, reply[0], (reply[1] <<8) + reply[2]))
     reply = reply[3:]
-  return profiles
+  return endpoints
 
 def getProperty(endpoint, propertyNumber):
   sn = getNextSequenceNumberAsList()
@@ -64,9 +71,11 @@ def getProperty(endpoint, propertyNumber):
                                                 command=pynvc.WKPF_READ_PROPERTY,
                                                 payload=payload,
                                                 allowedReplies=[pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R],
-                                                quitOnFailure=True)
-  if len(reply) < 9 or reply[0:7] != ([pynvc.WKPF_READ_PROPERTY_R] + payload):
-    print "Incorrect reply: ", reply
+                                                verify=verifyWKPFmsg(messageStart=payload, minAdditionalBytes=2)) # datatype + value
+  if reply == None:
+    return None
+  if reply[0] == pynvc.WKPF_ERROR_R:
+    print "WKPF RETURNED ERROR ", reply[3]
     return None
   datatype = reply[7]
   if datatype == DATATYPE_BOOLEAN:
@@ -84,10 +93,11 @@ def setProperty(endpoint, propertyNumber, datatype, value):
                                                 command=pynvc.WKPF_WRITE_PROPERTY,
                                                 payload=payload,
                                                 allowedReplies=[pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R],
-                                                quitOnFailure=True)
-  if reply != ([pynvc.WKPF_WRITE_PROPERTY_R] + payload[0:6]):
-    print ([pynvc.WKPF_WRITE_PROPERTY_R] + payload[0:6])
-    print "Incorrect reply: ", reply
+                                                verify=verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
+  if reply == None:
+    return None
+  if reply[0] == pynvc.WKPF_ERROR_R:
+    print "WKPF RETURNED ERROR ", reply[3]
     return None
   return value
 
@@ -95,5 +105,5 @@ def setProperty(endpoint, propertyNumber, datatype, value):
 pynvc.init(0)
 #print getProfileList(3)
 #print getEndpointList(3)
-#print getProperty(Endpoint(nodeId=3, portNumber=3, profileId=1), 3)
+#print getProperty(Endpoint(nodeId=3, portNumber=4, profileId=4), 0)
 #print setProperty(Endpoint(nodeId=3, portNumber=1, profileId=3), 0, DATATYPE_INT16, 255)
