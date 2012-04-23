@@ -19,6 +19,7 @@ wkpf_profile_definition profile_numeric_controller = {
 };
 
 void profile_numeric_controller_update(wkpf_local_endpoint *endpoint) {
+  DEBUGF_WKPFUPDATE("WKPFUPDATE(NumericController): NOP\n");
 }
 
 #endif // ENABLE_PROFILE_NUMERIC_CONTROLER

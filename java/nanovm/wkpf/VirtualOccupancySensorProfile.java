@@ -9,6 +9,7 @@ public class VirtualOccupancySensorProfile extends VirtualProfile {
     public static final byte PROPERTY_OCCUPANCY_SENSOR_OCCUPIED                  = (WKPF.PROP_BASE+0);
 
     public void update() {
+      System.out.println("WKPFUPDATE(OccupancySensor): NOP");
       return;
     }
 }

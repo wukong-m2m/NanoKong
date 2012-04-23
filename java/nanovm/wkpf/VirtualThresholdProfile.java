@@ -23,10 +23,10 @@ public class VirtualThresholdProfile extends VirtualProfile {
       	 || ((operator == OPERATOR_LT || operator == OPERATOR_LTE) && value < threshold)
       	 || ((operator == OPERATOR_GTE || operator == OPERATOR_LTE) && value == threshold)) {
             WKPF.setPropertyBoolean(this, WKPF.PROPERTY_THRESHOLD_OUTPUT, true);
-            System.out.println("threshold " + threshold + " value " + value + " operator " + operator + " -> TRUE");
+            System.out.println("WKPFUPDATE(Threshold): threshold " + threshold + " value " + value + " operator " + operator + " -> TRUE");
         } else {
             WKPF.setPropertyBoolean(this, WKPF.PROPERTY_THRESHOLD_OUTPUT, false);
-            System.out.println("threshold " + threshold + " value " + value + " operator " + operator + " -> FALSE");
+            System.out.println("WKPFUPDATE(Threshold): threshold " + threshold + " value " + value + " operator " + operator + " -> FALSE");
         }
     }
 }

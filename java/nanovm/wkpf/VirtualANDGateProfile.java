@@ -19,10 +19,10 @@ public class VirtualANDGateProfile extends VirtualProfile {
 
       	if (in1 && in2) {
             WKPF.setPropertyBoolean(this, VirtualANDGateProfile.PROPERTY_AND_GATE_OUTPUT, true);
-            System.out.println("and gate -> TRUE");
+            System.out.println("WKPFUPDATE(ANDGate):and gate -> TRUE");
         } else {
             WKPF.setPropertyBoolean(this, VirtualANDGateProfile.PROPERTY_AND_GATE_OUTPUT, false);
-            System.out.println("and gate -> FALSE");
+            System.out.println("WKPFUPDATE(ANDGate):and gate -> FALSE");
         }
     }
 }

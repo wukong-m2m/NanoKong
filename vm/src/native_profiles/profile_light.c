@@ -34,7 +34,7 @@ void profile_light_update(wkpf_local_endpoint *endpoint) {
     PORTL |= _BV(3);
   else
     PORTL &= ~_BV(3);
-  DEBUGF_WKPFUPDATE("Setting light to: %x\n", onOff);
+  DEBUGF_WKPFUPDATE("WKPFUPDATE(Light): Setting light to: %x\n", onOff);
 }
 
 #endif // ENABLE_PROFILE_LIGHT

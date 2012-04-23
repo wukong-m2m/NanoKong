@@ -3,29 +3,30 @@
 #include "wkpf.h"
 #include "debug.h"
 
-#define WKFPCOMM_SET_MESSAGE_HEADER_LEN 6
+#define WKFPCOMM_SET_MESSAGE_HEADER_LEN 7
 
 uint8_t message_buffer[NVMCOMM_MESSAGE_SIZE];
 uint16_t next_sequence_number = 0;
 
-void set_message_header(uint8_t port_number, uint8_t property_number, uint16_t profile_id) {
+void set_message_header(uint8_t port_number, uint8_t property_number, uint16_t profile_id, uint8_t datatype) {
   message_buffer[0] = (uint8_t)(next_sequence_number >> 8);
   message_buffer[1] = (uint8_t)(next_sequence_number++);
   message_buffer[2] = port_number;
   message_buffer[3] = (uint8_t)(profile_id >> 8);
   message_buffer[4] = (uint8_t)(profile_id);
-  message_buffer[5] = property_number;  
+  message_buffer[5] = property_number;
+  message_buffer[6] = datatype;
 }
 
 uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
-  #ifdef DEBUG_WKPF
+  #ifdef DEBUG
   DEBUGF_WKPF("WKPF: sending property set command to %x:", dest_node_id);
-  for(int i=0; i<8; i++) {
+  for(int i=0; i<length; i++) {
     DEBUGF_WKPF("[%x] ", message_buffer[i]);
   }
   DEBUGF_WKPF("\n");
   #endif
-  if(nvmcomm_send(dest_node_id, command, message_buffer, 8) != 0)
+  if(nvmcomm_send(dest_node_id, command, message_buffer, length) != 0)
     return WKPF_ERR_NVMCOMM_SEND_ERROR;
   nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){command+1 /* the reply to this command */, NVMCOMM_WKPF_ERROR_R}, 2);
   if(reply == NULL)
@@ -36,16 +37,16 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
 }
 
 uint8_t send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t profile_id, int16_t value) {
-  set_message_header(port_number, property_number, profile_id);
+  set_message_header(port_number, property_number, profile_id, WKPF_PROPERTY_TYPE_INT16);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
-  return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, 8);
+  return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
 }
 
 uint8_t send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t profile_id, bool value) {
-  set_message_header(port_number, property_number, profile_id);
+  set_message_header(port_number, property_number, profile_id, WKPF_PROPERTY_TYPE_BOOLEAN);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value);
-  return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, 7);
+  return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+1);
 }
 
 void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
@@ -127,8 +128,6 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      for(int i=0;i<9;i++)
-        DEBUGF_WKPFUPDATE("[%x] ", payload[i]);
       if (payload[6] == WKPF_PROPERTY_TYPE_INT16) {
         int16_t value;
         value = (int16_t)(payload[7]);

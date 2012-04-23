@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "debug.h"
 #include "delay.h"
+#include "error.h"
 #include "nvmcomm.h"
 
 #ifdef NVM_USE_COMMZWAVE
@@ -47,6 +48,7 @@ u08_t seq;          // Sequence number which is used to match the callback funct
 u08_t ack_got = 0;
 // u32_t expire;  // The expire time of the last command
 
+bool nvmcomm_zwave_my_address_loaded = FALSE;
 address_t nvmcomm_zwave_my_address;
 
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
@@ -122,6 +124,10 @@ void nvmcomm_zwave_receive(int processmessages) {
         if (addr_zwave_to_nvmcomm(&nvmcomm_addr, payload[1]) && processmessages==1)
           f(nvmcomm_addr, payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
       }
+      if (cmd == FUNC_ID_MEMORY_GET_ID) {
+        nvmcomm_zwave_my_address = payload[4];
+        nvmcomm_zwave_my_address_loaded = TRUE;
+      }
       if (cmd == 0x49 && f_nodeinfo)
           f_nodeinfo(payload, payload_length);
     }
@@ -145,6 +151,23 @@ void nvmcomm_zwave_init() {
   uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 // TODO
   // expire = 0;
+  
+  // Find my zwave node id
+  nvmcomm_zwave_my_address_loaded = TRUE;
+  nvmcomm_zwave_my_address = 1;  
+/*
+  Doesn't work after all :-(
+  unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
+  nvmcomm_poll();
+  uint8_t retries = 10;
+  while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
+    SerialAPI_request(buf, 2);
+    nvmcomm_poll();
+  }
+  DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
+  if(!nvmcomm_zwave_my_address_loaded)
+    error(ERROR_COMM_INIT_FAILED);
+*/
 }
 
 void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
@@ -187,14 +210,6 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
-  if (nvmcomm_zwave_my_address == 0) { // There won't be a node with address 0, right?
-  /*
-    unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
-    nvmcomm_zwave_my_address = (address_t)SerialAPI_request(buf, 2);
-    DEBUGF_COMM("My Zwave address: %x", nvmcomm_zwave_my_address);
-    */
-    nvmcomm_zwave_my_address = 77;
-  }
   return nvmcomm_zwave_my_address;
 }
 

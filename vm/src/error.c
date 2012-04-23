@@ -57,6 +57,7 @@ char *error_msg[] = {
   "VM: division by zero",            // P
   "VM: stack corrupted",             // Q
   "WKPF: initialisation failed",     // R
+  "COMM: initialisation failed"      // S
 };
 #else
 #include "uart.h"
