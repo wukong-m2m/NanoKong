@@ -7,7 +7,7 @@ DEVICE = atmega2560
 
 DEFAULT_CLASS = HAScenario1
 
-PORT = /dev/tty.usbmodem411
+PORT = /dev/ttyACM0
 
 ROOT_DIR = ../../..
 
