@@ -10,7 +10,7 @@
 
 typedef struct property_entry_struct {
   uint8_t endpoint_port_number;
-  int8_t property_number;
+  uint8_t property_number;
   int16_t value;
   uint8_t dirty_state;
 } property_entry;
