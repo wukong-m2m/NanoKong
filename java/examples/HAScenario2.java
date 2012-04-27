@@ -7,19 +7,8 @@ public class HAScenario2 {
   // =========== Constant part, not affected by the application.
   private static int myNodeId;
 
-  private static boolean matchDirtyProperty(int componentInstanceId, byte propertyNumber) {
-    Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
-    return endpoint.nodeId == myNodeId
-        && endpoint.portNumber == WKPF.getDirtyPropertyPortNumber()
-        && propertyNumber == WKPF.getDirtyPropertyNumber();
-  }
-  private static void setPropertyShort(int componentInstanceId, byte propertyNumber, short value) {      
-      Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
-      WKPF.setPropertyShort(endpoint.nodeId, endpoint.portNumber, propertyNumber, endpoint.profileId, value);
-  }
-  private static void setPropertyBoolean(int componentInstanceId, byte propertyNumber, boolean value) {
-      Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
-      WKPF.setPropertyBoolean(endpoint.nodeId, endpoint.portNumber, propertyNumber, endpoint.profileId, value);
+  private static boolean isLocalComponent(int componentId) {
+    return ComponentInstancetoEndpoint(componentId).nodeId == myNodeId;
   }
 
   public static Endpoint ComponentInstancetoEndpoint(int componentInstanceId) {
@@ -86,27 +75,27 @@ public class HAScenario2 {
     WKPF.registerProfile(VirtualANDGateProfile.PROFILE_AND_GATE, VirtualANDGateProfile.properties);
     
     // Setup the temperature sensor
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHTSENSOR1).nodeId == myNodeId) { 
-      setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
+      WKPF.setPropertyShort((short)COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
     }
     // Setup the numeric input
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1).nodeId == myNodeId) { 
-      setPropertyShort(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127); // Sample the temperature every 5 seconds
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1)) { 
+      WKPF.setPropertyShort((short)COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127); // Sample the temperature every 5 seconds
     }
     // Create and setup the threshold
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).nodeId == myNodeId) {
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_THRESHOLD1)) {
       WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).portNumber, null);
-      setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.OPERATOR_LTE); // Sample the temperature every 5 seconds
+      WKPF.setPropertyShort((short)COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.OPERATOR_LTE); // Sample the temperature every 5 seconds
     }
     // Create and setup the occupancy sensor
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_OCCUPANCY1).nodeId == myNodeId) {
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_OCCUPANCY1)) {
       VirtualProfile profileInstanceOccupancy = new VirtualOccupancySensorProfile();
       WKPF.createEndpoint((short)VirtualOccupancySensorProfile.PROFILE_OCCUPANCY_SENSOR, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_OCCUPANCY1).portNumber, profileInstanceOccupancy);
       // Default occupied
-      setPropertyBoolean(COMPONENT_INSTANCE_ID_OCCUPANCY1, VirtualOccupancySensorProfile.PROPERTY_OCCUPANCY_SENSOR_OCCUPIED, true);
+      WKPF.setPropertyBoolean((short)COMPONENT_INSTANCE_ID_OCCUPANCY1, VirtualOccupancySensorProfile.PROPERTY_OCCUPANCY_SENSOR_OCCUPIED, true);
     }
     // Create and setup the AND gate
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_ANDGATE1).nodeId == myNodeId) {
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_ANDGATE1)) {
       VirtualProfile profileInstanceANDGate = new VirtualANDGateProfile();
       WKPF.createEndpoint((short)VirtualANDGateProfile.PROFILE_AND_GATE, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_ANDGATE1).portNumber, profileInstanceANDGate);
     }
@@ -118,13 +107,12 @@ public class HAScenario2 {
       if (profile != null) {
         profile.update();
       }
-      propagateDirtyProperties();
       
       // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.
       if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHTSENSOR1).nodeId == myNodeId) { 
         tmpDummy += 1;
         System.out.println("HAScenario - updating dummy variable to trigger lightsensor update ");
-        setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
+        WKPF.setPropertyShort((short)COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
         if (WKPF.getErrorCode() != WKPF.OK)
           System.out.println("Error: " + WKPF.getErrorCode());
       }
@@ -132,6 +120,7 @@ public class HAScenario2 {
     }
   }
 
+/*
   public static void propagateDirtyProperties() {
     System.out.println("HAScenario - start propagateDirtyProperties");
     while(WKPF.loadNextDirtyProperty()) {
@@ -139,12 +128,12 @@ public class HAScenario2 {
       if (matchDirtyProperty(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE)) {
         System.out.println("HAScenario - propagating lightsensor.currentvalue -> threshold.input");
 
-/*  TODONR: Math.abs doesn't work
+/ *  TODONR: Math.abs doesn't work
       short value = WKPF.getDirtyPropertyShortValue();
         if (Math.abs(lastPropagatedValue - value) > 2) {
           lastPropagatedValue = value;
           setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_VALUE, value);
-        } */
+        } * /
       setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_VALUE, WKPF.getDirtyPropertyShortValue());
       
       } else if (matchDirtyProperty(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT)) {
@@ -166,4 +155,5 @@ public class HAScenario2 {
     }
     System.out.println("HAScenario - end propagateDirtyProperties");
   }
+  */
 }

@@ -21,6 +21,9 @@ public class HAScenario1 {
       Endpoint endpoint = ComponentInstancetoEndpoint(componentInstanceId);
       WKPF.setPropertyBoolean(endpoint.nodeId, endpoint.portNumber, propertyNumber, endpoint.profileId, value);
   }
+  private static boolean isLocalComponent(int componentId) {
+    return ComponentInstancetoEndpoint(componentId).nodeId == myNodeId;
+  }
 
   public static Endpoint ComponentInstancetoEndpoint(int componentInstanceId) {
     // INITIAL STATIC VERSION: This could later be replaced by something more dynamic, for now the table is a hardcoded constant
@@ -74,15 +77,15 @@ public class HAScenario1 {
     // ----- INIT -----
     // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new profile
     // Setup the temperature sensor
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_LIGHTSENSOR1).nodeId == myNodeId) { 
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
       setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
     }
     // Setup the numeric input
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1).nodeId == myNodeId) { 
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1).nodeId == myNodeId) { 
       setPropertyShort(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127); // Sample the temperature every 5 seconds
     }
     // Create and setup the virtual threshold
-    if (ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).nodeId == myNodeId) {
+    if (isLocalComponent(COMPONENT_INSTANCE_ID_THRESHOLD1)) {
       WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, ComponentInstancetoEndpoint(COMPONENT_INSTANCE_ID_THRESHOLD1).portNumber, null);
       setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, VirtualThresholdProfile.OPERATOR_LTE); // Sample the temperature every 5 seconds
     }

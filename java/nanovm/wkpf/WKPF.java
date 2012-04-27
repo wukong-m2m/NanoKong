@@ -14,19 +14,16 @@ public class WKPF {
   public static native boolean getPropertyBoolean(VirtualProfile virtualProfileInstance, byte propertyNumber);
   public static native void setPropertyBoolean(VirtualProfile virtualProfileInstance, byte propertyNumber, boolean value);
 
-  // Property setters used in propertyDispatch
-  public static native void setPropertyShort(short nodeId, byte portNumber, byte propertyNumber, short profileId, short value);
-  public static native void setPropertyBoolean(short nodeId, byte portNumber, byte propertyNumber, short profileId, boolean value);
+  // Property setters used to initialise properties
+  public static native void setPropertyShort(short componentId, byte propertyNumber, short value);
+  public static native void setPropertyBoolean(short componentId, byte propertyNumber, boolean value);
 
   // Select function for main loop
   public static native VirtualProfile select();
 
-  // Getting the properties which values have to be propagated in propertyDispatch
-  public static native boolean loadNextDirtyProperty();
-  public static native byte getDirtyPropertyPortNumber();
-  public static native byte getDirtyPropertyNumber();
-  public static native short getDirtyPropertyShortValue();
-  public static native boolean getDirtyPropertyBooleanValue();
+  // Load component-endpoint map and link definitions
+  public static native void loadComponentToEndpointMap(byte[] map);
+  public static native void loadLinkDefinitions(byte[] links);
 
   // Who am I?
   public static native short getMyNodeId();
@@ -38,19 +35,22 @@ public class WKPF {
   public static final byte PROPERTY_ACCESS_WRITE          = (byte)(1 << 6);
   public static final byte PROPERTY_ACCESS_RW = (PROPERTY_ACCESS_READ|PROPERTY_ACCESS_WRITE);
 
-  public static final byte OK                                     = 0;
-  public static final byte ERR_ENDPOINT_NOT_FOUND                 = 1;
-  public static final byte ERR_PROPERTY_NOT_FOUND                 = 2;
-  public static final byte ERR_PROFILE_NOT_FOUND                  = 3;
-  public static final byte ERR_READ_ONLY                          = 4;
-  public static final byte ERR_WRITE_ONLY                         = 5;
-  public static final byte ERR_PORT_IN_USE                        = 6;
-  public static final byte ERR_PROFILE_ID_IN_USE                  = 7;
-  public static final byte ERR_OUT_OF_MEMORY                      = 8;
-  public static final byte ERR_WRONG_DATATYPE                     = 9;
-  public static final byte ERR_ENDPOINT_ALREADY_ALLOCATED        = 10;
-  public static final byte ERR_NEED_VIRTUAL_PROFILE_INSTANCE     = 11;
-  public static final byte ERR_SHOULDNT_HAPPEN           = (byte)0xFF;
+  public static final byte OK                                             =  0;
+  public static final byte ERR_ENDPOINT_NOT_FOUND                         =  1;
+  public static final byte ERR_PROPERTY_NOT_FOUND                         =  2;
+  public static final byte ERR_PROFILE_NOT_FOUND                          =  3;
+  public static final byte ERR_READ_ONLY                                  =  4;
+  public static final byte ERR_WRITE_ONLY                                 =  5;
+  public static final byte ERR_PORT_IN_USE                                =  6;
+  public static final byte ERR_PROFILE_ID_IN_USE                          =  7;
+  public static final byte ERR_OUT_OF_MEMORY                              =  8;
+  public static final byte ERR_WRONG_DATATYPE                             =  9;
+  public static final byte ERR_ENDPOINT_ALREADY_ALLOCATED                 = 10;
+  public static final byte ERR_NEED_VIRTUAL_PROFILE_INSTANCE              = 11;
+  public static final byte ERR_NVMCOMM_SEND_ERROR                         = 12;
+  public static final byte ERR_NVMCOMM_NO_REPLY                           = 13;
+  public static final byte ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED = 14;
+  public static final byte ERR_SHOULDNT_HAPPEN                    = (byte)0xFF;
 
   // Profile library
   public static final byte PROPERTY_COMMON_REFRESHRATE                         = 0; // TODO: implement this

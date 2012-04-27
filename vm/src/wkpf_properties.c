@@ -143,7 +143,7 @@ bool wkpf_any_property_dirty() {
 }
 
 static uint8_t last_returned_dirty_property_index = 0;
-bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number) {
+bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number, int16_t *value) {
   if (last_returned_dirty_property_index >= number_of_properties)
     last_returned_dirty_property_index = number_of_properties-1; // Could happen if endpoints were removed
   int i = last_returned_dirty_property_index;
@@ -154,6 +154,7 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
       last_returned_dirty_property_index = i;
       *port_number = properties[i].endpoint_port_number;
       *property_number = properties[i].property_number;
+      *value = properties[i].value;
       properties[i].dirty_state = DIRTY_STATE_CLEAN;
 //      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].endpoint_port_number, properties[i].property_number, ((uint16_t)properties[i].endpoint_port_number)<<8 | properties[i].property_number);
       return TRUE;
