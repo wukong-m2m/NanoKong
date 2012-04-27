@@ -21,7 +21,6 @@ void native_wkpf_invoke(u08_t mref) {
     profile.profile_id = profile_id;
     profile.update = NULL;
     profile.number_of_properties = array_length(properties_heap_id);
-    DEBUGF_WKPF("=======Register virtual profile, number of properties: %x\n", profile.number_of_properties);
     profile.properties = properties+1; // Seems to be in RAM anyway. This will work while it is, but we want to get it into Flash at some point. +1 to skip the array type byte
     DEBUGF_WKPF("WKPF: Registering virtual profile with id %x\n", profile_id);
     wkpf_error_code = wkpf_register_profile(profile);  
