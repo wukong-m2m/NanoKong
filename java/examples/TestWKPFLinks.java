@@ -116,6 +116,14 @@ public class TestWKPFLinks {
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 0 on instance A to 123.");
     callVirtualProfileUpdates();
 
+    WKPF.setPropertyBoolean(profileInstanceB, (byte)1, true);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 on instance B to true.");
+    callVirtualProfileUpdates();
+
+    WKPF.setPropertyBoolean(profileInstanceB, (byte)1, false);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 on instance B to false.");
+    callVirtualProfileUpdates();
+
     System.out.println("WuKong Profile Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
   }
 }
