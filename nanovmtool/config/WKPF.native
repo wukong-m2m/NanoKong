@@ -16,5 +16,5 @@ method setPropertyShort:(SBS)V								9
 method setPropertyBoolean:(SBZ)V							10
 method select:()Lnanovm/wkpf/VirtualProfile;				11
 method getMyNodeId:()S										12
-method loadComponentToEndpointMap([B)V						13
-method loadLinkDefinitions([B)V								14
+method loadComponentToEndpointMap:([B)V						13
+method loadLinkDefinitions:([B)V							14

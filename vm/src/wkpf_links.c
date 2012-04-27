@@ -42,24 +42,26 @@ uint16_t wkpf_get_component_id(uint8_t port_number) {
 
 uint8_t wkpf_load_component_to_endpoint_map(heap_id_t map_heap_id) {
   uint16_t number_of_entries = array_length(map_heap_id)/sizeof(remote_endpoint);
-  remote_endpoint *map = (remote_enpoint *)(heap_get_addr(map_heap_id)+1); // +1 to skip type byte
+  remote_endpoint *map = (remote_endpoint *)((uint8_t *)heap_get_addr(map_heap_id)+1); // +1 to skip type byte
   
   if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
     return WKPF_ERR_OUT_OF_MEMORY;
   for(int i=0; i<number_of_entries; i++)
     component_to_endpoint_map[i] = map[i];
-  return WKPF_OK
+  number_of_components = number_of_entries;
+  return WKPF_OK;
 }
 
 uint8_t wkpf_load_links(heap_id_t links_heap_id) {
-  uint16_t number_of_entries = array_length(map_heap_id)/sizeof(remote_endpoint);
-  remote_endpoint *map = (remote_enpoint *)(heap_get_addr(map_heap_id)+1); // +1 to skip type byte
+  uint16_t number_of_entries = array_length(links_heap_id)/sizeof(link_entry);
+  link_entry *links_p = (link_entry *)((uint8_t *)heap_get_addr(links_heap_id)+1); // +1 to skip type byte
   
-  if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
+  if (number_of_entries>MAX_NUMBER_OF_LINKS)
     return WKPF_ERR_OUT_OF_MEMORY;
   for(int i=0; i<number_of_entries; i++)
-    component_to_endpoint_map[i] = map[i];
-  return WKPF_OK
+    links[i] = links_p[i];
+  number_of_links = number_of_entries;
+  return WKPF_OK;
 }
 
 
