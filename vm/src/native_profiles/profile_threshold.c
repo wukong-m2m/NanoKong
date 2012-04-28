@@ -34,11 +34,11 @@ void profile_threshold_update(wkpf_local_endpoint *endpoint) {
 	 || ((operator == OPERATOR_LT || operator == OPERATOR_LTE) && value < threshold)
 	 || ((operator == OPERATOR_GTE || operator == OPERATOR_LTE) && value == threshold)) {
     wkpf_internal_write_property_boolean(endpoint, WKPF_PROPERTY_THRESHOLD_OUTPUT, TRUE);
-    DEBUGF_WKPFUPDATE("WKPFUPDATE(Threshold): Native threshold: operator %x threshold %x value -> TRUE\n", operator, threshold, value);
+    DEBUGF_WKPFUPDATE("WKPFUPDATE(Threshold): Native threshold: operator %x threshold %x value %x -> TRUE\n", operator, threshold, value);
   }
 	else {
     wkpf_internal_write_property_boolean(endpoint, WKPF_PROPERTY_THRESHOLD_OUTPUT, FALSE);
-    DEBUGF_WKPFUPDATE("WKPFUPDATE(Threshold): Native threshold: operator %x threshold %x value -> FALSE\n", operator, threshold, value);
+    DEBUGF_WKPFUPDATE("WKPFUPDATE(Threshold): Native threshold: operator %x threshold %x value %x -> FALSE\n", operator, threshold, value);
   }
 }
 

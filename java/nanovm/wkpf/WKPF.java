@@ -64,6 +64,10 @@ public class WKPF {
   public static final byte PROPERTY_THRESHOLD_THRESHOLD                        = (WKPF.PROP_BASE+1);
   public static final byte PROPERTY_THRESHOLD_VALUE                            = (WKPF.PROP_BASE+2);
   public static final byte PROPERTY_THRESHOLD_OUTPUT                           = (WKPF.PROP_BASE+3);
+  public static final short PROPERTY_THRESHOLD_OPERATOR_GT                     = 0;
+  public static final short PROPERTY_THRESHOLD_OPERATOR_LT                     = 1;
+  public static final short PROPERTY_THRESHOLD_OPERATOR_GTE                    = 2;
+  public static final short PROPERTY_THRESHOLD_OPERATOR_LTE                    = 3;
 
   public static final short PROFILE_TEMPERATURE_SENSOR                         = 2;
   public static final byte PROPERTY_TEMPERATURE_SENSOR_CURRENT_TEMPERATURE     = (WKPF.PROP_BASE+0);

@@ -88,7 +88,7 @@ void native_wkpf_invoke(u08_t mref) {
     address_t node_id;
     uint8_t port_number;
     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-    if (wkpf_error_code != WKPF_OK) {
+    if (wkpf_error_code == WKPF_OK) {
       if (node_id != nvmcomm_get_node_id())
         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
       else {
@@ -108,14 +108,15 @@ void native_wkpf_invoke(u08_t mref) {
     address_t node_id;
     uint8_t port_number;
     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-    if (wkpf_error_code != WKPF_OK) {
+    DEBUGF_WKPF("WKPF: setPropertyBoolean (local). Component %x, property %x, value %x\n", component_id, property_number, value);
+    if (wkpf_error_code == WKPF_OK) {
       if (node_id != nvmcomm_get_node_id())
         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
       else {
         wkpf_local_endpoint *endpoint;
         wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
         if (wkpf_error_code == WKPF_OK) {
-          DEBUGF_WKPF("WKPF: setPropertyShort (local). Port %x, property %x, value %x\n", port_number, property_number, value);
+          DEBUGF_WKPF("WKPF: setPropertyBoolean (local). Port %x, property %x, value %x\n", port_number, property_number, value);
           wkpf_error_code = wkpf_external_write_property_boolean(endpoint, property_number, value);
         }
       }
