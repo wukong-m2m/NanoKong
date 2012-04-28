@@ -87,14 +87,17 @@ public class HAScenario2 {
     // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new profile
     // Setup the temperature sensor
     if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
+      System.out.println("HASCENARIO INIT: Set light sensor to 5000ms refresh rate");
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
     }
     // Setup the numeric input
     if (isLocalComponent(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1)) { 
+      System.out.println("HASCENARIO INIT: Set input controller to default value of 127");
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127); // Default threshold: 127
     }
     // Create and setup the threshold endpoint
     if (isLocalComponent(COMPONENT_INSTANCE_ID_THRESHOLD1)) {
+      System.out.println("HASCENARIO INIT: Create threshold and set operator to <=");
       WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, getPortNumberForComponent(COMPONENT_INSTANCE_ID_THRESHOLD1), null);
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.PROPERTY_THRESHOLD_OPERATOR_LTE); // Threshold operator: <=
     }
@@ -104,12 +107,14 @@ public class HAScenario2 {
     }
     // Register virtual and gate profile and create an endpoint
     if (isLocalComponent(COMPONENT_INSTANCE_ID_ANDGATE1)) {
+      System.out.println("HASCENARIO INIT: Create and gate");
       WKPF.registerProfile(VirtualANDGateProfile.PROFILE_AND_GATE, VirtualANDGateProfile.properties);
       VirtualProfile profileInstanceANDGate = new VirtualANDGateProfile();
       WKPF.createEndpoint((short)VirtualANDGateProfile.PROFILE_AND_GATE, getPortNumberForComponent(COMPONENT_INSTANCE_ID_ANDGATE1), profileInstanceANDGate);
     }
     // Register virtual occupancy sensor profile and create an endpoint
     if (isLocalComponent(COMPONENT_INSTANCE_ID_OCCUPANCY1)) {
+      System.out.println("HASCENARIO INIT: Create occupancy sensor and set default value to occupied");
       WKPF.registerProfile(VirtualOccupancySensorProfile.PROFILE_OCCUPANCY_SENSOR, VirtualOccupancySensorProfile.properties);
       VirtualProfile profileInstanceOccupancy = new VirtualOccupancySensorProfile();
       WKPF.createEndpoint((short)VirtualOccupancySensorProfile.PROFILE_OCCUPANCY_SENSOR, getPortNumberForComponent(COMPONENT_INSTANCE_ID_OCCUPANCY1), profileInstanceOccupancy);

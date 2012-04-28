@@ -71,14 +71,17 @@ public class HAScenario1 {
     // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new profile
     // Setup the temperature sensor
     if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
+      System.out.println("HASCENARIO INIT: Set light sensor to 5000ms refresh rate");
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
     }
     // Setup the numeric input
     if (isLocalComponent(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1)) { 
+      System.out.println("HASCENARIO INIT: Set input controller to default value of 127");
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127); // Default threshold: 127
     }
     // Create and setup the threshold endpoint
     if (isLocalComponent(COMPONENT_INSTANCE_ID_THRESHOLD1)) {
+      System.out.println("HASCENARIO INIT: Create threshold and set operator to <=");
       WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, getPortNumberForComponent(COMPONENT_INSTANCE_ID_THRESHOLD1), null);
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.PROPERTY_THRESHOLD_OPERATOR_LTE); // Threshold operator: <=
     }

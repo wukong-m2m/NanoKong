@@ -26,7 +26,7 @@ def hello():
 @app.route("/updateStatus")
 def flaskUpdateStatus():
   filename = "/Users/niels/Sites/getStatus"
-  profiles = wkpf.getProfileList(3)
+  profiles = wkpf.getProfileList(1)
   if 0x1005 in profiles:
     scenario=2
   else:
