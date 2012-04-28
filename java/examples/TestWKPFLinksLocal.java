@@ -5,7 +5,7 @@ TestWKPF.java
 import java.io.*;
 import nanovm.wkpf.*;
 
-public class TestWKPFLinks {
+public class TestWKPFLinksLocal {
   private static int passedCount=0;
   private static int failedCount=0;
 
@@ -71,18 +71,13 @@ public class TestWKPFLinks {
   }
 
   public static void main(String[] args) {
-    System.out.println("WuKong Profile Framework test");
-
-    byte myNodeId = (byte)WKPF.getMyNodeId();
-
-    WKPF.registerProfile((short)0x42, VirtualTestProfile.properties);
-    VirtualProfile profileInstanceA = new VirtualTestProfile("A");
-    WKPF.createEndpoint((short)0x42, (byte)0x10, profileInstanceA);
-    VirtualProfile profileInstanceB = new VirtualTestProfile("B");
-    WKPF.createEndpoint((short)0x42, (byte)0x20, profileInstanceB);
-
     int COMPONENT_INSTANCE_ID_A = 0;
     int COMPONENT_INSTANCE_ID_B = 1;
+
+    System.out.println("WuKong Profile Framework Link test");
+
+    byte myNodeId = (byte)WKPF.getMyNodeId();
+    System.out.println("My node id: " + myNodeId);
 
     byte[] componentInstanceToEndpointMap = { // Indexed by component instance id.
       myNodeId, (byte)0x10, // Component 0: instance A        @ node 1, port 1
@@ -105,7 +100,13 @@ public class TestWKPFLinks {
       (byte)COMPONENT_INSTANCE_ID_A, (byte)0, (byte)1,
       (byte)0x42, (byte)0
     };
-    
+
+    WKPF.registerProfile((short)0x42, VirtualTestProfile.properties);
+    VirtualProfile profileInstanceA = new VirtualTestProfile("A");
+    WKPF.createEndpoint((short)0x42, (byte)0x10, profileInstanceA);
+    VirtualProfile profileInstanceB = new VirtualTestProfile("B");
+    WKPF.createEndpoint((short)0x42, (byte)0x20, profileInstanceB);
+
     WKPF.loadComponentToEndpointMap(componentInstanceToEndpointMap);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering component to endpoint map.");
     

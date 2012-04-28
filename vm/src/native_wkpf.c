@@ -6,7 +6,7 @@
 #include "array.h"
 #include "wkpf.h"
 
-uint8_t wkpf_error_code = 0;
+uint8_t wkpf_error_code = WKPF_OK;
 
 void native_wkpf_invoke(u08_t mref) {
   
@@ -131,7 +131,6 @@ void native_wkpf_invoke(u08_t mref) {
         uint8_t port_number;
         uint8_t property_number;
         int16_t value;
-        uint8_t wkpf_error_code;
         while(wkpf_get_next_dirty_property(&port_number, &property_number, &value)) {
           nvmcomm_poll(); // Process incoming messages
           wkpf_error_code = wkpf_propagate_property(port_number, property_number, value);

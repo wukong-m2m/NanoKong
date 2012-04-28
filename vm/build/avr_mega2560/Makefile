@@ -5,7 +5,7 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_CLASS = TestWKPFLinks
+DEFAULT_CLASS = TestWKPFLinks2
 
 PORT = /dev/tty.usbmodem411
 

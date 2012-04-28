@@ -119,7 +119,7 @@ public class Generator {
         for (int i = 0; i < ClassLoader.totalMethods(); i++) {
             MethodInfo methodInfo = ClassLoader.getMethod(i);
 
-            System.out.println("--TMPNR-- " + methodInfo.getName() + methodInfo.getSignature());
+            System.out.println("------- " + methodInfo.getName() + methodInfo.getSignature());
             // offset from this header to bytecode (this header is 8 bytes
             // in size)
             code.write16((ClassLoader.totalMethods() - i) * 8 + codeOffset);      // code_index
