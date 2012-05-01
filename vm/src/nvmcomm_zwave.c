@@ -161,13 +161,20 @@ void nvmcomm_zwave_init() {
   unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
   nvmcomm_poll();
   uint8_t retries = 10;
-  while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
-    SerialAPI_request(buf, 2);
-    nvmcomm_poll();
+  address_t previous_received_address = 0;
+  while(!nvmcomm_zwave_my_address_loaded) {
+    while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
+      SerialAPI_request(buf, 2);
+      nvmcomm_poll();
+    }
+    if(!nvmcomm_zwave_my_address_loaded) // Can't read address -> panic
+      error(ERROR_COMM_INIT_FAILED);
+    if (nvmcomm_zwave_my_address != previous_received_address) { // Sometimes I get the wrong address. Only accept if we get the same address twice in a row. No idea if this helps though, since I don't know what's going on exactly.
+      nvmcomm_zwave_my_address_loaded = false;
+      previous_received_address = nvmcomm_zwave_my_address;
+    }
   }
   DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
-  if(!nvmcomm_zwave_my_address_loaded)
-    error(ERROR_COMM_INIT_FAILED);
 }
 
 void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
