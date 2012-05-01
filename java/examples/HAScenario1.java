@@ -30,7 +30,8 @@ public class HAScenario1 {
     (byte)3, (byte)0x4  // Component 3: light               @ node 3, port 4
   };
 
-  private final static byte[] linkDefinitions = { // Note: Component instance id and profile id are little endian
+  private final static byte[] linkDefinitions = {
+    // Note: Component instance id and profile id are little endian
     // Note: using WKPF constants now, but this should be generated as literal bytes by the WuML->Java compiler.
     // Connect input controller to threshold
     (byte)COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, (byte)0, (byte)WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT,

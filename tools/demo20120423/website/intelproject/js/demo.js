@@ -88,7 +88,7 @@ $(function () {
 
     //load json file
     $("#reprogramming").hide();
-    loadSenario();
+    loadScenario();
     
 /*
     $("#slider-horizontal").slider({
@@ -170,7 +170,7 @@ $(function () {
     */        
     
     
-    setInterval( "loadSenario();", 1000 );
+    setInterval( "loadScenario();", 1000 );
     
 });
 
@@ -178,13 +178,13 @@ function setThreshold(new_threshold)
 {
     //updaet threshold
     $.get('http://nielsmbp.local:5000/setThreshold?threshold='+new_threshold, function(data){});
-    loadSenario();
+    loadScenario();
 }
 
 function setPeopleInRoom(status)
 {
     $.get('http://nielsmbp.local:5000/setPeopleInRoom?peopleinroom='+status, function(data){});
-    loadSenario();
+    loadScenario();
 }
 
 function reprogram(id)
@@ -196,18 +196,16 @@ function reprogram(id)
     });
     jQuery.ajaxSetup({async:true});
 //    $("#reprogramming").hide();
-    loadSenario();
+    loadScenario();
 }
 
 var nodestatus;
 
-function loadSenario()
+function loadScenario()
 {
-  $.get('http://nielsmbp.local:5000/updateStatus', function(data){});
+//  $.get('http://nielsmbp.local:5000/updateStatus', function(data){});
   
 //	$("#loading").show();
-	var senario_id=$('#radioset input:checked').val();
-
     $.ajax({
         dataType: 'json',
 		    url: 'http://nielsmbp.local/~niels/getStatus',
