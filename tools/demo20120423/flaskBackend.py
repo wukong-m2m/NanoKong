@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import sys
 import threading
+import time
 sys.path.append("/Users/niels/git/nanokong/tools/python")
 
 from flask import Flask
@@ -97,11 +98,13 @@ def flaskReprogram():
   if scenario == 1:
     reprogram.reprogramNvmdefault(3, "bytecodeHA1.h")
     reprogram.reprogramNvmdefault(1, "bytecodeHA1.h")
+    time.sleep(3)
     busyReprogramming = False
     return "reprogrammed to scenario 1"
   if scenario == 2:
     reprogram.reprogramNvmdefault(3, "bytecodeHA2.h")
     reprogram.reprogramNvmdefault(1, "bytecodeHA2.h")
+    time.sleep(3)
     busyReprogramming = False
     return "reprogrammed to scenario 2"
   else:
