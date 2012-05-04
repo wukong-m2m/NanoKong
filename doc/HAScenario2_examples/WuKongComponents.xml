@@ -1,0 +1,15 @@
+<WuClass name="Threshold" id="1" Type="soft">
+	<property name="operator" datatype="enum" access="readwrite">
+		<enumvalue "LT"/>
+		<enumvalue "GT"/>
+		<enumvalue "LTE"/>
+		<enumvalue "GTE"/>
+	</property>
+	<property name="value" datatype="short" access="readwrite" />
+	<property name="threshold" datatype="short" access="readwrite" />
+	<property name="output" datatype="short" access="readonly" />
+</WuClass>
+
+<WuClass name="Temperature sensor" id="2" Type="hard">
+	<property name="current temperature" datatype="short" access="readonly" />
+</WuClass>
