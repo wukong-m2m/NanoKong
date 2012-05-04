@@ -49,16 +49,16 @@ public class HAScenario2 {
 
     // Connect threshold to and gate
     (byte)COMPONENT_INSTANCE_ID_THRESHOLD1, (byte)0, (byte)WKPF.PROPERTY_THRESHOLD_OUTPUT,
-    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)VirtualANDGateProfile.PROPERTY_AND_GATE_IN1,
-    (byte)VirtualANDGateProfile.PROFILE_AND_GATE, (byte)0,
+    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_IN1,
+    (byte)WKPF.PROFILE_AND_GATE, (byte)0,
 
     // Connect occupancy to and gate
     (byte)COMPONENT_INSTANCE_ID_OCCUPANCY1, (byte)0, (byte)VirtualOccupancySensorProfile.PROPERTY_OCCUPANCY_SENSOR_OCCUPIED,
-    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)VirtualANDGateProfile.PROPERTY_AND_GATE_IN2,
-    (byte)VirtualANDGateProfile.PROFILE_AND_GATE, (byte)0,
+    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_IN2,
+    (byte)WKPF.PROFILE_AND_GATE, (byte)0,
 
     // Connect and gate to light
-    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)VirtualANDGateProfile.PROPERTY_AND_GATE_OUTPUT,
+    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_OUTPUT,
     (byte)COMPONENT_INSTANCE_ID_LIGHT1, (byte)0, (byte)WKPF.PROPERTY_LIGHT_ONOFF,
     (byte)WKPF.PROFILE_LIGHT, (byte)0
   };
@@ -108,9 +108,9 @@ public class HAScenario2 {
     // Register virtual and gate profile and create an endpoint
     if (isLocalComponent(COMPONENT_INSTANCE_ID_ANDGATE1)) {
       System.out.println("HASCENARIO INIT: Create and gate");
-      WKPF.registerProfile(VirtualANDGateProfile.PROFILE_AND_GATE, VirtualANDGateProfile.properties);
+      WKPF.registerProfile(WKPF.PROFILE_AND_GATE, VirtualANDGateProfile.properties);
       VirtualProfile profileInstanceANDGate = new VirtualANDGateProfile();
-      WKPF.createEndpoint((short)VirtualANDGateProfile.PROFILE_AND_GATE, getPortNumberForComponent(COMPONENT_INSTANCE_ID_ANDGATE1), profileInstanceANDGate);
+      WKPF.createEndpoint((short)WKPF.PROFILE_AND_GATE, getPortNumberForComponent(COMPONENT_INSTANCE_ID_ANDGATE1), profileInstanceANDGate);
     }
     // Register virtual occupancy sensor profile and create an endpoint
     if (isLocalComponent(COMPONENT_INSTANCE_ID_OCCUPANCY1)) {

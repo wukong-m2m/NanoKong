@@ -22,3 +22,8 @@
 
 #define WKPF_PROFILE_LIGHT_SENSOR                                 5
 #define WKPF_PROPERTY_LIGHT_SENSOR_CURRENT_VALUE                  (WKPF_PROP_BASE+0)
+
+#define WKPF_AND_GATE                                             6
+#define WKPF_PROPERTY_AND_GATE_IN1                                (WKPF_PROP_BASE+0)
+#define WKPF_PROPERTY_AND_GATE_IN2                                (WKPF_PROP_BASE+1)
+#define WKPF_PROPERTY_AND_GATE_OUTPUT                             (WKPF_PROP_BASE+2)

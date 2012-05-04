@@ -80,4 +80,10 @@ public class WKPF {
 
   public static final short PROFILE_LIGHT_SENSOR                               = 5;
   public static final byte PROPERTY_LIGHT_SENSOR_CURRENT_VALUE                 = (WKPF.PROP_BASE+0);
+
+  public static final short PROFILE_AND_GATE                                   = 6;
+  public static final byte PROPERTY_AND_GATE_IN1                               = (WKPF.PROP_BASE+0);
+  public static final byte PROPERTY_AND_GATE_IN2                               = (WKPF.PROP_BASE+1);
+  public static final byte PROPERTY_AND_GATE_OUTPUT                            = (WKPF.PROP_BASE+2);
 }
+
