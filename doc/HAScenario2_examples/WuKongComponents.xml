@@ -1,4 +1,4 @@
-<WuClass name="Threshold" id="1" Type="soft">
+<WuClass name="Threshold" id="1" native="true" virtual="true" type="soft">
 	<property name="operator" datatype="enum" access="readwrite">
 		<enumvalue "LT"/>
 		<enumvalue "GT"/>
@@ -10,6 +10,6 @@
 	<property name="output" datatype="short" access="readonly" />
 </WuClass>
 
-<WuClass name="Temperature sensor" id="2" Type="hard">
+<WuClass name="Temperature sensor" id="2" native="true" virtual="false" type="hard">
 	<property name="current temperature" datatype="short" access="readonly" />
 </WuClass>
