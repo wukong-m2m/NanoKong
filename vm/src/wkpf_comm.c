@@ -26,24 +26,36 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
   }
   DEBUGF_WKPF("\n");
   #endif
+  // Send
   if(nvmcomm_send(dest_node_id, command, message_buffer, length) != 0)
     return WKPF_ERR_NVMCOMM_SEND_ERROR;
-  nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){command+1 /* the reply to this command */, NVMCOMM_WKPF_ERROR_R}, 2);
-  if(reply == NULL)
-    return WKPF_ERR_NVMCOMM_NO_REPLY;
-  if(reply->command == NVMCOMM_WKPF_ERROR_R)
-    return reply->payload[2]; // the WKPF error code sent by the other node.
-  return WKPF_OK;
+  // Wait for a reply
+  uint8_t maxMessageDiscard = 10; // TODONR: once we have a proper timer, change this to a 100ms timeout
+  while(maxMessageDiscard-- > 0) {
+    nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){command+1 /* the reply to this command */, NVMCOMM_WKPF_ERROR_R}, 2);
+    if(reply == NULL)
+      return WKPF_ERR_NVMCOMM_NO_REPLY;
+    if (reply->payload[0] == message_buffer[0]
+          && reply->payload[1] == message_buffer[1]) {
+      // This message a reply to our last sent message
+      if(reply->command != NVMCOMM_WKPF_ERROR_R)
+        return WKPF_OK;
+      else
+        return reply->payload[2]; // the WKPF error code sent by the other node.
+    }
+    // An old message was received: the right type, but not the reply to our last sent message
+  }
+  return WKPF_ERR_NVMCOMM_NO_REPLY; // Give up
 }
 
-uint8_t send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t profile_id, int16_t value) {
+uint8_t wkpf_send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t profile_id, int16_t value) {
   set_message_header(port_number, property_number, profile_id, WKPF_PROPERTY_TYPE_INT16);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
 }
 
-uint8_t send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t profile_id, bool value) {
+uint8_t wkpf_send_set_property_boolean(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t profile_id, bool value) {
   set_message_header(port_number, property_number, profile_id, WKPF_PROPERTY_TYPE_BOOLEAN);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value);
   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+1);

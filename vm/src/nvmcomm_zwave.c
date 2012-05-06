@@ -87,9 +87,15 @@ void nvmcomm_zwave_receive(int processmessages) {
   			state = ZWAVE_STATUS_WAIT_SOF;
   			ack_got=1;
   		} else if (c == 0x15) {
-          // TODO: send: packet is incorrect
+        // send: no ACK from other side
+  			state = ZWAVE_STATUS_WAIT_SOF;
+  			ack_got=0;
       } else if (c == 0x18) {
-          // TODO: send: chip busy
+        // send: chip busy
+  			state = ZWAVE_STATUS_WAIT_SOF;
+  			ack_got=0;
+      } else {
+        DEBUGF_COMM("Unexpected byte while waiting for ACK %x", c);
       }
     } else if (state == ZWAVE_STATUS_WAIT_SOF) {
       if (c == 0x01) {
@@ -152,22 +158,23 @@ void nvmcomm_zwave_init() {
 // TODO
   // expire = 0;
   
-  // Find my zwave node id
-  nvmcomm_zwave_my_address_loaded = TRUE;
-  nvmcomm_zwave_my_address = 1;  
-/*
-  Doesn't work after all :-(
   unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
   nvmcomm_poll();
   uint8_t retries = 10;
-  while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
-    SerialAPI_request(buf, 2);
-    nvmcomm_poll();
+  address_t previous_received_address = 0;
+  while(!nvmcomm_zwave_my_address_loaded) {
+    while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
+      SerialAPI_request(buf, 2);
+      nvmcomm_poll();
+    }
+    if(!nvmcomm_zwave_my_address_loaded) // Can't read address -> panic
+      error(ERROR_COMM_INIT_FAILED);
+    if (nvmcomm_zwave_my_address != previous_received_address) { // Sometimes I get the wrong address. Only accept if we get the same address twice in a row. No idea if this helps though, since I don't know what's going on exactly.
+      nvmcomm_zwave_my_address_loaded = false;
+      previous_received_address = nvmcomm_zwave_my_address;
+    }
   }
   DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
-  if(!nvmcomm_zwave_my_address_loaded)
-    error(ERROR_COMM_INIT_FAILED);
-*/
 }
 
 void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {

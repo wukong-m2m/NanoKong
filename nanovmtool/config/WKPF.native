@@ -5,19 +5,16 @@
 class nanovm/wkpf/WKPF										45
 
 method getErrorCode:()B   	      							1
-method registerProfile:(S[BB)V   	      					2
+method registerProfile:(S[B)V   	      					2
 method createEndpoint:(SBLnanovm/wkpf/VirtualProfile;)V		3
 method removeEndpoint:(B)V									4
 method getPropertyShort:(Lnanovm/wkpf/VirtualProfile;B)S	5
 method setPropertyShort:(Lnanovm/wkpf/VirtualProfile;BS)V	6
 method getPropertyBoolean:(Lnanovm/wkpf/VirtualProfile;B)Z	7
 method setPropertyBoolean:(Lnanovm/wkpf/VirtualProfile;BZ)V	8
-method setPropertyShort:(SBBSS)V							9
-method setPropertyBoolean:(SBBSZ)V							10
+method setPropertyShort:(SBS)V								9
+method setPropertyBoolean:(SBZ)V							10
 method select:()Lnanovm/wkpf/VirtualProfile;				11
 method getMyNodeId:()S										12
-method loadNextDirtyProperty:()Z							13
-method getDirtyPropertyPortNumber:()B						14
-method getDirtyPropertyNumber:()B							15
-method getDirtyPropertyShortValue:()S						16
-method getDirtyPropertyBooleanValue:()Z						17
+method loadComponentToEndpointMap:([B)V						13
+method loadLinkDefinitions:([B)V							14
