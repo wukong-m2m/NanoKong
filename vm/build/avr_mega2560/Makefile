@@ -5,7 +5,9 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_CLASS = HAScenario2
+#DEFAULT_CLASS = HAScenario2
+DEFAULT_CLASS = javainterrupt
+#DEFAULT_CLASS = AdcDemo
 
 PORT = /dev/ttyACM0
 
