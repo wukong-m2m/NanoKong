@@ -1,0 +1,8 @@
+<requiredWuObjects>
+    <component componentInstanceId=0 componentInstanceName="InputController1" wuClassId="3" wuClassName="NumericController" />
+    <component componentInstanceId=1 componentInstanceName="LightSensor1" wuClassId="5" wuClassName="LightSensor" />
+    <component componentInstanceId=2 componentInstanceName="Threshold1" wuClassId="1" wuClassName="Threshold" />
+    <component componentInstanceId=3 componentInstanceName="Light1" wuClassId="4" wuClassName="Light" />
+    <component componentInstanceId=4 componentInstanceName="Occupancy1" wuClassId="0x1005" wuClassName="OccupancySensor" />
+    <component componentInstanceId=5 componentInstanceName="AndGate1" wuClassId="6" wuClassName="AndGate" />
+</requiredWuObjects>

@@ -1,6 +1,6 @@
 /* Default linker script, for normal executables */
 OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")
-OUTPUT_ARCH(avr:4)
+/*OUTPUT_ARCH(avr:4)*/
 
 MEMORY /* Regions to put the sections in */
 {

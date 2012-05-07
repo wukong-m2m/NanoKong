@@ -4,6 +4,8 @@ import wukong.VirtualProfile;
 public class ThresholdProfile extends VirtualProfile {
 	public static final int OPERATOR_GT = 0;
 	public static final int OPERATOR_LT = 1;
+	public static final int OPERATOR_GTE = 2;
+	public static final int OPERATOR_LTE = 3;
 
 	public static final int PROFILEDEF_THRESHOLD = 0x8000; // Profile IDs >= 0x8000 are custom virtual profiles
 

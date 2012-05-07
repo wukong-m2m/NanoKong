@@ -45,15 +45,15 @@ uint8_t native_profiles_init() {
 #endif // ENABLE_PROFILE_LIGHT_SENSOR
 
   // TODONR TMP hard code everything on this node
-  retval = wkpf_create_endpoint(profile_numeric_controller.profile_id, 1, 0); // Thermostat
+  retval = wkpf_create_endpoint(profile_numeric_controller.profile_id, 1, 0); // Input
   if (retval != WKPF_OK)
-    DEBUGF_WKPF("retval = %x\n", retval);
+    DEBUGF_WKPF("WKPF: error creating input endpoint retval = %x\n", retval);
   retval = wkpf_create_endpoint(profile_light_sensor.profile_id, 2, 0); // Light sensor
   if (retval != WKPF_OK)
-    DEBUGF_WKPF("retval = %x\n", retval);
+    DEBUGF_WKPF("WKPF: error creating light sensor endpoint retval = %x\n", retval);
   retval = wkpf_create_endpoint(profile_light.profile_id, 4, 0); // Light
   if (retval != WKPF_OK)
-    DEBUGF_WKPF("retval = %x\n", retval);
+    DEBUGF_WKPF("WKPF: error creating light endpoint retval = %x\n", retval);
 
   return WKPF_OK;
 }

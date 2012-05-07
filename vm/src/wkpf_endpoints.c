@@ -15,13 +15,13 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t
   wkpf_profile_definition *profile;
 
   if (number_of_endpoints == MAX_NUMBER_OF_ENDPOINTS) {
-    DEBUGF_WKPF("WKPF: out of memory while creating endpoint for profile %x at port: FAILED\n", profile->profile_id, port_number);
+    DEBUGF_WKPF("WKPF: Out of memory while creating endpoint for profile %x at port: FAILED\n", profile->profile_id, port_number);
     return WKPF_ERR_OUT_OF_MEMORY;
   }
   
   for (int8_t i=0; i<number_of_endpoints; i++) {
     if (endpoints[i].port_number == port_number) {
-      DEBUGF_WKPF("WKPF: port %x in use while creating endpoint for profile id %x: FAILED\n", port_number, profile->profile_id);
+      DEBUGF_WKPF("WKPF: Port %x in use while creating endpoint for profile id %x: FAILED\n", port_number, profile->profile_id);
       return WKPF_ERR_PORT_IN_USE;
     }
   }
@@ -42,7 +42,7 @@ uint8_t wkpf_create_endpoint(uint16_t profile_id, uint8_t port_number, heap_id_t
     return retval;
   // Run update function once to initialise properties.
   wkpf_set_need_to_call_update_for_endpoint(&endpoints[number_of_endpoints]);
-  DEBUGF_WKPF("WKPF: created endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
+  DEBUGF_WKPF("WKPF: Created endpoint for profile id %x at port %x\n", profile->profile_id, port_number);
 
   number_of_endpoints++;
   return WKPF_OK;
@@ -62,7 +62,7 @@ uint8_t wkpf_remove_endpoint(uint8_t port_number) {
       return WKPF_OK;
     }
   }
-  DEBUGF_WKPF("WKPF: no endpoint at port %x found: FAILED\n", port_number);
+  DEBUGF_WKPF("WKPF: No endpoint at port %x found: FAILED\n", port_number);
   return WKPF_ERR_ENDPOINT_NOT_FOUND;  
 }
 
@@ -73,13 +73,13 @@ uint8_t wkpf_get_endpoint_by_port(uint8_t port_number, wkpf_local_endpoint **end
       return WKPF_OK;
     }
   }
-  DEBUGF_WKPF("WKPF: no endpoint at port %x found: FAILED\n", port_number);
+  DEBUGF_WKPF("WKPF: No endpoint at port %x found: FAILED\n", port_number);
   return WKPF_ERR_ENDPOINT_NOT_FOUND;
 }
 
 uint8_t wkpf_get_endpoint_by_index(uint8_t index, wkpf_local_endpoint **endpoint) {
   if (index >= number_of_endpoints) {
-    DEBUGF_WKPF("WKPF: no endpoint at index %x found: FAILED\n", index);
+    DEBUGF_WKPF("WKPF: No endpoint at index %x found: FAILED\n", index);
     return WKPF_ERR_ENDPOINT_NOT_FOUND;
   }
   *endpoint = &endpoints[index];
@@ -106,12 +106,29 @@ void wkpf_set_need_to_call_update_for_endpoint(wkpf_local_endpoint *endpoint) {
   // Java update should be handled by returning from the WKPF.select() function
   if (WKPF_IS_NATIVE_ENDPOINT(endpoint))
     endpoint->profile->update(endpoint);
-  else
+  else {
     endpoint->need_to_call_update = TRUE;
+  }
 }
 
-bool wkpf_endpoint_at_index_needs_update(uint8_t index) {
-  return endpoints[index].need_to_call_update;
+bool wkpf_get_next_endpoint_to_update(wkpf_local_endpoint **endpoint) {
+  static uint8_t last_updated_endpoint_index = 0;
+  if (number_of_endpoints == 0)
+    return FALSE;
+  if (last_updated_endpoint_index >= number_of_endpoints)
+    last_updated_endpoint_index = number_of_endpoints-1; // Could happen if endpoints were removed
+  int i = last_updated_endpoint_index;
+  do {
+    i = (i+1) % number_of_endpoints;
+    if (endpoints[i].need_to_call_update) {
+      last_updated_endpoint_index = i;
+      endpoints[i].need_to_call_update = FALSE;
+      *endpoint = &endpoints[i];
+      DEBUGF_WKPFUPDATE("WKPF: Update virtual profile endpoint at port %x\n", endpoints[i].port_number);
+      return TRUE;
+    }
+  } while(i != last_updated_endpoint_index);
+  return FALSE;
 }
 
 
@@ -119,7 +136,7 @@ bool wkpf_heap_id_in_use(heap_id_t heap_id) {
  // To prevent virtual profile objects from being garbage collected  
   for (int i=0; i<number_of_endpoints; i++) {
     if (endpoints[i].virtual_profile_instance_heap_id == heap_id) {
-      DEBUGF_WKPF("--- HEAP %x should be prevented from GC!\n", heap_id);
+      DEBUGF_WKPF("WKPF: GC - Prevented virtual profile with heap_id %x from being freed.\n", heap_id);
       return TRUE;
     }
   }

@@ -11,6 +11,7 @@
 #include "avr/avr_flash.h"
 #include "nvmcomm.h"
 #include "delay.h"
+#include "nvmfile.h"
 #include "wkpf_comm.h"
 
 #ifdef NVM_USE_COMM
@@ -54,18 +55,27 @@ void nvmcomm_poll(void) {
 int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length) {
   if (length > NVMCOMM_MESSAGE_SIZE)
     return -2; // Message too large
-  int retval = -1, retval2 = -1;
+  int retval = -1;
   DEBUGF_COMM("nvmcomm_send\n");
 #ifdef NVM_USE_COMMZWAVE
   retval = nvmcomm_zwave_send(dest, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
+  if (retval == 0) {
+    if (nvc3_command==NVMCOMM_CMD_APPMSG) {
+      nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
+      return retval;
+    }
+  }
 #endif
 #ifdef NVM_USE_COMMXBEE
-  retval2 = nvmcomm_xbee_send(dest, nvc3_command, payload, length, 0);
+  retval = nvmcomm_xbee_send(dest, nvc3_command, payload, length, 0);
+  if (retval == 0) {
+    if (nvc3_command==NVMCOMM_CMD_APPMSG) {
+      nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
+      return retval;
+    }
+  }
 #endif
-
-  if ((retval2 == 0 || retval == 0) && nvc3_command==NVMCOMM_CMD_APPMSG)
-    nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
-  return retval2;
+  return retval;
 }
 // Private
 
@@ -100,7 +110,7 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       DEBUGF_COMM("Initialise reprogramming.\n");
       nvc3_avr_reprogramming = TRUE;
       nvc3_avr_reprogramming_pos = 0;
-      avr_flash_open(0x8000); // TODO: ugly hack
+      avr_flash_open(bytecode_address);
       DEBUGF_COMM("Going to runlevel NVM_RUNLVL_CONF.\n");
       vm_set_runlevel(NVM_RUNLVL_CONF);
       response_cmd = NVMCOMM_CMD_REPRG_OPEN_R;

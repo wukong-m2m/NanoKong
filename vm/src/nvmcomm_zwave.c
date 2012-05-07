@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "debug.h"
 #include "delay.h"
+#include "error.h"
 #include "nvmcomm.h"
 
 #ifdef NVM_USE_COMMZWAVE
@@ -46,6 +47,10 @@ u08_t last_node = 0;
 u08_t seq;          // Sequence number which is used to match the callback function
 u08_t ack_got = 0;
 // u32_t expire;  // The expire time of the last command
+
+bool nvmcomm_zwave_my_address_loaded = FALSE;
+address_t nvmcomm_zwave_my_address;
+
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
@@ -82,9 +87,15 @@ void nvmcomm_zwave_receive(int processmessages) {
   			state = ZWAVE_STATUS_WAIT_SOF;
   			ack_got=1;
   		} else if (c == 0x15) {
-          // TODO: send: packet is incorrect
+        // send: no ACK from other side
+  			state = ZWAVE_STATUS_WAIT_SOF;
+  			ack_got=0;
       } else if (c == 0x18) {
-          // TODO: send: chip busy
+        // send: chip busy
+  			state = ZWAVE_STATUS_WAIT_SOF;
+  			ack_got=0;
+      } else {
+        DEBUGF_COMM("Unexpected byte while waiting for ACK %x", c);
       }
     } else if (state == ZWAVE_STATUS_WAIT_SOF) {
       if (c == 0x01) {
@@ -119,6 +130,10 @@ void nvmcomm_zwave_receive(int processmessages) {
         if (addr_zwave_to_nvmcomm(&nvmcomm_addr, payload[1]) && processmessages==1)
           f(nvmcomm_addr, payload[4], payload+5, payload_length-5); // Trim off first 5 bytes to get to the data. Byte 1 is the sending node, byte 4 is the command
       }
+      if (cmd == FUNC_ID_MEMORY_GET_ID) {
+        nvmcomm_zwave_my_address = payload[4];
+        nvmcomm_zwave_my_address_loaded = TRUE;
+      }
       if (cmd == 0x49 && f_nodeinfo)
           f_nodeinfo(payload, payload_length);
     }
@@ -142,6 +157,24 @@ void nvmcomm_zwave_init() {
   uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
 // TODO
   // expire = 0;
+  
+  unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
+  nvmcomm_poll();
+  uint8_t retries = 10;
+  address_t previous_received_address = 0;
+  while(!nvmcomm_zwave_my_address_loaded) {
+    while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
+      SerialAPI_request(buf, 2);
+      nvmcomm_poll();
+    }
+    if(!nvmcomm_zwave_my_address_loaded) // Can't read address -> panic
+      error(ERROR_COMM_INIT_FAILED);
+    if (nvmcomm_zwave_my_address != previous_received_address) { // Sometimes I get the wrong address. Only accept if we get the same address twice in a row. No idea if this helps though, since I don't know what's going on exactly.
+      nvmcomm_zwave_my_address_loaded = false;
+      previous_received_address = nvmcomm_zwave_my_address;
+    }
+  }
+  DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
 }
 
 void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
@@ -184,13 +217,7 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
-  // TODONR: TMP
-  return 77;
-  
-/*  
-  unsigned char buf[] = {ZWAVE_TYPE_REQ, FUNC_ID_MEMORY_GET_ID};
-	return (address_t)SerialAPI_request(buf, 2);
-*/
+  return nvmcomm_zwave_my_address;
 }
 
 

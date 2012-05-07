@@ -1,9 +1,15 @@
 #ifndef WKPF_PROFILESH
 #define WKPF_PROFILESH
 
+#include "config.h"
 #include "types.h"
 
+#ifdef TEST_WKPF_PROFILES
 #define MAX_NUMBER_OF_PROFILES 6
+#else
+#define MAX_NUMBER_OF_PROFILES 10
+#endif
+
 #define WKPF_IS_NATIVE_PROFILE(x)               (x->update != NULL)
 #define WKPF_IS_VIRTUAL_PROFILE(x)              (x->update == NULL)
 
