@@ -12,10 +12,10 @@
 
 package nanovm.io;
 
-public class Lcd {
-  public static native void clear();
-  public static native void gotoYX(int y, int x);
-  public static native void print(String str);
-  public static native void print(int num);
-  public static native void print(char chr);
+public class NvmComm {
+  // Length must not exceed NVMCOMM_MESSAGE_SIZE, defined in nvmcomm.h
+  // A return value of 0 indicates success, -1 failure while sending,
+  // -2 is returned if length>NVMCOMM_MESSAGE_SIZE
+  public static native int send(byte dest, byte data[], byte length);
+  public static native byte[] receive(int waitmsec);
 }

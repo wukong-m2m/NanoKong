@@ -8,3 +8,4 @@ method setInput:(I)V 1
 method setOutput:(I)V 2
 method setBit:(I)V 3
 method clrBit:(I)V 4
+method getInput:(I)I 5
