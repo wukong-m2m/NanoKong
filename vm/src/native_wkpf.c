@@ -5,6 +5,7 @@
 #include "heap.h"
 #include "array.h"
 #include "wkpf.h"
+#include "avr/native_avr.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
 
