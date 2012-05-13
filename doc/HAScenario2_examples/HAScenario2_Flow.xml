@@ -1,17 +1,20 @@
 <application name="HAScenario">
 	<component type="NumericController" instanceId="InputController1">
-		<link fromProperty="output" toInstance="Threshold1" toProperty="threshold" />		
+        <property name="output" default="127"/>
+		<link fromProperty="output" toInstanceId="Threshold1" toProperty="threshold" />		
 	</component>
-	<component type="LightSensor" instanceId="LightSensor1" refreshRate="5000">
+	<component type="LightSensor" instanceId="LightSensor1">
+        <property name="refreshRate" default="5000"/>
 		<link fromProperty="current_temperature" toInstanceId="Threshold1" toProperty="value">
 			<linkProperty type="minChangeFilter" value="2"/> <!-- Can't do the minChange filter yet -->
 		</link>
 	</component>
 	<component type="Threshold" instanceId="Threshold1">
-		<property name="operator" value="LTE"/>
+		<property name="operator" default="LTE"/>
 		<link fromProperty="output" toInstanceId="AndGate1" toProperty="in1" />
 	</component>
 	<component type="OccupancySensor" instanceId="Occupancy1">
+        <property name="occupied" default="true"/>
 		<link fromProperty="occupied" toInstanceId="AndGate1" toProperty="in2" />
 	</component>
 	<component type="AndGate" instanceId="AndGate1">

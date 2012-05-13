@@ -1,9 +1,11 @@
 from xml.dom.minidom import parse
 from optparse import OptionParser
 from jinja2 import Template
+from struct import pack
 
 def indentor(s, num):
     return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
+
 
 def parser():
     parser = OptionParser("usage: %prog [options] arg")
@@ -16,42 +18,126 @@ def parser():
     flow_dom = parse(options.pathf)
     return comp_dom, flow_dom
 
+
 def mapper(comp_dom, flow_dom):
     # mapping table initialization
     flow_elem_list = flow_dom.getElementsByTagName('component')
     class_elem_list = comp_dom.getElementsByTagName('WuClass')
 
     map_table = []
+    name2id = {}
     componentInstanceId = 0
-    for elem in flow_elem_list:
-        componentInstanceName = elem.getAttribute('instanceId')
-        wuClassName = elem.getAttribute('type')
-        for elem_t in class_elem_list:
-            if elem_t.getAttribute('name') == wuClassName:
-                map_table += [[componentInstanceId, componentInstanceName, int(elem_t.getAttribute('id')), wuClassName, '? endpnt ID', '? port #']]
+    for elem_f in flow_elem_list:
+        componentInstanceName = elem_f.getAttribute('instanceId')
+        wuClassName = elem_f.getAttribute('type')
+        for elem_c in class_elem_list:
+            if elem_c.getAttribute('name') == wuClassName:
+                native = True if elem_c.getAttribute('native') == u'true' else False
+                soft = True if elem_c.getAttribute('type') == u'soft' else False
+                map_table += [[componentInstanceId, componentInstanceName, int(elem_c.getAttribute('id')), wuClassName, 99, 99, elem_f, elem_c, native, soft]]
                 break
         else:
             print "Cannot find wuClass %s " % wuClassName
-            map_table += [[componentInstanceId, componentInstanceName, '? wuClassId', '? wuClassName', '? endpnt ID', '? port #']]
-
+            map_table += [[componentInstanceId, componentInstanceName, 99, '? wuClassName', 99, 99, elem_f, None, True, False]]
+    
+        name2id[componentInstanceName] = componentInstanceId
         componentInstanceId += 1
     
-    #for i in map_table:
-    #    print i
+    for i in map_table:
+        print i
+    print ''
 
-    
+    # link table generation
+    def findProperty(where, target):
+        if where != None:
+            where = where.getElementsByTagName('property')
+            for i in where:
+                if i.getAttribute('name') == target:
+                    return (where.index(i), i.getAttribute('datatype'), i)
+        return (None, None, None)
+
+    link_table = []
+    for elem in flow_dom.getElementsByTagName('link'):
+        fromInstanceId = name2id[elem.parentNode.getAttribute('instanceId')]
+        fromPropertyId = findProperty(map_table[fromInstanceId][7], elem.getAttribute('fromProperty'))[0]
+        toInstanceId = name2id[elem.getAttribute('toInstanceId')]
+        toPropertyId = findProperty(map_table[toInstanceId][7], elem.getAttribute('toProperty'))[0]
+        profileId = map_table[toInstanceId][2]
+
+        if fromPropertyId == None:
+            fromPropertyId = 99
+        if toPropertyId == None:
+            toPropertyId = 99
+        if type(profileId) is str:
+            profileId = 99
+
+        link_table += [[fromInstanceId, fromPropertyId, toInstanceId, toPropertyId, profileId]]
+
+    link_table_str = ''
+    def short2byte(i):
+        return [ord(b) for b in pack("H", i)]
+
+    for row in link_table:
+        print row
+        fii = short2byte(row[0])
+        link_table_str += "(byte)%d, (byte)%d, " % (fii[0], fii[1])
+        link_table_str += "(byte)%d,\n" % row[1]
+        tii = short2byte(row[2])
+        link_table_str += "(byte)%d, (byte)%d, " % (tii[0], tii[1])
+        link_table_str += "(byte)%d,\n" % row[3]
+        pid = short2byte(row[4])
+        link_table_str += "(byte)%d, (byte)%d,\n" % (pid[0], pid[1])
+    print ''
+
+    # WKPF initialization generation
+    comp_init = ''
+    for row in map_table:
+        stmts = ''
+        if not row[8]: # not native
+            stmts += "WKPF.registerProfile(Virtual%sProfile.PROFILE_%s, Virtual%sProfile.properties);\n" % (row[3],row[3].upper(),row[3])
+            stmts += "VirtualProfile profileInstance%s = new Virtual%sProfile();\n" % (row[3], row[3])
+            stmts += "WKPF.createEndpoint((short)Virtual%sProfile.PROFILE_%s, getPortNumberForComponent(%d), profileInstance%s);\n" % (row[3],row[3].upper(),row[0],row[3])
+        elif row[9]: # is soft
+            stmts += "WKPF.createEndpoint((short)%d, getPortNumberForComponent(%d), null);\n" % (row[2],row[0])
+
+        prop = row[6].getElementsByTagName('property')
+        if prop.length > 0:
+            for elem in prop: 
+                prop_id, prop_type, prop_def = findProperty(row[7], elem.getAttribute('name'))
+                if prop_type == 'enum':
+                    enum_list = prop_def.getElementsByTagName('enum')
+                    for enum_elem in enum_list:
+                        if enum_elem.getAttribute('value') == elem.getAttribute('default'):
+                            dflt = enum_list.index(enum_elem)+1
+                            break
+                    else:
+                        dflt = -1
+                    stmts += "WKPF.setPropertyShort(%d, %d, (short)%d);\n" % (row[0],prop_id,dflt)
+                elif prop_type == 'short':
+                    dflt = int(elem.getAttribute('default'))
+                    stmts += "WKPF.setPropertyShort(%d, %d,  (short)%d);\n" % (row[0],prop_id,dflt)
+                elif prop_type == 'boolean':
+                    dflt = elem.getAttribute('default')
+                    stmts += "WKPF.setPropertyBoolean(%d, %d, %s);\n" % (row[0],prop_id,dflt)
+        comp_init += "if (isLocalComponent(%d)) {\n%s\n}\n" % (row[0], indentor(stmts,1))
+
+    # mapping table generation
+    map_table_str = "T.B.D"
+
+    return indentor(link_table_str, 1), indentor(map_table_str, 1), comp_init
 
 
-def codegen():
+def codegen(link_table, map_table, comp_init):
     tpl = Template("""
 {{ IMPORT_STATEMENTS }}
-public class {{ CLASS_NAME }}
-{
+
+public class {{ CLASS_NAME }} {
+
 {{ CLASS_FIELD_ALLOCATION_STATEMENTS }}
 {{ CLASS_FUNCTION_ALLOCTION_STATEMENTS }}
 
 {{ LINK_DEFINITIONS }}
-{{ MAPPING_TABLE }}
+{{ MAPPING_DEFINITIONS }}
 
     public static void main (String[] args) {
 {{ WKPF_INIT_STATEMENTS }}
@@ -60,7 +146,7 @@ public class {{ CLASS_NAME }}
         
         while(true){
 {{ MAIN_LOOP_STATEMENTS }}
-{{ SCHEDULING_ALGORITHM_STATEMENTS }}
+{{ SCHEDULING_STATEMENTS }}
         }
     }
 }
@@ -93,10 +179,15 @@ private static boolean isLocalComponent(short componentId) {
 
     link_def = indentor("""
 private final static byte[] linkDefinitions = {
+%s
 }
-    """, 1)
+    """ % link_table, 1)
 
-    table = 0
+    map_def = indentor("""
+private final static byte[] componentInstanceToEndpointMap{
+%s
+}
+    """ % map_table, 1)
     
     wkpf_init = indentor("""
 System.out.println("%s");
@@ -117,7 +208,7 @@ else
     System.out.println("Error while registering component to endpoint map: " + WKPF.getErrorCode());""" % class_name
     , 2)
     
-    comp_init = 0
+    comp_init = indentor(comp_init, 2)
 
     main_loop = indentor("""
 VirtualProfile profile = WKPF.select();
@@ -143,15 +234,16 @@ Timer.wait(1000);
             CLASS_FIELD_ALLOCATION_STATEMENTS=class_field,
             CLASS_FUNCTION_ALLOCTION_STATEMENTS=class_func,
             LINK_DEFINITIONS=link_def,
-            MAPPING_TABLE=table,
+            MAPPING_DEFINITIONS=map_def,
             WKPF_INIT_STATEMENTS=wkpf_init,
             MAIN_LOOP_STATEMENTS=main_loop,
-            COMPONENT_INIT=comp_init)
+            COMPONENT_INIT=comp_init,
+            SCHEDULING_STATEMENTS=scheduling)
 
-    #print rendered_tpl
+    print rendered_tpl
 
 
 if __name__ == "__main__":
-    cdom, fdom = parser()
-    mapper(cdom, fdom)
-    #codegen()
+    comp_dom, flow_dom = parser()
+    link_table, map_table, comp_init = mapper(comp_dom, flow_dom)
+    codegen(link_table, map_table, comp_init)
