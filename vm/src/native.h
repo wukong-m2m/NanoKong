@@ -147,6 +147,9 @@
 #define NATIVE_WKPF_METHOD_GETMYNODEID                         13
 #define NATIVE_WKPF_METHOD_LOAD_COMPONENT_MAP                  14
 #define NATIVE_WKPF_METHOD_LOAD_LINK_DEFINITIONS               15
+#define NATIVE_WKPF_METHOD_GET_PORT_NUMBER_FOR_COMPONENT       16
+#define NATIVE_WKPF_METHOD_IS_LOCAL_COMPONENT                  17
+
 
 #define NATIVE_ID(c,m)  ((c<<8)|m)
 

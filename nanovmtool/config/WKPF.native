@@ -19,3 +19,5 @@ method select:()Lnanovm/wkpf/VirtualWuObject;				        12
 method getMyNodeId:()S										        13
 method loadComponentToWuObjectAddrMap:([B)V						    14
 method loadLinkDefinitions:([B)V							        15
+method getPortNumberForComponent:(S)B                               16
+method isLocalComponent:(S)Z                                        17

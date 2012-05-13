@@ -167,5 +167,19 @@ void native_wkpf_invoke(u08_t mref) {
   } else if (mref == NATIVE_WKPF_METHOD_LOAD_LINK_DEFINITIONS) {
     heap_id_t links_heap_id = stack_pop() & ~NVM_TYPE_MASK;
     wkpf_error_code = wkpf_load_links(links_heap_id);    
+
+  } else if (mref == NATIVE_WKPF_METHOD_GET_PORT_NUMBER_FOR_COMPONENT) {
+    uint16_t component_id = (uint16_t)stack_pop_int();
+    address_t node_id;
+    uint8_t port_number;
+    wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+    stack_push(port_number);
+
+  } else if (mref == NATIVE_WKPF_METHOD_IS_LOCAL_COMPONENT) {
+    uint16_t component_id = (uint16_t)stack_pop_int();
+    address_t node_id;
+    uint8_t port_number;
+    wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+    stack_push(node_id == nvmcomm_get_node_id());
   }
 }

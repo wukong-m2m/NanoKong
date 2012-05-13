@@ -26,6 +26,10 @@ public class WKPF {
   public static native void loadComponentToWuObjectAddrMap(byte[] map);
   public static native void loadLinkDefinitions(byte[] links);
 
+  // component-wuobject map related functions
+  public static native byte getPortNumberForComponent(short componentId);
+  public static native boolean isLocalComponent(short componentId);
+
   // Who am I?
   public static native short getMyNodeId();
 
