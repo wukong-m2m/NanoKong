@@ -88,7 +88,7 @@ public class HAScenario2 {
     // Setup the temperature sensor
     if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
       System.out.println("HASCENARIO INIT: Set light sensor to 5000ms refresh rate");
-      WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_COMMON_REFRESHRATE, (short)5000); // Sample the temperature every 5 seconds
+      WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_SAMPLING_RATE, (short)5000); // Sample the temperature every 5 seconds
     }
     // Setup the numeric input
     if (isLocalComponent(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1)) { 
