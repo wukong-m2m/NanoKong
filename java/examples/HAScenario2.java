@@ -63,8 +63,6 @@ public class HAScenario2 {
     (byte)WKPF.WUCLASS_LIGHT, (byte)0
   };
 
-
-  private static short tmpDummy = 0;  
   public static void main(String[] args) {
     System.out.println("HAScenario 2");
 
@@ -87,8 +85,8 @@ public class HAScenario2 {
     // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new wuclass
     // Setup the temperature sensor
     if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
-      System.out.println("HASCENARIO INIT: Set light sensor to 5000ms refresh rate");
-      WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_SAMPLING_RATE, (short)5000); // Sample the temperature every 5 seconds
+      System.out.println("HASCENARIO INIT: Set light sensor to 1000ms refresh rate");
+      WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_SAMPLING_RATE, (short)1000); // Sample the temperature every 5 seconds
     }
     // Setup the numeric input
     if (isLocalComponent(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1)) { 
@@ -129,18 +127,6 @@ public class HAScenario2 {
       if (wuclass != null) {
         wuclass.update();
       }
-
-      // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.
-      if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
-        tmpDummy += 1;
-        System.out.println("HAScenario - updating dummy variable to trigger lightsensor update: " + tmpDummy);
-        WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
-        System.out.println("HAScenario - updating dummy variable to trigger lightsensor update, result: " + WKPF.getErrorCode());
-        if (WKPF.getErrorCode() != WKPF.OK)
-          System.out.println("Error: " + WKPF.getErrorCode());
-      }
-      Timer.wait(1000);
-      // END: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.
     }
   }
 }

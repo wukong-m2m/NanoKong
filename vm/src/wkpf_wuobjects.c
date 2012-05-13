@@ -2,6 +2,7 @@
 #include "types.h"
 #include "debug.h"
 #include "heap.h"
+#include "avr/native_avr.h"
 #include "wkpf.h"
 #include "wkpf_wuobjects.h"
 #include "wkpf_properties.h"
@@ -111,7 +112,7 @@ void wkpf_set_need_to_call_update_for_wuobject(wkpf_local_wuobject *wuobject) {
   }
 }
 
-bool wkpf_get_next_wuobject_to_update(wkpf_local_wuobject **wuobject) {
+bool wkpf_get_next_wuobject_to_update(wkpf_local_wuobject **virtual_wuobject) {
   static uint8_t last_updated_wuobject_index = 0;
   if (number_of_wuobjects == 0)
     return FALSE;
@@ -120,17 +121,31 @@ bool wkpf_get_next_wuobject_to_update(wkpf_local_wuobject **wuobject) {
   int i = last_updated_wuobject_index;
   do {
     i = (i+1) % number_of_wuobjects;
-    if (wuobjects[i].need_to_call_update) {
-      last_updated_wuobject_index = i;
-      wuobjects[i].need_to_call_update = FALSE;
-      *wuobject = &wuobjects[i];
-      DEBUGF_WKPFUPDATE("WKPF: Update virtual wuclass wuobject at port %x\n", wuobjects[i].port_number);
-      return TRUE;
+    if ((wuobjects[i].next_scheduled_update > 0 && wuobjects[i].next_scheduled_update < avr_currentTime)
+        || wuobjects[i].need_to_call_update) {
+      wkpf_local_wuobject *wuobject = &wuobjects[i];
+      // Clear the flag if it was set
+      wuobject->need_to_call_update = FALSE;
+      // If update has to be called because it's scheduled, schedule the next call
+      if (wuobject->next_scheduled_update > 0 && wuobject->next_scheduled_update < avr_currentTime) {
+        wkpf_schedule_next_update_for_wuobject(wuobject);
+      }
+      // Call directly for native wuobjects, or return virtual wuobject so WKPF.select() can return it to Java
+      if (WKPF_IS_NATIVE_WUOBJECT(wuobject)) {
+        DEBUGF_WKPFUPDATE("WKPFUPDATE: Update native wuobject at port %x\n", wuobject->port_number);
+        wuobject->wuclass->update(wuobject);
+      } else { // 
+        *virtual_wuobject = wuobject;
+        last_updated_wuobject_index = i;
+        DEBUGF_WKPFUPDATE("WKPFUPDATE: Update virtual wuobject at port %x\n", wuobject->port_number);
+        return TRUE;
+      }
+      // Process any pending messages before continuing
+      nvmcomm_poll();
     }
   } while(i != last_updated_wuobject_index);
   return FALSE;
 }
-
 
 bool wkpf_heap_id_in_use(heap_id_t heap_id) {
  // To prevent virtual wuclass objects from being garbage collected  
@@ -143,4 +158,17 @@ bool wkpf_heap_id_in_use(heap_id_t heap_id) {
   return FALSE;
 }
 
-
+void wkpf_schedule_next_update_for_wuobject(wkpf_local_wuobject *wuobject) {
+  for (int i=0; i<wuobject->wuclass->number_of_properties; i++) {
+    if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[i]) == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
+      wkpf_refresh_rate_t refresh_rate;
+      wkpf_internal_read_property_refresh_rate(wuobject, i, &refresh_rate);
+      if (refresh_rate == 0) // 0 means turned off
+        wuobject->next_scheduled_update = 0;
+      else
+        wuobject->next_scheduled_update = avr_currentTime + refresh_rate;
+      DEBUGF_WKPFUPDATE("WKPFUPDATE: Scheduled next update for object at port %x. Refresh rate:%x Current time:%08lx Next update at:%08lx\n", wuobject->port_number, refresh_rate, avr_currentTime, wuobject->next_scheduled_update);
+      return;
+    }
+  }
+}

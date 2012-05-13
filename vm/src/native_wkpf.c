@@ -109,7 +109,6 @@ void native_wkpf_invoke(u08_t mref) {
     address_t node_id;
     uint8_t port_number;
     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-    DEBUGF_WKPF("WKPF: setPropertyBoolean (local). Component %x, property %x, value %x\n", component_id, property_number, value);
     if (wkpf_error_code == WKPF_OK) {
       if (node_id != nvmcomm_get_node_id())
         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
@@ -123,36 +122,40 @@ void native_wkpf_invoke(u08_t mref) {
       }
     }
 
-  } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
-    wkpf_local_wuobject *wuobject;
-//TODONR: TMP    while(true) {
-      // Process incoming messages
-      nvmcomm_poll();
-      // Propagate any dirty properties
-      if (wkpf_any_property_dirty()) { // this call is still here to have a place to mark failed properties as dirty again. should probably be refactored
-        uint8_t port_number;
-        uint8_t property_number;
-        int16_t value;
-        while(wkpf_get_next_dirty_property(&port_number, &property_number, &value)) {
-          nvmcomm_poll(); // Process incoming messages
-          wkpf_error_code = wkpf_propagate_property(port_number, property_number, value);
-          if (wkpf_error_code != WKPF_OK) { // TODONR: need better retry mechanism
-            DEBUGF_WKPF("WKPF: ------!!!------ Propagating property failed: port %x property %x error %x\n", port_number, property_number, wkpf_error_code);
-            wkpf_propagating_dirty_property_failed(port_number, property_number);
-          }
+  } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYREFRESHRATE_COMPONENT) {
+    int16_t value = (int16_t)stack_pop_int();
+    uint8_t property_number = (uint8_t)stack_pop_int();
+    uint16_t component_id = (uint16_t)stack_pop_int();
+    address_t node_id;
+    uint8_t port_number;
+    wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
+    if (wkpf_error_code == WKPF_OK) {
+      if (node_id != nvmcomm_get_node_id())
+        wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
+      else {
+        wkpf_local_wuobject *wuobject;
+        wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
+        if (wkpf_error_code == WKPF_OK) {
+          DEBUGF_WKPF("WKPF: setPropertyRefreshRate (local). Port %x, property %x, value %x\n", port_number, property_number, value);
+          wkpf_error_code = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
         }
       }
+    }
+
+  } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
+    wkpf_local_wuobject *wuobject;
+    while(true) {
+      // Process any incoming messages
+      nvmcomm_poll();
+      // Propagate any dirty properties
+      wkpf_propagate_dirty_properties();
       // Check if any wuobjects need updates
-      if (wkpf_get_next_wuobject_to_update(&wuobject)) {
+      while(wkpf_get_next_wuobject_to_update(&wuobject)) { // Will call update() for native profiles directly, and return true for virtual profiles requiring an update.
         stack_push(wuobject->virtual_wuclass_instance_heap_id | NVM_TYPE_MASK);
         DEBUGF_WKPF("WKPF: WKPF.select returning wuclass at port %x.\n", wuobject->port_number);
         return;
       }
-      // TODONR: Temporarily return null anyway to allow Java to trigger updates while don't have a scheduling mechanism yet.
-      // In the final version select() should just wait until either there's a dirty property, or a wuclass needs to be updated.
-      DEBUGF_WKPF("WKPF: WKPF.select temporarily returning null until we can schedule update() properly.\n");
-      stack_push(0);
-//TODONR: TMP    }
+    }
 
   } else if (mref == NATIVE_WKPF_METHOD_GETMYNODEID) {
     stack_push(nvmcomm_get_node_id());

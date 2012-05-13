@@ -76,7 +76,6 @@ uint8_t wkpf_load_links(heap_id_t links_heap_id) {
   return WKPF_OK;
 }
 
-
 uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, int16_t value) {
   uint16_t component_id;
   if (!wkpf_get_component_id(port_number, &component_id))
@@ -107,19 +106,42 @@ uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, in
           DEBUGF_WKPF("WKPF: propagate_property (local). (%x, %x)->(%x, %x), value %x\n", port_number, property_number, dest_port_number, dest_property_number, value);
           if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
             wkpf_error_code = wkpf_external_write_property_boolean(dest_wuobject, dest_property_number, value);
-          else
+          else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_INT16)
             wkpf_error_code = wkpf_external_write_property_int16(dest_wuobject, dest_property_number, value);
+          else
+            wkpf_error_code = wkpf_external_write_property_refresh_rate(dest_wuobject, dest_property_number, value);
         }
       } else {
         // Remote
         DEBUGF_WKPF("WKPF: propagate_property (remote). (%x, %x)->(%x, %x, %x), value %x\n", port_number, property_number, dest_node_id, dest_port_number, dest_property_number, value);
         if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
           wkpf_error_code = wkpf_send_set_property_boolean(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, value);
-        else
+        else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_INT16)
           wkpf_error_code = wkpf_send_set_property_int16(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, value);
+        else
+          wkpf_error_code = wkpf_send_set_property_refresh_rate(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, value);
       }
       if (wkpf_error_code != WKPF_OK)
         return wkpf_error_code;
+    }
+  }
+  return WKPF_OK;
+}
+
+uint8_t wkpf_propagate_dirty_properties() {
+  if (wkpf_any_property_dirty()) { // this call is still here to have a place to mark failed properties as dirty again. should probably be refactored
+    uint8_t wkpf_error_code;
+    uint8_t port_number;
+    uint8_t property_number;
+    int16_t value;
+    while(wkpf_get_next_dirty_property(&port_number, &property_number, &value)) {
+      nvmcomm_poll(); // Process incoming messages
+      wkpf_error_code = wkpf_propagate_property(port_number, property_number, value);
+      if (wkpf_error_code != WKPF_OK) { // TODONR: need better retry mechanism
+        DEBUGF_WKPF("WKPF: ------!!!------ Propagating property failed: port %x property %x error %x\n", port_number, property_number, wkpf_error_code);
+        wkpf_propagating_dirty_property_failed(port_number, property_number);
+        return wkpf_error_code;
+      }
     }
   }
   return WKPF_OK;

@@ -61,6 +61,13 @@ uint8_t wkpf_send_set_property_boolean(address_t dest_node_id, uint8_t port_numb
   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+1);
 }
 
+uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, wkpf_refresh_rate_t value) {
+  set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_REFRESH_RATE);
+  message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
+  message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
+  return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
+}
+
 void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
   uint8_t number_of_wuclasses;
   uint8_t number_of_wuobjects;
@@ -147,13 +154,20 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         retval = wkpf_external_write_property_int16(wuobject, property_number, value);
         *response_size = 6;//payload size
         *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;        
-      } else {
+      } else if (payload[6] == WKPF_PROPERTY_TYPE_BOOLEAN) {
         bool value;
         value = (bool)(payload[7]);
         retval = wkpf_external_write_property_boolean(wuobject, property_number, value);
         *response_size = 6;//payload size
         *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;                
-      }
+      } else if (payload[6] == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
+          int16_t value;
+          value = (int16_t)(payload[7]);
+          value = (int16_t)(value<<8) + (int16_t)(payload[8]);
+          retval = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
+          *response_size = 6;//payload size
+          *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;        
+      } else
       if (retval != WKPF_OK) {
         payload [2] = retval;
         *response_cmd = NVMCOMM_WKPF_ERROR_R;

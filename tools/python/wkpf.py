@@ -5,6 +5,7 @@ import pynvc
 
 DATATYPE_INT16 = 0
 DATATYPE_BOOLEAN = 1
+DATATYPE_REFRESH_RATE = 2
 
 global __sequenceNumber
 __sequenceNumber = 0
@@ -80,14 +81,16 @@ def getProperty(wuobject, propertyNumber):
   datatype = reply[7]
   if datatype == DATATYPE_BOOLEAN:
     return reply[8] != 0
-  else:
+  elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
     return (reply[8] <<8) + reply[9]
+  else:
+    return None
 
 def setProperty(wuobject, propertyNumber, datatype, value):
   sn = getNextSequenceNumberAsList()
   if datatype == DATATYPE_BOOLEAN:
     payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber, datatype, 1 if value else 0]
-  else:
+  elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
     payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber, datatype, value/256, value%256]
   reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
                                                 command=pynvc.WKPF_WRITE_PROPERTY,

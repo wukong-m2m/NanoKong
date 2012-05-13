@@ -97,6 +97,23 @@ uint8_t wkpf_write_property_boolean(wkpf_local_wuobject *wuobject, uint8_t prope
     return retval;
 }
 
+uint8_t wkpf_read_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t *value) {
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READ, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
+  if (retval == WKPF_OK)
+    return wkpf_read_property(wuobject, property_number, value);
+  else
+    return retval;
+}
+uint8_t wkpf_write_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t value) {
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITE, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
+  if (retval == WKPF_OK) {
+    retval = wkpf_write_property(wuobject, property_number, external_access, value);
+    wkpf_schedule_next_update_for_wuobject(wuobject);
+    return retval;
+  } else
+    return retval;
+}
+
 uint8_t wkpf_alloc_properties_for_wuobject(wkpf_local_wuobject *wuobject) {
   for (int i=0; i<number_of_properties; i++)
     if (properties[i].wuobject_port_number == wuobject->port_number)

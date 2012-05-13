@@ -17,6 +17,7 @@ public class WKPF {
   // Property setters used to initialise properties
   public static native void setPropertyShort(short componentId, byte propertyNumber, short value);
   public static native void setPropertyBoolean(short componentId, byte propertyNumber, boolean value);
+  public static native void setPropertyRefreshRate(short componentId, byte propertyNumber, short value);
 
   // Select function for main loop
   public static native VirtualWuObject select();
@@ -31,6 +32,7 @@ public class WKPF {
   // Note: need to match definitions in wkpf.h
   public static final byte PROPERTY_TYPE_SHORT                         = 0;
   public static final byte PROPERTY_TYPE_BOOLEAN                       = 1;
+  public static final byte PROPERTY_TYPE_REFRESH_RATE                  = 2;
   public static final byte PROPERTY_ACCESS_READ           = (byte)(1 << 7);
   public static final byte PROPERTY_ACCESS_WRITE          = (byte)(1 << 6);
   public static final byte PROPERTY_ACCESS_RW = (PROPERTY_ACCESS_READ|PROPERTY_ACCESS_WRITE);

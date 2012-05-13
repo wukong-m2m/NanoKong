@@ -2,19 +2,20 @@
 # WKPF.native
 #
 
-class nanovm/wkpf/WKPF										45
+class nanovm/wkpf/WKPF										        45
 
-method getErrorCode:()B   	      							1
-method registerWuClass:(S[B)V   	      					2
-method createWuObject:(SBLnanovm/wkpf/VirtualWuObject;)V		3
-method destroyWuObject:(B)V									4
-method getPropertyShort:(Lnanovm/wkpf/VirtualWuObject;B)S	5
-method setPropertyShort:(Lnanovm/wkpf/VirtualWuObject;BS)V	6
-method getPropertyBoolean:(Lnanovm/wkpf/VirtualWuObject;B)Z	7
-method setPropertyBoolean:(Lnanovm/wkpf/VirtualWuObject;BZ)V	8
-method setPropertyShort:(SBS)V								9
-method setPropertyBoolean:(SBZ)V							10
-method select:()Lnanovm/wkpf/VirtualWuObject;				11
-method getMyNodeId:()S										12
-method loadComponentToWuObjectAddrMap:([B)V						13
-method loadLinkDefinitions:([B)V							14
+method getErrorCode:()B   	      							        1
+method registerWuClass:(S[B)V   	      					        2
+method createWuObject:(SBLnanovm/wkpf/VirtualWuObject;)V		    3
+method destroyWuObject:(B)V									        4
+method getPropertyShort:(Lnanovm/wkpf/VirtualWuObject;B)S	        5
+method setPropertyShort:(Lnanovm/wkpf/VirtualWuObject;BS)V	        6
+method getPropertyBoolean:(Lnanovm/wkpf/VirtualWuObject;B)Z	        7
+method setPropertyBoolean:(Lnanovm/wkpf/VirtualWuObject;BZ)V	    8
+method setPropertyShort:(SBS)V								        9
+method setPropertyBoolean:(SBZ)V							        10
+method setPropertyRefreshRate:(SBS)V								11
+method select:()Lnanovm/wkpf/VirtualWuObject;				        12
+method getMyNodeId:()S										        13
+method loadComponentToWuObjectAddrMap:([B)V						    14
+method loadLinkDefinitions:([B)V							        15
