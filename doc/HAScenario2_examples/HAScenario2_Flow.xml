@@ -4,7 +4,7 @@
 	</component>
 	<component type="LightSensor" instanceId="LightSensor1" refreshRate="5000">
 		<link fromProperty="current_temperature" toInstanceId="Threshold1" toProperty="value">
-			<linkProperty type="minChangeFilter" value="2"> <!-- Can't do the minChange filter yet -->
+			<linkProperty type="minChangeFilter" value="2"/> <!-- Can't do the minChange filter yet -->
 		</link>
 	</component>
 	<component type="Threshold" instanceId="Threshold1">
