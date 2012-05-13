@@ -1,9 +1,9 @@
 from xml.dom.minidom import parse
 from optparse import OptionParser
+from jinja2 import Template
 
 comp_dom = 0
 flow_dom = 0
-
 
 def parser():
     parser = OptionParser("usage: %prog [options] arg")
@@ -16,8 +16,115 @@ def parser():
     comp_dom = parse(options.pathc)
     flow_dom = parse(options.pathf)
 
+def codegen():
+    tpl = Template("""
+{{ IMPORT_STATEMENTS }}
+public class {{ CLASS_NAME }}
+{
+{{ CLASS_FIELD_ALLOCATION_STATEMENTS }}
+{{ CLASS_FUNCTION_ALLOCTION_STATEMENTS }}
 
+{{ LINK_DEFINITIONS }}
+{{ MAPPING_TABLE }}
+
+    public static void main (String[] args) {
+{{ WKPF_INIT_STATEMENTS }}
+
+{{ COMPONENT_INIT }}
+        
+        while(true){
+{{ MAIN_LOOP_STATEMENTS }}
+{{ SCHEDULING_ALGORITHM_STATEMENTS }}
+        }
+    }
+}
+    """)
+
+    def indentor(s, num):
+        return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
+
+    import_stmt = indentor("""
+import java.io.*;
+import nanovm.avr.*;
+import nanovm.wkpf.*;
+import nanovm.lang.Math;
+    """, 0)
+
+    class_name = "HAScenario2"
+
+    class_field = indentor("""
+private static int myNodeId;
+private static short tmpDummy = 0;
+    """, 1)
+    
+    class_func = indentor("""
+private static byte getPortNumberForComponent(short componentId) {
+    return componentInstanceToEndpointMap[componentId*2 + 1];
+}
+private static boolean isLocalComponent(short componentId) {    
+    int nodeId=componentInstanceToEndpointMap[componentId*2];
+    return nodeId == myNodeId;
+}
+    """, 1)
+
+    link_def = indentor("""
+private final static byte[] linkDefinitions = {
+}
+    """, 1)
+    table = 0
+    wkpf_init = indentor("""
+System.out.println("%s");
+
+myNodeId = WKPF.getMyNodeId();
+System.out.println("MY NODE ID:" + myNodeId);
+
+WKPF.loadLinkDefinitions(linkDefinitions);
+if (WKPF.getErrorCode() == WKPF.OK)
+    System.out.println("Registered link definitions.");
+else
+    System.out.println("Error while Registering link definitions: " + WKPF.getErrorCode());
+
+WKPF.loadComponentToEndpointMap(componentInstanceToEndpointMap);
+if (WKPF.getErrorCode() == WKPF.OK)
+    System.out.println("Registered component to endpoint map.");
+else
+    System.out.println("Error while registering component to endpoint map: " + WKPF.getErrorCode());""" % class_name
+    , 2)
+    
+    comp_init = 0
+
+    main_loop = indentor("""
+VirtualProfile profile = WKPF.select();
+if (profile != null) {
+    profile.update();
+}
+    """, 3)
+
+    scheduling = indentor("""
+if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
+    tmpDummy += 1;
+    System.out.println("HAScenario - updating dummy variable to trigger lightsensor update: " + tmpDummy);
+    WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)(WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE+1), tmpDummy);
+    System.out.println("HAScenario - updating dummy variable to trigger lightsensor update, result: " + WKPF.getErrorCode());
+    if (WKPF.getErrorCode() != WKPF.OK)
+        System.out.println("Error: " + WKPF.getErrorCode());
+}
+Timer.wait(1000);
+    """, 3)
+
+    rendered_tpl = tpl.render(IMPORT_STATEMENTS=import_stmt,
+            CLASS_NAME=class_name,
+            CLASS_FIELD_ALLOCATION_STATEMENTS=class_field,
+            CLASS_FUNCTION_ALLOCTION_STATEMENTS=class_func,
+            LINK_DEFINITIONS=link_def,
+            MAPPING_TABLE=table,
+            WKPF_INIT_STATEMENTS=wkpf_init,
+            MAIN_LOOP_STATEMENTS=main_loop,
+            COMPONENT_INIT=comp_init)
+
+    print rendered_tpl
 
 if __name__ == "__main__":
     parser()
+    codegen()
 
