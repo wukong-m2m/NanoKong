@@ -3427,7 +3427,7 @@ void usage(void)
 	printf("    thermostat setpoint <id> <type> <value>\n");
 	printf("    thermostat getpoint <id> <type>\n");
 	printf("    sceneactivation set <id> <scene>\n");
-	printf("    multichannel endpoint get <id>\n");
+	printf("    multichannel wuobject get <id>\n");
 	printf("    multichannel capability get <id>\n");
 	printf("    multichannel find <id> <generic> <specific>\n");
 	printf("    proprietary learn <id> <itemid> <key>\n");
@@ -3704,7 +3704,7 @@ int process_cmd(int argc, char * argv[])
 				i+=3;
 			}
 		} else if (strcmp(argv[i],"multichannel")==0) {
-			if (strcmp(argv[i+1],"endpoint")==0) {
+			if (strcmp(argv[i+1],"wuobject")==0) {
 				if (strcmp(argv[i+2],"get")==0) {
 					zwavecmd_multi_channel_end_point_get(atoi(argv[i+3]));
 					i += 3;

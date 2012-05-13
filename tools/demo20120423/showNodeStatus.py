@@ -2,33 +2,33 @@
 import sys
 sys.path.append("/Users/niels/git/nanokong/tools/python")
 import wkpf
-from wkpf import Endpoint
+from wkpf import WuObject
 
 
-numericInputEndpoint = Endpoint(nodeId=1, portNumber=1, profileId=3)
-lightSensorEndpoint = Endpoint(nodeId=1, portNumber=2, profileId=5)
-thresholdEndpointScenario1 = Endpoint(nodeId=1, portNumber=3, profileId=1)
-thresholdEndpointScenario2 = Endpoint(nodeId=3, portNumber=3, profileId=1)
-occupancyEndpoint = Endpoint(nodeId=1, portNumber=5, profileId=0x1005)
-andGateEndpoint = Endpoint(nodeId=3, portNumber=6, profileId=0x1006)
-lightEndpoint = Endpoint(nodeId=3, portNumber=4, profileId=4)
+numericInputWuObject = WuObject(nodeId=1, portNumber=1, wuclassId=3)
+lightSensorWuObject = WuObject(nodeId=1, portNumber=2, wuclassId=5)
+thresholdWuObjectScenario1 = WuObject(nodeId=1, portNumber=3, wuclassId=1)
+thresholdWuObjectScenario2 = WuObject(nodeId=3, portNumber=3, wuclassId=1)
+occupancyWuObject = WuObject(nodeId=1, portNumber=5, wuclassId=0x1005)
+andGateWuObject = WuObject(nodeId=3, portNumber=6, wuclassId=0x1006)
+lightWuObject = WuObject(nodeId=3, portNumber=4, wuclassId=4)
 
-endpointsNode1 = wkpf.getEndpointList(1)
-endpointsNode3 = wkpf.getEndpointList(3)
+wuobjectsNode1 = wkpf.getWuObjectList(1)
+wuobjectsNode3 = wkpf.getWuObjectList(3)
 
-profiles = wkpf.getProfileList(3)
-if 0x1006 in profiles: # Scenario 2
-  light_sensor_value = wkpf.getProperty(lightSensorEndpoint, propertyNumber=0)
-  input_value = wkpf.getProperty(numericInputEndpoint, propertyNumber=0)
-  threshold_operator = wkpf.getProperty(thresholdEndpointScenario2, propertyNumber=0)
-  threshold_threshold = wkpf.getProperty(thresholdEndpointScenario2, propertyNumber=1)
-  threshold_value = wkpf.getProperty(thresholdEndpointScenario2, propertyNumber=2)
-  threshold_output = wkpf.getProperty(thresholdEndpointScenario2, propertyNumber=3)
-  occupancy_value = wkpf.getProperty(occupancyEndpoint, propertyNumber=0)
-  andgate_in1 = wkpf.getProperty(andGateEndpoint, propertyNumber=0)
-  andgate_in2 = wkpf.getProperty(andGateEndpoint, propertyNumber=1)
-  andgate_out = wkpf.getProperty(andGateEndpoint, propertyNumber=2)
-  light_value = wkpf.getProperty(lightEndpoint, propertyNumber=0)
+wuclasses = wkpf.getWuClassList(3)
+if 0x1006 in wuclasses: # Scenario 2
+  light_sensor_value = wkpf.getProperty(lightSensorWuObject, propertyNumber=0)
+  input_value = wkpf.getProperty(numericInputWuObject, propertyNumber=0)
+  threshold_operator = wkpf.getProperty(thresholdWuObjectScenario2, propertyNumber=0)
+  threshold_threshold = wkpf.getProperty(thresholdWuObjectScenario2, propertyNumber=1)
+  threshold_value = wkpf.getProperty(thresholdWuObjectScenario2, propertyNumber=2)
+  threshold_output = wkpf.getProperty(thresholdWuObjectScenario2, propertyNumber=3)
+  occupancy_value = wkpf.getProperty(occupancyWuObject, propertyNumber=0)
+  andgate_in1 = wkpf.getProperty(andGateWuObject, propertyNumber=0)
+  andgate_in2 = wkpf.getProperty(andGateWuObject, propertyNumber=1)
+  andgate_out = wkpf.getProperty(andGateWuObject, propertyNumber=2)
+  light_value = wkpf.getProperty(lightWuObject, propertyNumber=0)
 
   print ""
   print ""
@@ -49,18 +49,18 @@ if 0x1006 in profiles: # Scenario 2
   print "value:", andgate_out
   print "=== Light"
   print "value:", light_value
-  print "=== Endpoints on node 1"
-  print endpointsNode1
-  print "=== Endpoints on node 3"
-  print endpointsNode3  
+  print "=== WuObjects on node 1"
+  print wuobjectsNode1
+  print "=== WuObjects on node 3"
+  print wuobjectsNode3  
 else: # Scenario 1
-  light_sensor_value = wkpf.getProperty(lightSensorEndpoint, propertyNumber=0)
-  input_value = wkpf.getProperty(numericInputEndpoint, propertyNumber=0)
-  threshold_operator = wkpf.getProperty(thresholdEndpointScenario1, propertyNumber=0)
-  threshold_threshold = wkpf.getProperty(thresholdEndpointScenario1, propertyNumber=1)
-  threshold_value = wkpf.getProperty(thresholdEndpointScenario1, propertyNumber=2)
-  threshold_output = wkpf.getProperty(thresholdEndpointScenario1, propertyNumber=3)
-  light_value = wkpf.getProperty(lightEndpoint, propertyNumber=0)
+  light_sensor_value = wkpf.getProperty(lightSensorWuObject, propertyNumber=0)
+  input_value = wkpf.getProperty(numericInputWuObject, propertyNumber=0)
+  threshold_operator = wkpf.getProperty(thresholdWuObjectScenario1, propertyNumber=0)
+  threshold_threshold = wkpf.getProperty(thresholdWuObjectScenario1, propertyNumber=1)
+  threshold_value = wkpf.getProperty(thresholdWuObjectScenario1, propertyNumber=2)
+  threshold_output = wkpf.getProperty(thresholdWuObjectScenario1, propertyNumber=3)
+  light_value = wkpf.getProperty(lightWuObject, propertyNumber=0)
 
   print ""
   print ""
@@ -75,10 +75,10 @@ else: # Scenario 1
   print "output:", threshold_output
   print "=== Light"
   print "value:", light_value
-  print "=== Endpoints on node 1"
-  print endpointsNode1
-  print "=== Endpoints on node 3"
-  print endpointsNode3
+  print "=== WuObjects on node 1"
+  print wuobjectsNode1
+  print "=== WuObjects on node 3"
+  print wuobjectsNode3
 
   
 

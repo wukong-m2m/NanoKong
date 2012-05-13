@@ -9,10 +9,10 @@ public class TestWKPFLinksLocal {
   private static int passedCount=0;
   private static int failedCount=0;
 
-  private static void callVirtualProfileUpdates() {
-    VirtualProfile profile;
-    while ((profile=WKPF.select())!=null)
-        profile.update();
+  private static void callVirtualWuObjectUpdates() {
+    VirtualWuObject wuclass;
+    while ((wuclass=WKPF.select())!=null)
+        wuclass.update();
   }
 
   public static void assertEqual(int value, int expected, String message) {
@@ -44,10 +44,10 @@ public class TestWKPFLinksLocal {
     }
   }
   
-  private static class VirtualTestProfile extends VirtualProfile {
+  private static class VirtualTestWuClass extends VirtualWuObject {
     private String name;
     
-    public VirtualTestProfile(String name) {
+    public VirtualTestWuClass(String name) {
       this.name = name;
     }
     
@@ -59,7 +59,7 @@ public class TestWKPFLinksLocal {
 
     public void update() {
       System.out.println("");
-      System.out.println("UPDATE ON VIRTUAL PROFILE " + name);
+      System.out.println("UPDATE ON VIRTUAL WUCLASS " + name);
       System.out.println("PROPERTY 0: " + WKPF.getPropertyShort(this, (byte)0));
       if (WKPF.getPropertyBoolean(this, (byte)1))
         System.out.println("PROPERTY 1: TRUE");
@@ -74,12 +74,12 @@ public class TestWKPFLinksLocal {
     int COMPONENT_INSTANCE_ID_A = 0;
     int COMPONENT_INSTANCE_ID_B = 1;
 
-    System.out.println("WuKong Profile Framework Link test");
+    System.out.println("WuKong WuClass Framework Link test");
 
     byte myNodeId = (byte)WKPF.getMyNodeId();
     System.out.println("My node id: " + myNodeId);
 
-    byte[] componentInstanceToEndpointMap = { // Indexed by component instance id.
+    byte[] componentInstanceToWuObjectAddrMap = { // Indexed by component instance id.
       myNodeId, (byte)0x10, // Component 0: instance A        @ node 1, port 1
       myNodeId, (byte)0x20  // Component 1: instance B        @ node 1, port 2
     };
@@ -101,30 +101,30 @@ public class TestWKPFLinksLocal {
       (byte)0x42, (byte)0
     };
 
-    WKPF.registerProfile((short)0x42, VirtualTestProfile.properties);
-    VirtualProfile profileInstanceA = new VirtualTestProfile("A");
-    WKPF.createEndpoint((short)0x42, (byte)0x10, profileInstanceA);
-    VirtualProfile profileInstanceB = new VirtualTestProfile("B");
-    WKPF.createEndpoint((short)0x42, (byte)0x20, profileInstanceB);
+    WKPF.registerWuClass((short)0x42, VirtualTestWuClass.properties);
+    VirtualWuObject wuclassInstanceA = new VirtualTestWuClass("A");
+    WKPF.createWuObject((short)0x42, (byte)0x10, wuclassInstanceA);
+    VirtualWuObject wuclassInstanceB = new VirtualTestWuClass("B");
+    WKPF.createWuObject((short)0x42, (byte)0x20, wuclassInstanceB);
 
-    WKPF.loadComponentToEndpointMap(componentInstanceToEndpointMap);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering component to endpoint map.");
+    WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering component to wuobject map.");
     
     WKPF.loadLinkDefinitions(linkDefinitions);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering link definitions.");
     
-    WKPF.setPropertyShort(profileInstanceA, (byte)0, (short)123);
+    WKPF.setPropertyShort(wuclassInstanceA, (byte)0, (short)123);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 0 on instance A to 123.");
-    callVirtualProfileUpdates();
+    callVirtualWuObjectUpdates();
 
-    WKPF.setPropertyBoolean(profileInstanceB, (byte)1, true);
+    WKPF.setPropertyBoolean(wuclassInstanceB, (byte)1, true);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 on instance B to true.");
-    callVirtualProfileUpdates();
+    callVirtualWuObjectUpdates();
 
-    WKPF.setPropertyBoolean(profileInstanceB, (byte)1, false);
+    WKPF.setPropertyBoolean(wuclassInstanceB, (byte)1, false);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 on instance B to false.");
-    callVirtualProfileUpdates();
+    callVirtualWuObjectUpdates();
 
-    System.out.println("WuKong Profile Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
+    System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
   }
 }

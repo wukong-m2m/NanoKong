@@ -49,6 +49,8 @@ typedef int8_t    ssize8_t; // A byte-sized ssize_t
 
 typedef int8_t    address_t; // Placeholder until we figure out what an address is. Shouldn't be a Z-Wave address in the rest of the code.
 
+typedef int16_t   wkpf_refresh_rate_t; // TODONR: should be changed later when I have a better implementation of the property store
+
 #if !defined __cplusplus
 
 #ifndef bool

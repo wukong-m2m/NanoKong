@@ -1,10 +1,10 @@
 WuKongComponents.xml                XML definitions of the standard set of components.
                                     (examples for Threshold and Temperature Sensor)
 
-GEN_VirtualThresholdSuper.java      The generated part of a virtual profile, containing the constant definitions.
+GEN_VirtualThresholdSuper.java      The generated part of a virtual wuclass, containing the constant definitions.
                                     (generated from WuKongComponents.xml)
 
-VirtualThreshold.java               The implementation part of a virtual profile.
+VirtualThreshold.java               The implementation part of a virtual wuclass.
 
 HAScenario2_Flow.xml                WuKong FlowXML definition for the HAScenario2 application.
                                     (generated from the Niagara config.bof file)

@@ -1,6 +1,6 @@
 package nanovm.wkpf;
 
-public class VirtualThresholdProfile extends VirtualProfile {
+public class VirtualThresholdWuObject extends VirtualWuObject {
     public static final byte[] properties = new byte[] {
             WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_RW, // PROPERTY_THRESHOLD_OPERATOR
             WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_RW, // PROPERTY_THRESHOLD_THRESHOLD
@@ -14,7 +14,7 @@ public class VirtualThresholdProfile extends VirtualProfile {
     public static final short OPERATOR_LTE = 3;
 
     public void update() {
-        // TODONR: replace these calls with convenience methods in VirtualProfile once we get the inheritance issue sorted out.
+        // TODONR: replace these calls with convenience methods in VirtualWuObject once we get the inheritance issue sorted out.
         short operator = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_OPERATOR);
         short threshold = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_THRESHOLD);
         short value = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_VALUE);

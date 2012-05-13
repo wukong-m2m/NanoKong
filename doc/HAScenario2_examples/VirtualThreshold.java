@@ -2,7 +2,7 @@ package nanovm.wkpf;
 
 public class VirtualThreshold extends GEN_VirtualThresholdSuper {
     public void update() {
-        // TODONR: replace these calls with convenience methods in VirtualProfile once we get the inheritance issue sorted out.
+        // TODONR: replace these calls with convenience methods in VirtualWuObject once we get the inheritance issue sorted out.
         short operator = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_OPERATOR);
         short threshold = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_THRESHOLD);
         short value = WKPF.getPropertyShort(this, WKPF.PROPERTY_THRESHOLD_VALUE);

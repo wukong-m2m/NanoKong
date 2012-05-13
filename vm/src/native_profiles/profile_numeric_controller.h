@@ -1,6 +1,0 @@
-#ifndef PROFILE_NUMERIC_CONTROLLERH
-#define PROFILE_NUMERIC_CONTROLLERH
-
-extern wkpf_profile_definition profile_numeric_controller;
-
-#endif // PROFILE_NUMERIC_CONTROLLERH

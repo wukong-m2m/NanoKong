@@ -2,27 +2,27 @@
 #include <stack.h>
 #include <types.h>
 #include <wkpf.h>
-#include "native_profiles.h"
-#include "profile_light_sensor.h"
+#include "native_wuclasses.h"
+#include "wuclass_light_sensor.h"
 #include <avr/io.h>
 
-#ifdef ENABLE_PROFILE_LIGHT_SENSOR
+#ifdef ENABLE_WUCLASS_LIGHT_SENSOR
 
-void profile_light_sensor_update(wkpf_local_endpoint *endpoint);
+void wuclass_light_sensor_update(wkpf_local_wuobject *wuobject);
 
-uint8_t profile_light_sensor_properties[] = {
+uint8_t wuclass_light_sensor_properties[] = {
   WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_READ, // WKPF_PROPERTY_LIGHT_SENSOR_CURRENT_VALUE
-  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_RW // TODONR: Temporary dummy property to trigger updates while don't have a scheduling mechanism yet.
+  WKPF_PROPERTY_TYPE_REFRESH_RATE+WKPF_PROPERTY_ACCESS_RW
 };
 
-wkpf_profile_definition profile_light_sensor = {
-  WKPF_PROFILE_LIGHT_SENSOR, // profile id
-  profile_light_sensor_update, // update function pointer
+wkpf_wuclass_definition wuclass_light_sensor = {
+  WKPF_WUCLASS_LIGHT_SENSOR, // wuclass id
+  wuclass_light_sensor_update, // update function pointer
   2, // Number of properties
-  profile_light_sensor_properties
+  wuclass_light_sensor_properties
 };
 
-void profile_light_sensor_update(wkpf_local_endpoint *endpoint) {
+void wuclass_light_sensor_update(wkpf_local_wuobject *wuobject) {
   // Pieced together from IntelDemoLightSensorV1.java, Adc.java and native_avr.c
 
   // Adc.setPrescaler(Adc.DIV64);
@@ -42,7 +42,7 @@ void profile_light_sensor_update(wkpf_local_endpoint *endpoint) {
   while(!(ADCSRA & _BV(ADIF)));         // wait for conversion complete
   ADCSRA |= _BV(ADIF);                  // clear ADCIF
   DEBUGF_WKPFUPDATE("WKPFUPDATE(LightSensor): Sensed light value: %x\n", ADCH);
-  wkpf_internal_write_property_int16(endpoint, WKPF_PROPERTY_LIGHT_SENSOR_CURRENT_VALUE, ADCH);
+  wkpf_internal_write_property_int16(wuobject, WKPF_PROPERTY_LIGHT_SENSOR_CURRENT_VALUE, ADCH);
 }
 
-#endif // ENABLE_PROFILE_LIGHT_SENSOR
+#endif // ENABLE_WUCLASS_LIGHT_SENSOR

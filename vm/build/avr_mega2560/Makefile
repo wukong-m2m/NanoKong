@@ -5,14 +5,9 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
+DEFAULT_CLASS = HAScenario2
 
-#DEFAULT_CLASS = HAScenario2
-DEFAULT_CLASS = javainterrupt
-#DEFAULT_CLASS = AdcDemo
-#DEFAULT_CLASS = HAScenario1
-
-
-PORT = /dev/ttyACM0
+PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 
@@ -36,7 +31,7 @@ all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
 include ../../src/Makefile
 include ../../src/avr/Makefile
 include ../../src/tests/Makefile
-include ../../src/native_profiles/Makefile
+include ../../src/native_wuclasses/Makefile
 
 nvmdefault.h: Makefile
 
