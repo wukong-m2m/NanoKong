@@ -13,38 +13,38 @@ void native_wkpf_invoke(u08_t mref) {
   if(mref == NATIVE_WKPF_METHOD_GETERRORCODE) {
     stack_push(wkpf_error_code);
 
-  } else if(mref == NATIVE_WKPF_METHOD_REGISTER_PROFILE) {
+  } else if(mref == NATIVE_WKPF_METHOD_REGISTER_WUCLASS) {
     heap_id_t properties_heap_id = stack_peek(0) & ~NVM_TYPE_MASK;
     uint8_t *properties = (uint8_t *)stack_pop_addr();
-    uint16_t profile_id = (uint16_t)stack_pop_int();
-    wkpf_profile_definition profile;
-    profile.profile_id = profile_id;
-    profile.update = NULL;
-    profile.number_of_properties = array_length(properties_heap_id);
-    profile.properties = properties+1; // Seems to be in RAM anyway. This will work while it is, but we want to get it into Flash at some point. +1 to skip the array type byte
-    DEBUGF_WKPF("WKPF: Registering virtual profile with id %x\n", profile_id);
-    wkpf_error_code = wkpf_register_profile(profile);  
+    uint16_t wuclass_id = (uint16_t)stack_pop_int();
+    wkpf_wuclass_definition wuclass;
+    wuclass.wuclass_id = wuclass_id;
+    wuclass.update = NULL;
+    wuclass.number_of_properties = array_length(properties_heap_id);
+    wuclass.properties = properties+1; // Seems to be in RAM anyway. This will work while it is, but we want to get it into Flash at some point. +1 to skip the array type byte
+    DEBUGF_WKPF("WKPF: Registering virtual wuclass with id %x\n", wuclass_id);
+    wkpf_error_code = wkpf_register_wuclass(wuclass);  
 
-  } else if(mref == NATIVE_WKPF_METHOD_CREATE_ENDPOINT) {
-    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+  } else if(mref == NATIVE_WKPF_METHOD_CREATE_WUOBJECT) {
+    heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
     uint8_t port_number = (uint8_t)stack_pop_int();
-    uint16_t profile_id = (uint16_t)stack_pop_int();
-    DEBUGF_WKPF("WKPF: Creating endpoint for virtual profile with id %x at port %x (heap_id: %x)\n", profile_id, port_number, virtual_profile_instance_heap_id);
-    wkpf_error_code = wkpf_create_endpoint(profile_id, port_number, virtual_profile_instance_heap_id);
+    uint16_t wuclass_id = (uint16_t)stack_pop_int();
+    DEBUGF_WKPF("WKPF: Creating wuobject for virtual wuclass with id %x at port %x (heap_id: %x)\n", wuclass_id, port_number, virtual_wuclass_instance_heap_id);
+    wkpf_error_code = wkpf_create_wuobject(wuclass_id, port_number, virtual_wuclass_instance_heap_id);
 
-  } else if(mref == NATIVE_WKPF_METHOD_REMOVE_ENDPOINT) {
+  } else if(mref == NATIVE_WKPF_METHOD_REMOVE_WUOBJECT) {
     uint8_t port_number = (uint8_t)stack_pop_int();
-    DEBUGF_WKPF("WKPF: Removing endpoint at port %x\n", port_number);
-    wkpf_error_code = wkpf_remove_endpoint(port_number);
+    DEBUGF_WKPF("WKPF: Removing wuobject at port %x\n", port_number);
+    wkpf_error_code = wkpf_remove_wuobject(port_number);
 
   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYSHORT) {
     uint8_t property_number = (uint8_t)stack_pop_int();
-    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-    wkpf_local_endpoint *endpoint;
-    wkpf_error_code = wkpf_get_endpoint_by_heap_id(virtual_profile_instance_heap_id, &endpoint);
+    heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+    wkpf_local_wuobject *wuobject;
+    wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
     if (wkpf_error_code == WKPF_OK) {
       int16_t value;
-      wkpf_error_code = wkpf_internal_read_property_int16(endpoint, property_number, &value);
+      wkpf_error_code = wkpf_internal_read_property_int16(wuobject, property_number, &value);
       if (wkpf_error_code == WKPF_OK)
         stack_push(value);
     }
@@ -52,21 +52,21 @@ void native_wkpf_invoke(u08_t mref) {
   } else if(mref == NATIVE_WKPF_METHOD_SETPROPERTYSHORT) {
     int16_t value = (int16_t)stack_pop_int();
     uint8_t property_number = (uint8_t)stack_pop_int();
-    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-    wkpf_local_endpoint *endpoint;
-    wkpf_error_code = wkpf_get_endpoint_by_heap_id(virtual_profile_instance_heap_id, &endpoint);
+    heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+    wkpf_local_wuobject *wuobject;
+    wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
     if (wkpf_error_code == WKPF_OK) {
-      wkpf_error_code = wkpf_internal_write_property_int16(endpoint, property_number, value);
+      wkpf_error_code = wkpf_internal_write_property_int16(wuobject, property_number, value);
     }
     
   } else if(mref == NATIVE_WKPF_METHOD_GETPROPERTYBOOLEAN) {
     uint8_t property_number = (uint8_t)stack_pop_int();
-    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-    wkpf_local_endpoint *endpoint;
-    wkpf_error_code = wkpf_get_endpoint_by_heap_id(virtual_profile_instance_heap_id, &endpoint);
+    heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+    wkpf_local_wuobject *wuobject;
+    wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
     if (wkpf_error_code == WKPF_OK) {
       bool value;
-      wkpf_error_code = wkpf_internal_read_property_boolean(endpoint, property_number, &value);
+      wkpf_error_code = wkpf_internal_read_property_boolean(wuobject, property_number, &value);
       if (wkpf_error_code == WKPF_OK)
         stack_push(value);
     }
@@ -74,11 +74,11 @@ void native_wkpf_invoke(u08_t mref) {
   } else if(mref == NATIVE_WKPF_METHOD_SETPROPERTYBOOLEAN) {
     bool value = (int16_t)stack_pop_int();
     uint8_t property_number = (uint8_t)stack_pop_int();
-    heap_id_t virtual_profile_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-    wkpf_local_endpoint *endpoint;
-    wkpf_error_code = wkpf_get_endpoint_by_heap_id(virtual_profile_instance_heap_id, &endpoint);
+    heap_id_t virtual_wuclass_instance_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+    wkpf_local_wuobject *wuobject;
+    wkpf_error_code = wkpf_get_wuobject_by_heap_id(virtual_wuclass_instance_heap_id, &wuobject);
     if (wkpf_error_code == WKPF_OK) {
-      wkpf_error_code = wkpf_internal_write_property_boolean(endpoint, property_number, value);
+      wkpf_error_code = wkpf_internal_write_property_boolean(wuobject, property_number, value);
     }
     
   } else if (mref == NATIVE_WKPF_METHOD_SETPROPERTYSHORT_COMPONENT) {
@@ -92,11 +92,11 @@ void native_wkpf_invoke(u08_t mref) {
       if (node_id != nvmcomm_get_node_id())
         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
       else {
-        wkpf_local_endpoint *endpoint;
-        wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
+        wkpf_local_wuobject *wuobject;
+        wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
         if (wkpf_error_code == WKPF_OK) {
           DEBUGF_WKPF("WKPF: setPropertyShort (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-          wkpf_error_code = wkpf_external_write_property_int16(endpoint, property_number, value);
+          wkpf_error_code = wkpf_external_write_property_int16(wuobject, property_number, value);
         }
       }
     }
@@ -113,17 +113,17 @@ void native_wkpf_invoke(u08_t mref) {
       if (node_id != nvmcomm_get_node_id())
         wkpf_error_code = WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED;
       else {
-        wkpf_local_endpoint *endpoint;
-        wkpf_error_code = wkpf_get_endpoint_by_port(port_number, &endpoint);
+        wkpf_local_wuobject *wuobject;
+        wkpf_error_code = wkpf_get_wuobject_by_port(port_number, &wuobject);
         if (wkpf_error_code == WKPF_OK) {
           DEBUGF_WKPF("WKPF: setPropertyBoolean (local). Port %x, property %x, value %x\n", port_number, property_number, value);
-          wkpf_error_code = wkpf_external_write_property_boolean(endpoint, property_number, value);
+          wkpf_error_code = wkpf_external_write_property_boolean(wuobject, property_number, value);
         }
       }
     }
 
   } else if (mref == NATIVE_WKPF_METHOD_SELECT) {
-    wkpf_local_endpoint *endpoint;
+    wkpf_local_wuobject *wuobject;
 //TODONR: TMP    while(true) {
       // Process incoming messages
       nvmcomm_poll();
@@ -141,14 +141,14 @@ void native_wkpf_invoke(u08_t mref) {
           }
         }
       }
-      // Check if any endpoints need updates
-      if (wkpf_get_next_endpoint_to_update(&endpoint)) {
-        stack_push(endpoint->virtual_profile_instance_heap_id | NVM_TYPE_MASK);
-        DEBUGF_WKPF("WKPF: WKPF.select returning profile at port %x.\n", endpoint->port_number);
+      // Check if any wuobjects need updates
+      if (wkpf_get_next_wuobject_to_update(&wuobject)) {
+        stack_push(wuobject->virtual_wuclass_instance_heap_id | NVM_TYPE_MASK);
+        DEBUGF_WKPF("WKPF: WKPF.select returning wuclass at port %x.\n", wuobject->port_number);
         return;
       }
       // TODONR: Temporarily return null anyway to allow Java to trigger updates while don't have a scheduling mechanism yet.
-      // In the final version select() should just wait until either there's a dirty property, or a profile needs to be updated.
+      // In the final version select() should just wait until either there's a dirty property, or a wuclass needs to be updated.
       DEBUGF_WKPF("WKPF: WKPF.select temporarily returning null until we can schedule update() properly.\n");
       stack_push(0);
 //TODONR: TMP    }
@@ -158,7 +158,7 @@ void native_wkpf_invoke(u08_t mref) {
 
   } else if (mref == NATIVE_WKPF_METHOD_LOAD_COMPONENT_MAP) {
     heap_id_t map_heap_id = stack_pop() & ~NVM_TYPE_MASK;
-    wkpf_error_code = wkpf_load_component_to_endpoint_map(map_heap_id);
+    wkpf_error_code = wkpf_load_component_to_wuobject_map(map_heap_id);
 
   } else if (mref == NATIVE_WKPF_METHOD_LOAD_LINK_DEFINITIONS) {
     heap_id_t links_heap_id = stack_pop() & ~NVM_TYPE_MASK;

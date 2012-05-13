@@ -9,10 +9,10 @@ public class HAScenario1 {
 
   // TODONR: these could be changed to native methods for performance reasons (but they're only used in initialisation, so it's not too important)
   private static byte getPortNumberForComponent(short componentId) {
-    return componentInstanceToEndpointMap[componentId*2 + 1];
+    return componentInstanceToWuObjectAddrMap[componentId*2 + 1];
   }
   private static boolean isLocalComponent(short componentId) {    
-    int nodeId=componentInstanceToEndpointMap[componentId*2];
+    int nodeId=componentInstanceToWuObjectAddrMap[componentId*2];
     return nodeId == myNodeId;
   }
   // =========== End: Constant part, not affected by the application.
@@ -23,7 +23,7 @@ public class HAScenario1 {
   private static final short COMPONENT_INSTANCE_ID_THRESHOLD1 = 2;
   private static final short COMPONENT_INSTANCE_ID_LIGHT1 = 3;
   
-  private final static byte[] componentInstanceToEndpointMap = { // Indexed by component instance id.
+  private final static byte[] componentInstanceToWuObjectAddrMap = { // Indexed by component instance id.
     (byte)1, (byte)0x1, // Component 0: input controller    @ node 1, port 1
     (byte)1, (byte)0x2, // Component 1: light sensor        @ node 1, port 2
     (byte)1, (byte)0x3, // Component 2: threshold           @ node 1, port 3
@@ -31,22 +31,22 @@ public class HAScenario1 {
   };
 
   private final static byte[] linkDefinitions = {
-    // Note: Component instance id and profile id are little endian
+    // Note: Component instance id and wuclass id are little endian
     // Note: using WKPF constants now, but this should be generated as literal bytes by the WuML->Java compiler.
     // Connect input controller to threshold
     (byte)COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, (byte)0, (byte)WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT,
     (byte)COMPONENT_INSTANCE_ID_THRESHOLD1, (byte)0, (byte)WKPF.PROPERTY_THRESHOLD_THRESHOLD,
-    (byte)WKPF.PROFILE_THRESHOLD, (byte)0,
+    (byte)WKPF.WUCLASS_THRESHOLD, (byte)0,
 
     // Connect light sensor to threshold
     (byte)COMPONENT_INSTANCE_ID_LIGHTSENSOR1, (byte)0, (byte)WKPF.PROPERTY_LIGHT_SENSOR_CURRENT_VALUE,
     (byte)COMPONENT_INSTANCE_ID_THRESHOLD1, (byte)0, (byte)WKPF.PROPERTY_THRESHOLD_VALUE,
-    (byte)WKPF.PROFILE_THRESHOLD, (byte)0,
+    (byte)WKPF.WUCLASS_THRESHOLD, (byte)0,
 
     // Connect threshold to light
     (byte)COMPONENT_INSTANCE_ID_THRESHOLD1, (byte)0, (byte)WKPF.PROPERTY_THRESHOLD_OUTPUT,
     (byte)COMPONENT_INSTANCE_ID_LIGHT1, (byte)0, (byte)WKPF.PROPERTY_LIGHT_ONOFF,
-    (byte)WKPF.PROFILE_LIGHT, (byte)0
+    (byte)WKPF.WUCLASS_LIGHT, (byte)0
   };
 
   private static short tmpDummy = 0; // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet. 
@@ -56,11 +56,11 @@ public class HAScenario1 {
     myNodeId = WKPF.getMyNodeId();
     System.out.println("MY NODE ID:" + myNodeId);
 
-    WKPF.loadComponentToEndpointMap(componentInstanceToEndpointMap);
+    WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
     if (WKPF.getErrorCode() == WKPF.OK)
-      System.out.println("Registered component to endpoint map.");
+      System.out.println("Registered component to wuobject map.");
     else
-      System.out.println("Error while registering component to endpoint map: " + WKPF.getErrorCode());
+      System.out.println("Error while registering component to wuobject map: " + WKPF.getErrorCode());
     
     WKPF.loadLinkDefinitions(linkDefinitions);
     if (WKPF.getErrorCode() == WKPF.OK)
@@ -69,7 +69,7 @@ public class HAScenario1 {
       System.out.println("Error while Registering link definitions: " + WKPF.getErrorCode());
 
     // ----- INIT -----
-    // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new profile
+    // INITIAL STATIC VERSION: This should later be replaced by return value from WKPF.wait so the framework can dynamically allocate a new wuclass
     // Setup the temperature sensor
     if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
       System.out.println("HASCENARIO INIT: Set light sensor to 5000ms refresh rate");
@@ -80,24 +80,24 @@ public class HAScenario1 {
       System.out.println("HASCENARIO INIT: Set input controller to default value of 127");
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127); // Default threshold: 127
     }
-    // Create and setup the threshold endpoint
+    // Create and setup the threshold wuobject
     if (isLocalComponent(COMPONENT_INSTANCE_ID_THRESHOLD1)) {
       System.out.println("HASCENARIO INIT: Create threshold and set operator to <=");
-      WKPF.createEndpoint((short)WKPF.PROFILE_THRESHOLD, getPortNumberForComponent(COMPONENT_INSTANCE_ID_THRESHOLD1), null);
+      WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, getPortNumberForComponent(COMPONENT_INSTANCE_ID_THRESHOLD1), null);
       WKPF.setPropertyShort(COMPONENT_INSTANCE_ID_THRESHOLD1, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.PROPERTY_THRESHOLD_OPERATOR_LTE); // Threshold operator: <=
     }
     // Setup the light
     if (isLocalComponent(COMPONENT_INSTANCE_ID_LIGHT1)) {
-      // Native, builtin endpoint, no need to create.
+      // Native, builtin wuobject, no need to create.
     }
     // =========== End: Generated by the compiler from application WuML
 
     // ----- MAIN LOOP -----
     System.out.println("HAScenario - Entering main loop");
     while(true) {
-      VirtualProfile profile = WKPF.select();
-      if (profile != null) {
-        profile.update();
+      VirtualWuObject wuclass = WKPF.select();
+      if (wuclass != null) {
+        wuclass.update();
       }
       
       // TODONR: Temporarily write to a dummy property to trigger updates while don't have a scheduling mechanism yet.

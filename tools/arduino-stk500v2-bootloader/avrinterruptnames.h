@@ -246,7 +246,7 @@
 	prog_char	gAvrInt_USB_General[]	PROGMEM	=	"USB General";
 #endif
 #ifdef USB_COM_vect
-	prog_char	gAvrInt_USB_Endpoint[]	PROGMEM	=	"USB Endpoint";
+	prog_char	gAvrInt_USB_WuObject[]	PROGMEM	=	"USB WuObject";
 #endif
 
 #ifdef LCD_vect
@@ -588,7 +588,7 @@ PGM_P gInterruptNameTable[]	PROGMEM =
 	gAvrInt_RESERVED,		//	9
 	gAvrInt_PCINT0,			//	10
 	gAvrInt_USB_General,	//	11
-	gAvrInt_USB_Endpoint,	//	12
+	gAvrInt_USB_WuObject,	//	12
 	gAvrInt_WDT,			//	13
 	gAvrInt_RESERVED,		//	14
 	gAvrInt_RESERVED,		//	15
@@ -650,7 +650,7 @@ PGM_P gInterruptNameTable[]	PROGMEM =
 	gAvrInt_INT7,			//	9
 	gAvrInt_PCINT0,			//	10
 	gAvrInt_USB_General,	//	11
-	gAvrInt_USB_Endpoint,	//	12
+	gAvrInt_USB_WuObject,	//	12
 	gAvrInt_WDT,			//	13
 	gAvrInt_TIMER2_COMPA,	//	14
 	gAvrInt_TIMER2_COMPB,	//	15

@@ -1,5 +1,5 @@
 public class HAScenario2_Mapping {
-  private final static byte[] componentInstanceToEndpointMap = { // Indexed by component instance id.
+  private final static byte[] componentInstanceToWuObjectAddrMap = { // Indexed by component instance id.
     (byte)1, (byte)0x1, // Component 0: input controller    @ node 1, port 1
     (byte)1, (byte)0x2, // Component 1: light sensor        @ node 1, port 2
     (byte)3, (byte)0x3, // Component 2: threshold           @ node 3, port 3

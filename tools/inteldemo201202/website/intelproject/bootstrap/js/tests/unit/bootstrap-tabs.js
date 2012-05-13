@@ -13,14 +13,14 @@ $(function () {
       test("should activate element by tab id", function () {
         var $tabsHTML = $('<ul class="tabs">'
           + '<li class="active"><a href="#home">Home</a></li>'
-          + '<li><a href="#profile">Profile</a></li>'
+          + '<li><a href="#wuclass">WuClass</a></li>'
           + '</ul>')
 
 
-        $('<ul><li id="home"></li><li id="profile"></li></ul>').appendTo("#qunit-runoff")
+        $('<ul><li id="home"></li><li id="wuclass"></li></ul>').appendTo("#qunit-runoff")
 
         $tabsHTML.tabs().find('a').last().click()
-        equals($("#qunit-runoff").find('.active').attr('id'), "profile")
+        equals($("#qunit-runoff").find('.active').attr('id'), "wuclass")
 
         $tabsHTML.tabs().find('a').first().click()
         equals($("#qunit-runoff").find('.active').attr('id'), "home")
@@ -31,14 +31,14 @@ $(function () {
       test("should activate element by pill id", function () {
         var $pillsHTML = $('<ul class="pills">'
           + '<li class="active"><a href="#home">Home</a></li>'
-          + '<li><a href="#profile">Profile</a></li>'
+          + '<li><a href="#wuclass">WuClass</a></li>'
           + '</ul>')
 
 
-        $('<ul><li id="home"></li><li id="profile"></li></ul>').appendTo("#qunit-runoff")
+        $('<ul><li id="home"></li><li id="wuclass"></li></ul>').appendTo("#qunit-runoff")
 
         $pillsHTML.pills().find('a').last().click()
-        equals($("#qunit-runoff").find('.active').attr('id'), "profile")
+        equals($("#qunit-runoff").find('.active').attr('id'), "wuclass")
 
         $pillsHTML.pills().find('a').first().click()
         equals($("#qunit-runoff").find('.active').attr('id'), "home")
@@ -49,7 +49,7 @@ $(function () {
       test( "should trigger change event on activate", function () {
         var $tabsHTML = $('<ul class="tabs">'
           + '<li class="active"><a href="#home">Home</a></li>'
-          + '<li><a href="#profile">Profile</a></li>'
+          + '<li><a href="#wuclass">WuClass</a></li>'
           + '</ul>')
           , $target
           , count = 0
