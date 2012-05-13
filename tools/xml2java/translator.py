@@ -2,8 +2,8 @@ from xml.dom.minidom import parse
 from optparse import OptionParser
 from jinja2 import Template
 
-comp_dom = 0
-flow_dom = 0
+def indentor(s, num):
+    return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
 
 def parser():
     parser = OptionParser("usage: %prog [options] arg")
@@ -12,9 +12,35 @@ def parser():
     (options, args) = parser.parse_args()
     if not options.pathc or not options.pathf:
         parser.error("invalid component and flow xml, please refer to -h for help")
-    global comp_dom, flow_dom
     comp_dom = parse(options.pathc)
     flow_dom = parse(options.pathf)
+    return comp_dom, flow_dom
+
+def mapper(comp_dom, flow_dom):
+    # mapping table initialization
+    flow_elem_list = flow_dom.getElementsByTagName('component')
+    class_elem_list = comp_dom.getElementsByTagName('WuClass')
+
+    map_table = []
+    componentInstanceId = 0
+    for elem in flow_elem_list:
+        componentInstanceName = elem.getAttribute('instanceId')
+        wuClassName = elem.getAttribute('type')
+        for elem_t in class_elem_list:
+            if elem_t.getAttribute('name') == wuClassName:
+                map_table += [[componentInstanceId, componentInstanceName, int(elem_t.getAttribute('id')), wuClassName, '? endpnt ID', '? port #']]
+                break
+        else:
+            print "Cannot find wuClass %s " % wuClassName
+            map_table += [[componentInstanceId, componentInstanceName, '? wuClassId', '? wuClassName', '? endpnt ID', '? port #']]
+
+        componentInstanceId += 1
+    
+    #for i in map_table:
+    #    print i
+
+    
+
 
 def codegen():
     tpl = Template("""
@@ -40,8 +66,6 @@ public class {{ CLASS_NAME }}
 }
     """)
 
-    def indentor(s, num):
-        return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
 
     import_stmt = indentor("""
 import java.io.*;
@@ -71,7 +95,9 @@ private static boolean isLocalComponent(short componentId) {
 private final static byte[] linkDefinitions = {
 }
     """, 1)
+
     table = 0
+    
     wkpf_init = indentor("""
 System.out.println("%s");
 
@@ -122,9 +148,10 @@ Timer.wait(1000);
             MAIN_LOOP_STATEMENTS=main_loop,
             COMPONENT_INIT=comp_init)
 
-    print rendered_tpl
+    #print rendered_tpl
+
 
 if __name__ == "__main__":
-    parser()
-    codegen()
-
+    cdom, fdom = parser()
+    mapper(cdom, fdom)
+    #codegen()
