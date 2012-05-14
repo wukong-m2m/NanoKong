@@ -1,6 +1,6 @@
 package nanovm.wkpf;
 
-public class GEN_VirtualThresholdSuper extends VirtualProfile {
+public class GEN_VirtualThresholdSuper extends VirtualWuObject {
     public static final byte[] properties = new byte[] {
             WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_RW, // PROPERTY_THRESHOLD_OPERATOR
             WKPF.PROPERTY_TYPE_SHORT|WKPF.PROPERTY_ACCESS_RW, // PROPERTY_THRESHOLD_THRESHOLD

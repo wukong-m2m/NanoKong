@@ -20,13 +20,13 @@
 // enable debug info
 #define DEBUG
 
-// enable simple unittests for profile framework (choose 1)
-//#define TEST_WKPF_PROFILES
-//#define TEST_WKPF_ENDPOINTS
+// enable simple unittests for wuclass framework (choose 1)
+//#define TEST_WKPF_WUCLASSES
+//#define TEST_WKPF_WUOBJECTS
 //#define TEST_WKPF_PROPERTIES
-//#define TEST_WKPF_NATIVE_PROFILES
-//#define TEST_WKPF_UPDATE_FOR_NATIVE_PROFILES
-#if defined(TEST_WKPF_PROFILES) || defined(TEST_WKPF_ENDPOINTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_PROFILES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_PROFILES)
+//#define TEST_WKPF_NATIVE_WUCLASSES
+//#define TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES
+#if defined(TEST_WKPF_WUCLASSES) || defined(TEST_WKPF_WUOBJECTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_WUCLASSES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES)
 #define TEST_WKPF // General WKPF test support
 #endif
 

@@ -287,8 +287,8 @@ public class NewNanoVMProjectWizard extends BasicNewProjectResourceWizard {
 	
 	private void createToolLibrary(IFolder destination, IProgressMonitor monitor){
 		monitor.beginTask("Copying tool library", 1);
-		try {				
-			File runtimeToolFile= new File(FileLocator.resolve(new URL(NanoVMTool.getDefault().getBundle().getEntry("/"), "lib/" + NanoVMTool.LIBRARY_NAME)).getFile());				
+		try {
+			File runtimeToolFile= new File(FileLocator.resolve(new URL(NanoVMTool.getDefault().getBundle().getEntry("/"), "lib/"+NanoVMTool.LIBRARY_NAME)).getFile());				
 			FileUtil.copyFile(runtimeToolFile, destination, monitor);
 			monitor.worked(1);
 		} catch (MalformedURLException e) {

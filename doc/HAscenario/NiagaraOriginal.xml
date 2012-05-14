@@ -10,17 +10,17 @@
     <p n="expiration" f="r"/>
     <p n="permissions" f="r" v="super"/>
     <p n="version" v="WuKongHAScenario:1333786643691"/>
-    <!-- /Services/UserService/admin/web_WebProfileConfig -->
-    <p n="web_WebProfileConfig" h="37" m="w=web" t="w:WebProfileConfig">
-     <p n="typeSpec" v="workbench:DefaultWbWebProfile"/>
+    <!-- /Services/UserService/admin/web_WebWuClassConfig -->
+    <p n="web_WebWuClassConfig" h="37" m="w=web" t="w:WebWuClassConfig">
+     <p n="typeSpec" v="workbench:DefaultWbWebWuClass"/>
     </p>
    </p>
    <p n="guest" h="5" t="b:User">
     <p n="enabled" v="false"/>
     <p n="version" v="WuKongHAScenario:1333786643691"/>
-    <!-- /Services/UserService/guest/web_WebProfileConfig -->
-    <p n="web_WebProfileConfig" h="36" t="w:WebProfileConfig">
-     <p n="typeSpec" v="workbench:DefaultWbWebProfile"/>
+    <!-- /Services/UserService/guest/web_WebWuClassConfig -->
+    <p n="web_WebWuClassConfig" h="36" t="w:WebWuClassConfig">
+     <p n="typeSpec" v="workbench:DefaultWbWebWuClass"/>
     </p>
    </p>
    <p n="userPrototypes" h="6" t="b:UserPrototypes">
@@ -28,9 +28,9 @@
      <p n="permissions" f="1"/>
      <p n="navFile" f="1"/>
      <p n="version" v="WuKongHAScenario:1333786643691"/>
-     <!-- /Services/UserService/userPrototypes/defaultPrototype/web_WebProfileConfig -->
-     <p n="web_WebProfileConfig" h="35" t="w:WebProfileConfig">
-      <p n="typeSpec" v="workbench:DefaultWbWebProfile"/>
+     <!-- /Services/UserService/userPrototypes/defaultPrototype/web_WebWuClassConfig -->
+     <p n="web_WebWuClassConfig" h="35" t="w:WebWuClassConfig">
+      <p n="typeSpec" v="workbench:DefaultWbWebWuClass"/>
      </p>
     </p>
    </p>

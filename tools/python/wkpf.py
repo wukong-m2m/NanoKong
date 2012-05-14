@@ -5,6 +5,7 @@ import pynvc
 
 DATATYPE_INT16 = 0
 DATATYPE_BOOLEAN = 1
+DATATYPE_REFRESH_RATE = 2
 
 global __sequenceNumber
 __sequenceNumber = 0
@@ -14,60 +15,60 @@ def getNextSequenceNumberAsList():
   __sequenceNumber = (__sequenceNumber + 1) % (2**16)
   return [__sequenceNumber/256, __sequenceNumber%256]
 
-class Endpoint:
-  def __init__(self, nodeId, portNumber, profileId):
+class WuObject:
+  def __init__(self, nodeId, portNumber, wuclassId):
     self.nodeId = nodeId
     self.portNumber = portNumber
-    self.profileId = profileId
+    self.wuclassId = wuclassId
   def __repr__(self):
-    return 'endpoint(node %d port %d profile %d)' % (self.nodeId, self.portNumber, self.profileId)
+    return 'wuobject(node %d port %d wuclass %d)' % (self.nodeId, self.portNumber, self.wuclassId)
 
 def verifyWKPFmsg(messageStart, minAdditionalBytes):
   # minPayloadLength should not include the command or the 2 byte sequence number
   return lambda command, payload: (command == pynvc.WKPF_ERROR_R) or (payload != None and payload[0:len(messageStart)]==messageStart and len(payload) >= len(messageStart)+minAdditionalBytes)
 
-def getProfileList(destination):
+def getWuClassList(destination):
   sn = getNextSequenceNumberAsList()
   reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                command=pynvc.WKPF_GET_PROFILE_LIST,
+                                                command=pynvc.WKPF_GET_WUCLASS_LIST,
                                                 payload=sn,
-                                                allowedReplies=[pynvc.WKPF_GET_PROFILE_LIST_R, pynvc.WKPF_ERROR_R],
-                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of profiles
+                                                allowedReplies=[pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R],
+                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuclasses
   if reply == None:
     return None
   if reply[0] == pynvc.WKPF_ERROR_R:
     print "WKPF RETURNED ERROR ", reply[3]
     return None
-  profiles = []
+  wuclasses = []
   reply = reply[4:]
   while len(reply) > 1:
-    profiles.append((reply[0] <<8) + reply[1])
+    wuclasses.append((reply[0] <<8) + reply[1])
     reply = reply[2:]
-  return profiles
+  return wuclasses
 
-def getEndpointList(destination):
+def getWuObjectList(destination):
   sn = getNextSequenceNumberAsList()
   reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                command=pynvc.WKPF_GET_ENDPOINT_LIST,
+                                                command=pynvc.WKPF_GET_WUOBJECT_LIST,
                                                 payload=sn,
-                                                allowedReplies=[pynvc.WKPF_GET_ENDPOINT_LIST_R, pynvc.WKPF_ERROR_R],
-                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of endpoints
+                                                allowedReplies=[pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R],
+                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuobjects
   if reply == None:
     return None
   if reply[0] == pynvc.WKPF_ERROR_R:
     print "WKPF RETURNED ERROR ", reply[3]
     return None
-  endpoints = []
+  wuobjects = []
   reply = reply[4:]
   while len(reply) > 1:
-    endpoints.append(Endpoint(destination, reply[0], (reply[1] <<8) + reply[2]))
+    wuobjects.append(WuObject(destination, reply[0], (reply[1] <<8) + reply[2]))
     reply = reply[3:]
-  return endpoints
+  return wuobjects
 
-def getProperty(endpoint, propertyNumber):
+def getProperty(wuobject, propertyNumber):
   sn = getNextSequenceNumberAsList()
-  payload=sn+[endpoint.portNumber, endpoint.profileId/256, endpoint.profileId%256, propertyNumber]
-  reply = pynvc.sendWithRetryAndCheckedReceive(destination=endpoint.nodeId,
+  payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber]
+  reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
                                                 command=pynvc.WKPF_READ_PROPERTY,
                                                 payload=payload,
                                                 allowedReplies=[pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R],
@@ -80,16 +81,18 @@ def getProperty(endpoint, propertyNumber):
   datatype = reply[7]
   if datatype == DATATYPE_BOOLEAN:
     return reply[8] != 0
-  else:
+  elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
     return (reply[8] <<8) + reply[9]
+  else:
+    return None
 
-def setProperty(endpoint, propertyNumber, datatype, value):
+def setProperty(wuobject, propertyNumber, datatype, value):
   sn = getNextSequenceNumberAsList()
   if datatype == DATATYPE_BOOLEAN:
-    payload=sn+[endpoint.portNumber, endpoint.profileId/256, endpoint.profileId%256, propertyNumber, datatype, 1 if value else 0]
-  else:
-    payload=sn+[endpoint.portNumber, endpoint.profileId/256, endpoint.profileId%256, propertyNumber, datatype, value/256, value%256]
-  reply = pynvc.sendWithRetryAndCheckedReceive(destination=endpoint.nodeId,
+    payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber, datatype, 1 if value else 0]
+  elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
+    payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber, datatype, value/256, value%256]
+  reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
                                                 command=pynvc.WKPF_WRITE_PROPERTY,
                                                 payload=payload,
                                                 allowedReplies=[pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R],
@@ -103,7 +106,7 @@ def setProperty(endpoint, propertyNumber, datatype, value):
 
 
 pynvc.init(0)
-#print getProfileList(3)
-#print getEndpointList(3)
-#print getProperty(Endpoint(nodeId=3, portNumber=4, profileId=4), 0)
-#print setProperty(Endpoint(nodeId=3, portNumber=1, profileId=3), 0, DATATYPE_INT16, 255)
+#print getWuClassList(3)
+#print getWuObjectList(3)
+#print getProperty(WuObject(nodeId=3, portNumber=4, wuclassId=4), 0)
+#print setProperty(WuObject(nodeId=3, portNumber=1, wuclassId=3), 0, DATATYPE_INT16, 255)

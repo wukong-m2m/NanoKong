@@ -83,7 +83,7 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 #error "Unsupported AVR CPU!"
 #endif
 
-volatile static u32_t wkpf_currentTime=0;
+volatile u32_t avr_currentTime=0;
 volatile static nvm_int_t ticks_2A;
 volatile static nvm_int_t ticks_1A,ticks_1B,wake_from_timer2;
 volatile static u08_t sleep_mode;//0=power save,1=power down
@@ -111,7 +111,7 @@ ISR(TIMER1_COMPB_vect)//for select
 ISR(TIMER3_COMPA_vect)//for system absolute clock
 {
     TCNT3 = 0;
-    wkpf_currentTime+=10;
+    avr_currentTime+=10;
 }
 ISR(TIMER2_COMPA_vect)//for system absolute clock during sleep
 {
@@ -310,7 +310,7 @@ void native_init(void) {
     TIMSK3 |= _BV(OCIE3A);
 
     //initial global value
-    wkpf_currentTime=0;
+    avr_currentTime=0;
     sleep_mode=0;//0=power save mode (use timer2),1=power down mode (watchdog)
     iflag_INT=0;
     iflag_PCINTA=0;
@@ -334,7 +334,7 @@ void native_init(void) {
 // the AVR class
 void native_avr_avr_invoke(u08_t mref) {
     if(mref == NATIVE_METHOD_GETCLOCK) {
-	//DEBUGF_WKPFUPDATE(DBG32,wkpf_currentTime);//to see the wkpf_currentTime in 32 bit
+	//DEBUGF_WKPFUPDATE(DBG32,avr_currentTime);//to see the avr_currentTime in 32 bit
         stack_push(CLOCK/1000);
     } else if(mref == NATIVE_METHOD_SETPINIOMODE) {
         u08_t mode = stack_pop();
@@ -471,13 +471,13 @@ void native_avr_avr_invoke(u08_t mref) {
 			sleep_cpu();
 		    	sleep_disable();	
 			if(wake_from_timer2!=1)	{//not wake from timer2, wake from interrupt
-				wkpf_currentTime+=count_twenty;
+				avr_currentTime+=count_twenty;
 				break;	
 			}
 			count_twenty++;
 			if(count_twenty>=20) {
 				count_twenty=0;
-				wkpf_currentTime+=21;
+				avr_currentTime+=21;
 
 			}
 

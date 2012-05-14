@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.eclipse.nanovm.runtime
 Bundle-Version: 0.0.1
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.core.runtime
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
 Bundle-Vendor: tugstugi@yahoo.com
 Export-Package: org.eclipse.nanovm.runtime
 Bundle-Activator: org.eclipse.nanovm.runtime.NanoVMRuntime

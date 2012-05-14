@@ -39,7 +39,7 @@
 #include "stack.h"
 #include "vm.h"
 
-#include "wkpf_endpoints.h"
+#include "wkpf_wuobjects.h"
 
 u08_t heap[HEAPSIZE];
 u16_t heap_base = 0;

@@ -12,14 +12,14 @@ app = Flask(__name__)
 import reprogram
 import pynvc
 import wkpf
-from wkpf import Endpoint
+from wkpf import WuObject
 
-numericInputEndpoint = Endpoint(nodeId=1, portNumber=1, profileId=3)
-lightSensorEndpoint = Endpoint(nodeId=1, portNumber=2, profileId=5)
-thresholdEndpointScenario1 = Endpoint(nodeId=1, portNumber=3, profileId=1)
-thresholdEndpointScenario2 = Endpoint(nodeId=3, portNumber=3, profileId=1)
-lightEndpoint = Endpoint(nodeId=3, portNumber=4, profileId=4)
-occupancyEndpoint = Endpoint(nodeId=1, portNumber=5, profileId=0x1005)
+numericInputWuObject = WuObject(nodeId=1, portNumber=1, wuclassId=3)
+lightSensorWuObject = WuObject(nodeId=1, portNumber=2, wuclassId=5)
+thresholdWuObjectScenario1 = WuObject(nodeId=1, portNumber=3, wuclassId=1)
+thresholdWuObjectScenario2 = WuObject(nodeId=3, portNumber=3, wuclassId=1)
+lightWuObject = WuObject(nodeId=3, portNumber=4, wuclassId=4)
+occupancyWuObject = WuObject(nodeId=1, portNumber=5, wuclassId=0x1005)
 
 busyReprogramming = False
 
@@ -31,19 +31,19 @@ def hello():
 def flaskUpdateStatus():
   if (not busyReprogramming):
     filename = "/Users/niels/Sites/getStatus"
-    profiles = wkpf.getProfileList(1)
-    if 0x1005 in profiles:
+    wuclasses = wkpf.getWuClassList(1)
+    if 0x1005 in wuclasses:
       scenario=2
     else:
       scenario=1
     if scenario==1:
-      threshold = wkpf.getProperty(thresholdEndpointScenario1, propertyNumber=1)
+      threshold = wkpf.getProperty(thresholdWuObjectScenario1, propertyNumber=1)
     else:
-      threshold = wkpf.getProperty(thresholdEndpointScenario2, propertyNumber=1)
-    lightSensorValue = wkpf.getProperty(lightSensorEndpoint, propertyNumber=0)
-    lightOnOff = wkpf.getProperty(lightEndpoint, propertyNumber=0)
+      threshold = wkpf.getProperty(thresholdWuObjectScenario2, propertyNumber=1)
+    lightSensorValue = wkpf.getProperty(lightSensorWuObject, propertyNumber=0)
+    lightOnOff = wkpf.getProperty(lightWuObject, propertyNumber=0)
     if scenario == 2:
-      occupied = wkpf.getProperty(occupancyEndpoint, propertyNumber=0)
+      occupied = wkpf.getProperty(occupancyWuObject, propertyNumber=0)
     f = open(filename,"w")
     if scenario == 1:
       f.write("""{{"scenario": {0}, "threshold": {1}, "lightsensor": {2}, "lamp_on": {3}}}""".format(1, threshold, lightSensorValue, 1 if lightOnOff else 0))
@@ -81,13 +81,13 @@ def flaskGetStatus():
 @app.route("/setThreshold")
 def flaskSetThreshold():
   threshold = int(request.args.get("threshold","255"))
-  wkpf.setProperty(numericInputEndpoint, propertyNumber=0, datatype=wkpf.DATATYPE_INT16, value=threshold)
+  wkpf.setProperty(numericInputWuObject, propertyNumber=0, datatype=wkpf.DATATYPE_INT16, value=threshold)
   return "threshold set to {}".format(threshold)
 
 @app.route("/setPeopleInRoom")
 def flaskSetPeopleInRoom():
   peopleinroom = True if request.args.get("peopleinroom","1")=="1" else False
-  wkpf.setProperty(occupancyEndpoint, propertyNumber=0, datatype=wkpf.DATATYPE_BOOLEAN, value=peopleinroom)
+  wkpf.setProperty(occupancyWuObject, propertyNumber=0, datatype=wkpf.DATATYPE_BOOLEAN, value=peopleinroom)
   return "peopleinroom set to {}".format(peopleinroom)
 
 @app.route("/reprogram")
