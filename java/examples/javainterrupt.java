@@ -70,6 +70,7 @@ x1 &= AVR.setPinInterruptMode( AVR.DIGITAL15 , AVR.ANYCHANGE );
 
 		while(true)
 		{
+AVR.getClock();
 			int mask_INT;
 			mask_INT=AVR.select(AVR.EVENT_INT,1000);
 //			mask_INT=AVR.select(AVR.EVENT_PCINTA,1000);
@@ -99,7 +100,8 @@ x1 &= AVR.setPinInterruptMode( AVR.DIGITAL15 , AVR.ANYCHANGE );
 				System.out.println("go to sleep mode");
 				System.out.println("make interrupt to wake up");
 				temp=5;
-				AVR.sleep(30000);
+				AVR.sleep(5000);
+				//AVR.sleep(10);
 			}
 			//AVR.setPinInterruptMode( AVR.DIGITAL20 , AVR.DISABLE );
 		}

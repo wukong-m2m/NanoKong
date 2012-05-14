@@ -5,9 +5,14 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_CLASS = HAScenario1
 
-PORT = /dev/tty.usbmodem411
+#DEFAULT_CLASS = HAScenario2
+DEFAULT_CLASS = javainterrupt
+#DEFAULT_CLASS = AdcDemo
+#DEFAULT_CLASS = HAScenario1
+
+
+PORT = /dev/ttyACM0
 
 ROOT_DIR = ../../..
 
@@ -15,7 +20,7 @@ ROOT_DIR = ../../..
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
 
 # AVR compiler setup
-PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
+#PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
 CC = $(PREFIX)avr-gcc
 OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump

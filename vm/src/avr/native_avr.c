@@ -83,10 +83,14 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 #error "Unsupported AVR CPU!"
 #endif
 
-volatile static nvm_int_t ticks_1A,ticks_1B,time2_wake;
+volatile static u32_t wkpf_currentTime=0;
+volatile static nvm_int_t ticks_2A;
+volatile static nvm_int_t ticks_1A,ticks_1B,wake_from_timer2;
+volatile static u08_t sleep_mode;//0=power save,1=power down
 volatile static u08_t iflag_INT;
 volatile static u08_t iflag_PCINTA,iflag_PCINTB,iflag_PCINTC;
 volatile static u08_t ivalue_PCINTA,ivalue_PCINTB,ivalue_PCINTC;
+
 
 #ifndef ATMEGA2560
 SIGNAL(SIG_OUTPUT_COMPARE1A) {
@@ -104,10 +108,16 @@ ISR(TIMER1_COMPB_vect)//for select
     TCNT1 = 0;
     ticks_1B++;
 }
-ISR(TIMER2_COMPA_vect)//for sleep
+ISR(TIMER3_COMPA_vect)//for system absolute clock
+{
+    TCNT3 = 0;
+    wkpf_currentTime+=10;
+}
+ISR(TIMER2_COMPA_vect)//for system absolute clock during sleep
 {
     TCNT2 = 0;
-    time2_wake=1;
+    ticks_2A++;
+    wake_from_timer2=1;
 }
 ISR(INT0_vect)
 {
@@ -294,8 +304,14 @@ void native_init(void) {
     TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
     TCCR1B |= _BV(CS11);
     OCR1A = 2000;			//set default T=1ms
+    TCCR3B &= ~(_BV(CS32) | _BV(CS31) | _BV(CS30));
+    TCCR3B |= _BV(CS31);
+    OCR3A = 20000;			//set default T=10ms
+    TIMSK3 |= _BV(OCIE3A);
 
     //initial global value
+    wkpf_currentTime=0;
+    sleep_mode=0;//0=power save mode (use timer2),1=power down mode (watchdog)
     iflag_INT=0;
     iflag_PCINTA=0;
     iflag_PCINTB=0;
@@ -318,6 +334,7 @@ void native_init(void) {
 // the AVR class
 void native_avr_avr_invoke(u08_t mref) {
     if(mref == NATIVE_METHOD_GETCLOCK) {
+	//DEBUGF_WKPFUPDATE(DBG32,wkpf_currentTime);//to see the wkpf_currentTime in 32 bit
         stack_push(CLOCK/1000);
     } else if(mref == NATIVE_METHOD_SETPINIOMODE) {
         u08_t mode = stack_pop();
@@ -436,37 +453,41 @@ void native_avr_avr_invoke(u08_t mref) {
         }
     } else if(mref == NATIVE_METHOD_SLEEP) {
     	nvm_int_t time = stack_pop();
-   	TCCR2B |=  ( _BV(CS22) |_BV(CS21) | _BV(CS20));	//prescaler clk/1024, T=64us
-	set_sleep_mode( SLEEP_MODE_PWR_SAVE );
+	if(sleep_mode==0) {	//power save mode
+		volatile u08_t count_twenty=0;
+		TCCR2B &= ~(_BV(CS22) | _BV(CS21) | _BV(CS20));
+		TCCR2B |= _BV(CS21);		//prescaler clk/8
+		OCR2A = 64;
+		ticks_2A=0;
 
-	while(time>0)//sleep and wake until timeout, ex:sleep(38)=sleep 16ms+16ms+4ms+2ms
-	{
-		if(time>=16) {	
-			OCR2A = 255;	//64us*255=16ms(timer2 max sleep time)
-			time -=16;	
-	      } else if(time>=8) {
-			OCR2A = 128;
-			time -=8;
-	      } else if(time>=4) {
-			OCR2A = 64;
-			time -=4;
-	      } else if(time>=2) {
-			OCR2A = 32;
-			time -=2;
-	      } else if(time==1) {
-			OCR2A = 16;	//64us*16=1ms
-			time -=1;
-	      }
-		time2_wake=0;		//to record wake from interrupt or timer2
-		sleep_enable();
-		sei();
+		set_sleep_mode( SLEEP_MODE_PWR_SAVE );
 		TIMSK2 |= _BV(OCIE2A);	//output match Interrupt Enable
-		sleep_cpu();
-	    	sleep_disable();
-		if(time2_wake!=1)	//not wake from timer2, wake from interrupt
-		{	break;	}		
+      		while(ticks_2A < time)
+		{
+
+			wake_from_timer2=0;		//to record wake from interrupt or timer2
+			sleep_enable();
+			sei();
+			sleep_cpu();
+		    	sleep_disable();	
+			if(wake_from_timer2!=1)	{//not wake from timer2, wake from interrupt
+				wkpf_currentTime+=count_twenty;
+				break;	
+			}
+			count_twenty++;
+			if(count_twenty>=20) {
+				count_twenty=0;
+				wkpf_currentTime+=21;
+
+			}
+
+		}
+
+		TIMSK2 &= ~_BV(OCIE2A);//output match Interrupt disable
+
+	} else if(sleep_mode==1) {	//power down mode
+
 	}
-        TIMSK2 &= ~_BV(OCIE2A);		//output match Interrupt disable
     } else
         error(ERROR_NATIVE_UNKNOWN_METHOD);
 }
