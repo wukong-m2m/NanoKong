@@ -70,6 +70,9 @@ public class HAScenario2 {
   };
 
   private static void initialiseLocalWuObjects() {
+    WKPF.registerWuClass(WKPF.WUCLASS_AND_GATE, VirtualANDGateWuObject.properties);
+    WKPF.registerWuClass(VirtualOccupancySensorWuObject.WUCLASS_OCCUPANCY_SENSOR, VirtualOccupancySensorWuObject.properties);
+
     // Setup the temperature sensor
     if (WKPF.isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
       System.out.println("HASCENARIO INIT: Set light sensor to 1000ms refresh rate");
@@ -89,14 +92,12 @@ public class HAScenario2 {
     // Register virtual and gate wuclass and create an wuobject
     if (WKPF.isLocalComponent(COMPONENT_INSTANCE_ID_ANDGATE1)) {
       System.out.println("HASCENARIO INIT: Create and gate");
-      WKPF.registerWuClass(WKPF.WUCLASS_AND_GATE, VirtualANDGateWuObject.properties);
       VirtualWuObject wuclassInstanceANDGate = new VirtualANDGateWuObject();
       WKPF.createWuObject((short)WKPF.WUCLASS_AND_GATE, WKPF.getPortNumberForComponent(COMPONENT_INSTANCE_ID_ANDGATE1), wuclassInstanceANDGate);
     }
     // Register virtual occupancy sensor wuclass and create an wuobject
     if (WKPF.isLocalComponent(COMPONENT_INSTANCE_ID_OCCUPANCY1)) {
       System.out.println("HASCENARIO INIT: Create occupancy sensor and set default value to occupied");
-      WKPF.registerWuClass(VirtualOccupancySensorWuObject.WUCLASS_OCCUPANCY_SENSOR, VirtualOccupancySensorWuObject.properties);
       VirtualWuObject wuclassInstanceOccupancy = new VirtualOccupancySensorWuObject();
       WKPF.createWuObject((short)VirtualOccupancySensorWuObject.WUCLASS_OCCUPANCY_SENSOR, WKPF.getPortNumberForComponent(COMPONENT_INSTANCE_ID_OCCUPANCY1), wuclassInstanceOccupancy);
       WKPF.setPropertyBoolean(COMPONENT_INSTANCE_ID_OCCUPANCY1, VirtualOccupancySensorWuObject.PROPERTY_OCCUPANCY_SENSOR_OCCUPIED, true); // Default: occupied

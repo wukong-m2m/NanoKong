@@ -339,7 +339,6 @@ void test_update_for_native_wuclasses() {
   print_test_summary();
 }
 
-
 void test_wkpf() {
 #ifdef TEST_WKPF_WUCLASSES
   test_wuclasses();
