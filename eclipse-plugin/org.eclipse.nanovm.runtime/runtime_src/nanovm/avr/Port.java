@@ -4,9 +4,7 @@
 // the contents of this file is actually never realy used
 // since class2uvm replaces these calls with native calls
 //
-/**
- * Plugin for NanoVM runtime.
- */
+
 package nanovm.avr;
 
 public class Port {
@@ -17,4 +15,5 @@ public class Port {
   public native void setOutput(int bit);
   public native void setBit(int bit);
   public native void clrBit(int bit);
+  public native int getInput(int bit);
 }

@@ -9,9 +9,7 @@
 // representation of the Asuro allowing the Java code to be
 // run on a PC using a Asuro simulation
 //
-/**
- * Plugin for NanoVM runtime.
- */
+
 package nanovm.io;
 
 public class Lcd {

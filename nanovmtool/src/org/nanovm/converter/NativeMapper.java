@@ -118,7 +118,7 @@ public class NativeMapper {
 	  // method entry
 	  else if(name.equalsIgnoreCase("method") && (token_cnt == 3)) {
 	    if(value.indexOf(':') == -1) {
-	      System.out.println("Invalid method reference");
+	      System.out.println("Invalid method reference: " + name + " " + value);
 	      System.exit(-1);
 	    }
 	    

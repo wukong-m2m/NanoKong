@@ -56,6 +56,9 @@
 #define ERROR_WKPF_BASE                   (ERROR_VM_BASE+4)
 #define ERROR_WKPF_INIT_FAILED            (ERROR_WKPF_BASE+0)
 
+#define ERROR_COMM_BASE                   (ERROR_WKPF_BASE+1)
+#define ERROR_COMM_INIT_FAILED            (ERROR_COMM_BASE+0)
+
 typedef u08_t err_t;
 
 void error(err_t code);

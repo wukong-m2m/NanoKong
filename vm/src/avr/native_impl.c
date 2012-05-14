@@ -59,6 +59,8 @@
 #include "native_nvmcomm.h"
 #endif
 
+#include "native_wkpf.h"
+
 void native_java_lang_object_invoke(u08_t mref) {
   if(mref == NATIVE_METHOD_INIT) {
     /* ignore object constructor ... */
@@ -126,8 +128,10 @@ void native_invoke(u16_t mref) {
 #if defined(LCD)
   } else if(NATIVE_ID2CLASS(mref) == NATIVE_CLASS_LCD) {
     native_lcd_invoke(NATIVE_ID2METHOD(mref));
-
 #endif
+
+  } else if(NATIVE_ID2CLASS(mref) == NATIVE_CLASS_WKPF) {
+    native_wkpf_invoke(NATIVE_ID2METHOD(mref));
   } else 
     error(ERROR_NATIVE_UNKNOWN_CLASS);
 }

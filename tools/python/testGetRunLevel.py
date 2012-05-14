@@ -9,5 +9,5 @@ def getRunLevelTest(destination):
   if not received_data == None:
     print "Received runlevel:", received_data[1]
 
-pynvc.init()
+pynvc.init(0)
 getRunLevelTest(int(sys.argv[1]))
