@@ -30,9 +30,9 @@ void wuclass_threshold_update(wkpf_local_wuobject *wuobject) {
   wkpf_internal_read_property_int16(wuobject, WKPF_PROPERTY_THRESHOLD_THRESHOLD, &threshold);
   wkpf_internal_read_property_int16(wuobject, WKPF_PROPERTY_THRESHOLD_VALUE, &value);
 
-	if (((operator == OPERATOR_GT || operator == OPERATOR_GTE) && value > threshold)
-	 || ((operator == OPERATOR_LT || operator == OPERATOR_LTE) && value < threshold)
-	 || ((operator == OPERATOR_GTE || operator == OPERATOR_LTE) && value == threshold)) {
+	if (((operator == OPERATOR_GT || operator == WKPF_ENUM_THRESHOLD_OPERATOR_GTE) && value > threshold)
+	 || ((operator == OPERATOR_LT || operator == WKPF_ENUM_THRESHOLD_OPERATOR_LTE) && value < threshold)
+	 || ((operator == OPERATOR_GTE || operator == WKPF_ENUM_THRESHOLD_OPERATOR_LTE) && value == threshold)) {
     wkpf_internal_write_property_boolean(wuobject, WKPF_PROPERTY_THRESHOLD_OUTPUT, TRUE);
     DEBUGF_WKPFUPDATE("WKPFUPDATE(Threshold): Native threshold: operator %x threshold %x value %x -> TRUE\n", operator, threshold, value);
   }

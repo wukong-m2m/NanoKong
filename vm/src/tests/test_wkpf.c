@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "types.h"
 #include "wkpf.h"
-#include "native_wuclasses/wuclass_threshold.h"
+#include "native_wuclasses/GENERATED_wuclass_threshold.h"
 
 #ifdef TEST_WKPF
 
