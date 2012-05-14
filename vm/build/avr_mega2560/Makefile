@@ -5,9 +5,9 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_FILE = ZZTrafficLightAlert
+DEFAULT_CLASS = HAScenario2
 
-PORT = /dev/ttyACM0
+PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 
@@ -30,6 +30,8 @@ all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
 
 include ../../src/Makefile
 include ../../src/avr/Makefile
+include ../../src/tests/Makefile
+include ../../src/native_wuclasses/Makefile
 
 nvmdefault.h: Makefile
 
@@ -73,6 +75,10 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
+avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
+	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	screen $(PORT) 115200
+
 clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
 
@@ -83,4 +89,4 @@ upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
 
-include $(OBJS:.o=.d)
+#include $(OBJS:.o=.d)

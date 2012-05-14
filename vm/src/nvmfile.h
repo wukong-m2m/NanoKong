@@ -59,6 +59,7 @@ typedef struct {
 #define FLAG_CLINIT 1
 
 extern u08_t nvmfile_constant_count;
+extern u16_t bytecode_address;
 
 void   nvmfile_store(u16_t index, u08_t *buffer, u16_t size);
 

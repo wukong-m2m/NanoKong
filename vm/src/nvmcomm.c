@@ -10,6 +10,9 @@
 #endif
 #include "avr/avr_flash.h"
 #include "nvmcomm.h"
+#include "delay.h"
+#include "nvmfile.h"
+#include "wkpf_comm.h"
 
 #ifdef NVM_USE_COMM
 
@@ -21,6 +24,11 @@ uint16_t nvc3_avr_reprogramming_pos;
 uint8_t nvc3_appmsg_buf[NVMCOMM_MESSAGE_SIZE];
 uint8_t nvc3_appmsg_size = 0; // 0 if the buffer is not in use (so we can receive a message), otherwise indicates the length of the received message.
 uint8_t nvc3_appmsg_reply = 0;
+
+// When handle_message finds any of these commands it will store the message in nvmcomm_wait_received_messages so nvmcomm_wait can return it.
+uint8_t *nvmcomm_wait_commands;
+uint8_t nvmcomm_wait_number_of_commands;
+nvmcomm_message nvmcomm_wait_received_message;
 
 void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length);
 
@@ -47,18 +55,27 @@ void nvmcomm_poll(void) {
 int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length) {
   if (length > NVMCOMM_MESSAGE_SIZE)
     return -2; // Message too large
-  int retval = -1, retval2 = -1;
+  int retval = -1;
   DEBUGF_COMM("nvmcomm_send\n");
 #ifdef NVM_USE_COMMZWAVE
   retval = nvmcomm_zwave_send(dest, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
+  if (retval == 0) {
+    if (nvc3_command==NVMCOMM_CMD_APPMSG) {
+      nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
+      return retval;
+    }
+  }
 #endif
 #ifdef NVM_USE_COMMXBEE
-  retval2 = nvmcomm_xbee_send(dest, nvc3_command, payload, length, 0);
+  retval = nvmcomm_xbee_send(dest, nvc3_command, payload, length, 0);
+  if (retval == 0) {
+    if (nvc3_command==NVMCOMM_CMD_APPMSG) {
+      nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
+      return retval;
+    }
+  }
 #endif
-
-  if ((retval2 == 0 || retval == 0) && nvc3_command==NVMCOMM_CMD_APPMSG)
-    nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
-  return retval2;
+  return retval;
 }
 // Private
 
@@ -74,13 +91,26 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
   }
   DEBUGF_COMM("\n");
 #endif
+
+  if (nvmcomm_wait_number_of_commands > 0) {
+    // nvmcomm_wait is waiting for a particular type of message. probably a response to a message sent earlier.
+    // if this message is of that type, store it in nvmcomm_wait_received_message so nvmcomm_wait can return it.
+    // if not, handle it as a normal message
+    for (int i=0; i<nvmcomm_wait_number_of_commands; i++) {
+      if (nvmcomm_command == nvmcomm_wait_commands[i]) {
+        nvmcomm_wait_received_message.command = nvmcomm_command;
+        nvmcomm_wait_received_message.payload = payload;
+        nvmcomm_wait_received_message.payload_length = length;
+      }
+    }
+  }
   
   switch (nvmcomm_command) {
     case NVMCOMM_CMD_REPRG_OPEN:
       DEBUGF_COMM("Initialise reprogramming.\n");
       nvc3_avr_reprogramming = TRUE;
       nvc3_avr_reprogramming_pos = 0;
-      avr_flash_open(0x8000); // TODO: ugly hack
+      avr_flash_open(bytecode_address);
       DEBUGF_COMM("Going to runlevel NVM_RUNLVL_CONF.\n");
       vm_set_runlevel(NVM_RUNLVL_CONF);
       response_cmd = NVMCOMM_CMD_REPRG_OPEN_R;
@@ -162,10 +192,45 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[0];
     break;
+    case NVMCOMM_WKPF_GET_WUCLASS_LIST:
+    case NVMCOMM_WKPF_GET_WUOBJECT_LIST:
+    case NVMCOMM_WKPF_READ_PROPERTY:
+    case NVMCOMM_WKPF_WRITE_PROPERTY:
+      wkpf_comm_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
+    break;
   }
   if (response_cmd > 0) {
     nvmcomm_send(src, response_cmd, payload, response_size);
   }
 }
 
+nvmcomm_message *nvmcomm_wait(u16_t wait_msec, u08_t *commands, u08_t number_of_commands) {
+  nvmcomm_wait_commands = commands;
+  nvmcomm_wait_number_of_commands = number_of_commands;
+  nvmcomm_wait_received_message.command = 0;
+  
+  while(wait_msec > 0) {
+    if (wait_msec > 10) {
+      delay(MILLISEC(10));
+      wait_msec -= 10;
+    } else {
+      delay(MILLISEC(wait_msec));
+      wait_msec = 0;
+    }
+    nvmcomm_poll();
+    if (nvmcomm_wait_received_message.command != 0)
+      nvmcomm_wait_number_of_commands = 0;
+      return &nvmcomm_wait_received_message;
+  }
+  nvmcomm_wait_number_of_commands = 0;
+  return NULL;
+}
+
+address_t nvmcomm_get_node_id() {
+#ifdef NVM_USE_COMMZWAVE
+  return nvmcomm_zwave_get_node_id();
+#else
+  return 0;
+#endif // NVM_USE_COMMZWAVE
+}
 #endif // NVM_USE_COMM

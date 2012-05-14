@@ -43,13 +43,16 @@
 #ifdef NVM_USE_FLASH_PROGRAM
 static u08_t __attribute__ ((section (".javabytecode"))) nvmfile[CODESIZE] =
 #include "nvmdefault.h"
+u16_t bytecode_address = (uint16_t)nvmfile;
 #endif
 
 #ifdef NVM_USE_RAM_PROGRAM
-static u08_t EEPROM nvmfile[CODESIZE];
+static u08_t nvmfile[CODESIZE];
 static u08_t __attribute__ ((section (".javabytecode"))) nvmfileflash[CODESIZE] =
 #include "nvmdefault.h"
+u16_t bytecode_address = (uint16_t)nvmfileflash;
 #endif
+
 
 u08_t nvmfile_constant_count;
 

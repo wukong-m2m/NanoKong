@@ -20,6 +20,7 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
+#include "nvmtypes.h"
 #include "heap.h"
 
 #define T_BOOLEAN 4

@@ -25,6 +25,7 @@ def reprogramNvmdefault(destination, filename):
   while not pos == len(bytecode):
     payload_pos = [pos/256, pos%256]
     payload_data = bytecode[pos:pos+MESSAGESIZE]
+    print "Uploading bytes", pos, "to", pos+MESSAGESIZE, "of", len(bytecode)
     if pos/pagesize == (pos+len(payload_data))/pagesize:
       if packetLost == False and pos == 32:
         print "------------->Simulating packet loss"
@@ -70,5 +71,5 @@ def reprogramNvmdefault(destination, filename):
   pynvc.sendcmd(destination, pynvc.SETRUNLVL, [pynvc.RUNLVL_RESET])
 
 if __name__ == "__main__":
-  pynvc.init(1) # 0: zwave, 1: zigbee
+  pynvc.init(0) # 0: zwave, 1: zigbee
   reprogramNvmdefault(int(sys.argv[1]), sys.argv[2])

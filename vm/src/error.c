@@ -56,6 +56,8 @@ char *error_msg[] = {
   "VM: unsupported opcode",          // O
   "VM: division by zero",            // P
   "VM: stack corrupted",             // Q
+  "WKPF: initialisation failed",     // R
+  "COMM: initialisation failed"      // S
 };
 #else
 #include "uart.h"

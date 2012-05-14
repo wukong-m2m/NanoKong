@@ -300,6 +300,8 @@ public class ClassLoader {
       
 	try {
 	  // load given class
+      System.out.println("CLASSPATH: " + classPath );
+      System.out.println("Trying " + filename );
 	  is = new FileInputStream(filename);
 	} catch(FileNotFoundException e) {
 	  is = null;

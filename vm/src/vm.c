@@ -50,7 +50,6 @@
 #include <avr/wdt.h>
 #endif
 
-
 #ifdef NVM_USE_32BIT_WORD
 # define DBG_INT "0x" DBG32
 #else
@@ -806,6 +805,7 @@ void   vm_run(u16_t mref) {
       tmp2 = stack_pop_int();       // value
       tmp1 = stack_pop_int();         // index
       // third parm on stack: array reference
+      DEBUGF_INSTR("bastore #"DBG16" at index "DBG16"\n", tmp2, tmp1);
       array_bastore(stack_pop() & ~NVM_TYPE_MASK, tmp1, tmp2);
     }
     

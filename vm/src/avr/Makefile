@@ -8,7 +8,6 @@ AVR_OBJS = \
   avr/native_impl.o \
   avr/avr_flash.o
 
-
 OBJS += $(AVR_OBJS)
 
 # convert and upload a class file

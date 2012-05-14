@@ -32,4 +32,6 @@ void native_avr_adc_invoke(u08_t mref);
 void native_avr_pwm_invoke(u08_t mref);
 void native_avr_usart_invoke(u08_t mref);
 
+extern volatile u32_t avr_currentTime;
+
 #endif // NATIVE_AVR_H

@@ -4,8 +4,8 @@ OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")
 
 MEMORY /* Regions to put the sections in */
 {
-  lowtext   (rx)   : ORIGIN = 0, LENGTH = 0x100
-  text      (rx)   : ORIGIN = 0x100, LENGTH = 256K /* text region has to start at a page boundary because the .javabytecode section needs to */
+  lowtext   (rx)   : ORIGIN = 0, LENGTH = 0x200
+  text      (rx)   : ORIGIN = 0x200, LENGTH = 256K /* text region has to start at a page boundary because the .javabytecode section needs to */
   data      (rw!x) : ORIGIN = 0x800060, LENGTH = 0xffa0
   eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 64K
   fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K

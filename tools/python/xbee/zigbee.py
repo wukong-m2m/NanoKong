@@ -63,10 +63,10 @@ class ZigBee(XBeeBase):
                          {'name':'frame_id',        'len':1,        'default':'\x00'},
                          {'name':'dest_addr_long',  'len':8,        'default':None},
                          {'name':'dest_addr',       'len':2,        'default':None},
-                         {'name':'src_endpoint',    'len':1,        'default':None},
-                         {'name':'dest_endpoint',   'len':1,        'default':None},
+                         {'name':'src_wuobject',    'len':1,        'default':None},
+                         {'name':'dest_wuobject',   'len':1,        'default':None},
                          {'name':'cluster',         'len':1,        'default':None},
-                         {'name':'profile',         'len':1,        'default':None},
+                         {'name':'wuclass',         'len':1,        'default':None},
                          {'name':'broadcast_radius','len':1,        'default':'\x00'},
                          {'name':'options',         'len':1,        'default':'\x00'},
                          {'name':'data',            'len':None,     'default':None}]
@@ -98,10 +98,10 @@ class ZigBee(XBeeBase):
                          'structure':
                             [{'name':'source_addr_long','len':8},
                              {'name':'source_addr',     'len':2},
-                             {'name':'source_endpoint', 'len':1},
-                             {'name':'dest_endpoint',   'len':1},
+                             {'name':'source_wuobject', 'len':1},
+                             {'name':'dest_wuobject',   'len':1},
                              {'name':'cluster',         'len':2},
-                             {'name':'profile',         'len':2},
+                             {'name':'wuclass',         'len':2},
                              {'name':'options',         'len':1},
                              {'name':'rf_data',         'len':None}]},
                      "\x92": # Checked by GDR-parse_samples_header function appears to need update to support
@@ -152,7 +152,7 @@ class ZigBee(XBeeBase):
                              {'name':'parent_source_addr','len':2},
                              {'name':'device_type',     'len':1},
                              {'name':'source_event',    'len':1},
-                             {'name':'digi_profile_id', 'len':2},
+                             {'name':'digi_wuclass_id', 'len':2},
                              {'name':'manufacturer_id', 'len':2}]}
                      }
     
