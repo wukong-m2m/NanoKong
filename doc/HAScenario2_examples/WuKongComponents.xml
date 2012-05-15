@@ -1,9 +1,9 @@
 <WuKong>
     <WuTypedef name="ThresholdOperator" type="enum">
         <enum value="LT"/>
-        <enum value "GT"/>
-        <enum value "LTE"/>
-        <enum value "GTE"/>
+        <enum value="GT"/>
+        <enum value="LTE"/>
+        <enum value="GTE"/>
     </WuTypedef>
 
     <WuClass name="Threshold" id="1" virtual="true" type="soft">
