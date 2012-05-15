@@ -1,17 +1,17 @@
-<WuTypedef name="ThresholdOperator" type="enum">
-	<enum value="LT"/>
-	<enum value "GT"/>
-	<enum value "LTE"/>
-	<enum value "GTE"/>
-</WuTypedef>
-
-<WuClass name="Threshold" id="1" virtual="true" type="soft">
-	<property name="operator" datatype="ThresholdOperator" access="readwrite" />
-	<property name="value" datatype="short" access="readwrite" />
-	<property name="threshold" datatype="short" access="readwrite" />
-	<property name="output" datatype="short" access="readonly" />
-</WuClass>
-
-<WuClass name="Temperature sensor" id="2" virtual="false" type="hard">
-	<property name="current temperature" datatype="short" access="readonly" />
-</WuClass>
+<WuClassDefinitions>
+    <WuTypedef name="ThresholdOperator" type="enum">
+    	<enum value="LT"/>
+    	<enum value "GT"/>
+    	<enum value "LTE"/>
+    	<enum value "GTE"/>
+    </WuTypedef>
+    <WuClass name="Threshold" id="1" virtual="true" type="soft">
+    	<property name="operator" datatype="ThresholdOperator" access="readwrite" />
+	    <property name="value" datatype="short" access="readwrite" />
+	    <property name="threshold" datatype="short" access="readwrite" />
+	    <property name="output" datatype="short" access="readonly" />
+    </WuClass>
+    <WuClass name="Temperature sensor" id="2" virtual="false" type="hard">
+	    <property name="current temperature" datatype="short" access="readonly" />
+    </WuClass>
+</WuClassDefinitions>
