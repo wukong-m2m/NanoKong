@@ -1,8 +1,8 @@
 #
-# PrintStream.native
+# USART.native
 #
 
-class java/io/PrintStream 18
+class nanovm/avr/USART 24
 
 method println:(Ljava/lang/String;)V 1
 method println:(I)V 2
@@ -11,3 +11,6 @@ method print:(Ljava/lang/String;)V 4
 method print:(I)V 5
 method print:(C)V 6
 method format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/io/PrintStream; 7
+method available:()I 8
+method read:()I 9
+method init:(III)V 10

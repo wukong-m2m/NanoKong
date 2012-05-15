@@ -2,6 +2,11 @@
 #include <wkpf.h>
 
 #include "native_wuclasses.h"
+#include "GENERATED_wuclass_generic.h"
+#include "GENERATED_wuclass_threshold.h"
+#include "GENERATED_wuclass_numeric_controller.h"
+#include "GENERATED_wuclass_light.h"
+#include "GENERATED_wuclass_light_sensor.h"
 
 uint8_t register_wuclass_and_create_wuobject(wkpf_wuclass_definition *wuclass, uint8_t port_number) {
   uint8_t retval = wkpf_register_wuclass(*wuclass);

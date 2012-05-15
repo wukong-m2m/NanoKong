@@ -1,6 +1,11 @@
 #define WKPF_WUCLASS_GENERIC                                      0
 #define WKPF_PROPERTY_GENERIC_DUMMY                               0
 
+#define WKPF_ENUM_THRESHOLD_OPERATOR_GT                           0
+#define WKPF_ENUM_THRESHOLD_OPERATOR_LT                           1
+#define WKPF_ENUM_THRESHOLD_OPERATOR_GTE                          2
+#define WKPF_ENUM_THRESHOLD_OPERATOR_LTE                          3
+
 #define WKPF_WUCLASS_THRESHOLD                                    1
 #define WKPF_PROPERTY_THRESHOLD_OPERATOR                          0
 #define WKPF_PROPERTY_THRESHOLD_THRESHOLD                         1

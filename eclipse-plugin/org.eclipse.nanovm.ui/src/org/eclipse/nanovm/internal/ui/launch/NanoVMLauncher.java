@@ -74,10 +74,16 @@ public class NanoVMLauncher extends JavaLaunchDelegate {
 		IPath configPath = projectPath.append(configFile);
 		String mainClassToLaucn = configuration.getAttribute(
 				NanoVMUI.ATTR_MAIN_CLASS_NAME, "");
+		//System.out.println("p: "+projectPath+" class: "+classPath+" configP: "+configPath);
+		IPath outputFilePath = classPath.append("nvmdefault.h");
 
 		String pgmArgs = getProgramArguments(configuration) + " "
-				+ "\"" + configPath.toOSString() + "\"" + " " + "\"" + classPath.toOSString() + "\"" + " "
+				+ "-c" + " "
+				+ "-f \"" + outputFilePath.toOSString() + "\"" + " "
+				+ "\"" + configPath.toOSString() + "\"" + " "
+				+ "\"" + classPath.toOSString() + "\"" + " "
 				+ mainClassToLaucn.replace('.', '/');
+		System.out.println(pgmArgs);
 						
 		String vmArgs = getVMArguments(configuration);
 		ExecutionArguments execArgs = new ExecutionArguments(vmArgs, pgmArgs);

@@ -6,22 +6,8 @@
 #include <avr/native.h>
 #include <avr/io.h>
 #include "native_wuclasses.h"
-#include "wuclass_light.h"
 
 #ifdef ENABLE_WUCLASS_LIGHT
-
-void wuclass_light_update(wkpf_local_wuobject *wuobject);
-
-uint8_t wuclass_light_properties[] = {
-  WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_RW // WKPF_PROPERTY_LIGHT_ONOFF
-};
-
-wkpf_wuclass_definition wuclass_light = {
-  WKPF_WUCLASS_LIGHT, // wuclass id
-  wuclass_light_update, // update function pointer
-  1, // Number of properties
-  wuclass_light_properties
-};
 
 void wuclass_light_update(wkpf_local_wuobject *wuobject) {
   bool onOff;
