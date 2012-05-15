@@ -11,11 +11,12 @@ parser = OptionParser()
 parser.add_option('-n', '--nanovmtool', action='store_true', dest='nanovmtool')
 parser.add_option('-v', '--vm', action='store_true', dest='vm')
 parser.add_option('-u', '--upload', action='store_true', dest='upload')
+parser.add_option('-s', '--screen', action='store_true', dest='screen')
 (options, args) = parser.parse_args()
 
 print options, args
 
-all_go = True if not (options.nanovmtool or options.vm or options.upload) else False
+all_go = True if not (options.nanovmtool or options.vm or options.upload or options.screen) else False
 
 print "== NanoKong Bootstrap Script =="
 print "\nThis script assumes you are going to compile avr_mega2560, if you need to compile for a different arch, change the VERSION in this script\n\n\n"
@@ -71,37 +72,40 @@ elif platform.system() == 'Darwin':
   print "arduino is %s" % (arduino)
 print "\n\n\n"
 
+status = 0
 
 if options.nanovmtool or all_go:
   print "== Building NanoVMTool =="
   nanovmtool = os.path.join(CWD, 'nanovmtool')
   os.chdir(nanovmtool)
-  os.system("ant")
+  status = os.system("ant")
 
   print "\n\n\n"
 
-if options.vm or all_go:
+if options.vm or all_go and not status:
   print "== Compiling VM =="
   vm = os.path.join(CWD, 'vm', 'build', 'avr_mega%s' % (VERSION))
   os.chdir(vm)
   os.system("make clean")
-  os.system("make PREFIX=%s PORT=%s" % (arduino, port))
+  status = os.system("make PREFIX=%s PORT=%s" % (arduino, port))
 
   print "\n\n\n"
 
-if options.upload or all_go:
+if options.upload or all_go and not status:
   print "== Uploading VM =="
   vm = os.path.join(CWD, 'vm', 'build', 'avr_mega%s' % (VERSION))
   print vm
   print arduino, port
   os.chdir(vm)
-  os.system("make avrdude PREFIX=%s PORT=%s" % (arduino, port))
+  status = os.system("make avrdude PREFIX=%s PORT=%s" % (arduino, port))
 
   os.chdir(CWD)
 
   print "\n\n\n"
 
   choice = raw_input("Do you want to see the program's ouput? [Y/N]")
-
   if choice == 'Y' or choice == 'y':
     os.system("screen %s 115200" % (port))
+
+if not all_go and options.screen and not options.upload:
+  os.system("screen %s 115200" % (port))

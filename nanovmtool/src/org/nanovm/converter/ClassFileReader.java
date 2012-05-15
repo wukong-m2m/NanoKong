@@ -164,18 +164,18 @@ public class ClassFileReader implements AccessFlags {
       
       // General Method Info
       {
-	short flags = in.readShort();
-	short nameIndex = in.readShort();
-	short signatureIndex = in.readShort();
-	String methodName = cp.getEntryAtIndex(nameIndex).getString();
-	String methodSignature = cp.getEntryAtIndex(signatureIndex).getString();
-	
-	if (Debug.strMethod != null) Debug.println(Debug.strMethod,
-			    "flags=" + flags +
-			    "; name index=" + nameIndex +
-			    "; signature index=" + signatureIndex);
-	
-	result = new MethodInfo(flags, methodName, methodSignature);
+          short flags = in.readShort();
+          short nameIndex = in.readShort();
+          short signatureIndex = in.readShort();
+          String methodName = cp.getEntryAtIndex(nameIndex).getString();
+          String methodSignature = cp.getEntryAtIndex(signatureIndex).getString();
+          
+          if (Debug.strMethod != null) Debug.println(Debug.strMethod,
+                  "flags=" + flags +
+                  "; name index=" + nameIndex +
+                  "; signature index=" + signatureIndex);
+          
+          result = new MethodInfo(flags, methodName, methodSignature);
       }
       
       // Method Attributes

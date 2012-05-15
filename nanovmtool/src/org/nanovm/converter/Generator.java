@@ -127,10 +127,12 @@ public class Generator {
                     MethodIdTable.getEntry(i));                        // id
             code.write8(methodInfo.getName().equals("<clinit>") ? 1 : 0);       // flags
             code.write8(methodInfo.getArgs());                              // args
-            code.write8(methodInfo.getCodeInfo().getMaxLocals());           // max_locals
-            code.write8(methodInfo.getCodeInfo().getMaxStack());            // max_stack
+            if ((methodInfo.getAccessFlags() & AccessFlags.ABSTRACT) != AccessFlags.ABSTRACT && (methodInfo.getAccessFlags() & AccessFlags.INTERFACE) != AccessFlags.INTERFACE) {
+              code.write8(methodInfo.getCodeInfo().getMaxLocals());           // max_locals
+              code.write8(methodInfo.getCodeInfo().getMaxStack());            // max_stack
+              codeOffset += methodInfo.getCodeInfo().getBytecode().length;
+            }
 
-            codeOffset += methodInfo.getCodeInfo().getBytecode().length;
         }
 
         // write bytecode
@@ -143,17 +145,19 @@ public class Generator {
                     methodInfo.getName() + ":" +
                     methodInfo.getSignature());
 
-            byte bcode[] = ClassLoader.getMethod(i).getCodeInfo().getBytecode();
+            if ((methodInfo.getAccessFlags() & AccessFlags.ABSTRACT) != AccessFlags.ABSTRACT && (methodInfo.getAccessFlags() & AccessFlags.INTERFACE) != AccessFlags.INTERFACE) {
+              byte bcode[] = ClassLoader.getMethod(i).getCodeInfo().getBytecode();
 
-            // adjust references etc
-            CodeTranslator.translate(classInfo, bcode);
+              // adjust references etc
+              CodeTranslator.translate(classInfo, bcode);
 
-            // and write bytecode
-            for (int j = 0; j < bcode.length; j++) {
-                code.write8(bcode[j]);
+              // and write bytecode
+              for (int j = 0; j < bcode.length; j++) {
+                  code.write8(bcode[j]);
+              }
+
+              System.out.println("");
             }
-
-            System.out.println("");
         }
     }
 
