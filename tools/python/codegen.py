@@ -17,15 +17,12 @@ from optparse import OptionParser
 CWD = os.getcwd()
 
 parser = OptionParser()
-parser.add_option('-n', '--nanovmtool', action='store_true', dest='nanovmtool')
-parser.add_option('-v', '--vm', action='store_true', dest='vm')
-parser.add_option('-u', '--upload', action='store_true', dest='upload')
-parser.add_option('-s', '--screen', action='store_true', dest='screen')
+parser.add_option('-i', '--input_xml', dest='component_file')
 (options, args) = parser.parse_args()
 
 print options, args
 
-component_file = 'WuKongComponents.xml'
+component_file = options.component_file
 
 # Front End
 component_tree = etree.parse(open(component_file))
