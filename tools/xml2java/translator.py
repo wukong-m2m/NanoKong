@@ -1,8 +1,35 @@
+#!/usr/bin/python
+
 from xml.dom.minidom import parse
 from optparse import OptionParser
 from jinja2 import Template
 from struct import pack
 from operator import itemgetter
+
+
+class WuObject: # will come from wkpf.py in the future
+  def __init__(self, portNumber, wuClassId):
+    self.portNumber = portNumber
+    self.wuClassId = wuClassId
+  def __repr__(self):
+    return '(wuobject port %d wuclass %d)' % (self.portNumber, self.wuClassId)
+
+class NodeInfo:
+  def __init__(self, nodeId, wuClasses, wuObjects):
+    self.nodeId = nodeId
+    self.wuClasses = wuClasses
+    self.wuObjects = wuObjects
+  def __repr__(self):
+    return '(nodeinfo node %d wuclasses %s wuobjects %s)' % (self.nodeId, str(self.wuClasses), str(self.wuObjects))
+  
+def getNodeInfo():
+  node1 = NodeInfo(nodeId=1,
+                   wuClasses=(0, 1, 3, 5), # generic, threshold, numeric_controller, light_sensor
+                   wuObjects=(WuObject(portNumber=1, wuClassId=3), WuObject(portNumber=2, wuClassId=5))) # numeric_controller at port 1, light sensor at port 2
+  node3 = NodeInfo(nodeId=3,
+                   wuClasses=(0, 1, 4), # generic, threshold, numeric_controller, light_sensor
+                   wuObjects=(WuObject(portNumber=4, wuClassId=4))) # light at port 4
+  return (node1, node3)
 
 def indentor(s, num):
     return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')

@@ -16,12 +16,12 @@ def getNextSequenceNumberAsList():
   return [__sequenceNumber/256, __sequenceNumber%256]
 
 class WuObject:
-  def __init__(self, nodeId, portNumber, wuclassId):
+  def __init__(self, nodeId, portNumber, wuClassId):
     self.nodeId = nodeId
     self.portNumber = portNumber
-    self.wuclassId = wuclassId
+    self.wuClassId = wuClassId
   def __repr__(self):
-    return 'wuobject(node %d port %d wuclass %d)' % (self.nodeId, self.portNumber, self.wuclassId)
+    return 'wuobject(node %d port %d wuclass %d)' % (self.nodeId, self.portNumber, self.wuClassId)
 
 def verifyWKPFmsg(messageStart, minAdditionalBytes):
   # minPayloadLength should not include the command or the 2 byte sequence number
@@ -67,7 +67,7 @@ def getWuObjectList(destination):
 
 def getProperty(wuobject, propertyNumber):
   sn = getNextSequenceNumberAsList()
-  payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber]
+  payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber]
   reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
                                                 command=pynvc.WKPF_READ_PROPERTY,
                                                 payload=payload,
@@ -89,9 +89,9 @@ def getProperty(wuobject, propertyNumber):
 def setProperty(wuobject, propertyNumber, datatype, value):
   sn = getNextSequenceNumberAsList()
   if datatype == DATATYPE_BOOLEAN:
-    payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber, datatype, 1 if value else 0]
+    payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber, datatype, 1 if value else 0]
   elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
-    payload=sn+[wuobject.portNumber, wuobject.wuclassId/256, wuobject.wuclassId%256, propertyNumber, datatype, value/256, value%256]
+    payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber, datatype, value/256, value%256]
   reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
                                                 command=pynvc.WKPF_WRITE_PROPERTY,
                                                 payload=payload,
@@ -108,5 +108,5 @@ def setProperty(wuobject, propertyNumber, datatype, value):
 pynvc.init(0)
 #print getWuClassList(3)
 #print getWuObjectList(3)
-#print getProperty(WuObject(nodeId=3, portNumber=4, wuclassId=4), 0)
-#print setProperty(WuObject(nodeId=3, portNumber=1, wuclassId=3), 0, DATATYPE_INT16, 255)
+#print getProperty(WuObject(nodeId=3, portNumber=4, wuClassId=4), 0)
+#print setProperty(WuObject(nodeId=3, portNumber=1, wuClassId=3), 0, DATATYPE_INT16, 255)
