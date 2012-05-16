@@ -37,9 +37,9 @@ void update_b(wkpf_local_wuobject *wuobject) {
 
 
 uint8_t wuclass_a_properties[] = {
-  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READ,
-  WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_RW,
-  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_RW
+  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READONLY,
+  WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_READWRITE,
+  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READWRITE
 };
 wkpf_wuclass_definition wuclass_a = {
   0xFF42, // wuclass id
@@ -49,7 +49,7 @@ wkpf_wuclass_definition wuclass_a = {
 };
 
 uint8_t wuclass_b_properties[] = {
-  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_RW
+  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READWRITE
 };
 wkpf_wuclass_definition wuclass_b = {
   0x43FF, // wuclass id
@@ -103,9 +103,9 @@ void test_wuclasses() {
   assert_equal_uint(retval, WKPF_OK, "retrieving wuclass by index 0");
   assert_equal_uint(wuclass->wuclass_id, 0xFF42, "retrieved wuclass: id matches");
   assert_equal_uint(wuclass->number_of_properties, 3, "retrieved wuclass: 3 properties");
-  assert_equal_uint(wuclass->properties[0], WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READ, "retrieved wuclass: property 0");  
-  assert_equal_uint(wuclass->properties[1], WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_RW, "retrieved wuclass: property 1");  
-  assert_equal_uint(wuclass->properties[2], WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_RW, "retrieved wuclass: property 2");  
+  assert_equal_uint(wuclass->properties[0], WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READONLY, "retrieved wuclass: property 0");  
+  assert_equal_uint(wuclass->properties[1], WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_READWRITE, "retrieved wuclass: property 1");  
+  assert_equal_uint(wuclass->properties[2], WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READWRITE, "retrieved wuclass: property 2");  
 
   retval = wkpf_get_wuclass_by_index(1, &wuclass);
   assert_equal_uint(retval, WKPF_OK, "retrieving wuclass by index 1");

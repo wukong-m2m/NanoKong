@@ -50,9 +50,9 @@ uint8_t wkpf_verify_property(wkpf_local_wuobject *wuobject, uint8_t property_num
     return WKPF_ERR_PROPERTY_NOT_FOUND;
   uint8_t property = wuobject->wuclass->properties[property_number];
   if (external_access) {
-    if (access == WKPF_PROPERTY_ACCESS_READ && WKPF_IS_WRITEONLY_PROPERTY(property))
+    if (access == WKPF_PROPERTY_ACCESS_READONLY && WKPF_IS_WRITEONLY_PROPERTY(property))
       return WKPF_ERR_WRITE_ONLY;
-    if (access == WKPF_PROPERTY_ACCESS_WRITE && WKPF_IS_READONLY_PROPERTY(property))
+    if (access == WKPF_PROPERTY_ACCESS_WRITEONLY && WKPF_IS_READONLY_PROPERTY(property))
       return WKPF_ERR_READ_ONLY;
   }
   if (type != WKPF_GET_PROPERTY_DATATYPE(property))
@@ -61,14 +61,14 @@ uint8_t wkpf_verify_property(wkpf_local_wuobject *wuobject, uint8_t property_num
 }
 
 uint8_t wkpf_read_property_int16(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, int16_t *value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READ, external_access, WKPF_PROPERTY_TYPE_SHORT);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READONLY, external_access, WKPF_PROPERTY_TYPE_SHORT);
   if (retval == WKPF_OK)
     return wkpf_read_property(wuobject, property_number, value);
   else
     return retval;
 }
 uint8_t wkpf_write_property_int16(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, int16_t value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITE, external_access, WKPF_PROPERTY_TYPE_SHORT);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITEONLY, external_access, WKPF_PROPERTY_TYPE_SHORT);
   if (retval == WKPF_OK)
     return wkpf_write_property(wuobject, property_number, external_access, value);
   else
@@ -76,7 +76,7 @@ uint8_t wkpf_write_property_int16(wkpf_local_wuobject *wuobject, uint8_t propert
 }
 
 uint8_t wkpf_read_property_boolean(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, bool *value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READ, external_access, WKPF_PROPERTY_TYPE_BOOLEAN);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READONLY, external_access, WKPF_PROPERTY_TYPE_BOOLEAN);
 
   if (retval == WKPF_OK) {
     int16_t value_16bit;
@@ -90,7 +90,7 @@ uint8_t wkpf_read_property_boolean(wkpf_local_wuobject *wuobject, uint8_t proper
     return retval;
 }
 uint8_t wkpf_write_property_boolean(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, bool value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITE, external_access, WKPF_PROPERTY_TYPE_BOOLEAN);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITEONLY, external_access, WKPF_PROPERTY_TYPE_BOOLEAN);
   if (retval == WKPF_OK)
     return wkpf_write_property(wuobject, property_number, external_access, value);
   else
@@ -98,14 +98,14 @@ uint8_t wkpf_write_property_boolean(wkpf_local_wuobject *wuobject, uint8_t prope
 }
 
 uint8_t wkpf_read_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t *value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READ, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READONLY, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
   if (retval == WKPF_OK)
     return wkpf_read_property(wuobject, property_number, value);
   else
     return retval;
 }
 uint8_t wkpf_write_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITE, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITEONLY, external_access, WKPF_PROPERTY_TYPE_REFRESH_RATE);
   if (retval == WKPF_OK) {
     retval = wkpf_write_property(wuobject, property_number, external_access, value);
     wkpf_schedule_next_update_for_wuobject(wuobject);
