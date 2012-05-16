@@ -33,7 +33,7 @@ def parser():
             exit()
         wuTypedefs_dict[wuTypedef.getAttribute('name')] = tmp_typedef_dict
     
-    print "========== WuClass Definitions =========="
+    print "//========== WuClass Definitions =========="
     wuClasses_dict = {}
     truefalse_dict = {u'true':True, u'false':False, u'soft':True, u'hard':False}
     for wuClass in c_dom.getElementsByTagName('WuClass'):
@@ -50,8 +50,8 @@ def parser():
             print 'Error! no property found in wuClass %s in xml %s' % (wuClass.getAttribute('name'), path)
             exit()
         wuClasses_dict[wuClass.getAttribute('name')] = {'id':int(wuClass.getAttribute('id'),0), 'prop':tmp_prop_dict, 'vrtl':truefalse_dict[wuClass.getAttribute('virtual')],'soft':truefalse_dict[wuClass.getAttribute('type')]}
-        print wuClass.getAttribute('name'), wuClasses_dict[wuClass.getAttribute('name')]
-    print
+        print "//", wuClass.getAttribute('name'), wuClasses_dict[wuClass.getAttribute('name')]
+    print "//"
 
     wuTypedefs_dict = tmp_prop_dict = tmp_access_dict = tmp_typedef_dict = {}
 
@@ -69,12 +69,12 @@ def parser():
             exit()
         tmp_prop_dict = class_dict[class_name]['prop']
         if prop_name not in tmp_prop_dict:
-            print 'Error! property %s is not in wuClass %s in xml %s' % (tmp_name,class_name,path)
+            print 'Error! property %s is not in wuClass %s in xml %s' % (prop_name,class_name,path)
             exit()
         return tmp_prop_dict[prop_name]
 
     ## Second, parse out components (wuClass instances) and links btwn components
-    print "========== Components Definitions =========="
+    print "//========== Components Definitions =========="
     components_dict = {}
     links_list = []
     i = 0
@@ -101,17 +101,17 @@ def parser():
 
         components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list }
         i += 1
-        print instanceName, components_dict[instanceName]
+        print "//", instanceName, components_dict[instanceName]
 
         for link in component.getElementsByTagName('link'):
             toInstanceName = link.getAttribute('toInstanceId')
             links_list += [ (instanceName, link.getAttribute('fromProperty'), toInstanceName, link.getAttribute('toProperty'), toInstanceName) ]
-    print
+    print "//"
 
     def short2byte(i): return [ord(b) for b in pack("H", i)]
 
     ## Finally, check the validity of links and output as a string
-    print "========== Links Definitions =========="
+    print "//========== Links Definitions =========="
     link_table_str = ''
     for link in links_list:
         if link[2] not in components_dict:
@@ -130,9 +130,9 @@ def parser():
 
         wuClassId = short2byte(components_dict[ link[4] ]['classid'])
         link_table_str += "(byte)%d, (byte)%d,\n" % (wuClassId[0], wuClassId[1])
-        print link
-        print (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
-    print
+        print "//", link
+        print "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
+    print "//"
 
     return wuClasses_dict, components_dict, indentor(link_table_str,1)
 
@@ -175,20 +175,20 @@ def mapper(wuClasses_dict, components_dict):
         cmpId = component['cmpid']
         if_stmts = ''
         if wuClass['vrtl']: # is virtual?   # TODO: and not found in network
-            reg_stmts += "WKPF.registerWuClass(WKPF.WUCLASS_%s, GENERATEDVirtual%sWuObject.properties);\n" % (wuClassName.upper(),wuClassName)
-            if_stmts += "VirtualWuObject wuclassInstance%s = new Virtual%sWuObject();\n" % (wuClassName, wuClassName)
-            if_stmts += "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent(%d), wuclassInstance%s);\n" % (wuClassName.upper(),cmpId,wuClassName)
+            reg_stmts += "WKPF.registerWuClass(WKPF.WUCLASS_%s, GENERATEDVirtual%sWuObject.properties);\n" % (wuClassName.upper(),wuClassName.replace('_',''))
+            if_stmts += "VirtualWuObject wuclassInstance%s = new Virtual%sWuObject();\n" % (wuClassName, wuClassName.replace('_', ''))
+            if_stmts += "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent((short)%d), wuclassInstance%s);\n" % (wuClassName.upper(),cmpId,wuClassName)
         elif wuClass['soft']: # is soft?
-            if_stmts += "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent(%d), null);\n" % (wuClassName.upper(),cmpId)
+            if_stmts += "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent((short)%d), null);\n" % (wuClassName.upper(),cmpId)
 
         for item in component['defaults']:
             prop_type = type(item[1])
             if prop_type is int:
-                if_stmts += "WKPF.setPropertyShort(%d, WKPF.PROPERTY_%s_%s, (short)%d);\n" % (cmpId, wuClassName.upper(),item[0].upper(), item[1])
+                if_stmts += "WKPF.setPropertyShort((short)%d, WKPF.PROPERTY_%s_%s, (short)%d);\n" % (cmpId, wuClassName.upper(),item[0].upper(), item[1])
             elif prop_type is bool:
-                if_stmts += "WKPF.setPropertyBoolean(%d, WKPF.PROPERTY_%s_%s, %s);\n" % (cmpId, wuClassName.upper(),item[0].upper(), item[1]) 
+                if_stmts += "WKPF.setPropertyBoolean((short)%d, WKPF.PROPERTY_%s_%s, %s);\n" % (cmpId, wuClassName.upper(),item[0].upper(), str(item[1]).lower()) 
 
-        init_stmts += "if (isLocalComponent(%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1))
+        init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1))
 
     return indentor(map_table_str, 1), (reg_stmts, init_stmts)
 
@@ -225,18 +225,18 @@ import nanovm.wkpf.*;
 import nanovm.lang.Math;
     """, 0)
 
-    java_class_name = "HAScenario2"
+    java_class_name = "app"
 
     linkDefinitions = indentor("""
 private final static byte[] linkDefinitions = {
 %s
-}
+};
     """ % link_table, 1)
 
     componentInstanceToWuObjectAddrMap = indentor("""
-private final static byte[] componentInstanceToWuObjectAddrMap{
+private final static byte[] componentInstanceToWuObjectAddrMap = {
 %s
-}
+};
     """ % map_table, 1)
     
     wkpf_init = indentor("""
@@ -268,7 +268,7 @@ if (wuclass != null) {
             COMPONENT_INIT=comp_init_stmts
         )
 
-    print "========== Code =========="
+    print "//========== Code =========="
     print rendered_tpl
 
 if __name__ == "__main__":

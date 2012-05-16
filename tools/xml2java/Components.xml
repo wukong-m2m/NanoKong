@@ -13,28 +13,28 @@
         <property name="output" datatype="short" access="readonly" />
     </WuClass>
 
-    <WuClass name="Temperature sensor" id="2" virtual="false" type="hard">
+    <WuClass name="Temperature_Sensor" id="2" virtual="false" type="hard">
         <property name="current temperature" datatype="short" access="readonly" />
     </WuClass>
 
-    <WuClass name="NumericController" id="3" virtual="false" type="hard">
+    <WuClass name="Numeric_Controller" id="3" virtual="false" type="hard">
         <property name="output" datatype="short" access="readonly" />
     </WuClass>
 
-    <WuClass name="LightSensor" id="5" virtual="false" type="hard">
-        <property name="refreshRate" datatype="short" access="readwrite"/>
-        <property name="current light" datatype="short" access="readonly" />
+    <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
+        <property name="refresh_Rate" datatype="short" access="readwrite"/>
+        <property name="current_light" datatype="short" access="readonly" />
     </WuClass>
 
     <WuClass name="Light" id="4" virtual="false" type="hard">
-        <property name="onOff" datatype="boolean" access="readwrite" />
+        <property name="on_Off" datatype="boolean" access="readwrite" />
     </WuClass>
 
-    <WuClass name="OccupancySensor" id="0x1005" virtual="true" type="soft">
+    <WuClass name="Occupancy_Sensor" id="0x1005" virtual="true" type="soft">
         <property name="occupied" datatype="boolean" access="readonly" />
     </WuClass>
 
-    <WuClass name="AndGate" id="6" virtual="true" type="soft">
+    <WuClass name="And_Gate" id="6" virtual="true" type="soft">
         <property name="output" datatype="boolean" access="readonly" />
         <property name="in1" datatype="boolean" access="readwrite" />
         <property name="in2" datatype="boolean" access="readwrite" />
