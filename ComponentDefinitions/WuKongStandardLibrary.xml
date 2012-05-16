@@ -89,7 +89,7 @@
 
     <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
         <property name="refresh_Rate" datatype="short" access="readwrite"/>
-        <property name="current_light" datatype="short" access="readonly" />
+        <property name="current_value" datatype="short" access="readonly" />
     </WuClass>
 
     <WuClass name="Light" id="4" virtual="false" type="hard">

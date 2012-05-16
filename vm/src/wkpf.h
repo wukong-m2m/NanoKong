@@ -6,7 +6,7 @@
 #include "wkpf_wuobjects.h"
 #include "wkpf_properties.h"
 #include "wkpf_links.h"
-#include "GENERATED_wkpf_wuclass_library.h"
+#include "GENERATEDwkpf_wuclass_library.h"
 #include "wkpf_comm.h"
 
 #define WKPF_PROPERTY_TYPE_INT16         0

@@ -39,7 +39,7 @@ public class WKPF extends GENERATEDWKPF {
   public static final byte PROPERTY_TYPE_REFRESH_RATE                  = 2;
   public static final byte PROPERTY_ACCESS_READONLY           = (byte)(1 << 7);
   public static final byte PROPERTY_ACCESS_WRITEONLY          = (byte)(1 << 6);
-  public static final byte PROPERTY_ACCESS_READWRITE = (PROPERTY_ACCESS_READ|PROPERTY_ACCESS_WRITE);
+  public static final byte PROPERTY_ACCESS_READWRITE = (PROPERTY_ACCESS_READONLY|PROPERTY_ACCESS_WRITEONLY);
 
   public static final byte OK                                             =  0;
   public static final byte ERR_WUOBJECT_NOT_FOUND                         =  1;

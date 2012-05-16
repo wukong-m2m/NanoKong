@@ -55,28 +55,28 @@ public class HAScenario2 {
 
     // Connect threshold to and gate
     (byte)COMPONENT_INSTANCE_ID_THRESHOLD1, (byte)0, (byte)WKPF.PROPERTY_THRESHOLD_OUTPUT,
-    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_IN1,
+    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_INPUT1,
     (byte)WKPF.WUCLASS_AND_GATE, (byte)0,
 
     // Connect occupancy to and gate
     (byte)COMPONENT_INSTANCE_ID_OCCUPANCY1, (byte)0, (byte)WKPF.PROPERTY_OCCUPANCY_SENSOR_OCCUPIED,
-    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_IN2,
+    (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_INPUT2,
     (byte)WKPF.WUCLASS_AND_GATE, (byte)0,
 
     // Connect and gate to light
     (byte)COMPONENT_INSTANCE_ID_ANDGATE1, (byte)0, (byte)WKPF.PROPERTY_AND_GATE_OUTPUT,
-    (byte)COMPONENT_INSTANCE_ID_LIGHT1, (byte)0, (byte)WKPF.PROPERTY_LIGHT_ONOFF,
+    (byte)COMPONENT_INSTANCE_ID_LIGHT1, (byte)0, (byte)WKPF.PROPERTY_LIGHT_ON_OFF,
     (byte)WKPF.WUCLASS_LIGHT, (byte)0
   };
 
   private static void initialiseLocalWuObjects() {
-    WKPF.registerWuClass(WKPF.WUCLASS_AND_GATE, GENERATEDVirtualANDGateWuObject.properties);
+    WKPF.registerWuClass(WKPF.WUCLASS_AND_GATE, GENERATEDVirtualAndGateWuObject.properties);
     WKPF.registerWuClass(WKPF.WUCLASS_OCCUPANCY_SENSOR, GENERATEDVirtualOccupancySensorWuObject.properties);
 
     // Setup the temperature sensor
     if (WKPF.isLocalComponent(COMPONENT_INSTANCE_ID_LIGHTSENSOR1)) { 
       System.out.println("HASCENARIO INIT: Set light sensor to 100ms refresh rate");
-      WKPF.setPropertyRefreshRate(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_SAMPLING_RATE, (short)100); // Sample the temperature every 5 seconds
+      WKPF.setPropertyRefreshRate(COMPONENT_INSTANCE_ID_LIGHTSENSOR1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)100); // Sample the temperature every 5 seconds
     }
     // Setup the numeric input
     if (WKPF.isLocalComponent(COMPONENT_INSTANCE_ID_INPUTCONTROLLER1)) { 
@@ -92,7 +92,7 @@ public class HAScenario2 {
     // Register virtual and gate wuclass and create an wuobject
     if (WKPF.isLocalComponent(COMPONENT_INSTANCE_ID_ANDGATE1)) {
       System.out.println("HASCENARIO INIT: Create and gate");
-      VirtualWuObject wuclassInstanceANDGate = new VirtualANDGateWuObject();
+      VirtualWuObject wuclassInstanceANDGate = new VirtualAndGateWuObject();
       WKPF.createWuObject((short)WKPF.WUCLASS_AND_GATE, WKPF.getPortNumberForComponent(COMPONENT_INSTANCE_ID_ANDGATE1), wuclassInstanceANDGate);
     }
     // Register virtual occupancy sensor wuclass and create an wuobject

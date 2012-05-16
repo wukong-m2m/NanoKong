@@ -10,10 +10,11 @@ NATIVE_WUCLASSES_OBJS = \
     wuclass_numeric_controller_update.o \
     wuclass_light_update.o \
     wuclass_light_sensor_update.o \
+    GENERATEDwuclass_generic.o \
     GENERATEDwuclass_threshold.o \
-    GENERATEDwuclass_numeric__controller.o \
+    GENERATEDwuclass_numeric_controller.o \
     GENERATEDwuclass_light.o \
-    GENERATEDwuclass_light__sensor.o
+    GENERATEDwuclass_light_sensor.o
 
 OBJS += $(NATIVE_WUCLASSES_OBJS)
 

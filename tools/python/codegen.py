@@ -32,17 +32,21 @@ plugin_dir = os.path.join('plugins')
 
 # Filenames
 global_vm_header_filename = 'GENERATEDwkpf_wuclass_library.h'
+global_virtual_constants_filename = 'GENERATEDWKPF.java'
 
 # Paths
 component_library_path = options.component_file
 global_vm_header_path = os.path.join(options.project_dir, global_vm_dir, global_vm_header_filename)
+global_virtual_constants_path = os.path.join(options.project_dir, java_dir, global_virtual_constants_filename)
 
 # IOs
 component_library = open(component_library_path)
 global_vm = open(global_vm_header_path, 'w')
+global_virtual_constants = open(global_virtual_constants_path, 'w')
 
 # Lines
 global_vm_header_lines = []
+global_virtual_constants_lines = []
 
 def CamelCaseToUnderscore(name):
   s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
@@ -52,10 +56,10 @@ def underscore_to_camel_case(name):
   return ''.join(x.capitalize() or '_' for x in name.split('_'))
 
 def convert_filename_to_c(raw):
-  if raw.search('.*_.*') == None:
+  if re.search('.*_.*', raw) == None:
     return CamelCaseToUnderscore(raw)
   else:
-    return raw
+    return raw.lower()
 
 def convert_filename_to_java(raw):
   return underscore_to_camel_case(raw)
@@ -70,14 +74,24 @@ wuclasses = component_root.xpath("WuClass")
 wutypedefs = component_root.xpath("WuTypedef")
 wutypedefs_hash = {}
 
+# Boilerplate for Java global constants file
+global_virtual_constants_lines.append('''
+    package nanovm.wkpf;
+
+    public class GENERATEDWKPF {
+''')
+
 # Parsing to WuKong Profile Framework Component Library header
 typeind = len(wuclasses)
 for wutypedef in wutypedefs:
-  wutypedefs_hash[wutypedef.get("name")] = typeind
+  wutypedefs_hash[convert_constant(wutypedef.get("name"))] = typeind
 
   # Generate global header typedef definition for VM
   for item in wutypedef:
-    global_vm_header_lines.append("#define WKPF_" + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " %d\n" % (typeind))
+    cline = "#define WKPF_" + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " %d\n" % (typeind)
+    jline = "public static final short " + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " = %d;\n" % (typeind)
+    global_vm_header_lines.append(cline)
+    global_virtual_constants_lines.append(jline)
     typeind += 1
 print "==================End of TypeDefs====================="
 
@@ -88,7 +102,7 @@ for wuclass in wuclasses:
   # Classname
   wuclass_native_header_classname = 'GENERATED' + 'wuclass_' + convert_filename_to_c(wuclass.get("name"))
   wuclass_native_impl_classname = 'GENERATED' + 'wuclass_' + convert_filename_to_c(wuclass.get("name"))
-  wuclass_virtual_super_classname = 'GENERATED' + 'WuClass' + convert_filename_to_java(wuclass.get("name"))
+  wuclass_virtual_super_classname = 'GENERATED' + 'Virtual' + convert_filename_to_java(wuclass.get("name")) + 'WuObject'
 
   # Filename
   wuclass_native_header_filename = wuclass_native_header_classname + '.h'
@@ -115,7 +129,18 @@ for wuclass in wuclasses:
   global_vm_header_lines.append("#define WKPF_WUCLASS_" + convert_constant(wuclass.get("name")) + " %s\n" % (index))
 
   for indprop, property in enumerate(properties):
-    global_vm_header_lines.append("#define WKPF_WUCLASS_PROPERTY_" + convert_constant(property.get("name")) + " " + str(indprop) + "\n")
+    global_vm_header_lines.append("#define WKPF_PROPERTY_" + convert_constant(wuclass.get("name")) + "_" + convert_constant(property.get("name")) + " " + str(indprop) + "\n")
+
+  global_vm_header_lines.append("\n")
+
+
+  # Generate global constants definition for Java
+  global_virtual_constants_lines.append("public static final short WUCLASS_" + convert_constant(wuclass.get("name")) + " = %s;\n" % (index))
+
+  for indprop, property in enumerate(properties):
+    global_virtual_constants_lines.append("public static final byte PROPERTY_" + convert_constant(wuclass.get("name")) + "_" + convert_constant(property.get("name")) + " = " + str(indprop) + ";\n")
+
+  global_virtual_constants_lines.append("\n")
 
 
   # Parsing to WuKong Profile Framework Component Library header in Java
@@ -123,13 +148,14 @@ for wuclass in wuclasses:
     wuclass_virtual_super_lines.append('''
     package nanovm.wkpf;
 
-    public abstract class %s extends VirtualWuClass {
+    public abstract class %s extends VirtualWuObject {
       public static byte[] properties = new byte[] {
     ''' % (wuclass_virtual_super_classname))
 
     for ind, property in enumerate(properties):
-      datatype = property.get("datatype").upper().replace(' ', '_')
-      access = property.get("access").upper().replace(' ', '_')
+      datatype = convert_constant(property.get("datatype"))
+      access = convert_constant(property.get("access"))
+
       if datatype in wutypedefs_hash: 
         datatype = "SHORT"
       line = "WKPF.PROPERTY_TYPE_" + datatype + "|WKPF.PROPERTY_ACCESS_" + access
@@ -143,7 +169,7 @@ for wuclass in wuclasses:
     ''')
 
     for propind, property in enumerate(properties):
-      wuclass_virtual_super_lines.append("protected static final type %s = %d;\n" % (convert_constant(property.get('name')), propind))
+      wuclass_virtual_super_lines.append("protected static final byte %s = %d;\n" % (convert_constant(property.get('name')), propind))
 
     wuclass_virtual_super_lines.append('''
     }
@@ -151,6 +177,9 @@ for wuclass in wuclasses:
 
   # Generate C header for each native component implementation
   wuclass_native_header_lines.append('''
+  #include <wkpf.h>
+  #include "native_wuclasses.h"
+
   #ifndef WUCLASS_%sH
   #define WUCLASS_%sH
 
@@ -221,5 +250,12 @@ for wuclass in wuclasses:
 
   print "==================End of Component====================="
 
+global_virtual_constants_lines.append('''
+}
+''')
+
 global_vm.writelines(global_vm_header_lines)
 global_vm.close()
+
+global_virtual_constants.writelines(global_virtual_constants_lines)
+global_virtual_constants.close()
