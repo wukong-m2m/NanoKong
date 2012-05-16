@@ -30,8 +30,8 @@
     <property name="output" datatype="short" access="readonly" />
   </WuClass>
 
-  <WuClass name="Temperature sensor" id="2" virtual="false" type="hard">
-    <property name="current temperature" datatype="short" access="readonly" />
+  <WuClass name="temperature_sensor" id="2" virtual="false" type="hard">
+    <property name="current_temperature" datatype="short" access="readonly" />
   </WuClass>
 
   <WuClass name="Logical" id="11" virtual="true" type="soft">
