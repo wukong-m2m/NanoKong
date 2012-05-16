@@ -23,10 +23,14 @@
         <enum value="DIVIDE"/>
     </WuTypedef>
 
+    <WuClass name="Generic" id="0" virtual="false" type="hard">
+        <property name="dummy" datatype="short" access="readonly" />
+    </WuClass>
+
     <WuClass name="Threshold" id="1" virtual="true" type="soft">
         <property name="operator" datatype="ThresholdOperator" access="readwrite" />
-        <property name="value" datatype="short" access="readwrite" />
         <property name="threshold" datatype="short" access="readwrite" />
+        <property name="value" datatype="short" access="readwrite" />
         <property name="output" datatype="short" access="readonly" />
     </WuClass>
 
@@ -84,8 +88,8 @@
     </WuClass>
 
     <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
-        <property name="refresh_Rate" datatype="short" access="readwrite"/>
-        <property name="current_light" datatype="short" access="readonly" />
+        <property name="current_value" datatype="short" access="readonly" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
     </WuClass>
 
     <WuClass name="Light" id="4" virtual="false" type="hard">
@@ -97,9 +101,9 @@
     </WuClass>
 
     <WuClass name="And_Gate" id="6" virtual="true" type="soft">
-        <property name="output" datatype="boolean" access="readonly" />
         <property name="input1" datatype="boolean" access="readwrite" />
         <property name="input2" datatype="boolean" access="readwrite" />
+        <property name="output" datatype="boolean" access="readonly" />
     </WuClass>
 
 </WuKong>

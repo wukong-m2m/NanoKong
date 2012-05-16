@@ -6,7 +6,7 @@
 extern void wuclass_light_update(wkpf_local_wuobject *wuobject);
 
 uint8_t wuclass_light_properties[] = {
-  WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_RW // WKPF_PROPERTY_LIGHT_ONOFF
+  WKPF_PROPERTY_TYPE_BOOLEAN+WKPF_PROPERTY_ACCESS_READWRITE // WKPF_PROPERTY_LIGHT_ONOFF
 };
 
 wkpf_wuclass_definition wuclass_light = {
