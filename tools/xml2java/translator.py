@@ -22,7 +22,7 @@ class NodeInfo:
   def __repr__(self):
     return '(nodeinfo node %d wuclasses %s wuobjects %s)' % (self.nodeId, str(self.wuClasses), str(self.wuObjects))
   
-def getNodeInfo():
+def getNodeInfos():
   node1 = NodeInfo(nodeId=1,
                    wuClasses=(0, 1, 3, 5), # generic, threshold, numeric_controller, light_sensor
                    wuObjects=(WuObject(portNumber=1, wuClassId=3), WuObject(portNumber=2, wuClassId=5))) # numeric_controller at port 1, light sensor at port 2
