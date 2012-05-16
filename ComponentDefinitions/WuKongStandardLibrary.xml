@@ -23,6 +23,10 @@
         <enum value="DIVIDE"/>
     </WuTypedef>
 
+    <WuClass name="Generic" id="0" virtual="false" type="hard">
+        <property name="dummy" datatype="short" access="readonly" />
+    </WuClass>
+
     <WuClass name="Threshold" id="1" virtual="true" type="soft">
         <property name="operator" datatype="ThresholdOperator" access="readwrite" />
         <property name="value" datatype="short" access="readwrite" />
