@@ -52,7 +52,10 @@ def underscore_to_camel_case(name):
   return ''.join(x.capitalize() or '_' for x in name.split('_'))
 
 def convert_filename_to_c(raw):
-  return CamelCaseToUnderscore(raw)
+  if raw.search('.*_.*') == None:
+    return CamelCaseToUnderscore(raw)
+  else:
+    return raw
 
 def convert_filename_to_java(raw):
   return underscore_to_camel_case(raw)

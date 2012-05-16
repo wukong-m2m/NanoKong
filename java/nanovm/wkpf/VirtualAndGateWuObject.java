@@ -1,6 +1,6 @@
 package nanovm.wkpf;
 
-public class VirtualANDGateWuObject extends GENERATEDVirtualANDGateWuObject {
+public class VirtualAndGateWuObject extends GENERATEDVirtualAndGateWuObject {
     public void update() {
         // TODONR: replace these calls with convenience methods in VirtualWuObject once we get the inheritance issue sorted out.
         boolean in1 = WKPF.getPropertyBoolean(this, IN1);
