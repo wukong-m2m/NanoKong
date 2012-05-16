@@ -6,19 +6,19 @@
 #include "wkpf_wuobjects.h"
 #include "wkpf_properties.h"
 #include "wkpf_links.h"
-#include "GENERATED_wkpf_wuclass_library.h"
+#include "GENERATEDwkpf_wuclass_library.h"
 #include "wkpf_comm.h"
 
 #define WKPF_PROPERTY_TYPE_SHORT         0
 #define WKPF_PROPERTY_TYPE_BOOLEAN       1
 #define WKPF_PROPERTY_TYPE_REFRESH_RATE  2
-#define WKPF_PROPERTY_ACCESS_READONLY        (1 << 7)
-#define WKPF_PROPERTY_ACCESS_WRITEONLY       (1 << 6)
-#define WKPF_PROPERTY_ACCESS_READWRITE          (WKPF_PROPERTY_ACCESS_READONLY+WKPF_PROPERTY_ACCESS_WRITEONLY)
+#define WKPF_PROPERTY_ACCESS_READONLY    (1 << 7)
+#define WKPF_PROPERTY_ACCESS_WRITEONLY   (1 << 6)
+#define WKPF_PROPERTY_ACCESS_READWRITE   (WKPF_PROPERTY_ACCESS_READONLY+WKPF_PROPERTY_ACCESS_WRITEONLY)
 
-#define WKPF_IS_READONLY_PROPERTY(x)     ((~x) & WKPF_PROPERTY_ACCESS_WRITEONLY)
-#define WKPF_IS_WRITEONLY_PROPERTY(x)    ((~x) & WKPF_PROPERTY_ACCESS_READONLY)
-#define WKPF_GET_PROPERTY_DATATYPE(x)    ((x) & ~WKPF_PROPERTY_ACCESS_READWRITE)
+#define WKPF_IS_READONLY_PROPERTY(x)     ((~x) & WKPF_PROPERTY_ACCESS_WRITE)
+#define WKPF_IS_WRITEONLY_PROPERTY(x)    ((~x) & WKPF_PROPERTY_ACCESS_READ)
+#define WKPF_GET_PROPERTY_DATATYPE(x)    ((x) & ~WKPF_PROPERTY_ACCESS_RW)
 
 #define WKPF_OK                                               0
 #define WKPF_ERR_WUOBJECT_NOT_FOUND                           1

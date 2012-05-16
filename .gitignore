@@ -11,3 +11,5 @@ tools/zwave/testrtt
 vm/build/avr_mega2560/nvmdefault.h
 nanokong.tmproj
 .tmtags
+GENERATED*
+*.orig

@@ -1,6 +1,0 @@
-#ifndef WUCLASS_NUMERIC_CONTROLLERH
-#define WUCLASS_NUMERIC_CONTROLLERH
-
-extern wkpf_wuclass_definition wuclass_numeric_controller;
-
-#endif // WUCLASS_NUMERIC_CONTROLLERH
