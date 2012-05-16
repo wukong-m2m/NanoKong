@@ -1,0 +1,42 @@
+<WuKong>
+    <WuTypedef name="ThresholdOperator" type="enum">
+        <enum value="LT"/>
+        <enum value="GT"/>
+        <enum value="LTE"/>
+        <enum value="GTE"/>
+    </WuTypedef>
+
+    <WuClass name="Threshold" id="1" virtual="true" type="soft">
+        <property name="operator" datatype="ThresholdOperator" access="readwrite" />
+        <property name="value" datatype="short" access="readwrite" />
+        <property name="threshold" datatype="short" access="readwrite" />
+        <property name="output" datatype="short" access="readonly" />
+    </WuClass>
+
+    <WuClass name="Temperature sensor" id="2" virtual="false" type="hard">
+        <property name="current temperature" datatype="short" access="readonly" />
+    </WuClass>
+
+    <WuClass name="NumericController" id="3" virtual="false" type="hard">
+        <property name="output" datatype="short" access="readonly" />
+    </WuClass>
+
+    <WuClass name="LightSensor" id="5" virtual="false" type="hard">
+        <property name="refreshRate" datatype="short" access="readwrite"/>
+        <property name="current light" datatype="short" access="readonly" />
+    </WuClass>
+
+    <WuClass name="Light" id="4" virtual="false" type="hard">
+        <property name="onOff" datatype="boolean" access="readwrite" />
+    </WuClass>
+
+    <WuClass name="OccupancySensor" id="0x1005" virtual="true" type="soft">
+        <property name="occupied" datatype="boolean" access="readonly" />
+    </WuClass>
+
+    <WuClass name="AndGate" id="6" virtual="true" type="soft">
+        <property name="output" datatype="boolean" access="readonly" />
+        <property name="in1" datatype="boolean" access="readwrite" />
+        <property name="in2" datatype="boolean" access="readwrite" />
+    </WuClass>
+</WuKong>
