@@ -49,7 +49,7 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
 }
 
 uint8_t wkpf_send_set_property_int16(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, int16_t value) {
-  set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_INT16);
+  set_message_header(port_number, property_number, wuclass_id, WKPF_PROPERTY_TYPE_SHORT);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+0] = (uint8_t)(value >> 8);
   message_buffer[WKFPCOMM_SET_MESSAGE_HEADER_LEN+1] = (uint8_t)(value);
   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
@@ -114,7 +114,7 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_INT16) {
+      if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT) {
         int16_t value;
         retval = wkpf_external_read_property_int16(wuobject, property_number, &value);
         payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
@@ -147,7 +147,7 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
-      if (payload[6] == WKPF_PROPERTY_TYPE_INT16) {
+      if (payload[6] == WKPF_PROPERTY_TYPE_SHORT) {
         int16_t value;
         value = (int16_t)(payload[7]);
         value = (int16_t)(value<<8) + (int16_t)(payload[8]);

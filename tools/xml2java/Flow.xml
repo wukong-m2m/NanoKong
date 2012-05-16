@@ -1,11 +1,11 @@
-<application name="HAScenario">
+<application name="HAScenario2">
 	<component type="Numeric_Controller" instanceId="InputController1">
         <property name="output" default="127"/>
 		<link fromProperty="output" toInstanceId="Threshold1" toProperty="threshold" />		
 	</component>
 	<component type="Light_Sensor" instanceId="LightSensor1">
-        <property name="refresh_Rate" default="5000"/>
-		<link fromProperty="current_light" toInstanceId="Threshold1" toProperty="value">
+        <property name="refresh_rate" default="5000"/>
+		<link fromProperty="current_value" toInstanceId="Threshold1" toProperty="value">
 			<linkProperty type="minChangeFilter" value="2"/> <!-- Can't do the minChange filter yet -->
 		</link>
 	</component>
