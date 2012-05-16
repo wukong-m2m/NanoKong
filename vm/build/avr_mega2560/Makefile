@@ -88,5 +88,7 @@ upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
+generate:
+	../../../tools/python/codegen.py -i ../../../ComponentDefinitions/WuKongStandardLibrary.xml -p ../../..
 
 #include $(OBJS:.o=.d)
