@@ -6,7 +6,7 @@
 extern void wuclass_numeric_controller_update(wkpf_local_wuobject *wuobject);
 
 uint8_t wuclass_numeric_controller_properties[] = {
-  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_RW // WKPF_PROPERTY_NUMERIC_CONTROLLER_OUTPUT
+  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_RW // WKPF_PROPERTY_NUMERIC_CONTROLLER_OUTPUT
 };
 
 wkpf_wuclass_definition wuclass_numeric_controller = {

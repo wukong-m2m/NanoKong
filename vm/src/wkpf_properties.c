@@ -61,14 +61,14 @@ uint8_t wkpf_verify_property(wkpf_local_wuobject *wuobject, uint8_t property_num
 }
 
 uint8_t wkpf_read_property_int16(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, int16_t *value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READ, external_access, WKPF_PROPERTY_TYPE_INT16);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_READ, external_access, WKPF_PROPERTY_TYPE_SHORT);
   if (retval == WKPF_OK)
     return wkpf_read_property(wuobject, property_number, value);
   else
     return retval;
 }
 uint8_t wkpf_write_property_int16(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, int16_t value) {
-  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITE, external_access, WKPF_PROPERTY_TYPE_INT16);
+  uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITE, external_access, WKPF_PROPERTY_TYPE_SHORT);
   if (retval == WKPF_OK)
     return wkpf_write_property(wuobject, property_number, external_access, value);
   else

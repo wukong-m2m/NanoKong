@@ -9,7 +9,7 @@
 #include "GENERATED_wkpf_wuclass_library.h"
 #include "wkpf_comm.h"
 
-#define WKPF_PROPERTY_TYPE_INT16         0
+#define WKPF_PROPERTY_TYPE_SHORT         0
 #define WKPF_PROPERTY_TYPE_BOOLEAN       1
 #define WKPF_PROPERTY_TYPE_REFRESH_RATE  2
 #define WKPF_PROPERTY_ACCESS_READ        (1 << 7)

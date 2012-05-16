@@ -40,7 +40,7 @@ import nanovm.avr.*;
 import nanovm.wkpf.*;
 import nanovm.lang.Math;
 
-public class app {
+public class HAScenario2 {
     public static void main (String[] args) {
         System.out.println("app");
         WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
@@ -91,7 +91,7 @@ public class app {
             WKPF.setPropertyShort((short)0, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127);
         }
         if (WKPF.isLocalComponent((short)1)) {
-            WKPF.setPropertyShort((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)5000);
+            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)5000);
         }
         if (WKPF.isLocalComponent((short)2)) {
             VirtualWuObject wuclassInstanceThreshold = new VirtualThresholdWuObject();

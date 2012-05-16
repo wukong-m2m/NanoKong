@@ -106,7 +106,7 @@ uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, in
           DEBUGF_WKPF("WKPF: propagate_property (local). (%x, %x)->(%x, %x), value %x\n", port_number, property_number, dest_port_number, dest_property_number, value);
           if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
             wkpf_error_code = wkpf_external_write_property_boolean(dest_wuobject, dest_property_number, value);
-          else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_INT16)
+          else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
             wkpf_error_code = wkpf_external_write_property_int16(dest_wuobject, dest_property_number, value);
           else
             wkpf_error_code = wkpf_external_write_property_refresh_rate(dest_wuobject, dest_property_number, value);
@@ -116,7 +116,7 @@ uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, in
         DEBUGF_WKPF("WKPF: propagate_property (remote). (%x, %x)->(%x, %x, %x), value %x\n", port_number, property_number, dest_node_id, dest_port_number, dest_property_number, value);
         if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN)
           wkpf_error_code = wkpf_send_set_property_boolean(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, value);
-        else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_INT16)
+        else if (WKPF_GET_PROPERTY_DATATYPE(src_wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT)
           wkpf_error_code = wkpf_send_set_property_int16(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, value);
         else
           wkpf_error_code = wkpf_send_set_property_refresh_rate(dest_node_id, dest_port_number, dest_property_number, links[i].dest_wuclass_id, value);

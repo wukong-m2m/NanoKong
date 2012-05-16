@@ -1,4 +1,4 @@
-<application name="HAScenario">
+<application name="HAScenario2">
 	<component type="Numeric_Controller" instanceId="InputController1">
         <property name="output" default="127"/>
 		<link fromProperty="output" toInstanceId="Threshold1" toProperty="threshold" />		

@@ -6,7 +6,7 @@
 extern void wuclass_generic_update(wkpf_local_wuobject *wuobject);
 
 uint8_t wuclass_generic_properties[] = {
-  WKPF_PROPERTY_TYPE_INT16+WKPF_PROPERTY_ACCESS_READ,
+  WKPF_PROPERTY_TYPE_SHORT+WKPF_PROPERTY_ACCESS_READ,
 };
 
 wkpf_wuclass_definition wuclass_generic = {
