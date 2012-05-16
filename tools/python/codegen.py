@@ -72,7 +72,7 @@ component_tree = etree.parse(component_library)
 component_root = component_tree.getroot()
 wuclasses = component_root.xpath("WuClass")
 wutypedefs = component_root.xpath("WuTypedef")
-wutypedefs_hash = {}
+wutypedefs_hash = []
 
 # Boilerplate for Java global constants file
 global_virtual_constants_lines.append('''
@@ -84,7 +84,7 @@ global_virtual_constants_lines.append('''
 # Parsing to WuKong Profile Framework Component Library header
 typeind = len(wuclasses)
 for wutypedef in wutypedefs:
-  wutypedefs_hash[convert_constant(wutypedef.get("name"))] = typeind
+  wutypedefs_hash.append(convert_constant(wutypedef.get("name")))
 
   # Generate global header typedef definition for VM
   for item in wutypedef:
@@ -156,6 +156,9 @@ for wuclass in wuclasses:
       datatype = convert_constant(property.get("datatype"))
       access = convert_constant(property.get("access"))
 
+      print "datatype is", datatype
+      print wutypedefs_hash
+
       if datatype in wutypedefs_hash: 
         datatype = "SHORT"
       line = "WKPF.PROPERTY_TYPE_" + datatype + "|WKPF.PROPERTY_ACCESS_" + access
@@ -199,18 +202,21 @@ for wuclass in wuclasses:
 
   #ifdef ENABLE_WUCLASS_%s
 
-  extern void wuclass_light_update(wkpf_local_wuobject *wuobject);
+  extern void wuclass_%s_update(wkpf_local_wuobject *wuobject);
 
   uint8_t wuclass_%s_properties[] = {
   ''' % (
           convert_constant(wuclass.get("name")),
           convert_filename_to_c(wuclass.get("name")),
+          convert_filename_to_c(wuclass.get("name")),
         ))
 
   for ind, property in enumerate(properties):
-    datatype = property.get("datatype").upper().replace(' ', '_')
-    access = property.get("access").upper().replace(' ', '_')
-    if datatype in wutypedefs_hash: datatype = "SHORT"
+    datatype = convert_constant(property.get("datatype"))
+    access = convert_constant(property.get("access"))
+
+    if datatype in wutypedefs_hash:
+      datatype = "SHORT"
     line = "WKPF_PROPERTY_TYPE_" + datatype + "+WKPF_PROPERTY_ACCESS_" + access
     if ind < len(properties)-1:
       line += ","
