@@ -27,7 +27,7 @@ public class GENERATEDWKPF {
 
   public static final short WUCLASS_LIGHT_SENSOR                               = 5;
   public static final byte PROPERTY_LIGHT_SENSOR_CURRENT_VALUE                 = 0;
-  public static final byte PROPERTY_LIGHT_SENSOR_REFRESH_RATE                 = 1;
+  public static final byte PROPERTY_LIGHT_SENSOR_REFRESH_RATE                  = 1;
 
   public static final short WUCLASS_AND_GATE                                   = 6;
   public static final byte PROPERTY_AND_GATE_IN1                               = 0;
