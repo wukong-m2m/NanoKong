@@ -28,7 +28,6 @@
 
 #include "types.h"
 #include "config.h"
-
 #ifdef UNIX
 #include <unistd.h>
 
@@ -48,11 +47,12 @@
 //#define nop() ({__asm__ __volatile__ ("nop\n\t":);})
 
 /* nop/1, subi/1, sbc/1, sbc/1, sbc/1, brcc/2 -> 7 clocks */
+static inline void delay(u32_t delay) __attribute__((always_inline)); 
 static inline void delay(u32_t delay_cnt) {
-  while(delay_cnt--) {__asm__ __volatile__ ("nop\n\t":);}
+  while(delay_cnt--) {__asm__ __volatile__ ("nop\n\t");}
 }
 
 #endif // nAVR
-#endif // nUNIX
+#endif // UNIX
 
 #endif // DELAY_H
