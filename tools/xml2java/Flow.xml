@@ -11,11 +11,11 @@
 	</component>
 	<component type="Threshold" instanceId="Threshold1">
 		<property name="operator" default="LTE"/>
-		<link fromProperty="output" toInstanceId="AndGate1" toProperty="in1" />
+		<link fromProperty="output" toInstanceId="AndGate1" toProperty="input1" />
 	</component>
 	<component type="Occupancy_Sensor" instanceId="Occupancy1">
         <property name="occupied" default="true"/>
-		<link fromProperty="occupied" toInstanceId="AndGate1" toProperty="in2" />
+		<link fromProperty="occupied" toInstanceId="AndGate1" toProperty="input2" />
 	</component>
 	<component type="And_Gate" instanceId="AndGate1">
 		<link fromProperty="output" toInstanceId="Light1" toProperty="on_Off" />
