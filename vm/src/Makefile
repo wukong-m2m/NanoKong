@@ -63,3 +63,5 @@ upload-%: $(ROOT_DIR)/java/examples/%.java
 
 %.d:$(NVM_DIR)/%.c
 	$(DEP-GEN-CMD)
+
+.PHONY : generate

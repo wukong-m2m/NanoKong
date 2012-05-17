@@ -11,6 +11,8 @@ PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 
+XML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
+
 # general GCC compiler flags
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
 
@@ -53,7 +55,7 @@ endef
 	$(DEP-GEN-CMD)
 
 # avr specific entries
-%.elf: $(OBJS)
+%.elf: generate $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	avr-size -A $@
 
@@ -88,7 +90,9 @@ upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
-generate:
-	../../../tools/python/codegen.py -i ../../../ComponentDefinitions/WuKongStandardLibrary.xml -p ../../..
+generate: $(XML_PATH)
+	$(ROOT_DIR)/tools/python/codegen.py -i $(XML_PATH) -p $(ROOT_DIR)
 
 #include $(OBJS:.o=.d)
+
+.PHONY : generate
