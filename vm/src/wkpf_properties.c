@@ -4,15 +4,16 @@
 #include "wkpf.h"
 #include "wkpf_properties.h"
 
-#define DIRTY_STATE_CLEAN     0
-#define DIRTY_STATE_DIRTY     1
-#define DIRTY_STATE_FAILED    2
+#define PROPERTY_STATE_CLEAN        0
+#define PROPERTY_STATE_DIRTY        1 // Property has changed and needs to be propagated
+#define PROPERTY_STATE_UNINIT       2 // Property has incoming link and hasn't been initialised yet. Need to fetch value from source WuObject
+#define PROPERTY_STATE_FAILED       4
 
 typedef struct property_entry_struct {
   uint8_t wuobject_port_number;
   uint8_t property_number;
   int16_t value;
-  uint8_t dirty_state;
+  uint8_t PROPERTY_STATE;
 } property_entry;
 
 #define MAX_NUMBER_OF_PROPERTIES 100
@@ -35,7 +36,7 @@ uint8_t wkpf_write_property(wkpf_local_wuobject *wuobject, uint8_t property_numb
       DEBUGF_WKPF("WKPF: write_property: (index %x port %x, property %x): %x->%x\n", i, wuobject->port_number, property_number, properties[i].value, value);
       if (properties[i].value != value) {
         properties[i].value = value;
-        properties[i].dirty_state = DIRTY_STATE_DIRTY;
+        properties[i].PROPERTY_STATE = PROPERTY_STATE_DIRTY;
         if (external_access) // Only call update() when someone else writes to the property, not for internal writes (==writes that are already coming from update())
           wkpf_set_need_to_call_update_for_wuobject(wuobject);
       }
@@ -124,7 +125,7 @@ uint8_t wkpf_alloc_properties_for_wuobject(wkpf_local_wuobject *wuobject) {
     properties[number_of_properties+i].wuobject_port_number = wuobject->port_number;
     properties[number_of_properties+i].property_number = i;
     properties[number_of_properties+i].value = 0;
-    properties[number_of_properties+i].dirty_state = DIRTY_STATE_DIRTY;
+    properties[number_of_properties+i].PROPERTY_STATE = PROPERTY_STATE_DIRTY;
   }
   number_of_properties += wuobject->wuclass->number_of_properties;
   DEBUGF_WKPF("WKPF: Allocated %x properties for wuobject at port %x. number of properties is now %x\n", wuobject->wuclass->number_of_properties, wuobject->port_number, number_of_properties);
@@ -151,10 +152,10 @@ bool wkpf_any_property_dirty() {
   // This will be called from the native select() function. Mark updates that have failed as dirty again to give them another chance.
   bool dirty = FALSE;
   for (int i=0; i<number_of_properties; i++) {
-    if (properties[i].dirty_state == DIRTY_STATE_DIRTY)
+    if (properties[i].PROPERTY_STATE == PROPERTY_STATE_DIRTY)
       dirty = TRUE;
-    if (properties[i].dirty_state == DIRTY_STATE_FAILED)
-      properties[i].dirty_state = DIRTY_STATE_DIRTY;
+    if (properties[i].PROPERTY_STATE == PROPERTY_STATE_FAILED)
+      properties[i].PROPERTY_STATE = PROPERTY_STATE_DIRTY;
   }
   return dirty;
 }
@@ -167,12 +168,12 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
 
   do {
     i = (i+1) % number_of_properties;
-    if (properties[i].dirty_state == DIRTY_STATE_DIRTY) {
+    if (properties[i].PROPERTY_STATE == PROPERTY_STATE_DIRTY) {
       last_returned_dirty_property_index = i;
       *port_number = properties[i].wuobject_port_number;
       *property_number = properties[i].property_number;
       *value = properties[i].value;
-      properties[i].dirty_state = DIRTY_STATE_CLEAN;
+      properties[i].PROPERTY_STATE = PROPERTY_STATE_CLEAN;
 //      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, ((uint16_t)properties[i].wuobject_port_number)<<8 | properties[i].property_number);
       return TRUE;
     }
@@ -186,7 +187,7 @@ void wkpf_propagating_dirty_property_failed(uint8_t port_number, uint8_t propert
     if (properties[i].wuobject_port_number == port_number
         && properties[i].property_number == property_number)
       // Mark them as failed and not as dirty again to prevent endless retries. Now we wait until the next call to update() which will be some time later as long as we have the main loop in Java.
-      properties[i].dirty_state = DIRTY_STATE_FAILED;
+      properties[i].PROPERTY_STATE = PROPERTY_STATE_FAILED;
   }
 }
 
