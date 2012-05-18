@@ -2,7 +2,7 @@
 #include "types.h"
 #include "debug.h"
 #include "heap.h"
-#include "avr/native_avr.h"
+#include "delay.h"
 #include "wkpf.h"
 #include "wkpf_wuobjects.h"
 #include "wkpf_properties.h"
@@ -121,13 +121,13 @@ bool wkpf_get_next_wuobject_to_update(wkpf_local_wuobject **virtual_wuobject) {
   int i = last_updated_wuobject_index;
   do {
     i = (i+1) % number_of_wuobjects;
-    if ((wuobjects[i].next_scheduled_update > 0 && wuobjects[i].next_scheduled_update < avr_currentTime)
+    if ((wuobjects[i].next_scheduled_update > 0 && wuobjects[i].next_scheduled_update < nvm_current_time)
         || wuobjects[i].need_to_call_update) {
       wkpf_local_wuobject *wuobject = &wuobjects[i];
       // Clear the flag if it was set
       wuobject->need_to_call_update = FALSE;
       // If update has to be called because it's scheduled, schedule the next call
-      if (wuobject->next_scheduled_update > 0 && wuobject->next_scheduled_update < avr_currentTime) {
+      if (wuobject->next_scheduled_update > 0 && wuobject->next_scheduled_update < nvm_current_time) {
         wkpf_schedule_next_update_for_wuobject(wuobject);
       }
       // Call directly for native wuobjects, or return virtual wuobject so WKPF.select() can return it to Java
@@ -166,8 +166,8 @@ void wkpf_schedule_next_update_for_wuobject(wkpf_local_wuobject *wuobject) {
       if (refresh_rate == 0) // 0 means turned off
         wuobject->next_scheduled_update = 0;
       else
-        wuobject->next_scheduled_update = avr_currentTime + refresh_rate;
-      DEBUGF_WKPFUPDATE("WKPFUPDATE: Scheduled next update for object at port %x. Refresh rate:%x Current time:%08lx Next update at:%08lx\n", wuobject->port_number, refresh_rate, avr_currentTime, wuobject->next_scheduled_update);
+        wuobject->next_scheduled_update = nvm_current_time + refresh_rate;
+      DEBUGF_WKPFUPDATE("WKPFUPDATE: Scheduled next update for object at port %x. Refresh rate:%x Current time:%08lx Next update at:%08lx\n", wuobject->port_number, refresh_rate, nvm_current_time, wuobject->next_scheduled_update);
       return;
     }
   }
