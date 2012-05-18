@@ -2,6 +2,7 @@
 #include "nvmcomm.h"
 #include "wkpf.h"
 #include "debug.h"
+#include "delay.h"
 
 #define WKFPCOMM_SET_MESSAGE_HEADER_LEN 7
 
@@ -30,12 +31,11 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
   if(nvmcomm_send(dest_node_id, command, message_buffer, length) != 0)
     return WKPF_ERR_NVMCOMM_SEND_ERROR;
   // Wait for a reply
-  uint8_t maxMessageDiscard = 10; // TODONR: once we have a proper timer, change this to a 100ms timeout
-  while(maxMessageDiscard-- > 0) {
+  uint32_t timeout = nvm_current_time + 100;
+  while(nvm_current_time < timeout) {
     nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){command+1 /* the reply to this command */, NVMCOMM_WKPF_ERROR_R}, 2);
-    if(reply == NULL)
-      return WKPF_ERR_NVMCOMM_NO_REPLY;
-    if (reply->payload[0] == message_buffer[0]
+    if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
+          && reply->payload[0] == message_buffer[0]
           && reply->payload[1] == message_buffer[1]) {
       // This message a reply to our last sent message
       if(reply->command != NVMCOMM_WKPF_ERROR_R)
@@ -43,7 +43,6 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
       else
         return reply->payload[2]; // the WKPF error code sent by the other node.
     }
-    // An old message was received: the right type, but not the reply to our last sent message
   }
   return WKPF_ERR_NVMCOMM_NO_REPLY; // Give up
 }
