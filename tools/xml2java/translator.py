@@ -177,7 +177,7 @@ def parser():
             print>>out_fd, "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
     if print_links: print>>out_fd, "//"
 
-    return java_class_name, wuClasses_dict, components_dict, indentor(link_table_str,1)
+    return java_class_name, wuClasses_dict, components_dict, indentor(link_table_str,1), out_dir
 
     # components_dict[instanceName] = {
     #   'cmpid': component's ID, 
@@ -352,9 +352,9 @@ public class {{ CLASS_NAME }} {
 
     print>>out_fd, "//========== Code =========="
     print>>out_fd, rendered_tpl
-    print "The file %s.java is generated on the path %s" % (java_class_name, os.getcwd())
 
 if __name__ == "__main__":
-    java_class_name, wuClasses_dict, components_dict, links_table = parser()
+    java_class_name, wuClasses_dict, components_dict, links_table, out_dir = parser()
     map_table, comp_init = mapper(wuClasses_dict, components_dict)
     javacodegen(links_table, map_table, comp_init, java_class_name)
+    print "Translator msg: the file %s.java generated is on the path %s" % (java_class_name, out_dir)

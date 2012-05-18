@@ -55,7 +55,7 @@ endef
 	$(DEP-GEN-CMD)
 
 # avr specific entries
-%.elf: generate $(OBJS)
+%.elf: generate translate $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	avr-size -A $@
 
@@ -92,6 +92,9 @@ upload_bootloader:
   
 generate: $(XML_PATH)
 	$(ROOT_DIR)/tools/python/codegen.py -i $(XML_PATH) -p $(ROOT_DIR)
+
+translate: $(XML_PATH) $(ROOT_DIR)/tools/xml2java/Flow.xml $(ROOT_DIR)/tools/xml2java/translator.py
+	$(ROOT_DIR)/tools/xml2java/translator.py -c $(XML_PATH) -f $(ROOT_DIR)/tools/xml2java/Flow.xml -o $(ROOT_DIR)/java/examples
 
 #include $(OBJS:.o=.d)
 
