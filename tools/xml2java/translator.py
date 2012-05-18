@@ -1,86 +1,112 @@
 #!/usr/bin/python
 
+# Translator convert the flow of WuKong components and their definitions into one application Java file
+#
+# Author: B.L.Tsai
+# Date: May 18, 2012
+
+import os
 from xml.dom.minidom import parse
 from optparse import OptionParser
 from jinja2 import Template
 from struct import pack
 from operator import itemgetter
 
+print_wuClasses = False
+print_Components = True
+print_links = True
+out_fd = None
 
 class WuObject: # will come from wkpf.py in the future
-  def __init__(self, portNumber, wuClassId):
-    self.portNumber = portNumber
-    self.wuClassId = wuClassId
-  def __repr__(self):
-    return '(wuobject port %d wuclass %d)' % (self.portNumber, self.wuClassId)
+    def __init__(self, portNumber, wuClassId):
+        self.portNumber = portNumber
+        self.wuClassId = wuClassId
+    def __repr__(self):
+        return '(wuobject port %d wuclass %d)' % (self.portNumber, self.wuClassId)
 
 class NodeInfo:
-  def __init__(self, nodeId, wuClasses, wuObjects):
-    self.nodeId = nodeId
-    self.wuClasses = wuClasses
-    self.wuObjects = wuObjects
-  def __repr__(self):
-    return '(nodeinfo node %d wuclasses %s wuobjects %s)' % (self.nodeId, str(self.wuClasses), str(self.wuObjects))
-  
+    def __init__(self, nodeId, wuClasses, wuObjects):
+        self.nodeId = nodeId
+        self.wuClasses = wuClasses
+        self.wuObjects = wuObjects
+    def __repr__(self):
+        return '(nodeinfo node %d wuclasses %s wuobjects %s)' % (self.nodeId, str(self.wuClasses), str(self.wuObjects))
+
 def getNodeInfos():
-  node1 = NodeInfo(nodeId=1,
-                   wuClasses=(0, 1, 3, 5), # generic, threshold, numeric_controller, light_sensor
-                   wuObjects=(WuObject(portNumber=1, wuClassId=3), WuObject(portNumber=2, wuClassId=5))) # numeric_controller at port 1, light sensor at port 2
-  node3 = NodeInfo(nodeId=3,
-                   wuClasses=(0, 1, 4), # generic, threshold, numeric_controller, light_sensor
-                   wuObjects=(WuObject(portNumber=4, wuClassId=4))) # light at port 4
-  return (node1, node3)
+    node1 = NodeInfo(nodeId=1,
+                wuClasses=(0, 1, 3, 5), # generic, threshold, numeric_controller, light_sensor
+                wuObjects=(WuObject(portNumber=0, wuClassId=0),WuObject(portNumber=1, wuClassId=3), WuObject(portNumber=2, wuClassId=5))
+            ) # numeric_controller at port 1, light sensor at port 2
+    node3 = NodeInfo(nodeId=3,
+                wuClasses=(0, 1, 4), # generic, threshold, light
+                wuObjects=(WuObject(portNumber=0, wuClassId=0),WuObject(portNumber=4, wuClassId=4),)
+            ) # light at port 4
+    return (node1, node3)
 
 def indentor(s, num):
     return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
 
 
 def parser():
-    parser = OptionParser("usage: %prog [options] arg")
+    parser = OptionParser("usage: %prog [options]")
     parser.add_option("-c", "--component", action="store", type="string", dest="pathc", help="WuKong Component XML file path")
     parser.add_option("-f", "--flow", action="store", type="string", dest="pathf", help="WuKong Flow XML file path")
+    parser.add_option("-o", "--output-path", action="store", type="string", dest="out", help="the dest. folder path of output java file")
     (options, args) = parser.parse_args()
-    if not options.pathc or not options.pathf:
-        parser.error("invalid component and flow xml, please refer to -h for help")
+    if not options.pathc or not options.pathf: parser.error("invalid component and flow xml, please refer to -h for help")
+
     c_dom = parse(options.pathc)
     f_dom = parse(options.pathf)
+    java_class_name = f_dom.getElementsByTagName('application')[0].getAttribute('name')
+    out_dir = options.out
+    if not out_dir: out_dir = os.getcwd()
+    assert os.path.exists(out_dir), "Error! the specified output directory does not exist."
+    global out_fd
+    out_fd = open(os.path.join(out_dir, java_class_name+".java"), 'w')
    
-    ## First, parse out WuClasse definitions with additional self-defined property types
+    ## First, parse out WuClasse definitions with additional customized property types
     path = options.pathc
     wuTypedefs_dict = {}
     for wuTypedef in c_dom.getElementsByTagName('WuTypedef'):
         tmp_typedef_dict = {}
         if wuTypedef.getAttribute('type') == u'enum':
             for enum in wuTypedef.getElementsByTagName('enum'):
-                tmp_typedef_dict[enum.getAttribute('value')] = 'ENUM_!_' + enum.getAttribute('value').upper()
+                tmp_typedef_dict[enum.getAttribute('value')] = 'WKPF.ENUM_%s_' + enum.getAttribute('value').upper()
         assert len(tmp_typedef_dict) > 0, 'Error! unclear wuTypedef %s in xml %s' % (wuTypedef.getAttribute('name'), path)
         wuTypedefs_dict[wuTypedef.getAttribute('name')] = tmp_typedef_dict
     
-    print "//========== WuClass Definitions =========="
+    if print_wuClasses: print>>out_fd, "//========== WuClass Definitions =========="
     wuClasses_dict = {}
     truefalse_dict = {u'true':True, u'false':False, u'soft':True, u'hard':False}
+    tmp_access_dict = {u'readwrite':'rw', u'readonly':'ro', u'writeonly':'wo'}
     for wuClass in c_dom.getElementsByTagName('WuClass'):
+        wuClassName = wuClass.getAttribute('name')
+        wuClassId = int(wuClass.getAttribute('id'),0)
         tmp_prop_dict = {}
-        tmp_access_dict = {u'readwrite':'rw', u'readonly':'ro', u'writeonly':'wo'}
-        i = 0
-        for prop in wuClass.getElementsByTagName('property'):
+        for i, prop in enumerate(wuClass.getElementsByTagName('property')):
             prop_type = prop.getAttribute('datatype')
+            prop_name = prop.getAttribute('name')
+            # if the property is customized
             if prop_type in wuTypedefs_dict:
                 prop_type = wuTypedefs_dict[prop_type]
-            tmp_prop_dict[prop.getAttribute('name')] = {'id':i, 'type':prop_type, 'access':tmp_access_dict[prop.getAttribute('access')]}
-            i += 1
-        assert len(tmp_prop_dict) > 0, 'Error! no property found in wuClass %s in xml %s' % (wuClass.getAttribute('name'), path)
-        wuClasses_dict[wuClass.getAttribute('name')] = {'id':int(wuClass.getAttribute('id'),0), 'prop':tmp_prop_dict, 'vrtl':truefalse_dict[wuClass.getAttribute('virtual')],'soft':truefalse_dict[wuClass.getAttribute('type')]}
-        print "//", wuClass.getAttribute('name'), wuClasses_dict[wuClass.getAttribute('name')]
-    print "//"
+                # since we know the customized property's name, update the const. str.
+                for enum_value, enum_str in prop_type.items():
+                    prop_type[enum_value] = enum_str % (wuClassName.upper()+"_"+prop_name.upper())
+            tmp_prop_dict[prop_name] = {'id':i, 'type':prop_type, 'access':tmp_access_dict[prop.getAttribute('access')]}
+        assert len(tmp_prop_dict) > 0, 'Error! no property found in wuClass %s in xml %s' % (wuClassName, path)
+        wuClasses_dict[wuClassName] = {'id':wuClassId, 'prop':tmp_prop_dict, 'vrtl':truefalse_dict[wuClass.getAttribute('virtual')],'soft':truefalse_dict[wuClass.getAttribute('type')]}
+        assert wuClassId not in wuClasses_dict, "Error! wuClass %s's id % conflict with wuClass %s in xml %s" % (wuClassName, wuClassId, wuClasses_dict[wuClassId], path)
+        wuClasses_dict[wuClassId] = wuClassName
+        if print_wuClasses: print>>out_fd, "//", wuClassName, wuClasses_dict[wuClassName]
+    if print_wuClasses: print>>out_fd, "//"
 
-    wuTypedefs_dict = tmp_prop_dict = tmp_access_dict = tmp_typedef_dict = {}
+    wuTypedefs_dict = tmp_prop_dict = tmp_access_dict = tmp_typedef_dict = c_dom = {}
 
     # wuClasses_dict [ wuClass' name ] = { 
     #   'id' : wuClass ID
     #   'prop' : wuClass' properties
     #            {'id' : property's ID, 'type' : u'short' or u'boolean' or enum's dict[enum's value] , 'access': 'rw' or 'ro' or 'wo'}
-    #   'vrtu' : true or false (whether wuClass is virtual or not)
+    #   'vrtl' : true or false (whether wuClass is virtual or not)
     #   'soft' : true (soft) or false (hard)
     # }
 
@@ -91,12 +117,11 @@ def parser():
         return tmp_prop_dict[prop_name]
 
     ## Second, parse out components (wuClass instances) and links btwn components
-    print "//========== Components Definitions =========="
+    if print_Components: print>>out_fd, "//========== Components Definitions =========="
     components_dict = {}
     links_list = []
-    i = 0
     path = options.pathf
-    for component in f_dom.getElementsByTagName('component'):
+    for i, component in enumerate(f_dom.getElementsByTagName('component')):
         wuClassName = component.getAttribute('type')
         instanceName = component.getAttribute('instanceId')
 
@@ -106,7 +131,7 @@ def parser():
             prop_type = findProperty(prop_name, wuClasses_dict, wuClassName, path)['type']
             prop_dflt_value = prop.getAttribute('default')
             if type(prop_type) is dict:
-                prop_dflt_value = prop_type[prop_dflt_value].replace('!',wuClassName.upper()+"_"+prop_name.upper())    # it becomes type str
+                prop_dflt_value = prop_type[prop_dflt_value]    # it becomes type str
             elif prop_type == u'short':
                 prop_dflt_value = int(prop_dflt_value,0)
             elif prop_type == u'boolean':
@@ -118,39 +143,41 @@ def parser():
             tmp_dflt_list += [(prop_name, prop_dflt_value)]
 
         components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list }
-        i += 1
-        print "//", instanceName, components_dict[instanceName]
+        if print_Components: print>>out_fd, "//", i, instanceName, components_dict[instanceName]
 
         for link in component.getElementsByTagName('link'):
             toInstanceName = link.getAttribute('toInstanceId')
             links_list += [ (instanceName, link.getAttribute('fromProperty'), toInstanceName, link.getAttribute('toProperty'), toInstanceName) ]
-    print "//"
+    if print_Components: print>>out_fd, "//"
 
     def short2byte(i): return [ord(b) for b in pack("H", i)]
 
     ## Finally, check the validity of links and output as a string
-    print "//========== Links Definitions =========="
+    if print_links: 
+        print>>out_fd, "//========== Links Definitions =========="
+        print>>out_fd, "// fromCompInstanceId(2 bytes), fromPropertyId(1 byte), toCompInstanceId(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)"
     link_table_str = ''
     for link in links_list:
         assert link[2] in components_dict, 'Error! cannot find target component %s linked from component %s in xml %s' % (link[2], link[0])
    
         fromInstanceId = short2byte(components_dict[ link[0] ]['cmpid'])
         fromPropertyId = findProperty(link[1], wuClasses_dict, components_dict[ link[0] ]['class'], path)['id']
-        link_table_str += "(byte)%d, (byte)%d, " % (fromInstanceId[0], fromInstanceId[1])
-        link_table_str += "(byte)%d,\n" % fromPropertyId
+        link_table_str += "(byte)%d,(byte)%d, " % (fromInstanceId[0], fromInstanceId[1])
+        link_table_str += "(byte)%d,  " % fromPropertyId
 
         toInstanceId = short2byte(components_dict[ link[2] ]['cmpid'])
         toPropertyId = findProperty(link[3], wuClasses_dict, components_dict[ link[2] ]['class'], path)['id']
-        link_table_str += "(byte)%d, (byte)%d, " % (toInstanceId[0], toInstanceId[1])
-        link_table_str += "(byte)%d,\n" % toPropertyId
+        link_table_str += "(byte)%d,(byte)%d, " % (toInstanceId[0], toInstanceId[1])
+        link_table_str += "(byte)%d,  " % toPropertyId
 
         wuClassId = short2byte(components_dict[ link[4] ]['classid'])
         link_table_str += "(byte)%d, (byte)%d,\n" % (wuClassId[0], wuClassId[1])
-        print "//", link
-        print "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
-    print "//"
+        if print_links: 
+            print>>out_fd, "//", link
+            print>>out_fd, "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
+    if print_links: print>>out_fd, "//"
 
-    return wuClasses_dict, components_dict, indentor(link_table_str,1)
+    return java_class_name, wuClasses_dict, components_dict, indentor(link_table_str,1)
 
     # components_dict[instanceName] = {
     #   'cmpid': component's ID, 
@@ -160,94 +187,107 @@ def parser():
     # }
 
 def mapper(wuClasses_dict, components_dict):
+    # find nodes
+    node_list = getNodeInfos()
+    hard_dict = {}
+    soft_dict = {}
+    node_port_dict = {}
+    for node in node_list:
+        for wuObject in node.wuObjects:
+            assert wuObject.wuClassId in node.wuClasses, 'Error! the wuClass of wuObject %s does not exist on node %d' % (wuObject, node.nodeId)
+            if node.nodeId in node_port_dict:
+                node_port_dict[node.nodeId] = sorted(node_port_dict[node.nodeId] + [wuObject.portNumber])
+            else:
+                node_port_dict[node.nodeId] = [wuObject.portNumber]
 
-    ## TODO: find nodes
-    # ?
+            if wuObject.wuClassId in hard_dict:
+                hard_dict[wuObject.wuClassId] += [(node.nodeId, wuObject.portNumber)]
+            else:
+                hard_dict[wuObject.wuClassId] = [(node.nodeId, wuObject.portNumber)]
 
-    ## TODO: find wuClassList
-    # wkpf.getWuClassList(nodeId)
+        for wuClassId in node.wuClasses:
+            wuClass = wuClasses_dict[wuClasses_dict[wuClassId]]
+            if wuClass['soft']:
+                if wuClassId in soft_dict:
+                    soft_dict[wuClassId] += [(node.nodeId, False)] # (nodeId, virtual?) for now, assumed all to be native
+                else:
+                    soft_dict[wuClassId] = [(node.nodeId, False)] # (nodeId, virtual?) for now, assumed all to be native
 
-    ## TODO: find wuObjectList
-    # wkpf.getWuObjectList(nodeId)
+    components_list = sorted(components_dict.values(), key=itemgetter('cmpid'))
 
     ## TODO: define mapping algorithm & generate mapping table
-    # def get():
-    map_table_str = """
-(byte)1, (byte)0x1, // Component 0: input controller    @ node 1, port 1
-(byte)1, (byte)0x2, // Component 1: light sensor        @ node 1, port 2
-(byte)3, (byte)0x3, // Component 2: threshold           @ node 3, port 3
-(byte)1, (byte)0x5, // Component 3: occupancy           @ node 1, port 5
-(byte)3, (byte)0x5, // Component 4: and gate            @ node 3, port 5
-(byte)3, (byte)0x4, // Component 5: light               @ node 3, port 4
-    """
+    map_table_str = ""
 
     ## generate WKPF initialization statements
+    reg_func_call = "WKPF.registerWuClass(WKPF.WUCLASS_%s, GENERATEDVirtual%sWuObject.properties);\n"
+    create_obj_call = "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent((short)%d), %s);\n" 
+    set_prop_call = "WKPF.setProperty%s((short)%d, WKPF.PROPERTY_%s_%s, %s);\n" 
     reg_stmts = ''
     init_stmts = ''
-    for component in sorted(components_dict.values(), key=itemgetter('cmpid')):
+
+    for component in components_list:
         wuClassName = component['class']
         wuClass = wuClasses_dict[wuClassName]
         wuClassName = wuClassName.replace(' ', '_')
         cmpId = component['cmpid']
         if_stmts = ''
-        if wuClass['vrtl']: # is virtual?   # TODO: and not found in network
-            reg_stmts += "WKPF.registerWuClass(WKPF.WUCLASS_%s, GENERATEDVirtual%sWuObject.properties);\n" % (wuClassName.upper(),wuClassName.replace('_',''))
-            if_stmts += "VirtualWuObject wuclassInstance%s = new Virtual%sWuObject();\n" % (wuClassName, wuClassName.replace('_', ''))
-            if_stmts += "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent((short)%d), wuclassInstance%s);\n" % (wuClassName.upper(),cmpId,wuClassName)
-        elif wuClass['soft']: # is soft?
-            if_stmts += "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent((short)%d), null);\n" % (wuClassName.upper(),cmpId)
 
-        for item in component['defaults']:
-            prop_type = type(item[1])
-            if prop_type is int:
-                if_stmts += "WKPF.setPropertyShort((short)%d, WKPF.PROPERTY_%s_%s, (short)%d);\n" % (cmpId, wuClassName.upper(),item[0].upper(), item[1])
-            elif prop_type is bool:
-                if_stmts += "WKPF.setPropertyBoolean((short)%d, WKPF.PROPERTY_%s_%s, %s);\n" % (cmpId, wuClassName.upper(),item[0].upper(), str(item[1]).lower()) 
-            elif prop_type is unicode:
-                if_stmts += "WKPF.setPropertyShort((short)%d, WKPF.PROPERTY_%s_%s, WKPF.%s);\n" % (cmpId, wuClassName.upper(),item[0].upper(), item[1])
-            elif prop_type is tuple and item[1][0] == 'r':
-                if_stmts += "WKPF.setPropertyRefreshRate((short)%d, WKPF.PROPERTY_%s_%s, (short)%d);\n" % (cmpId, wuClassName.upper(),item[0].upper(), item[1][1])
+        if wuClass['soft']: # it is a soft component
+            if wuClass['id'] in soft_dict:
+                soft_component = soft_dict[wuClass['id']][0]
+                # pick the first
+                port_list = node_port_dict[soft_component[0]]
+                vrtlflag = soft_component[1]
             else:
-                assert False, 'Error! property %s of unknown type %s' % (item[0].upper(), prop_type)
+                port_list = node_port_dict.itervalues().next()
+                vrtlflag = True
+            port_num = None
+            for i in range(len(port_list)+1):
+                if i not in port_list:
+                    port_list += [i]
+                    port_list.sort()
+                    port_num = i
+                    break
+            assert port_num != None, "Error! cannot find an unique port number"
+            map_table_str += "(byte)%d, (byte)%d, \n" % (soft_component[0], port_num)
+            if vrtlflag: # if it is virtual?
+                reg_stmts += reg_func_call % (wuClassName.upper(), wuClassName.replace('_',''))
+                wuClassInstVar = "wuclassInstance%s" % wuClassName
+                if_stmts += "VirtualWuObject %s = new Virtual%sWuObject();\n" % (wuClassInstVar, wuClassName.replace('_', ''))
+                if_stmts += create_obj_call % (wuClassName.upper(), cmpId, wuClassInstVar)
+            else:
+                if_stmts += create_obj_call % (wuClassName.upper(), cmpId, "null")
+        else: # it is a hard component
+            hard_component = hard_dict[wuClass['id']][0]
+            map_table_str += "(byte)%d, (byte)%d, \n" % (hard_component[0], hard_component[1])
 
-        init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1))
+        # set default values
+        for prop_name, prop_value in component['defaults']:
+            prop_type = type(prop_value)
+            if prop_type is int:
+                if_stmts += set_prop_call % ("Short", cmpId, wuClassName.upper(), prop_name.upper(), "(short)"+str(prop_value))
+            elif prop_type is bool:
+                if_stmts += set_prop_call % ("Boolean", cmpId, wuClassName.upper(), prop_name.upper(), str(prop_value).lower()) 
+            elif prop_type is unicode:
+                if_stmts += set_prop_call % ("Short", cmpId, wuClassName.upper(),prop_name.upper(), prop_value)
+            elif prop_type is tuple and prop_value[0] == 'r':
+                if_stmts += set_prop_call % ("RefreshRate", cmpId, wuClassName.upper(),prop_name.upper(), "(short)"+str(prop_value[1]))
+            else:
+                assert False, 'Error! property %s of unknown type %s' % (prop_name.upper(), prop_type)
 
-    return indentor(map_table_str, 1), (reg_stmts, init_stmts)
+        init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1)) if if_stmts != '' else '// no need to init component %d' % cmpId
+
+    return indentor(map_table_str, 1), reg_stmts + init_stmts
 
 
-def javacodegen(link_table, map_table, comp_init):
-    tpl = Template("""{{ IMPORT_STATEMENTS }}
-
-public class {{ CLASS_NAME }} {
-    public static void main (String[] args) {
-{{ WKPF_INIT_STATEMENTS }}
-        {{ COMPONENT_INIT_FUNC_NAME }}();
-        
-        while(true){
-{{ MAIN_LOOP_STATEMENTS }}
-        }
-    }
-
-{{ LINK_DEFINITIONS }}
-
-{{ MAPPING_DEFINITIONS }}
-
-    private static void {{ COMPONENT_INIT_FUNC_NAME }}() {
-{{ WUCLASS_REGISTRATION }}
-
-{{ COMPONENT_INIT }}
-    }
-}
-    """)
-
+def javacodegen(link_table, map_table, comp_init, java_class_name):
+    
     import_stmt = indentor("""
 import java.io.*;
 import nanovm.avr.*;
 import nanovm.wkpf.*;
 import nanovm.lang.Math;
     """, 0)
-
-    java_class_name = "app"
 
     linkDefinitions = indentor("""
 private final static byte[] linkDefinitions = {
@@ -269,8 +309,7 @@ WKPF.loadLinkDefinitions(linkDefinitions);
     , 2)
     
     comp_init_func_name = "initialiseLocalWuObjects"
-    registration = indentor(comp_init[0], 2)
-    comp_init_stmts = indentor(comp_init[1], 2)
+    comp_init_stmts = indentor(comp_init, 2)
 
     main_loop = indentor("""
 VirtualWuObject wuclass = WKPF.select();
@@ -279,6 +318,28 @@ if (wuclass != null) {
 }
     """, 3)
 
+    tpl = Template("""{{ IMPORT_STATEMENTS }}
+
+public class {{ CLASS_NAME }} {
+    public static void main (String[] args) {
+{{ WKPF_INIT_STATEMENTS }}
+        {{ COMPONENT_INIT_FUNC_NAME }}();
+        
+        while(true){
+{{ MAIN_LOOP_STATEMENTS }}
+        }
+    }
+
+{{ LINK_DEFINITIONS }}
+
+{{ MAPPING_DEFINITIONS }}
+
+    private static void {{ COMPONENT_INIT_FUNC_NAME }}() {
+{{ COMPONENT_INIT }}
+    }
+}
+    """)
+
     rendered_tpl = tpl.render(IMPORT_STATEMENTS=import_stmt,
             CLASS_NAME=java_class_name,
             LINK_DEFINITIONS=linkDefinitions,
@@ -286,14 +347,14 @@ if (wuclass != null) {
             WKPF_INIT_STATEMENTS=wkpf_init,
             MAIN_LOOP_STATEMENTS=main_loop,
             COMPONENT_INIT_FUNC_NAME=comp_init_func_name,
-            WUCLASS_REGISTRATION=registration,
             COMPONENT_INIT=comp_init_stmts
         )
 
-    print "//========== Code =========="
-    print rendered_tpl
+    print>>out_fd, "//========== Code =========="
+    print>>out_fd, rendered_tpl
+    print "The file %s.java is generated on the path %s" % (java_class_name, os.getcwd())
 
 if __name__ == "__main__":
-    wuClasses_dict, components_dict, links_table = parser()
+    java_class_name, wuClasses_dict, components_dict, links_table = parser()
     map_table, comp_init = mapper(wuClasses_dict, components_dict)
-    javacodegen(links_table, map_table, comp_init)
+    javacodegen(links_table, map_table, comp_init, java_class_name)
