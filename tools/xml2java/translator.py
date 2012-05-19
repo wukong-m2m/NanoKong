@@ -38,7 +38,7 @@ def saveNodeList(node_list, filename):
 def getNodeList(options):
   if (not options.do_discovery and not options.use_hardcoded_discovery and not options.discovery_file):
     print "Please specify either -D to do network discovery, -d to use a previously stored discovery result, or store the result of the discovery, or -H to use the hardcoded discovery result (DEBUG ONLY)"
-    exit()
+    exit(1)
 
   if options.do_discovery:
     import wkpfcomm
@@ -64,7 +64,7 @@ def getNodeList(options):
 
   if (node_list == None):
     print "Unable to load node list"
-    exit()
+    exit(1)
 
   if (options.do_discovery and options.discovery_file): # Save the discovery result for future use
     saveNodeList(node_list, options.discovery_file)
@@ -262,15 +262,17 @@ def mapper(wuClasses_dict, components_dict, node_list):
 
         if wuClass['soft']: # it is a soft component
             if wuClass['id'] in soft_dict:
+                # pick the first that has the wuClass present
                 soft_component = soft_dict[wuClass['id']][0]
-                # pick the first
-                port_list = node_port_dict[soft_component[0]]
-                vrtlflag = soft_component[1]
             else:
-                port_list = node_port_dict.itervalues().next()
-                vrtlflag = True
+                # use virtual wuClass
+                soft_component = (node_port_dict.iterkeys().next(), True) # any node will do
+            port_list = node_port_dict[soft_component[0]]
+            vrtlflag = soft_component[1]
             port_num = None
-            for i in range(len(port_list)+1):
+            print "------", component['class'], soft_component, port_list
+            print node_port_dict
+            for i in range(256): # Port numbers are in the range 0-255 (Bolun, is this a correct fix?)
                 if i not in port_list:
                     port_list += [i]
                     port_list.sort()

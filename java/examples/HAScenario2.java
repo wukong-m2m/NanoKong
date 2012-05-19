@@ -1,6 +1,6 @@
 //========== Components Definitions ==========
 // 0 InputController1 {'classid': 3, 'defaults': [(u'output', 127)], 'class': u'Numeric_Controller', 'cmpid': 0}
-// 1 LightSensor1 {'classid': 5, 'defaults': [(u'refresh_rate', ('r', 100))], 'class': u'Light_Sensor', 'cmpid': 1}
+// 1 LightSensor1 {'classid': 5, 'defaults': [(u'refresh_rate', ('r', 1000))], 'class': u'Light_Sensor', 'cmpid': 1}
 // 2 Threshold1 {'classid': 1, 'defaults': [(u'operator', u'WKPF.ENUM_THRESHOLD_OPERATOR_LTE')], 'class': u'Threshold', 'cmpid': 2}
 // 3 Occupancy1 {'classid': 4101, 'defaults': [(u'occupied', True)], 'class': u'Occupancy_Sensor', 'cmpid': 3}
 // 4 AndGate1 {'classid': 6, 'defaults': [], 'class': u'And_Gate', 'cmpid': 4}
@@ -16,7 +16,7 @@
 // (2, 0) 3 (4, 0) 0 (6, 0)
 // (u'Occupancy1', u'occupied', u'AndGate1', u'input2', u'AndGate1')
 // (3, 0) 0 (4, 0) 1 (6, 0)
-// (u'AndGate1', u'output', u'Light1', u'on_Off', u'Light1')
+// (u'AndGate1', u'output', u'Light1', u'on_off', u'Light1')
 // (4, 0) 2 (5, 0) 0 (4, 0)
 //
 //========== Code ==========
@@ -51,9 +51,9 @@ public class HAScenario2 {
     private final static byte[] componentInstanceToWuObjectAddrMap = {
         (byte)1, (byte)1, 
         (byte)1, (byte)2, 
-        (byte)3, (byte)1, 
-        (byte)3, (byte)3, 
-        (byte)3, (byte)4, 
+        (byte)3, (byte)2, 
+        (byte)1, (byte)3, 
+        (byte)1, (byte)4, 
         (byte)3, (byte)4, 
     };
 
@@ -62,9 +62,10 @@ public class HAScenario2 {
         WKPF.registerWuClass(WKPF.WUCLASS_AND_GATE, GENERATEDVirtualAndGateWuObject.properties);
         if (WKPF.isLocalComponent((short)0)) {
             WKPF.setPropertyShort((short)0, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127);
+            System.out.println("=======WKPFERROR" + WKPF.getErrorCode());
         }
         if (WKPF.isLocalComponent((short)1)) {
-            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)100);
+            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)1000);
         }
         if (WKPF.isLocalComponent((short)2)) {
             WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, WKPF.getPortNumberForComponent((short)2), null);

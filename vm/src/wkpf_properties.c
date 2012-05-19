@@ -94,8 +94,10 @@ uint8_t wkpf_write_property_boolean(wkpf_local_wuobject *wuobject, uint8_t prope
   uint8_t retval = wkpf_verify_property(wuobject, property_number, WKPF_PROPERTY_ACCESS_WRITEONLY, external_access, WKPF_PROPERTY_TYPE_BOOLEAN);
   if (retval == WKPF_OK)
     return wkpf_write_property(wuobject, property_number, external_access, value);
-  else
+  else {
+    DEBUGF_WKPF("--------------------------- %x\n", retval);
     return retval;
+  }
 }
 
 uint8_t wkpf_read_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t *value) {
@@ -176,8 +178,9 @@ uint8_t wkpf_property_needs_initialisation_push(wkpf_local_wuobject *wuobject, u
 }
 
 bool inline wkpf_property_status_is_dirty(uint8_t status) {
-  if (!(status & PROPERTY_STATUS_NEEDS_PUSH || status & PROPERTY_STATUS_NEEDS_PULL))
+  if (!((status & PROPERTY_STATUS_NEEDS_PUSH) || (status & PROPERTY_STATUS_NEEDS_PULL)))
     return false; // Doesn't need push or pull so skip.
+  DEBUGF_WKPF("WKPF: wkpf_property_status_is_dirty %x\n",status);
   if ((status & 0x0C) == 0)
     return true; // Didn't fail, or only once (because bits 2,3 are 0): send message
   uint8_t timer_bit = (nvm_current_time >> ((status & PROPERTY_STATUS_FAILURE_COUNT_TIMES2_MASK) + 1 /* failurecount*2 + 1*/)) & 1;
@@ -193,6 +196,7 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
   do {
     i = (i+1) % number_of_properties;
     if (wkpf_property_status_is_dirty(properties[i].property_status)) {
+      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);
       last_returned_dirty_property_index = i;
       *port_number = properties[i].wuobject_port_number;
       *property_number = properties[i].property_number;
@@ -208,7 +212,6 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
         properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL;
         properties[i].property_status |= PROPERTY_STATUS_NEEDS_PULL_WAITING;
       }
-      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);
       return TRUE;
     }
 //    DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property NOT DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);

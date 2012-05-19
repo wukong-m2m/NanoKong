@@ -5,13 +5,19 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_CLASS = HAScenario1
+ifdef FLOWXML
+DEFAULT_CLASS=$(FLOWXML)
+# Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
+DISCOVERY_FLAGS=-D
+else
+DEFAULT_CLASS = HAScenario2
+endif
 
 PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
-XML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
+COMPONENTXML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
 
 # general GCC compiler flags
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
@@ -90,12 +96,12 @@ upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
-generate: $(XML_PATH)
-	$(ROOT_DIR)/tools/python/codegen.py -i $(XML_PATH) -p $(ROOT_DIR)
+generate: $(COMPONENTXML_PATH)
+	$(ROOT_DIR)/tools/python/codegen.py -i $(COMPONENTXML_PATH) -p $(ROOT_DIR)
 
 ifdef FLOWXML
-translate: $(XML_PATH) $(FLOWXML_DIR)/$(FLOWXML).xml $(ROOT_DIR)/tools/xml2java/translator.py
-		$(ROOT_DIR)/tools/xml2java/translator.py -c $(XML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples -D
+translate: $(COMPONENTXML_PATH) $(FLOWXML_DIR)/$(FLOWXML).xml $(ROOT_DIR)/tools/xml2java/translator.py
+		$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
 		DEFAULT_CLASS=$(FLOWXML)
 else
 translate:
