@@ -31,9 +31,26 @@ class WuClass:
   def __repr__(self):
     return 'wuclass(node %d wuclass %d isvirtual %s)' % (self.nodeId, self.wuClassId, str(self.isVirtual))
 
+class NodeInfo:
+    def __init__(self, nodeId, wuClasses, wuObjects):
+        self.nodeId = nodeId
+        self.wuClasses = wuClasses
+        self.wuObjects = wuObjects
+    def __repr__(self):
+        return '(nodeinfo node %d wuclasses %s wuobjects %s)' % (self.nodeId, str(self.wuClasses), str(self.wuObjects))
+
 def verifyWKPFmsg(messageStart, minAdditionalBytes):
   # minPayloadLength should not include the command or the 2 byte sequence number
   return lambda command, payload: (command == pynvc.WKPF_ERROR_R) or (payload != None and payload[0:len(messageStart)]==messageStart and len(payload) >= len(messageStart)+minAdditionalBytes)
+
+def getNodeInfos():
+  nodeIds = (3,)
+  return [getNodeInfo(destination) for destination in nodeIds]
+
+def getNodeInfo(destination):
+  return NodeInfo(nodeId = destination,
+                  wuClasses = getWuClassList(destination),
+                  wuObjects = getWuObjectList(destination))
 
 def getWuClassList(destination):
   sn = getNextSequenceNumberAsList()

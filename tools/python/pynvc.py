@@ -88,7 +88,7 @@ def checkedReceive(allowedReplies, waitmsec=1000, verify=None):
         print "Incorrect reply received. Message type correct, but didnt pass verification:", reply
         print "Dropped message"
 
-def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload=[], waitmsec=1000, retries=10, quitOnFailure=False, verify=None):
+def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload=[], waitmsec=1000, retries=3, quitOnFailure=False, verify=None):
   while retries >= 0:
     try:
       sendcmd(destination, command, payload)
