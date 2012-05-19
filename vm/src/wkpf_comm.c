@@ -81,13 +81,14 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
       number_of_wuclasses = wkpf_get_number_of_wuclasses();
       payload[2] = number_of_wuclasses;
-      for (int i=0; i<number_of_wuclasses && i<14; i++) { // TODONR: i<14 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
+      for (int i=0; i<number_of_wuclasses && i<9; i++) { // TODONR: i<9 is temporary to keep the length within MESSAGE_SIZE, but we should have a protocol that sends multiple messages
         wkpf_wuclass_definition *wuclass;
         wkpf_get_wuclass_by_index(i, &wuclass);
-        payload[2*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
-        payload[2*i + 4] = (uint8_t)(wuclass->wuclass_id);
+        payload[3*i + 3] = (uint8_t)(wuclass->wuclass_id >> 8);
+        payload[3*i + 4] = (uint8_t)(wuclass->wuclass_id);
+        payload[3*i + 5] = WKPF_IS_VIRTUAL_WUCLASS(wuclass) ? 1 : 0;
       }
-      *response_size = 2*number_of_wuclasses + 3;//payload size 2*wuclasses + 2 bytes seqnr + 1 byte number of wuclasses
+      *response_size = 3*number_of_wuclasses + 3;//payload size 2*wuclasses + 2 bytes seqnr + 1 byte number of wuclasses
       *response_cmd = NVMCOMM_WKPF_GET_WUCLASS_LIST_R;
     break;
     case NVMCOMM_WKPF_GET_WUOBJECT_LIST:

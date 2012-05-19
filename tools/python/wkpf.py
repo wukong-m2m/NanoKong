@@ -23,6 +23,14 @@ class WuObject:
   def __repr__(self):
     return 'wuobject(node %d port %d wuclass %d)' % (self.nodeId, self.portNumber, self.wuClassId)
 
+class WuClass:
+  def __init__(self, nodeId, wuClassId, isVirtual):
+    self.nodeId = nodeId
+    self.wuClassId = wuClassId
+    self.isVirtual = isVirtual
+  def __repr__(self):
+    return 'wuclass(node %d wuclass %d isvirtual %s)' % (self.nodeId, self.wuClassId, str(self.isVirtual))
+
 def verifyWKPFmsg(messageStart, minAdditionalBytes):
   # minPayloadLength should not include the command or the 2 byte sequence number
   return lambda command, payload: (command == pynvc.WKPF_ERROR_R) or (payload != None and payload[0:len(messageStart)]==messageStart and len(payload) >= len(messageStart)+minAdditionalBytes)
@@ -42,8 +50,10 @@ def getWuClassList(destination):
   wuclasses = []
   reply = reply[4:]
   while len(reply) > 1:
-    wuclasses.append((reply[0] <<8) + reply[1])
-    reply = reply[2:]
+    wuClassId = (reply[0] <<8) + reply[1]
+    isVirtual = True if reply[2] == 1 else False
+    wuclasses.append(WuClass(destination, wuClassId, isVirtual))
+    reply = reply[3:]
   return wuclasses
 
 def getWuObjectList(destination):
