@@ -67,6 +67,12 @@ uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port
   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
 }
 
+uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id) {
+  set_message_header(port_number, property_number, wuclass_id, 0); // 0 because this message doesn't take a data type
+  return send_message(dest_node_id, NVMCOMM_WKPF_REQUEST_PROPERTY_INIT, 6);
+}
+
+
 void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
   uint8_t number_of_wuclasses;
   uint8_t number_of_wuobjects;
@@ -165,12 +171,29 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
           value = (int16_t)(value<<8) + (int16_t)(payload[8]);
           retval = wkpf_external_write_property_refresh_rate(wuobject, property_number, value);
           *response_size = 6;//payload size
-          *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;        
+          *response_cmd = NVMCOMM_WKPF_WRITE_PROPERTY_R;
       } else
       if (retval != WKPF_OK) {
         payload [2] = retval;
         *response_cmd = NVMCOMM_WKPF_ERROR_R;
         *response_size = 3;//payload size
+      }
+    break;
+    case NVMCOMM_WKPF_REQUEST_PROPERTY_INIT:
+      port_number = payload[2];
+      // TODONR: wuclass_id = (uint16_t)(payload[3]<<8)+(uint16_t)(payload[4]);
+      property_number = payload[5];
+      retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
+      if (retval == WKPF_OK) {
+        retval = wkpf_property_needs_initialisation_push(wuobject, property_number);
+      }
+      if (retval != WKPF_OK) {
+        payload [2] = retval;
+        *response_cmd = NVMCOMM_WKPF_ERROR_R;
+        *response_size = 3;//payload size
+      } else {
+        *response_size = 6;//payload size
+        *response_cmd = NVMCOMM_WKPF_REQUEST_PROPERTY_INIT_R;                
       }
     break;
   }

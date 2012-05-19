@@ -16,8 +16,6 @@
 
 #ifdef NVM_USE_COMM
 
-uint8_t testretransmission = 0;
-
 uint8_t nvc3_avr_reprogramming = FALSE;
 uint16_t nvc3_avr_reprogramming_pos;
 
@@ -196,6 +194,7 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     case NVMCOMM_WKPF_GET_WUOBJECT_LIST:
     case NVMCOMM_WKPF_READ_PROPERTY:
     case NVMCOMM_WKPF_WRITE_PROPERTY:
+    case NVMCOMM_WKPF_REQUEST_PROPERTY_INIT:
       wkpf_comm_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
     break;
   }
