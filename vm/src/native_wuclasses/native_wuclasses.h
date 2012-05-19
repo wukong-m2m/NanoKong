@@ -9,6 +9,6 @@
 #define ENABLE_WUCLASS_LIGHT
 #define ENABLE_WUCLASS_LIGHT_SENSOR
 
-uint8_t native_wuclasses_init();
+uint8_t wkpf_native_wuclasses_init();
 
 #endif // NATIVE_WUCLASSESH
