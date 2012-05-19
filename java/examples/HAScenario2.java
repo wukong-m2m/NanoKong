@@ -51,9 +51,9 @@ public class HAScenario2 {
     private final static byte[] componentInstanceToWuObjectAddrMap = {
         (byte)1, (byte)1, 
         (byte)1, (byte)2, 
-        (byte)1, (byte)3, 
-        (byte)1, (byte)4, 
-        (byte)1, (byte)5, 
+        (byte)3, (byte)1, 
+        (byte)3, (byte)3, 
+        (byte)3, (byte)4, 
         (byte)3, (byte)4, 
     };
 
@@ -64,7 +64,7 @@ public class HAScenario2 {
             WKPF.setPropertyShort((short)0, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127);
         }
         if (WKPF.isLocalComponent((short)1)) {
-            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)1000);
+            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)100);
         }
         if (WKPF.isLocalComponent((short)2)) {
             WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, WKPF.getPortNumberForComponent((short)2), null);

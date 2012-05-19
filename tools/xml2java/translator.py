@@ -6,6 +6,10 @@
 # Date: May 18, 2012
 
 import os
+import sys
+sys.path.append("../python")
+from wkpf import NodeInfo, WuClass, WuObject
+import pickle
 from xml.dom.minidom import parse
 from optparse import OptionParser
 from jinja2 import Template
@@ -17,43 +21,68 @@ print_Components = True
 print_links = True
 out_fd = None
 
-class WuObject: # will come from wkpf.py in the future
-    def __init__(self, portNumber, wuClassId):
-        self.portNumber = portNumber
-        self.wuClassId = wuClassId
-    def __repr__(self):
-        return '(wuobject port %d wuclass %d)' % (self.portNumber, self.wuClassId)
-
-class NodeInfo:
-    def __init__(self, nodeId, wuClasses, wuObjects):
-        self.nodeId = nodeId
-        self.wuClasses = wuClasses
-        self.wuObjects = wuObjects
-    def __repr__(self):
-        return '(nodeinfo node %d wuclasses %s wuobjects %s)' % (self.nodeId, str(self.wuClasses), str(self.wuObjects))
-
-def getNodeInfos():
-    node1 = NodeInfo(nodeId=1,
-                wuClasses=(0, 1, 3, 5), # generic, threshold, numeric_controller, light_sensor
-                wuObjects=(WuObject(portNumber=0, wuClassId=0),WuObject(portNumber=1, wuClassId=3), WuObject(portNumber=2, wuClassId=5))
-            ) # numeric_controller at port 1, light sensor at port 2
-    node3 = NodeInfo(nodeId=3,
-                wuClasses=(0, 1, 4), # generic, threshold, light
-                wuObjects=(WuObject(portNumber=0, wuClassId=0),WuObject(portNumber=4, wuClassId=4),)
-            ) # light at port 4
-    return (node1, node3)
-
 def indentor(s, num):
     return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
 
+def loadNodeList(filename):
+  f = open(filename, "r")
+  node_list = pickle.load(f)
+  f.close()
+  return node_list
+
+def saveNodeList(node_list, filename):
+  f = open(filename, "w")
+  pickle.dump(node_list, f)
+  f.close()
+
+def getNodeList(options):
+  if (not options.do_discovery and not options.use_hardcoded_discovery and not options.discovery_file):
+    print "Please specify either -D to do network discovery, -d to use a previously stored discovery result, or store the result of the discovery, or -H to use the hardcoded discovery result (DEBUG ONLY)"
+    exit()
+
+  if options.do_discovery:
+    import wkpfcomm
+    node_list = wkpfcomm.getNodeInfos();
+  elif options.use_hardcoded_discovery:
+    node1 = NodeInfo(nodeId=1,
+                     wuClasses=(WuClass(nodeId=1, wuClassId=0, isVirtual=False),
+                                WuClass(nodeId=1, wuClassId=1, isVirtual=False),
+                                WuClass(nodeId=1, wuClassId=3, isVirtual=False),
+                                WuClass(nodeId=1, wuClassId=5, isVirtual=False)), # generic, threshold, numeric_controller, light_sensor
+                     wuObjects=(WuObject(nodeId=1, portNumber=0, wuClassId=0),
+                                WuObject(nodeId=1, portNumber=1, wuClassId=3),
+                                WuObject(nodeId=1, portNumber=2, wuClassId=5))) # numeric_controller at port 1, light sensor at port 2
+    node3 = NodeInfo(nodeId=3,
+                     wuClasses=(WuClass(nodeId=3, wuClassId=0, isVirtual=False),
+                                WuClass(nodeId=3, wuClassId=1, isVirtual=False),
+                                WuClass(nodeId=3, wuClassId=4, isVirtual=False)), # generic, threshold, light
+                     wuObjects=(WuObject(nodeId=3, portNumber=0, wuClassId=0),
+                                WuObject(nodeId=3, portNumber=4, wuClassId=4))) # light at port 4
+    node_list = (node1, node3)
+  else:
+    node_list = loadNodeList(options.discovery_file)
+
+  if (node_list == None):
+    print "Unable to load node list"
+    exit()
+
+  if (options.do_discovery and options.discovery_file): # Save the discovery result for future use
+    saveNodeList(node_list, options.discovery_file)
+  return node_list
 
 def parser():
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-c", "--component", action="store", type="string", dest="pathc", help="WuKong Component XML file path")
     parser.add_option("-f", "--flow", action="store", type="string", dest="pathf", help="WuKong Flow XML file path")
     parser.add_option("-o", "--output-path", action="store", type="string", dest="out", help="the dest. folder path of output java file")
+    parser.add_option("-d", "--discovery-result", action="store", type="string", dest="discovery_file", help="The file containing the discovery result. Will be read if -D isn't specified, or created/overwritten if -D is specified. Either -D, -H, -d or both must be used.")
+    parser.add_option("-D", "--do-discovery", action="store_true", dest="do_discovery", help="Do a new discovery of the network nodes. If a discovery file is specified using -d, the result will be stored there for future use. Either -D, -H, -d or both must be used.")
+    parser.add_option("-H", "--use-hardcoded-discovery", action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
+    
     (options, args) = parser.parse_args()
     if not options.pathc or not options.pathf: parser.error("invalid component and flow xml, please refer to -h for help")
+
+    node_list = getNodeList(options)
 
     c_dom = parse(options.pathc)
     f_dom = parse(options.pathf)
@@ -177,7 +206,7 @@ def parser():
             print>>out_fd, "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
     if print_links: print>>out_fd, "//"
 
-    return java_class_name, wuClasses_dict, components_dict, indentor(link_table_str,1), out_dir
+    return java_class_name, wuClasses_dict, components_dict, indentor(link_table_str,1), out_dir, node_list
 
     # components_dict[instanceName] = {
     #   'cmpid': component's ID, 
@@ -186,15 +215,14 @@ def parser():
     #   'defaults': a list of tuples [ ( property's name, property's default value(int or bool value) ) ]
     # }
 
-def mapper(wuClasses_dict, components_dict):
+def mapper(wuClasses_dict, components_dict, node_list):
     # find nodes
-    node_list = getNodeInfos()
     hard_dict = {}
     soft_dict = {}
     node_port_dict = {}
     for node in node_list:
-        for wuObject in node.wuObjects:
-            assert wuObject.wuClassId in node.wuClasses, 'Error! the wuClass of wuObject %s does not exist on node %d' % (wuObject, node.nodeId)
+        for wuObject in node.nativeWuObjects:
+            assert wuObject.wuClassId in node.nativeWuClasses, 'Error! the wuClass of wuObject %s does not exist on node %d' % (wuObject, node.nodeId)
             if node.nodeId in node_port_dict:
                 node_port_dict[node.nodeId] = sorted(node_port_dict[node.nodeId] + [wuObject.portNumber])
             else:
@@ -205,7 +233,7 @@ def mapper(wuClasses_dict, components_dict):
             else:
                 hard_dict[wuObject.wuClassId] = [(node.nodeId, wuObject.portNumber)]
 
-        for wuClassId in node.wuClasses:
+        for wuClassId in node.nativeWuClasses:
             wuClass = wuClasses_dict[wuClasses_dict[wuClassId]]
             if wuClass['soft']:
                 if wuClassId in soft_dict:
@@ -354,7 +382,7 @@ public class {{ CLASS_NAME }} {
     print>>out_fd, rendered_tpl
 
 if __name__ == "__main__":
-    java_class_name, wuClasses_dict, components_dict, links_table, out_dir = parser()
-    map_table, comp_init = mapper(wuClasses_dict, components_dict)
+    java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = parser()
+    map_table, comp_init = mapper(wuClasses_dict, components_dict, node_list)
     javacodegen(links_table, map_table, comp_init, java_class_name)
     print "Translator msg: the file %s.java generated is on the path %s" % (java_class_name, out_dir)

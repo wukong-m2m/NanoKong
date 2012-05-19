@@ -55,7 +55,7 @@ endef
 	$(DEP-GEN-CMD)
 
 # avr specific entries
-%.elf: generate translate $(OBJS)
+%.elf: generate $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	avr-size -A $@
 
