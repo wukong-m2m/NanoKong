@@ -68,6 +68,8 @@ def getNodeList(options):
 
   if (options.do_discovery and options.discovery_file): # Save the discovery result for future use
     saveNodeList(node_list, options.discovery_file)
+  print "Node list:"
+  print node_list
   return node_list
 
 def parser():
