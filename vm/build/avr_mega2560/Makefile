@@ -18,6 +18,7 @@ PORT = /dev/tty.usbmodem411
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
 COMPONENTXML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
+NVMCOMM_REPROGRAM = $(ROOT_DIR)/tools/python/reprogram.py
 
 # general GCC compiler flags
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
@@ -79,6 +80,10 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp  -dprog=stk200 --erase  --wr_fuse_l=0xb4 --wr_fuse_h=0xd9
 	uisp --segment=flash  -dprog=stk200 --upload if=NanoVM.hex --verify
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
+
+nvmcomm_reprogram: nvmdefault.h
+	$(NVMCOMM_REPROGRAM) 3 nvmdefault.h
+	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
