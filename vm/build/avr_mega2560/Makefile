@@ -5,12 +5,12 @@
 CONFIG = Mega8.config
 DEVICE = atmega2560
 
-DEFAULT_CLASS = HAScenario2
+DEFAULT_CLASS = HAScenario1
 
 PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
-
+FLOWXML_DIR = $(ROOT_DIR)/Applications
 XML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
 
 # general GCC compiler flags
@@ -55,7 +55,7 @@ endef
 	$(DEP-GEN-CMD)
 
 # avr specific entries
-%.elf: generate $(OBJS)
+%.elf: generate translate $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	avr-size -A $@
 
@@ -93,8 +93,14 @@ upload_bootloader:
 generate: $(XML_PATH)
 	$(ROOT_DIR)/tools/python/codegen.py -i $(XML_PATH) -p $(ROOT_DIR)
 
-translate: $(XML_PATH) $(ROOT_DIR)/tools/xml2java/Flow.xml $(ROOT_DIR)/tools/xml2java/translator.py
-	$(ROOT_DIR)/tools/xml2java/translator.py -c $(XML_PATH) -f $(ROOT_DIR)/tools/xml2java/Flow.xml -o $(ROOT_DIR)/java/examples
+ifdef FLOWXML
+translate: $(XML_PATH) $(FLOWXML_DIR)/$(FLOWXML).xml $(ROOT_DIR)/tools/xml2java/translator.py
+		$(ROOT_DIR)/tools/xml2java/translator.py -c $(XML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples -D
+		DEFAULT_CLASS=$(FLOWXML)
+else
+translate:
+	
+endif
 
 #include $(OBJS:.o=.d)
 

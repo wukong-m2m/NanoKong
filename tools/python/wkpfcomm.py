@@ -16,7 +16,7 @@ def verifyWKPFmsg(messageStart, minAdditionalBytes):
   return lambda command, payload: (command == pynvc.WKPF_ERROR_R) or (payload != None and payload[0:len(messageStart)]==messageStart and len(payload) >= len(messageStart)+minAdditionalBytes)
 
 def getNodeInfos():
-  nodeIds = (1,3)
+  nodeIds = pynvc.discoverNodes()
   return [getNodeInfo(destination) for destination in nodeIds]
 
 def getNodeInfo(destination):

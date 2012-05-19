@@ -44,6 +44,9 @@ RUNLVL_RESET                 = 0x04
 
 pymodule = 0
 
+def discoverNodes():
+  return (1, 3) # TODO: implement network discovery here
+
 def sendcmd(dest, cmd, payload=[], retries=3):
   global pymodule
   pymodule.receive(10) # Clear pending messages

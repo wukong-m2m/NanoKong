@@ -7,7 +7,7 @@
 
 import os
 import sys
-sys.path.append("../python")
+sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from wkpf import NodeInfo, WuClass, WuObject
 import pickle
 from xml.dom.minidom import parse
