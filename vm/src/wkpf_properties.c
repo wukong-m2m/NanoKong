@@ -197,6 +197,7 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
       *port_number = properties[i].wuobject_port_number;
       *property_number = properties[i].property_number;
       *value = properties[i].value;
+      *status = properties[i].property_status;
       // Optimistically set this property to not dirty to avoid having to go through the whole list again after the message has been sent.
       // Hopefully succesful propagations will be the most common case.
       // The original status will be passed back through wkpf_propagating_dirty_property_failed in case the propagation fails
@@ -207,10 +208,10 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
         properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL;
         properties[i].property_status |= PROPERTY_STATUS_NEEDS_PULL_WAITING;
       }
-//      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, ((uint16_t)properties[i].wuobject_port_number)<<8 | properties[i].property_number);
+      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);
       return TRUE;
     }
-//    DEBUGF_WKPF("NOT DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, ((uint16_t)properties[i].wuobject_port_number)<<8 | properties[i].property_number);
+//    DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property NOT DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);
   } while(i != last_returned_dirty_property_index);
   return FALSE;
 }

@@ -91,7 +91,7 @@ public class HAScenario2 {
             WKPF.setPropertyShort((short)0, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127);
         }
         if (WKPF.isLocalComponent((short)1)) {
-            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)5000);
+            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)1000);
         }
         if (WKPF.isLocalComponent((short)2)) {
             VirtualWuObject wuclassInstanceThreshold = new VirtualThresholdWuObject();
