@@ -28,6 +28,7 @@
 
 #include "types.h"
 #include "config.h"
+
 #ifdef UNIX
 #include <unistd.h>
 
@@ -36,10 +37,12 @@
 #define SEC(a)      ((a)*1000000)
 
 #define delay(a)  usleep(a)
-#else
 
+#define nvm_current_time 0 // TODONR: implement for Unix
+#else
 #ifdef AVR
- 
+#include "avr/native_avr.h"
+
 #define MICROSEC(a) ((a)*CLOCK/7000000)
 #define MILLISEC(a) ((a)*CLOCK/7000)
 #define SEC(a)      ((a)*CLOCK/7)
@@ -52,7 +55,8 @@ static inline void delay(u32_t delay_cnt) {
   while(delay_cnt--) {__asm__ __volatile__ ("nop\n\t");}
 }
 
-#endif // nAVR
+#define nvm_current_time avr_currentTime
+#endif // AVR
 #endif // UNIX
 
 #endif // DELAY_H

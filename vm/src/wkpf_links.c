@@ -76,6 +76,11 @@ uint8_t wkpf_load_links(heap_id_t links_heap_id) {
   return WKPF_OK;
 }
 
+uint8_t wkpf_pull_property(uint8_t port_number, uint8_t property_number) {
+  // TODONR
+  return WKPF_OK;
+}
+
 uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, int16_t value) {
   uint16_t component_id;
   if (!wkpf_get_component_id(port_number, &component_id))
@@ -129,19 +134,23 @@ uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, in
 }
 
 uint8_t wkpf_propagate_dirty_properties() {
-  if (wkpf_any_property_dirty()) { // this call is still here to have a place to mark failed properties as dirty again. should probably be refactored
-    uint8_t wkpf_error_code;
-    uint8_t port_number;
-    uint8_t property_number;
-    int16_t value;
-    while(wkpf_get_next_dirty_property(&port_number, &property_number, &value)) {
-      nvmcomm_poll(); // Process incoming messages
+  uint8_t wkpf_error_code;
+  uint8_t port_number;
+  uint8_t property_number;
+  int16_t value;
+  uint8_t status;
+  while(wkpf_get_next_dirty_property(&port_number, &property_number, &value, &status)) {
+    nvmcomm_poll(); // Process incoming messages
+    if (status & PROPERTY_STATUS_NEEDS_PUSH) {
       wkpf_error_code = wkpf_propagate_property(port_number, property_number, value);
-      if (wkpf_error_code != WKPF_OK) { // TODONR: need better retry mechanism
-        DEBUGF_WKPF("WKPF: ------!!!------ Propagating property failed: port %x property %x error %x\n", port_number, property_number, wkpf_error_code);
-        wkpf_propagating_dirty_property_failed(port_number, property_number);
-        return wkpf_error_code;
-      }
+    } else { // PROPERTY_STATUS_NEEDS_PULL
+      DEBUGF_WKPF("WKPF: (pull) requesting initial value for property %x at port %x\n", property_number, port_number);
+      wkpf_error_code = wkpf_pull_property(port_number, property_number);
+    }
+    if (wkpf_error_code != WKPF_OK) { // TODONR: need better retry mechanism
+      DEBUGF_WKPF("WKPF: ------!!!------ Propagating property failed: port %x property %x error %x\n", port_number, property_number, wkpf_error_code);
+      wkpf_propagating_dirty_property_failed(port_number, property_number, status);
+      return wkpf_error_code;
     }
   }
   return WKPF_OK;

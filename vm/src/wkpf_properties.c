@@ -1,18 +1,15 @@
 #include "config.h"
 #include "types.h"
 #include "debug.h"
+#include "delay.h"
 #include "wkpf.h"
 #include "wkpf_properties.h"
-
-#define DIRTY_STATE_CLEAN     0
-#define DIRTY_STATE_DIRTY     1
-#define DIRTY_STATE_FAILED    2
 
 typedef struct property_entry_struct {
   uint8_t wuobject_port_number;
   uint8_t property_number;
   int16_t value;
-  uint8_t dirty_state;
+  uint8_t property_status;
 } property_entry;
 
 #define MAX_NUMBER_OF_PROPERTIES 100
@@ -35,7 +32,11 @@ uint8_t wkpf_write_property(wkpf_local_wuobject *wuobject, uint8_t property_numb
       DEBUGF_WKPF("WKPF: write_property: (index %x port %x, property %x): %x->%x\n", i, wuobject->port_number, property_number, properties[i].value, value);
       if (properties[i].value != value) {
         properties[i].value = value;
-        properties[i].dirty_state = DIRTY_STATE_DIRTY;
+        // Propagate this property:
+        properties[i].property_status |= PROPERTY_STATUS_NEEDS_PUSH;
+        // And remove any flags that indicate we were waiting for an initial value:
+        properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL;
+        properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL_WAITING;
         if (external_access) // Only call update() when someone else writes to the property, not for internal writes (==writes that are already coming from update())
           wkpf_set_need_to_call_update_for_wuobject(wuobject);
       }
@@ -124,7 +125,11 @@ uint8_t wkpf_alloc_properties_for_wuobject(wkpf_local_wuobject *wuobject) {
     properties[number_of_properties+i].wuobject_port_number = wuobject->port_number;
     properties[number_of_properties+i].property_number = i;
     properties[number_of_properties+i].value = 0;
-    properties[number_of_properties+i].dirty_state = DIRTY_STATE_DIRTY;
+    // Set the needs push bit
+    properties[number_of_properties+i].property_status |= PROPERTY_STATUS_NEEDS_PUSH;
+    // Clear any needs pull bits
+    properties[number_of_properties+i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL;
+    properties[number_of_properties+i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL_WAITING;    
   }
   number_of_properties += wuobject->wuclass->number_of_properties;
   DEBUGF_WKPF("WKPF: Allocated %x properties for wuobject at port %x. number of properties is now %x\n", wuobject->wuclass->number_of_properties, wuobject->port_number, number_of_properties);
@@ -147,46 +152,82 @@ uint8_t wkpf_free_properties_for_wuobject(wkpf_local_wuobject *wuobject) {
   return WKPF_OK;
 }
 
-bool wkpf_any_property_dirty() {
-  // This will be called from the native select() function. Mark updates that have failed as dirty again to give them another chance.
-  bool dirty = FALSE;
+uint8_t wkpf_property_needs_initialisation_push(wkpf_local_wuobject *wuobject, uint8_t property_number) {
+  if (wuobject->wuclass->number_of_properties <= property_number)
+    return WKPF_ERR_PROPERTY_NOT_FOUND;
   for (int i=0; i<number_of_properties; i++) {
-    if (properties[i].dirty_state == DIRTY_STATE_DIRTY)
-      dirty = TRUE;
-    if (properties[i].dirty_state == DIRTY_STATE_FAILED)
-      properties[i].dirty_state = DIRTY_STATE_DIRTY;
+    if (properties[i].wuobject_port_number == wuobject->port_number && properties[i].property_number == property_number) {
+      if (properties[i].property_status & PROPERTY_STATUS_NEEDS_PULL || properties[i].property_status & PROPERTY_STATUS_NEEDS_PULL_WAITING) {
+        // A property in another WuObject needs this property as it's initial value,
+        // but this property is also waiting for its initial value itself (a chain of unitialised properties)
+        // So we only mark that the next push needs to be forced, and wait for the arrival of this
+        // property's initial value before propagating.
+        properties[i].property_status |= PROPERTY_STATUS_FORCE_NEXT_PUSH;
+      } else {
+        // Otherwise (the property's value is already available), immediately schedule it to be propagated
+        properties[i].property_status |= PROPERTY_STATUS_NEEDS_PUSH;
+        properties[i].property_status |= PROPERTY_STATUS_FORCE_NEXT_PUSH;
+      }
+      DEBUGF_WKPF("WKPF: wkpf_property_needs_initialisation_push: (index %x port %x, property %x): value %x, status %x\n", i, wuobject->port_number, property_number, properties[i].value, properties[i].property_status);
+      return WKPF_OK;
+    }
   }
-  return dirty;
+  return WKPF_ERR_SHOULDNT_HAPPEN;
+}
+
+bool inline wkpf_property_status_is_dirty(uint8_t status) {
+  if (!(status & PROPERTY_STATUS_NEEDS_PUSH || status & PROPERTY_STATUS_NEEDS_PULL))
+    return false; // Doesn't need push or pull so skip.
+  if ((status & 0x0C) == 0)
+    return true; // Didn't fail, or only once (because bits 2,3 are 0): send message
+  uint8_t timer_bit = (nvm_current_time >> ((status & PROPERTY_STATUS_FAILURE_COUNT_TIMES2_MASK) + 1 /* failurecount*2 + 1*/)) & 1;
+  return (status & 1) == timer_bit;
 }
 
 static uint8_t last_returned_dirty_property_index = 0;
-bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number, int16_t *value) {
+bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number, int16_t *value, uint8_t *status) {
   if (last_returned_dirty_property_index >= number_of_properties)
     last_returned_dirty_property_index = number_of_properties-1; // Could happen if wuobjects were removed
   int i = last_returned_dirty_property_index;
 
   do {
     i = (i+1) % number_of_properties;
-    if (properties[i].dirty_state == DIRTY_STATE_DIRTY) {
+    if (wkpf_property_status_is_dirty(properties[i].property_status)) {
       last_returned_dirty_property_index = i;
       *port_number = properties[i].wuobject_port_number;
       *property_number = properties[i].property_number;
       *value = properties[i].value;
-      properties[i].dirty_state = DIRTY_STATE_CLEAN;
-//      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, ((uint16_t)properties[i].wuobject_port_number)<<8 | properties[i].property_number);
+      *status = properties[i].property_status;
+      // Optimistically set this property to not dirty to avoid having to go through the whole list again after the message has been sent.
+      // Hopefully succesful propagations will be the most common case.
+      // The original status will be passed back through wkpf_propagating_dirty_property_failed in case the propagation fails
+      if (properties[i].property_status & PROPERTY_STATUS_NEEDS_PUSH) {
+        properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PUSH;
+        properties[i].property_status &= ~PROPERTY_STATUS_FORCE_NEXT_PUSH;
+      } else { // PROPERTY_STATUS_NEEDS_PULL: after sending the request, wait for the source node to send the value
+        properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL;
+        properties[i].property_status |= PROPERTY_STATUS_NEEDS_PULL_WAITING;
+      }
+      DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);
       return TRUE;
     }
-//    DEBUGF_WKPF("NOT DIRTY[%x]: port %x property %x retval %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, ((uint16_t)properties[i].wuobject_port_number)<<8 | properties[i].property_number);
+//    DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property NOT DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);
   } while(i != last_returned_dirty_property_index);
   return FALSE;
 }
 
-void wkpf_propagating_dirty_property_failed(uint8_t port_number, uint8_t property_number) {
+void wkpf_propagating_dirty_property_failed(uint8_t port_number, uint8_t property_number, uint8_t original_status) {
+  uint8_t failure_count = (original_status & PROPERTY_STATUS_FAILURE_COUNT_TIMES2_MASK) / 2;  
+  if (failure_count < 7) // increase if failure count < 7
+    failure_count++;
+  uint8_t timer_bit_number = (failure_count*2) + 1; 
+  uint8_t timer_bit_value = ((nvm_current_time >> timer_bit_number) + 1) & 1; // Add one to flip bit 
+  uint8_t new_status = (original_status & 0xF0) | (failure_count << 1) | timer_bit_value;
   for (int i=0; i<number_of_properties; i++) {
     if (properties[i].wuobject_port_number == port_number
         && properties[i].property_number == property_number)
-      // Mark them as failed and not as dirty again to prevent endless retries. Now we wait until the next call to update() which will be some time later as long as we have the main loop in Java.
-      properties[i].dirty_state = DIRTY_STATE_FAILED;
+      properties[i].property_status = new_status;
   }
+  DEBUGF_WKPF("WKPF: wkpf_propagating_dirty_property_failed!!!!! property %x at port %x. previous status %x new status %x\n", property_number, port_number, original_status, new_status);
 }
 
