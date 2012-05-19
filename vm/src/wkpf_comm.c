@@ -67,8 +67,8 @@ uint8_t wkpf_send_set_property_refresh_rate(address_t dest_node_id, uint8_t port
   return send_message(dest_node_id, NVMCOMM_WKPF_WRITE_PROPERTY, WKFPCOMM_SET_MESSAGE_HEADER_LEN+2);
 }
 
-uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number, uint16_t wuclass_id) {
-  set_message_header(port_number, property_number, wuclass_id, 0); // 0 because this message doesn't take a data type
+uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_number, uint8_t property_number) {
+  set_message_header(port_number, property_number, 0, 0); // 0 because this message doesn't take a data type or wuclass ID
   return send_message(dest_node_id, NVMCOMM_WKPF_REQUEST_PROPERTY_INIT, 6);
 }
 

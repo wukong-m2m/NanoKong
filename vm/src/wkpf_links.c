@@ -76,9 +76,45 @@ uint8_t wkpf_load_links(heap_id_t links_heap_id) {
   return WKPF_OK;
 }
 
+bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t property_number) {
+  uint16_t component_id;
+  wkpf_get_component_id(port_number, &component_id);
+  
+  for(int i=0; i<number_of_links; i++) {
+    if (links[i].dest_component_id == component_id
+        && links[i].dest_property_number == property_number) {
+      if (component_to_wuobject_map[links[i].src_component_id].node_id != nvmcomm_get_node_id())
+        return true; // There is a link to this property, coming from another node. We need to ask it for the initial value
+      else
+        return false;
+    } 
+  }
+  return false;
+}
+
 uint8_t wkpf_pull_property(uint8_t port_number, uint8_t property_number) {
-  // TODONR
-  return WKPF_OK;
+  uint16_t component_id;
+  wkpf_get_component_id(port_number, &component_id);
+
+  for(int i=0; i<number_of_links; i++) {
+    if(links[i].dest_component_id == component_id
+        && links[i].dest_property_number == property_number) {
+      uint16_t src_component_id = links[i].src_component_id;
+      if (src_component_id > number_of_components) {
+        DEBUGF_WKPF("WKPF: !!!! ERROR !!!! component id out of range %x\n", src_component_id);
+        return WKPF_ERR_SHOULDNT_HAPPEN;
+      }
+      uint8_t src_property_number = links[i].src_property_number;
+      uint8_t src_port_number = component_to_wuobject_map[src_component_id].port_number;
+      address_t src_node_id = component_to_wuobject_map[src_component_id].node_id;
+      if (src_node_id != nvmcomm_get_node_id()) {
+        // Properties with local sources will be initialised eventually, so we only need to send a message
+        // to ask for initial values coming from remote nodes
+        return wkpf_send_request_property_init(src_node_id, src_port_number, src_property_number);      
+      }
+    }
+  }
+  return WKPF_ERR_SHOULDNT_HAPPEN;
 }
 
 uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, int16_t value) {
