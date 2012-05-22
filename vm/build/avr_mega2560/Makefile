@@ -13,7 +13,7 @@ else
 DEFAULT_CLASS = HAScenario2
 endif
 
-PORT = /dev/tty.usbmodem411
+PORT = /dev/ttyACM0
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
