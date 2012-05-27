@@ -10,7 +10,7 @@ DEFAULT_CLASS=$(FLOWXML)
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
 else
-DEFAULT_CLASS = HAScenario2
+DEFAULT_CLASS = TestWKPF
 endif
 
 PORT = /dev/ttyACM0

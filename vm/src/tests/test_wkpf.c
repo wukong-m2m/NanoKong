@@ -3,6 +3,12 @@
 #include "types.h"
 #include "wkpf.h"
 #include "native_wuclasses/GENERATEDwuclass_threshold.h"
+#include "native_wuclasses/GENERATEDwuclass_math.h"
+#include "native_wuclasses/GENERATEDwuclass_logical.h"
+#include "native_wuclasses/GENERATEDwuclass_condition_selector_boolean.h"
+#include "native_wuclasses/GENERATEDwuclass_condition_selector_short.h"
+#include "native_wuclasses/GENERATEDwuclass_loop_delay_boolean.h"
+#include "native_wuclasses/GENERATEDwuclass_loop_delay_short.h"
 
 #ifdef TEST_WKPF
 
@@ -202,7 +208,7 @@ void test_wuobjects() {
 }
 
 void test_properties() {
-  int8_t retval;
+ /* int8_t retval;
   int16_t value_int16=42;
   bool value_boolean=42;
   wkpf_local_wuobject *wuobject_a;
@@ -283,7 +289,7 @@ void test_properties() {
   assert_equal_uint(retval, WKPF_OK, "reading property 0 of wuobject at port 0x80");
   assert_equal_uint(value_int16, 0x1111, "value is now 0x1111");
 
-  print_test_summary();
+  print_test_summary();*/
 }
 
 void test_native_wuclasses() {
@@ -313,7 +319,7 @@ void test_update_for_native_wuclasses() {
   retval &= wkpf_get_wuobject_by_port(1, &wuobject);
   assert_equal_uint(retval, WKPF_OK, "register threshold wuclass and create wuobject");
 
-  retval = wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_THRESHOLD_OPERATOR, OPERATOR_GT);
+  retval = wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_THRESHOLD_OPERATOR, WKPF_ENUM_THRESHOLD_OPERATOR_GT);
   retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_THRESHOLD_THRESHOLD, 1000);
   retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_THRESHOLD_VALUE, 800);
   assert_equal_uint(retval, WKPF_OK, "setup initial properties: operator=>, threshold=1000, value=800");
@@ -339,6 +345,236 @@ void test_update_for_native_wuclasses() {
   print_test_summary();
 }
 
+
+void test_logical_wuclasss() {
+ /* int8_t retval;
+  int16_t value_short;
+  bool value_boolean;
+  wkpf_local_wuobject *wuobject;
+  */
+ //DELAY---------------------
+/*  retval = wkpf_register_wuclass(wuclass_loop_delay_boolean);
+  retval &= wkpf_create_wuobject(wuclass_loop_delay_boolean.wuclass_id, 31, 0);
+  retval &= wkpf_get_wuobject_by_port(31, &wuobject);
+  assert_equal_uint(retval, WKPF_OK, "register logical wuclass and create wuobject");
+
+  retval = wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOOP_DELAY_BOOLEAN_INPUT, TRUE);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOOP_DELAY_BOOLEAN_DELAY, 10);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 1 delay 10");
+
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOOP_DELAY_BOOLEAN_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "output1 is TRUE");*/
+
+ //SELECTOR---------------------
+ /* retval = wkpf_register_wuclass(wuclass_condition_selector_boolean);
+  retval &= wkpf_create_wuobject(wuclass_condition_selector_boolean.wuclass_id, 21, 0);
+  retval &= wkpf_get_wuobject_by_port(21, &wuobject);
+  assert_equal_uint(retval, WKPF_OK, "register logical wuclass and create wuobject");
+
+  retval = wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_INPUT, TRUE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_CONTROL, FALSE);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 1 control 0");
+
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_OUTPUT1, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "output1 is TRUE");
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_OUTPUT2, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "output2 is FALSE");
+
+  retval = wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_INPUT, TRUE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_CONTROL, TRUE);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 1 control 1");
+
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_OUTPUT1, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "output1 is FALSE");
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_BOOLEAN_OUTPUT2, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "output2 is TRUE");
+
+
+  retval = wkpf_register_wuclass(wuclass_condition_selector_short);
+  retval &= wkpf_create_wuobject(wuclass_condition_selector_short.wuclass_id, 22, 0);
+  retval &= wkpf_get_wuobject_by_port(22, &wuobject);
+  assert_equal_uint(retval, WKPF_OK, "register logical wuclass and create wuobject");
+
+  retval = wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_INPUT, 50);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_CONTROL, FALSE);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 50 control 0");
+
+  retval &= wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_OUTPUT1, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 50, "output1 is 50");
+  retval &= wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_OUTPUT2, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 0, "output2 is 0");
+
+  retval = wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_INPUT, 50);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_CONTROL, TRUE);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 50 control 1");
+
+  retval &= wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_OUTPUT1, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 0, "output1 is 0");
+  retval &= wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_CONDITION_SELECTOR_SHORT_OUTPUT2, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 50, "output2 is 50");
+*/
+ //LOGICAL---------------------
+ /* retval = wkpf_register_wuclass(wuclass_logical);
+  retval &= wkpf_create_wuobject(wuclass_logical.wuclass_id, 11, 0);
+  retval &= wkpf_get_wuobject_by_port(11, &wuobject);
+  assert_equal_uint(retval, WKPF_OK, "register logical wuclass and create wuobject");
+
+  retval = wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT1, FALSE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT2, FALSE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT3, FALSE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT4, FALSE);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 0 0 0 0");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_AND);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "AND, output is FALSE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_OR);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "OR, output is FALSE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_NOT);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "NOT, output is TRUE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_XOR);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "XOR, output is FALSE");
+
+
+  retval = wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT1, TRUE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT2, FALSE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT3, TRUE);
+  retval &= wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT4, TRUE);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 1 0 1 1");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_AND);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "AND, output is FALSE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_OR);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "OR, output is TRUE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_NOT);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "NOT, output is FALSE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_XOR);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "XOR, output is TRUE");
+
+  //retval = wkpf_internal_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT2, TRUE);
+  //assert_equal_uint(retval, WKPF_OK, "setup initial properties: operator=>and, input 1 1 1 1");
+
+  //retval = wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  //assert_equal_uint(retval, WKPF_OK, "reading output");
+  //assert_equal_uint(value_boolean, FALSE, "output still FALSE, internal writes don't trigger update()");
+
+  retval = wkpf_external_write_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_INPUT2, TRUE);
+  assert_equal_uint(retval, WKPF_OK, "setup initial properties: input 1 1 1 1");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_AND);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "AND, output is TRUE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_OR);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, TRUE, "OR, output is TRUE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_NOT);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "NOT, output is FALSE");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_LOGICAL_OPERATOR, WKPF_ENUM_LOGICAL_OPERATOR_XOR);
+  retval &= wkpf_external_read_property_boolean(wuobject, WKPF_PROPERTY_LOGICAL_OUTPUT, &value_boolean);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_boolean, FALSE, "XOR, output is FALSE");*/
+
+//MATH----------------------------------
+  /*retval = wkpf_register_wuclass(wuclass_math);
+  retval &= wkpf_create_wuobject(wuclass_math.wuclass_id, 41, 0);
+  retval &= wkpf_get_wuobject_by_port(41, &wuobject);
+  assert_equal_uint(retval, WKPF_OK, "register math wuclass and create wuobject");
+
+  retval = wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_INPUT1, 40);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_INPUT2, 20);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_INPUT3, 10);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_INPUT4, 30);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_OPERATOR, WKPF_ENUM_MATH_OPERATOR_MAX);
+  assert_equal_uint(retval, WKPF_OK, "MAX, input 40 20 10 30");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_OUTPUT, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 40, "output should be 40");
+
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_OPERATOR, WKPF_ENUM_MATH_OPERATOR_MIN);
+  assert_equal_uint(retval, WKPF_OK, "MIN, input 40 20 10 30");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_OUTPUT, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 10, "output should be 10");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_OPERATOR, WKPF_ENUM_MATH_OPERATOR_AVG);
+  assert_equal_uint(retval, WKPF_OK, "AVG, input 40 20 10 30");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_OUTPUT, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 25, "output should be 25");
+
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_OPERATOR, WKPF_ENUM_MATH_OPERATOR_ADD);
+  assert_equal_uint(retval, WKPF_OK, "+, input 40 20 10 30");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_OUTPUT, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 100, "output should be 100");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_OPERATOR, WKPF_ENUM_MATH_OPERATOR_SUB);
+  assert_equal_uint(retval, WKPF_OK, "-, input 40 20 10 30");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_OUTPUT, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 20, "output should be 20");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_INPUT3, 1);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_INPUT4, 3);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_OPERATOR, WKPF_ENUM_MATH_OPERATOR_MULTIPLY);
+  assert_equal_uint(retval, WKPF_OK, "*, input 40 20 1 3");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_OUTPUT, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 2400, "output should be 2400");
+
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_INPUT1, 28);
+  retval &= wkpf_external_write_property_int16(wuobject, WKPF_PROPERTY_MATH_OPERATOR, WKPF_ENUM_MATH_OPERATOR_DIVIDE);
+  assert_equal_uint(retval, WKPF_OK, "/, input 40 20 1 3");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_OUTPUT, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading output");
+  assert_equal_uint(value_short, 1, "output should be 1");
+  retval = wkpf_external_read_property_int16(wuobject, WKPF_PROPERTY_MATH_REMAINDER, &value_short);
+  assert_equal_uint(retval, WKPF_OK, "reading remainder");
+  assert_equal_uint(value_short, 8, "output should be 8");*/
+
+  print_test_summary();
+}
+
+
 void test_wkpf() {
 #ifdef TEST_WKPF_WUCLASSES
   test_wuclasses();
@@ -354,6 +590,9 @@ void test_wkpf() {
 #endif
 #ifdef TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES
   test_update_for_native_wuclasses();
+#endif
+#ifdef TEST_WKPF_LOGICAL_WUCLASSES
+  test_logical_wuclasss();
 #endif
 
   while(1) { }
