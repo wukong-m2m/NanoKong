@@ -6,7 +6,7 @@
 # Date: May 27, 2012
 
 import os
-from xml.etree.ElementTree import parse
+import xml.etree.ElementTree as ET
 from optparse import OptionParser
 from operator import itemgetter
 
@@ -21,23 +21,47 @@ def parser():
     (options, args) = parser.parse_args()
     if not options.i: parser.error("invalid Nigara XML, please refer to -h for help")
     if len(options.nl) == 0: parser.error("invalid Scenario name(s), please refer to -h for help")
-    print options.nl
 
-    root = parse(options.i).getroot()
+    root = ET.parse(options.i).getroot()
     global out_fd
     out_fd = open(options.out, 'w')
 
     plist = root.findall(".//p[@t='b:Folder']")
-    nlist = [n for n in plist if n.get('n') in options.nl]
+    slist = [p for p in plist if p.get('n') in options.nl]
+    olist = []
 
-    
+    for scenario in slist:
+        clist = scenario.findall("p")
+        id2comp = {
+            c.get('h'):{'type':c.get('t'), 'iname':c.get('n'), 'link':{},
+                        'val':{ i.get('n'):i.get('v') for i in list(set(c.findall("p"))-set(c.findall("p[@t]"))) }
+            } for c in clist 
+        } # id: name, value_dict, link_dict
+        # rename the type, add links to source component in the view of target component
+        for component in clist:
+            dest = id2comp[component.get('h')]
+            dest['type'] = dest['type'][dest['type'].find(':')+1:]
+            dname = dest['iname']
+            dval = dest['val']
+            for i in component.findall("p[@t='b:Link']"):
+                srcid = i.find("p[@n='sourceOrd']").get('v')[2:]
+                assert srcid in id2comp, "Error! srcid %s is not found under scenario %s" % (srcid, component.get('n'))
+                src = id2comp[srcid]
+                sprop = i.find("p[@n='sourceSlotName']").get('v')
+                dprop = i.find("p[@n='targetSlotName']").get('v')
+                sname = src['iname']
+                sval = src['val']
+                src['link'][sprop] = (dname, dprop)
+                # only destination property cannot be set with default value
+                if dprop in dval: del dval[dprop]
+        olist += [id2comp]
 
-    return options.out
+    return options.out, olist
 
-def codegen():
-    print>>out_fd, "HaHa"
+def codegen(scenarios):
+    print >> out_fd, 'Ha'
 
 if __name__ == "__main__":
-    out = parser()
-    codegen()
+    out, scenarios = parser()
+    codegen(scenarios)
     print "Niagara2WuKongFlow msg: the file %s is generated" % (out)
