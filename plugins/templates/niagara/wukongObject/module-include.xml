@@ -1,0 +1,5 @@
+<types>
+  {% for component in components %}
+  <type name="{{ component.get("name") }}" class="com.wukong.wukongObject.B{{ component.get("name") }}" />
+  {% endfor %}
+</types>

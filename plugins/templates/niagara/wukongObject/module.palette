@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bajaObjectGraph version="1.0">
+  <p m="b=baja" t="b:UnrestrictedFolder">
+
+    <!-- WuKong Objects -->
+    <p n="WuKongObjects" t="b:UnrestrictedFolder">
+            
+      <!-- Sensors -->
+      <p n="Sensors" t="b:UnrestrictedFolder">
+        {% for sensor in sensors %}
+        <!-- {{ sensor.get("name") }} -->
+        <p n="{{ sensor.get("name") }}" m="c=wukongObject" t="c:{{ sensor.get("name") }}" />
+        {% endfor %}
+      </p> <!-- Sensors -->
+      
+      <!-- Controller -->
+      <p n="Controller" t="b:UnrestrictedFolder">
+        {% for controller in controllers %}
+        <!-- {{ controller.get("name") }} -->
+        <p n="{{ controller.get("name") }}" m="c=wukongObject" t="c:{{ controller.get("name") }}" />
+        {% endfor %}
+      </p> <!-- Controller -->
+
+      <!-- Actuator -->
+      <p n="Actuators" t="b:UnrestrictedFolder">
+        {% for actuator in actuators %}
+        <!-- {{ actuator.get("name") }} -->
+        <p n="{{ actuator.get("name") }}" m="c=wukongObject" t="c:{{ actuator.get("name") }}" />
+        {% endfor %}
+      </p> <!-- Actuator -->
+      
+      <!-- Virtuals -->
+      <p n="Virtuals" t="b:UnrestrictedFolder">
+        {% for virtual in virtuals %}
+        <!-- {{ virtual.get("name") }} -->
+        <p n="{{ virtual.get("name") }}" m="c=wukongObject" t="c:{{ virtual.get("name") }}" />
+        {% endfor %}
+      </p> <!-- Virtuals -->
+
+    </p> <!-- WuKong Objects -->
+
+  </p> <!-- UnrestrictedFolder -->
+</bajaObjectGraph>
