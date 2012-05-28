@@ -22,7 +22,7 @@ public class Adc {
   // voltage reference constants
   public static final int AREF     = 0 << 6;
   public static final int AVCC     = 1 << 6;
-//  public static final int RESERVED = 2 << 6;  // don't use
+  public static final int INTERNAL1 = 2 << 6;  // don't use
   public static final int INTERNAL = 3 << 6;  
 
   // set voltage reference

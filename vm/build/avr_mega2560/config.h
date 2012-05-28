@@ -26,7 +26,8 @@
 //#define TEST_WKPF_PROPERTIES
 //#define TEST_WKPF_NATIVE_WUCLASSES
 //#define TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES
-#if defined(TEST_WKPF_WUCLASSES) || defined(TEST_WKPF_WUOBJECTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_WUCLASSES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES)
+//#define TEST_WKPF_LOGICAL_WUCLASSES
+#if defined(TEST_WKPF_WUCLASSES) || defined(TEST_WKPF_WUOBJECTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_WUCLASSES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES) || defined(TEST_WKPF_LOGICAL_WUCLASSES)
 #define TEST_WKPF // General WKPF test support
 #endif
 
@@ -39,7 +40,7 @@
 #define NVM_USE_UTILS           // enable inline utils
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_COMM
-#define NVM_USE_COMMZWAVE       // enable Z-wave support
+//#define NVM_USE_COMMZWAVE       // enable Z-wave support
 //#define NVM_USE_COMMXBEE        // enable XBee support
 // bytecode location (choose one)
 #define NVM_USE_FLASH_PROGRAM	// execute directly from FLASH

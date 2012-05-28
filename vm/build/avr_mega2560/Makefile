@@ -10,10 +10,10 @@ DEFAULT_CLASS=$(FLOWXML)
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
 else
-DEFAULT_CLASS = HAScenario2
+DEFAULT_CLASS = TestWKPF
 endif
 
-PORT = /dev/tty.usbmodem411
+PORT = /dev/ttyACM0
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
@@ -81,7 +81,7 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=flash  -dprog=stk200 --upload if=NanoVM.hex --verify
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
-nvmcomm_reprogram: nvmdefault.h
+nvmcomm_reprogram: generate nvmdefault.h
 	$(NVMCOMM_REPROGRAM) 3 nvmdefault.h
 	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
 
