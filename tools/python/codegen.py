@@ -111,17 +111,17 @@ global_virtual_constants_lines.append('''
 ''')
 
 # Parsing to WuKong Profile Framework Component Library header
-typeind = len(wuclasses)
 for wutypedef in wutypedefs:
   wutypedefs_hash.append(convert_constant(wutypedef.get("name")))
 
   # Generate global header typedef definition for VM
+  enumvalue = 0
   for item in wutypedef:
-    cline = "#define WKPF_" + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " %d\n" % (typeind)
-    jline = "public static final short " + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " = %d;\n" % (typeind)
+    cline = "#define WKPF_" + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " %d\n" % (enumvalue)
+    jline = "public static final short " + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " = %d;\n" % (enumvalue)
     global_vm_header_lines.append(cline)
     global_virtual_constants_lines.append(jline)
-    typeind += 1
+    enumvalue += 1
 print "==================End of TypeDefs====================="
 
 for wuclass in wuclasses:
