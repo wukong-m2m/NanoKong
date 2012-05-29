@@ -404,5 +404,5 @@ if __name__ == "__main__":
     java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = parser()
     map_table, comp_init, map_table_xml = mapper(wuClasses_dict, components_dict, node_list)
     javacodegen(links_table, map_table, comp_init, java_class_name)
-    print>>out_xml_fd, "<ComponentToNodeMapping>\n%s<ComponentToNodeMapping>" % (map_table_xml)
+    print>>out_xml_fd, "<ComponentToNodeMapping>\n%s</ComponentToNodeMapping>" % (map_table_xml)
     print "Translator msg: the file %s.java generated is on the path %s" % (java_class_name, out_dir)
