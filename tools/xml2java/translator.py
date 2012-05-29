@@ -20,6 +20,7 @@ print_wuClasses = False
 print_Components = True
 print_links = True
 out_fd = None
+out_xml_fd = None
 
 def indentor(s, num):
     return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
@@ -91,7 +92,9 @@ def parser():
     if not out_dir: out_dir = os.getcwd()
     assert os.path.exists(out_dir), "Error! the specified output directory does not exist."
     global out_fd
+    global out_xml_fd
     out_fd = open(os.path.join(out_dir, java_class_name+".java"), 'w')
+    out_xml_fd = open(os.path.join(out_dir, java_class_name+"Mapping.xml"), 'w')
    
     ## First, parse out WuClasse definitions with additional customized property types
     path = options.pathc
@@ -171,8 +174,9 @@ def parser():
                 assert False, 'Error! property %s of unknown type %s in xml %s' % (prop_name, prop_type, path)
             tmp_dflt_list += [(prop_name, prop_dflt_value)]
 
-        components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list }
-        if print_Components: print>>out_fd, "//", i, instanceName, components_dict[instanceName]
+        components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list, 'cmpname':instanceName }
+        if print_Components:
+          print>>out_fd, "//", i, instanceName, components_dict[instanceName]
 
         for link in component.getElementsByTagName('link'):
             toInstanceName = link.getAttribute('toInstanceId')
@@ -245,6 +249,7 @@ def mapper(wuClasses_dict, components_dict, node_list):
 
     ## TODO: define mapping algorithm & generate mapping table
     map_table_str = ""
+    map_xml_str = ""
 
     ## generate WKPF initialization statements
     reg_func_call = "WKPF.registerWuClass(WKPF.WUCLASS_%s, GENERATEDVirtual%sWuObject.properties);\n"
@@ -280,6 +285,12 @@ def mapper(wuClasses_dict, components_dict, node_list):
                     break
             assert port_num != None, "Error! cannot find an unique port number"
             map_table_str += "(byte)%d, (byte)%d, \n" % (soft_component[0], port_num)
+            map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'],
+                                                                                                                                          component['cmpname'],
+                                                                                                                                          component['class'],
+                                                                                                                                          component['classid'],
+                                                                                                                                          soft_component[0],
+                                                                                                                                          port_num)
             if vrtlflag: # if it is virtual?
                 reg_stmts += reg_func_call % (wuClassName.upper(), wuClassName.replace('_',''))
                 wuClassInstVar = "wuclassInstance%s" % wuClassName
@@ -290,6 +301,12 @@ def mapper(wuClasses_dict, components_dict, node_list):
         else: # it is a hard component
             hard_component = hard_dict[wuClass['id']][0]
             map_table_str += "(byte)%d, (byte)%d, \n" % (hard_component[0], hard_component[1])
+            map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'],
+                                                                                                                                          component['cmpname'],
+                                                                                                                                          component['class'],
+                                                                                                                                          component['classid'],
+                                                                                                                                          hard_component[0],
+                                                                                                                                          hard_component[1])
 
         # set default values
         for prop_name, prop_value in component['defaults']:
@@ -307,7 +324,7 @@ def mapper(wuClasses_dict, components_dict, node_list):
 
         init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1)) if if_stmts != '' else '// no need to init component %d' % cmpId
 
-    return indentor(map_table_str, 1), reg_stmts + init_stmts
+    return indentor(map_table_str, 1), reg_stmts + init_stmts, map_xml_str
 
 
 def javacodegen(link_table, map_table, comp_init, java_class_name):
@@ -385,6 +402,7 @@ public class {{ CLASS_NAME }} {
 
 if __name__ == "__main__":
     java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = parser()
-    map_table, comp_init = mapper(wuClasses_dict, components_dict, node_list)
+    map_table, comp_init, map_table_xml = mapper(wuClasses_dict, components_dict, node_list)
     javacodegen(links_table, map_table, comp_init, java_class_name)
+    print>>out_xml_fd, "<ComponentToNodeMapping>\n%s<ComponentToNodeMapping>" % (map_table_xml)
     print "Translator msg: the file %s.java generated is on the path %s" % (java_class_name, out_dir)

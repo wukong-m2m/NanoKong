@@ -62,7 +62,7 @@ endef
 	$(DEP-GEN-CMD)
 
 # avr specific entries
-%.elf: generate translate $(OBJS)
+%.elf: generate $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	avr-size -A $@
 
@@ -103,15 +103,6 @@ upload_bootloader:
   
 generate: $(COMPONENTXML_PATH)
 	$(ROOT_DIR)/tools/python/codegen.py -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
-
-ifdef FLOWXML
-translate: $(COMPONENTXML_PATH) $(FLOWXML_DIR)/$(FLOWXML).xml $(ROOT_DIR)/tools/xml2java/translator.py
-		$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
-		DEFAULT_CLASS=$(FLOWXML)
-else
-translate:
-	
-endif
 
 #include $(OBJS:.o=.d)
 
