@@ -68,12 +68,13 @@ java_dir = os.path.join('java', 'nanovm', 'wkpf')
 
 plugin_dir = os.path.join(options.project_dir, 'plugins')
 template_dir = os.path.join(plugin_dir, 'templates')
-plugin_template_dir = os.path.join(template_dir, options.plugin_name, 'wukongObject')
-plugin_root_dir = os.path.join(plugin_dir, options.plugin_name, 'wukongObject')
 
-print get_immediate_subdirectories(plugin_template_dir) + [plugin_template_dir]
-jinja2_env = Environment(loader=FileSystemLoader(get_all_subdirectories(plugin_template_dir) + [plugin_template_dir]))
-jinja2_env.filters["convert_filename_to_java"] = convert_filename_to_java
+if options.plugin_name:
+  plugin_template_dir = os.path.join(template_dir, options.plugin_name, 'wukongObject')
+  plugin_root_dir = os.path.join(plugin_dir, options.plugin_name, 'wukongObject')
+
+  jinja2_env = Environment(loader=FileSystemLoader(get_all_subdirectories(plugin_template_dir) + [plugin_template_dir]))
+  jinja2_env.filters["convert_filename_to_java"] = convert_filename_to_java
 
 # Filenames
 global_vm_header_filename = 'GENERATEDwkpf_wuclass_library.h'
@@ -296,41 +297,42 @@ global_virtual_constants.close()
 
 
 # Create plugin folder structure
-distutils.dir_util.copy_tree(plugin_template_dir, plugin_root_dir)
+if options.plugin_name:
+  distutils.dir_util.copy_tree(plugin_template_dir, plugin_root_dir)
 
-if options.plugin_name == "niagara":
-  module_include_path = os.path.join(plugin_root_dir, 'module-include.xml')
-  module_include = open(module_include_path, 'w')
-  module_include_template = jinja2_env.get_template('module-include.xml')
-  module_include.write(module_include_template.render(components=wucomponents))
-  module_include.close()
-
-
-  module_palette_path = os.path.join(plugin_root_dir, 'module.palette')
-  module_palette = open(module_palette_path, 'w')
-  module_palette_template = jinja2_env.get_template('module.palette')
-  module_palette.write(module_palette_template.render(virtuals=component_root.xpath("//*[@virtual='true']"), 
-    sensors=component_root.xpath("//*[contains(@name, 'Sensor')]"), 
-    controller=component_root.xpath("//*[contains(@name, 'Controller')]"),
-    actuators=component_root.xpath("//*[contains(@name, 'Actuator')]")))
-  module_palette.close()
+  if options.plugin_name == "niagara":
+    module_include_path = os.path.join(plugin_root_dir, 'module-include.xml')
+    module_include = open(module_include_path, 'w')
+    module_include_template = jinja2_env.get_template('module-include.xml')
+    module_include.write(module_include_template.render(components=wucomponents))
+    module_include.close()
 
 
-  class_implementation_dir = os.path.join(plugin_root_dir, 'com', 'wukong', 'wukongObject')
-  distutils.dir_util.mkpath(class_implementation_dir)
-  #class_implementation_template = Template(open(os.path.join(class_implementation_dir, 'BTemplate.java')).read())
-  class_implementation_template = jinja2_env.get_template('BTemplate.java')
-  enum_implementation_template = jinja2_env.get_template('BTemplateEnum.java')
+    module_palette_path = os.path.join(plugin_root_dir, 'module.palette')
+    module_palette = open(module_palette_path, 'w')
+    module_palette_template = jinja2_env.get_template('module.palette')
+    module_palette.write(module_palette_template.render(virtuals=component_root.xpath("//*[@virtual='true']"), 
+      sensors=component_root.xpath("//*[contains(@name, 'Sensor')]"), 
+      controller=component_root.xpath("//*[contains(@name, 'Controller')]"),
+      actuators=component_root.xpath("//*[contains(@name, 'Actuator')]")))
+    module_palette.close()
 
-  for wuclass in wuclasses:
-    wuclass_implementation_path = os.path.join(class_implementation_dir, 'B%s.java' % (convert_filename_to_java(wuclass.get("name"))))
-    wuclass_implementation = open(wuclass_implementation_path, 'w')
-    wuclass_implementation.write(class_implementation_template.render(component=wuclass))
 
-  for wutypedef in wutypedefs:
-    if wutypedef.get("type").lower() == 'enum':
-      wutypedef_implementation_path = os.path.join(class_implementation_dir, 'B%sEnum.java' % (convert_filename_to_java(wutypedef.get("name"))))
-      wutypedef_implementation = open(wutypedef_implementation_path, 'w')
-      wutypedef_implementation.write(enum_implementation_template.render(component=wutypedef))
+    class_implementation_dir = os.path.join(plugin_root_dir, 'com', 'wukong', 'wukongObject')
+    distutils.dir_util.mkpath(class_implementation_dir)
+    #class_implementation_template = Template(open(os.path.join(class_implementation_dir, 'BTemplate.java')).read())
+    class_implementation_template = jinja2_env.get_template('BTemplate.java')
+    enum_implementation_template = jinja2_env.get_template('BTemplateEnum.java')
 
-print "==================End of Plugin====================="
+    for wuclass in wuclasses:
+      wuclass_implementation_path = os.path.join(class_implementation_dir, 'B%s.java' % (convert_filename_to_java(wuclass.get("name"))))
+      wuclass_implementation = open(wuclass_implementation_path, 'w')
+      wuclass_implementation.write(class_implementation_template.render(component=wuclass))
+
+    for wutypedef in wutypedefs:
+      if wutypedef.get("type").lower() == 'enum':
+        wutypedef_implementation_path = os.path.join(class_implementation_dir, 'B%sEnum.java' % (convert_filename_to_java(wutypedef.get("name"))))
+        wutypedef_implementation = open(wutypedef_implementation_path, 'w')
+        wutypedef_implementation.write(enum_implementation_template.render(component=wutypedef))
+
+  print "==================End of Plugin====================="
