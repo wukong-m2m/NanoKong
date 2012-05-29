@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from optparse import OptionParser
 import xml.dom.minidom
 import wkpfcomm
 import wkpf
@@ -74,13 +75,21 @@ def printNodeInfo(nodeInfo, componentDefinitions):
       print "\t\t%d %8s %20s %s" % (propertyInfo.propertyNumber,
                                     wkpf.datatypeToString(propertyInfo.datatype),
                                     propertyInfo.name,
-                                    stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value)
+                                    stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value))
 
 if __name__ == "__main__":
-  componentDefinitions = getComponentDefinitions('../../ComponentDefinitions/WuKongStandardLibrary.xml')
+  optionParser = OptionParser("usage: %prog [options]")
+  optionParser.add_option("-c", "--component", action="store", type="string", dest="pathComponentXml", help="WuKong Component XML file path")
+  (options, args) = optionParser.parse_args()
+  if not options.pathComponentXml:
+    optionParser.error("invalid component xml, please refer to -h for help")
+
+  componentDefinitions = getComponentDefinitions(options.pathComponentXml)
   nodeIds = wkpfcomm.getNodeIds();
   nodeInfos = [readNodeInfo(nodeId, componentDefinitions) for nodeId in nodeIds]
   print nodeInfos
   for nodeInfo in sorted(nodeInfos, key=lambda x:x.nodeId):
     print "============================="
-    printNodeInfo(nodeInfo)
+    printNodeInfo(nodeInfo, componentDefinitions)
+
+
