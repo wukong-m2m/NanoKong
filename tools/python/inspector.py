@@ -26,6 +26,17 @@ def getComponentPropertyName(componentId, propertyNumber, componentDefinitions):
   prop = component.getElementsByTagName('property')[propertyNumber]
   return prop.getAttribute('name')
 
+def stringRepresentationIfEnum(componentId, propertyNumber, componentDefinitions, value):
+  component = getComponent(componentId, componentDefinitions)
+  prop = component.getElementsByTagName('property')[propertyNumber]
+  datatype = prop.getAttribute('datatype')
+  for typedef in componentDefinitions.getElementsByTagName('WuTypedef'):
+    if typedef.getAttribute('name') == datatype:
+      enums = typedef.getElementsByTagName('enum')
+      return enums[value].getAttribute('value')        
+  return str(value)
+
+
 ## Functions to read data from the nodes
 def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
   class PropertyInfo:
@@ -49,27 +60,21 @@ def readNodeInfo(nodeId, componentDefinitions):
   return wkpfcommNodeInfo
 
 ## Print functions
-def printPropertyInfo(propertyInfo):
-  print "\t\t%d %8s %20s %s" % (propertyInfo.propertyNumber, wkpf.datatypeToString(propertyInfo.datatype), propertyInfo.name, propertyInfo.value)
-
-def printWuObjectInfo(wuObjectInfo):
-  print "\tClass name %s" % (wuObjectInfo.wuClassName)
-  print "\tPort number %d" % (wuObjectInfo.portNumber)
-  print "\tProperties"
-  for propertyInfo in wuObjectInfo.properties:
-    printPropertyInfo(propertyInfo)
-
-def printWuClassInfo(wuClassInfo):
-  print "\tClass name %s %s" % (wuClassInfo.name, "VIRTUAL" if wuClassInfo.isVirtual else "NATIVE")
-
-def printNodeInfo(nodeInfo):
+def printNodeInfo(nodeInfo, componentDefinitions):
   print "NodeID: %d" % (nodeInfo.nodeId)
   print "WuClasses:"
   for wuClassInfo in sorted(nodeInfo.wuClasses, key=lambda x:x.wuClassId):
-    printWuClassInfo(wuClassInfo)
+    print "\tClass name %s %s" % (wuClassInfo.name, "VIRTUAL" if wuClassInfo.isVirtual else "NATIVE")
   print "WuObjects:"
   for wuObjectInfo in sorted(nodeInfo.wuObjects, key=lambda x:x.wuClassId):
-    printWuObjectInfo(wuObjectInfo)
+    print "\tClass name %s" % (wuObjectInfo.wuClassName)
+    print "\tPort number %d" % (wuObjectInfo.portNumber)
+    print "\tProperties"
+    for propertyInfo in wuObjectInfo.properties:
+      print "\t\t%d %8s %20s %s" % (propertyInfo.propertyNumber,
+                                    wkpf.datatypeToString(propertyInfo.datatype),
+                                    propertyInfo.name,
+                                    stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value)
 
 if __name__ == "__main__":
   componentDefinitions = getComponentDefinitions('../../ComponentDefinitions/WuKongStandardLibrary.xml')
