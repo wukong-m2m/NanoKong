@@ -10,6 +10,7 @@ tools/zwave/testrtt
 .DS_Store
 vm/build/avr_mega2560/nvmdefault.h
 nanokong.tmproj
+plugins/niagara
 .tmtags
 GENERATED*
 *.orig

@@ -15,6 +15,9 @@ def verifyWKPFmsg(messageStart, minAdditionalBytes):
   # minPayloadLength should not include the command or the 2 byte sequence number
   return lambda command, payload: (command == pynvc.WKPF_ERROR_R) or (payload != None and payload[0:len(messageStart)]==messageStart and len(payload) >= len(messageStart)+minAdditionalBytes)
 
+def getNodeIds():
+  return pynvc.discoverNodes()
+
 def getNodeInfos():
   nodeIds = pynvc.discoverNodes()
   return [getNodeInfo(destination) for destination in nodeIds]
@@ -79,11 +82,12 @@ def getProperty(wuobject, propertyNumber):
     return None
   datatype = reply[7]
   if datatype == DATATYPE_BOOLEAN:
-    return reply[8] != 0
+    value = reply[8] != 0
   elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
-    return (reply[8] <<8) + reply[9]
+    value = (reply[8] <<8) + reply[9]
   else:
-    return None
+    value = None
+  return (value, datatype)
 
 def setProperty(wuobject, propertyNumber, datatype, value):
   sn = _getNextSequenceNumberAsList()

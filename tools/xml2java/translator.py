@@ -25,15 +25,13 @@ def indentor(s, num):
     return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
 
 def loadNodeList(filename):
-  f = open(filename, "r")
-  node_list = pickle.load(f)
-  f.close()
-  return node_list
+  with open(filename, "r") as f:
+    node_list = pickle.load(f)
+    return node_list
 
 def saveNodeList(node_list, filename):
-  f = open(filename, "w")
-  pickle.dump(node_list, f)
-  f.close()
+  with open(filename, "w") as f:
+    pickle.dump(node_list, f)
 
 def getNodeList(options):
   if (not options.do_discovery and not options.use_hardcoded_discovery and not options.discovery_file):

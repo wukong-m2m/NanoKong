@@ -9,7 +9,7 @@
 	</component>
 	<component type="Threshold" instanceId="Threshold1">
 		<property name="operator" default="LTE"/>
-		<link fromProperty="output" toInstanceId="Light1" toProperty="on_off" />
+		<link fromProperty="output" toInstanceId="Light_Actuator1" toProperty="on_off" />
 	</component>
-	<component type="Light" instanceId="Light1" />
+	<component type="Light_Actuator" instanceId="Light_Actuator1" />
 </application>

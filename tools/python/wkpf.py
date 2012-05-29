@@ -5,6 +5,16 @@ DATATYPE_INT16 = 0
 DATATYPE_BOOLEAN = 1
 DATATYPE_REFRESH_RATE = 2
 
+def datatypeToString(datatype):
+  if datatype == DATATYPE_INT16:
+    return "INT16"
+  elif datatype == DATATYPE_BOOLEAN:
+    return "BOOLEAN"
+  elif datatype == DATATYPE_REFRESH_RATE:
+    return "REFRESH"
+  else:
+    raise Error('Unknown datatype %d' % (datatype))
+
 class WuObject:
   def __init__(self, nodeId, portNumber, wuClassId):
     self.nodeId = nodeId
