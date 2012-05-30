@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from optparse import OptionParser
 import xml.dom.minidom
+import os
 import wkpfcomm
 import wkpf
 
@@ -142,18 +143,31 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
 
 if __name__ == "__main__":
   optionParser = OptionParser("usage: %prog [options]")
-  optionParser.add_option("-c", "--component", action="store", type="string", dest="pathComponentXml", help="WuKong Component XML file path")
-  optionParser.add_option("-f", "--flow", action="store", type="string", dest="pathFlowXml", help="WuKong Flow XML file path")
-  optionParser.add_option("-m", "--mapping", action="store", type="string", dest="pathMappingXml", help="Mapping XML file path")
+  optionParser.add_option("-c", "--component", action="store", type="string", dest="pathComponentXml", help="WuKong Component XML file path (default NVMROOT/ComponentDefinitions/WuKongStandardLibrary.xml)")
+  optionParser.add_option("-m", "--mapping", action="store", type="string", dest="pathMappingXml", help="Mapping XML file path (default NVMROOT/vm/build/avr_mega2560/currentMapping.xml)")
+  optionParser.add_option("-f", "--flow", action="store", type="string", dest="pathFlowXml", help="WuKong Flow XML file path (default NVMROOT/vm/build/avr_mega2560/currentFlow.xml)")
   (options, args) = optionParser.parse_args()
+  
+  rootpath = os.path.dirname(os.path.abspath(__file__)) + "/../.."
+  if not options.pathComponentXml and os.path.exists(rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"):
+    options.pathComponentXml = rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"
+  if not options.pathMappingXml and os.path.exists(rootpath + "/vm/build/avr_mega2560/currentMapping.xml"):
+    options.pathMappingXml = rootpath + "/vm/build/avr_mega2560/currentMapping.xml"
+  if not options.pathFlowXml and os.path.exists(rootpath + "/vm/build/avr_mega2560/currentFlow.xml"):
+    options.pathFlowXml = rootpath + "/vm/build/avr_mega2560/currentFlow.xml"
   if not options.pathComponentXml:
     optionParser.error("invalid component xml, please refer to -h for help")
 
   componentDefinitions = getComponentDefinitions(options.pathComponentXml)
-  flowDefinition = getFlow(options.pathFlowXml) if options.pathFlowXml else None
   mapping = getMapping(options.pathMappingXml) if options.pathMappingXml else None
+  flowDefinition = getFlow(options.pathFlowXml) if options.pathFlowXml else None
   nodeIds = wkpfcomm.getNodeIds();
   nodeInfos = [readNodeInfo(nodeId, componentDefinitions) for nodeId in nodeIds]
+  
+  print "============================="
+  print "Component xml path: %s" % (options.pathComponentXml)
+  print "Mapping xml path: %s" % (options.pathMappingXml)
+  print "Flow xml path: %s" % (options.pathFlowXml)
   printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping)
 
 
