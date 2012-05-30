@@ -85,9 +85,9 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
   propertyInfo = PropertyInfo()
   propertyInfo.name = getComponentPropertyName(wuObject.wuClassId, propertyNumber, componentDefinitions)
   wkpfcommData = wkpfcomm.getProperty(wuObject, propertyNumber)
-  print wkpfcommData
-  propertyInfo.datatype = wkpfcommData[1]
   propertyInfo.value = wkpfcommData[0]
+  propertyInfo.datatype = wkpfcommData[1]
+  propertyInfo.status = wkpfcommData[2]
   propertyInfo.propertyNumber = propertyNumber
   return propertyInfo
 
@@ -101,12 +101,6 @@ def readNodeInfo(nodeId, componentDefinitions):
   return wkpfcommNodeInfo
 
 ## Print functions
-def propertyInfoToString(propertyInfo, wuObjectInfo, componentDefinitions):
-  return "%d %8s %15s %10s" % (propertyInfo.propertyNumber,
-                             wkpf.datatypeToString(propertyInfo.datatype),
-                             propertyInfo.name,
-                             stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value))
-  
 def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
   for nodeInfo in sorted(nodeInfos, key=lambda x:x.nodeId):
     print "============================="
@@ -122,8 +116,13 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
           print "\tComponent instance name: %s" % (componentInstanceName)
       print "\tClass name %s" % (wuObjectInfo.wuClassName)
       print "\tPort number %d" % (wuObjectInfo.portNumber)
-      print "\tProperties"
+      print "\tPropNr  Datatype         Name      value (status) [(remote property value, status)]"
       for propertyInfo in wuObjectInfo.properties:
+        propertyInfoString = "\t   %d %8s %15s %10s (%0#4x)" % (propertyInfo.propertyNumber,
+                                             wkpf.datatypeToString(propertyInfo.datatype),
+                                             propertyInfo.name,
+                                             stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value),
+                                             propertyInfo.status)
         remoteLinkAndValue = ""
         if mapping and flowDefinition:
           remoteLink = getRemoteLink(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
@@ -133,12 +132,12 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
               remoteNodeInfo = find(nodeInfos, lambda x:x.nodeId == remoteNodeId)
               remoteWuObject = find(remoteNodeInfo.wuObjects, lambda x:x.portNumber == remotePortNumber)
               remotePropertyInfo = find(remoteWuObject.properties, lambda x:x.name == remoteLink[2])
-              remoteLinkAndValue = "(%s %s %s = %s)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value)
+              propertyInfoString += "   (%s %s %s = %s, %0#4x)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value, remotePropertyInfo.status)
               if propertyInfo.value != remotePropertyInfo.value:
-                remoteLinkAndValue += " !!!!"
+                propertyInfoString += " !!!!"
             except:
-              remoteLinkAndValue = "REMOTE PROPERTY NOT FOUND!!!!"
-        print "\t\t%s %s" % (propertyInfoToString(propertyInfo, wuObjectInfo, componentDefinitions), remoteLinkAndValue)
+              propertyInfoString += "REMOTE PROPERTY NOT FOUND!!!!"
+        print propertyInfoString
       print ""
 
 if __name__ == "__main__":
@@ -168,6 +167,8 @@ if __name__ == "__main__":
   print "Component xml path: %s" % (options.pathComponentXml)
   print "Mapping xml path: %s" % (options.pathMappingXml)
   print "Flow xml path: %s" % (options.pathFlowXml)
+  if flowDefinition:
+    print "Application in flow xml: %s" % flowDefinition.getElementsByTagName('application')[0].getAttribute('name')
   printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping)
 
 

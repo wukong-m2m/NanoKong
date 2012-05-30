@@ -120,28 +120,33 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_size = 3;//payload size
         break;
       }
+      uint8_t property_status;
+      wkpf_get_property_status(wuobject, property_number, &property_status);
       if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_SHORT) {
         int16_t value;
         retval = wkpf_external_read_property_int16(wuobject, property_number, &value);
         payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
-        payload[7] = (uint8_t)(value>>8);
-        payload[8] = (uint8_t)(value);
-        *response_size = 9;//payload size
+        payload[7] = property_status;
+        payload[8] = (uint8_t)(value>>8);
+        payload[9] = (uint8_t)(value);
+        *response_size = 10;//payload size
         *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;        
       } else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_BOOLEAN) {
         bool value;
         retval = wkpf_external_read_property_boolean(wuobject, property_number, &value);
         payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
-        payload[7] = (uint8_t)(value);
-        *response_size = 8;//payload size
+        payload[7] = property_status;
+        payload[8] = (uint8_t)(value);
+        *response_size = 9;//payload size
         *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;                
       } else if (WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]) == WKPF_PROPERTY_TYPE_REFRESH_RATE) {
         wkpf_refresh_rate_t value;
         retval = wkpf_external_read_property_refresh_rate(wuobject, property_number, &value);
         payload[6] = WKPF_GET_PROPERTY_DATATYPE(wuobject->wuclass->properties[property_number]);
-        payload[7] = (uint8_t)(value>>8);
-        payload[8] = (uint8_t)(value);
-        *response_size = 9;//payload size
+        payload[7] = property_status;
+        payload[8] = (uint8_t)(value>>8);
+        payload[9] = (uint8_t)(value);
+        *response_size = 10;//payload size
         *response_cmd = NVMCOMM_WKPF_READ_PROPERTY_R;        
       } else
         retval = WKPF_ERR_SHOULDNT_HAPPEN;

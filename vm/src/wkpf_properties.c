@@ -117,6 +117,18 @@ uint8_t wkpf_write_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t 
     return retval;
 }
 
+uint8_t wkpf_get_property_status(wkpf_local_wuobject *wuobject, uint8_t property_number, uint8_t *status) {
+  for (int i=0; i<number_of_properties; i++) {
+    if (properties[i].wuobject_port_number == wuobject->port_number && properties[i].property_number == property_number) {
+      DEBUGF_WKPF("WKPF: wkpf_get_property_status: (index %x port %x, property %x): %x\n", i, wuobject->port_number, property_number, properties[i].property_status);
+      *status = properties[i].property_status;
+      return WKPF_OK;
+    }
+  }
+  return WKPF_ERR_PROPERTY_NOT_FOUND;
+}
+
+
 uint8_t wkpf_alloc_properties_for_wuobject(wkpf_local_wuobject *wuobject) {
   for (int i=0; i<number_of_properties; i++)
     if (properties[i].wuobject_port_number == wuobject->port_number)

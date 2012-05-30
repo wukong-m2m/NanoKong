@@ -81,13 +81,14 @@ def getProperty(wuobject, propertyNumber):
     print "WKPF RETURNED ERROR ", reply[3]
     return None
   datatype = reply[7]
+  status = reply[8]
   if datatype == DATATYPE_BOOLEAN:
-    value = reply[8] != 0
+    value = reply[9] != 0
   elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
-    value = (reply[8] <<8) + reply[9]
+    value = (reply[9] <<8) + reply[10]
   else:
     value = None
-  return (value, datatype)
+  return (value, datatype, status)
 
 def setProperty(wuobject, propertyNumber, datatype, value):
   sn = _getNextSequenceNumberAsList()
