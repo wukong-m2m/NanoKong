@@ -49,16 +49,17 @@ def stringRepresentationIfEnum(wuClassId, propertyNumber, componentDefinitions, 
 def getFlow(path):
   return xml.dom.minidom.parse(path)
 
-def getRemoteLink(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions):
+def getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions):
   componentInstanceName = getComponentInstanceName(wuObjectInfo.nodeId, wuObjectInfo.portNumber, mapping)
   propertyName = getComponentPropertyName(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions)
+  links = []
   for component in flowDefinition.getElementsByTagName('component'):
     for link in component.getElementsByTagName('link'):
       if component.getAttribute('instanceId') == componentInstanceName and link.getAttribute('fromProperty') == propertyName: # Output side of a link
-        return ('=>', link.getAttribute('toInstanceId'), link.getAttribute('toProperty'))
+        links.append(('=>', link.getAttribute('toInstanceId'), link.getAttribute('toProperty')))
       if link.getAttribute('toInstanceId') == componentInstanceName and link.getAttribute('toProperty') == propertyName: # Input side of a link
-        return ('<=', component.getAttribute('instanceId'), link.getAttribute('fromProperty'))
-  return None
+        links.append(('<=', component.getAttribute('instanceId'), link.getAttribute('fromProperty')))
+  return links
 
 ## Mapping functions
 def getMapping(path):
@@ -125,8 +126,8 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
                                              propertyInfo.status)
         remoteLinkAndValue = ""
         if mapping and flowDefinition:
-          remoteLink = getRemoteLink(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
-          if remoteLink:
+          remoteLinks = getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
+          for remoteLink in remoteLinks:
             try:
               remoteNodeId, remotePortNumber = getNodeAndPortForComponent(remoteLink[1], mapping)
               remoteNodeInfo = find(nodeInfos, lambda x:x.nodeId == remoteNodeId)
