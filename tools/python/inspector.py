@@ -127,13 +127,16 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
         if mapping and flowDefinition:
           remoteLink = getRemoteLink(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
           if remoteLink:
-            remoteNodeId, remotePortNumber = getNodeAndPortForComponent(remoteLink[1], mapping)
-            remoteNodeInfo = find(nodeInfos, lambda x:x.nodeId == remoteNodeId)
-            remoteWuObject = find(remoteNodeInfo.wuObjects, lambda x:x.portNumber == remotePortNumber)
-            remotePropertyInfo = find(remoteWuObject.properties, lambda x:x.name == remoteLink[2])
-            remoteLinkAndValue = "(%s %s %s = %s)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value)
-            if propertyInfo.value != remotePropertyInfo.value:
-              remoteLinkAndValue += " !!!!"
+            try:
+              remoteNodeId, remotePortNumber = getNodeAndPortForComponent(remoteLink[1], mapping)
+              remoteNodeInfo = find(nodeInfos, lambda x:x.nodeId == remoteNodeId)
+              remoteWuObject = find(remoteNodeInfo.wuObjects, lambda x:x.portNumber == remotePortNumber)
+              remotePropertyInfo = find(remoteWuObject.properties, lambda x:x.name == remoteLink[2])
+              remoteLinkAndValue = "(%s %s %s = %s)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value)
+              if propertyInfo.value != remotePropertyInfo.value:
+                remoteLinkAndValue += " !!!!"
+            except:
+              remoteLinkAndValue = "REMOTE PROPERTY NOT FOUND!!!!"
         print "\t\t%s %s" % (propertyInfoToString(propertyInfo, wuObjectInfo, componentDefinitions), remoteLinkAndValue)
       print ""
 
