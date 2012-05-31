@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import time
 import pynvc
 
 messages_in_progress = {}
@@ -10,7 +11,6 @@ while(True):
     continue
   command = message[0]
   debugtext = ''.join(chr(i) for i in message[1:])
-  print '==== %d %d %d "%s"' % (src, command, len(debugtext), debugtext)
   if command == pynvc.DEBUG_TRACE_PART:
     if not messages_in_progress.has_key(src):
       messages_in_progress[src] = ""
@@ -19,4 +19,4 @@ while(True):
     if messages_in_progress.has_key(src):
       debugtext = messages_in_progress[src] + debugtext
       messages_in_progress[src] = ""
-    print "Node %d) %s" % (src, debugtext)
+    print ("[%s node %d] %s" % (time.strftime("%H:%M:%S ", time.localtime()), src, debugtext.rstrip()))

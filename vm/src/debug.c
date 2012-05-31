@@ -29,6 +29,7 @@
 #include "config.h"
 #include "debug.h"
 #include "uart.h"
+#include "delay.h"
 #include "nvmcomm.h"
 
 #ifdef DEBUG
@@ -72,10 +73,14 @@ void debugf(bool send_wireless_trace, const char *fmt, ...) {
       u08_t chunk_size = (NVMCOMM_MESSAGE_SIZE - 4);
       u08_t remaining_messages = size / (NVMCOMM_MESSAGE_SIZE - 4); // command, 2 byte seqnr, remaining msg count
       do {
+        nvmcomm_poll();
+        u08_t cmd = remaining_messages == 0 ? NVMCOMM_DEBUG_TRACE_FINAL : NVMCOMM_DEBUG_TRACE_PART;
+        u08_t msglen = remaining_messages == 0 ? (size % chunk_size) : chunk_size;
+        DEBUGF_COMM("DEBUG_WIRELESS_TRACE size:%d(%d) pos:%d cmd:%d msglen:%d\n", size, chunk_size, (int)message_payload-(int)buf, cmd, msglen);
         nvmcomm_send(DEBUG_WIRELESS_TRACE_TARGET_NODE_ID,
-                     remaining_messages == 0 ? NVMCOMM_DEBUG_TRACE_FINAL : NVMCOMM_DEBUG_TRACE_PART,
+                     cmd,
                      message_payload,
-                     remaining_messages == 0 ? (size % chunk_size) : chunk_size);
+                     msglen);
         message_payload += chunk_size;
       } while (remaining_messages-- > 0);
     }

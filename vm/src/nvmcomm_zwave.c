@@ -92,6 +92,7 @@ void nvmcomm_zwave_receive(int processmessages) {
   			ack_got=0;
       } else if (c == 0x18) {
         // send: chip busy
+  			DEBUGF_COMM("[CAN] SerialAPI frame is dropped by ZW!!!\n");
   			state = ZWAVE_STATUS_WAIT_SOF;
   			ack_got=0;
       } else {
@@ -301,7 +302,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 			DEBUGF_COMM("error!!!\n", __FUNCTION__);
 			return -1;
 		}
-		DEBUGF_COMM("SerialAPI_request retry......\n");
+		DEBUGF_COMM("SerialAPI_request retry (%d)......\n", retry);
 	}
 	return -1; // Never happens
 }
