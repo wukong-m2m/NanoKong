@@ -30,11 +30,14 @@ static PyObject* pyzwave_receive(PyObject *self, PyObject *args) {
       DEBUGF("[%x] ", PyZwave_messagebuffer[i]);
     DEBUGF("\n");
 
-    PyObject* received_list = PyList_New(0);
+    PyObject* message_list = PyList_New(0);
     for (i=0; i<len; i++) {
-      PyList_Append(received_list, PyInt_FromLong((long)PyZwave_messagebuffer[i] & 0xFF));
+      PyList_Append(message_list, PyInt_FromLong((long)PyZwave_messagebuffer[i] & 0xFF));
     }
-    return received_list;
+    PyObject* return_value_list = PyList_New(0);
+    PyList_Append(return_value_list, PyInt_FromLong((long)PyZwave_src));
+    PyList_Append(return_value_list, message_list);
+    return return_value_list;
   }
 }
 

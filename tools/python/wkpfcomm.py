@@ -29,11 +29,11 @@ def getNodeInfo(destination):
 
 def getWuClassList(destination):
   sn = _getNextSequenceNumberAsList()
-  reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                command=pynvc.WKPF_GET_WUCLASS_LIST,
-                                                payload=sn,
-                                                allowedReplies=[pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R],
-                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuclasses
+  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                    command=pynvc.WKPF_GET_WUCLASS_LIST,
+                                                    payload=sn,
+                                                    allowedReplies=[pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R],
+                                                    verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuclasses
   if reply == None:
     return None
   if reply[0] == pynvc.WKPF_ERROR_R:
@@ -50,11 +50,11 @@ def getWuClassList(destination):
 
 def getWuObjectList(destination):
   sn = _getNextSequenceNumberAsList()
-  reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                command=pynvc.WKPF_GET_WUOBJECT_LIST,
-                                                payload=sn,
-                                                allowedReplies=[pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R],
-                                                verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuobjects
+  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                    command=pynvc.WKPF_GET_WUOBJECT_LIST,
+                                                    payload=sn,
+                                                    allowedReplies=[pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R],
+                                                    verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuobjects
   if reply == None:
     return None
   if reply[0] == pynvc.WKPF_ERROR_R:
@@ -70,11 +70,11 @@ def getWuObjectList(destination):
 def getProperty(wuobject, propertyNumber):
   sn = _getNextSequenceNumberAsList()
   payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber]
-  reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
-                                                command=pynvc.WKPF_READ_PROPERTY,
-                                                payload=payload,
-                                                allowedReplies=[pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R],
-                                                verify=verifyWKPFmsg(messageStart=payload, minAdditionalBytes=2)) # datatype + value
+  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
+                                                    command=pynvc.WKPF_READ_PROPERTY,
+                                                    payload=payload,
+                                                    allowedReplies=[pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R],
+                                                    verify=verifyWKPFmsg(messageStart=payload, minAdditionalBytes=2)) # datatype + value
   if reply == None:
     return None
   if reply[0] == pynvc.WKPF_ERROR_R:
@@ -96,11 +96,11 @@ def setProperty(wuobject, propertyNumber, datatype, value):
     payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber, datatype, 1 if value else 0]
   elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
     payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber, datatype, value/256, value%256]
-  reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
-                                                command=pynvc.WKPF_WRITE_PROPERTY,
-                                                payload=payload,
-                                                allowedReplies=[pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R],
-                                                verify=verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
+  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
+                                                    command=pynvc.WKPF_WRITE_PROPERTY,
+                                                    payload=payload,
+                                                    allowedReplies=[pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R],
+                                                    verify=verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
   if reply == None:
     return None
   if reply[0] == pynvc.WKPF_ERROR_R:

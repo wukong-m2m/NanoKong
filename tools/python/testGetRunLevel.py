@@ -5,7 +5,7 @@ import pynvc
 
 def getRunLevelTest(destination):
   pynvc.sendcmd(destination, pynvc.GETRUNLVL)
-  received_data = pynvc.receive(5000)
+  src, received_data = pynvc.receive(5000)
   if not received_data == None:
     print "Received runlevel:", received_data[1]
 

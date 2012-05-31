@@ -22,10 +22,10 @@ def receive(waitmsec):
     DEBUGF(("recv ZB packet:", packet))
     name = packet['id']
     if name == "rx" or name == "rx_explicit":
-        return [ord(item) for item in packet['rf_data']]
+        return [None, [ord(item) for item in packet['rf_data']]]
     else:
         print "Unknwon ZB packet received", packet
-    return None
+    return [None, None]
     
 def send(dest, buf):
     if xbee == 0:

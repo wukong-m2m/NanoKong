@@ -19,6 +19,8 @@
 
 // enable debug info
 #define DEBUG
+#define DEBUG_WIRELESS_TRACE
+#define DEBUG_WIRELESS_TRACE_TARGET_NODE_ID 2
 
 // enable simple unittests for wuclass framework (choose 1)
 //#define TEST_WKPF_WUCLASSES

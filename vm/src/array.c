@@ -43,6 +43,7 @@ u08_t array_typelen(u08_t type) {
     return sizeof(nvm_float_t);
 #endif
 
+  DEBUGF("illegal array type %d\n");
   error(ERROR_ARRAY_ILLEGAL_TYPE);
   return 0;  // to make compiler happy
 }

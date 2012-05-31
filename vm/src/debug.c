@@ -65,6 +65,18 @@ void debugf(const char *fmt, ...) {
       if (buf[i]=='\n')
         uart_write_byte(DEBUG_UART, '\r');
     }
+#ifdef DEBUG_WIRELESS_TRACE
+    u08_t chunk_size = (NVMCOMM_MESSAGE_SIZE - 4)
+    u08_t remaining_messages = size / (NVMCOMM_MESSAGE_SIZE - 4) // command, 2 byte seqnr, remaining msg count
+    do {
+      nvmcomm_send(DEBUG_WIRELESS_TRACE_TARGET_NODE_ID,
+                   remaing_messages == 0 : NVMCOMM_DEBUG_TRACE_FINAL ? NVMCOMM_DEBUG_TRACE_PART,
+                   buf,
+                   remaing_messages == 0 : size % chunk_size ? chunk_size);
+      buf += chunk_size;
+      remaining_messages--;
+    } while (remaining_messages > 0)
+#endif // DEBUG_WIRELESS_TRACE    
   }
 }
 #endif // UNIX || __CC65__

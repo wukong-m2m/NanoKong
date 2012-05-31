@@ -32,6 +32,13 @@ WKPF_READ_PROPERTY	         = 0x94
 WKPF_READ_PROPERTY_R    	   = 0x95
 WKPF_WRITE_PROPERTY	         = 0x96
 WKPF_WRITE_PROPERTY_R	       = 0x97
+WKPF_REQUEST_PROPERTY_INIT   = 0x98
+WKPF_REQUEST_PROPERTY_INIT_R = 0x99
+
+DEBUG_TRACE_PART             = 0xA0
+DEBUG_TRACE_FINAL            = 0xA2
+
+
 WKPF_ERROR_R        	       = 0x9F
 
 APPMSG_STATUS_WAIT_ACK       = 0x00
@@ -65,7 +72,7 @@ def sendcmd(dest, cmd, payload=[], retries=3):
         retries -= 1
     else:
       if cmd == APPMSG:
-        ack = pymodule.receive(5000) # Receive ack of APPMSG, TODO: see if sending succeeded.
+        src, ack = pymodule.receive(5000) # Receive ack of APPMSG, TODO: see if sending succeeded, check if src==dest
         print "APPMSG ACK:", ack
       return
 
@@ -76,7 +83,7 @@ def receive(waitmsec=1000):
 def checkedReceive(allowedReplies, waitmsec=1000, verify=None):
   global pymodule
   while True:
-    reply = pymodule.receive(waitmsec)
+    src, reply = pymodule.receive(waitmsec)
     if reply == None:
       print "No reply received. One of", allowedReplies, "expected."
       return None
@@ -86,7 +93,7 @@ def checkedReceive(allowedReplies, waitmsec=1000, verify=None):
     else:
       # Correct type received, possibly need to verify
       if verify==None or verify(reply[0], reply[1:]):
-        return reply
+        return src, reply
       else:
         print "Incorrect reply received. Message type correct, but didnt pass verification:", reply
         print "Dropped message"
@@ -95,9 +102,9 @@ def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload
   while retries >= 0:
     try:
       sendcmd(destination, command, payload)
-      reply = checkedReceive(allowedReplies, waitmsec, verify=verify)
+      src, reply = checkedReceive(allowedReplies, waitmsec, verify=verify)
       if not reply == None:
-        return reply
+        return src, reply
     except:
       pass
     retries -= 1
@@ -110,7 +117,7 @@ def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload
     print "Aborting"
     quit()
   else:
-    return None
+    return None, None
 
 def init(option):
     global pymodule

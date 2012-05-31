@@ -5,7 +5,7 @@ import pynvc
 
 def reprogramNvmdefault(destination, filename):
   MESSAGESIZE = 16
-  reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
                                                 command=pynvc.REPRG_OPEN,
                                                 allowedReplies=[pynvc.REPRG_OPEN_R],
                                                 quitOnFailure=True)
@@ -36,7 +36,7 @@ def reprogramNvmdefault(destination, filename):
       pos += len(payload_data)
     else:
       # Send last packet of this page and wait for a REPRG_WRITE_R_RETRANSMIT after each full page
-      reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
                                                     command=pynvc.REPRG_WRITE,
                                                     allowedReplies=[pynvc.REPRG_WRITE_R_OK, pynvc.REPRG_WRITE_R_RETRANSMIT],
                                                     payload=payload_pos+payload_data,
@@ -51,7 +51,7 @@ def reprogramNvmdefault(destination, filename):
 
     # Send REPRG_COMMIT after last packet
     if pos == len(bytecode):
-      reply = pynvc.sendWithRetryAndCheckedReceive(
+      src, reply = pynvc.sendWithRetryAndCheckedReceive(
                         destination=destination,
                         command=pynvc.REPRG_COMMIT,
                         allowedReplies=[pynvc.REPRG_COMMIT_R_RETRANSMIT,
