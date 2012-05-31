@@ -127,3 +127,4 @@ def init(option):
     elif option == 1:
         pyzigbee.init()
         pymodule = pyzigbee
+    pymodule.setdebug(False)

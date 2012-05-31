@@ -29,6 +29,7 @@
 #include "config.h"
 #include "debug.h"
 #include "uart.h"
+#include "nvmcomm.h"
 
 #ifdef DEBUG
 
@@ -39,7 +40,7 @@ void debug_enable(bool_t enable) {
 }
 
 #if defined(UNIX) || defined(__CC65__)
-void debugf(const char *fmt, ...) {
+void debugf(bool send_wireless_trace, const char *fmt, ...) {
   if(debug_enabled) {
     va_list ap;
 
@@ -50,7 +51,7 @@ void debugf(const char *fmt, ...) {
 }
 #elif defined(ATMEGA2560)
 #define DEBUG_BUFFER_SIZE 128
-void debugf(const char *fmt, ...) {
+void debugf(bool send_wireless_trace, const char *fmt, ...) {
   if(debug_enabled) {
     u08_t size;
     char buf[DEBUG_BUFFER_SIZE];
@@ -66,16 +67,18 @@ void debugf(const char *fmt, ...) {
         uart_write_byte(DEBUG_UART, '\r');
     }
 #ifdef DEBUG_WIRELESS_TRACE
-    u08_t chunk_size = (NVMCOMM_MESSAGE_SIZE - 4)
-    u08_t remaining_messages = size / (NVMCOMM_MESSAGE_SIZE - 4) // command, 2 byte seqnr, remaining msg count
-    do {
-      nvmcomm_send(DEBUG_WIRELESS_TRACE_TARGET_NODE_ID,
-                   remaing_messages == 0 : NVMCOMM_DEBUG_TRACE_FINAL ? NVMCOMM_DEBUG_TRACE_PART,
-                   buf,
-                   remaing_messages == 0 : size % chunk_size ? chunk_size);
-      buf += chunk_size;
-      remaining_messages--;
-    } while (remaining_messages > 0)
+    if (send_wireless_trace) {
+      u08_t* message_payload = (u08_t*)buf;
+      u08_t chunk_size = (NVMCOMM_MESSAGE_SIZE - 4);
+      u08_t remaining_messages = size / (NVMCOMM_MESSAGE_SIZE - 4); // command, 2 byte seqnr, remaining msg count
+      do {
+        nvmcomm_send(DEBUG_WIRELESS_TRACE_TARGET_NODE_ID,
+                     remaining_messages == 0 ? NVMCOMM_DEBUG_TRACE_FINAL : NVMCOMM_DEBUG_TRACE_PART,
+                     message_payload,
+                     remaining_messages == 0 ? (size % chunk_size) : chunk_size);
+        message_payload += chunk_size;
+      } while (remaining_messages-- > 0);
+    }
 #endif // DEBUG_WIRELESS_TRACE    
   }
 }

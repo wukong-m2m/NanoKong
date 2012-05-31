@@ -21,7 +21,10 @@ static PyObject* pyzwave_receive(PyObject *self, PyObject *args) {
   
   len = PyZwave_receive(wait_msec);
   if (len == 0) {
-    Py_RETURN_NONE;
+    PyObject* return_value_list = PyList_New(0);
+    PyList_Append(return_value_list, Py_None);
+    PyList_Append(return_value_list, Py_None);
+    return return_value_list;
   } else {
     int i;
 
@@ -102,10 +105,19 @@ static PyObject* pyzwave_send(PyObject *self, PyObject *args) {
   }
 }
 
+static PyObject* pyzwave_setdebug(PyObject *self, PyObject *args) {
+  int print_debug_info;
+  if (!PyArg_ParseTuple( args, "i", &print_debug_info))
+    return NULL;
+  PyZwave_print_debug_info = print_debug_info;
+  Py_RETURN_NONE;
+}
+
 PyMethodDef methods[] = {
   {"init", pyzwave_init, METH_VARARGS, "Sets the IP address to connect to"},
   {"send", pyzwave_send, METH_VARARGS, "Sends a list of bytes to a node"},
   {"receive", pyzwave_receive, METH_VARARGS, "Receive data"},
+  {"setdebug", pyzwave_setdebug, METH_VARARGS, "Turn debug info on or off"},
   {NULL, NULL, 0, NULL}
 };
 

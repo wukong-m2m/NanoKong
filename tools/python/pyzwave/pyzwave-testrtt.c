@@ -56,7 +56,7 @@ int testmode=0;
 int ack_got=1;
 int send_data_fin=1;
 int cmd_succ=-1;
-int print=1;
+int PyZwave_print_debug_info=1;
 int rtt_start_ms;
 int interval = 500;
 int verbose=0;
@@ -884,7 +884,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 		for(i=0;i<len;i++)
 			crc = crc ^ buf[i];
 		write(zwavefd,&crc,1);	// LRC checksum
-		if (print) {
+		if (PyZwave_print_debug_info) {
 			printf("Send len=%d ", len+1);
 			for(i=0;i<len;i++) 
 				printf("%02x ", buf[i]);
@@ -2692,7 +2692,8 @@ int zwave_init()
 		}
 #endif //_WIN32		
 	}
-	print = 0;
+  int PyZwave_print_debug_info_old = PyZwave_print_debug_info;
+	PyZwave_print_debug_info = 0;
 	clear_serial_api_queue();
 
 	zwave_ready = 0;
@@ -2704,7 +2705,7 @@ int zwave_init()
 		printf("Z-Wave is ready.\n");
 		//usleep(100*1000);	// wait z-wave ready after reset
 	}
-	print = 1;
+	PyZwave_print_debug_info = PyZwave_print_debug_info_old;
 
 	return zwavefd;
 }
@@ -3051,7 +3052,7 @@ void ApplicationCommandHandler(unsigned char * buf, int len)
 		printf("\n");
 	}
 	else {
-		if (print) {
+		if (PyZwave_print_debug_info) {
 			printf("rxStatus = %d\n", rxStatus);
 			printf("src_node = %d\n", src);
 			printf("class = %x\n", class);
@@ -3193,7 +3194,7 @@ void zwave_check_state(unsigned char c)
 				zwave_ready = 1;
 				printf("HomeID: %02x%02x%02x%02x\n", zdata[0], zdata[1], zdata[2], zdata[3]);
 			} else {
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					printf("Get response for command %x\n [", curcmd);
 					for(i=0;i<zdataptr;i++) {
 						printf("%x ", zdata[i]);
@@ -3216,7 +3217,7 @@ void zwave_check_state(unsigned char c)
 			if (curcmd == 4) {	// ApplicationCommandHandler
 				ApplicationCommandHandler(zdata, zdataptr);
 			} else if (curcmd == 0x49) {	// ApplicationSlaveUpdate
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					printf("ApplicationSlaveUpdate:\n");
 					printf("  rxStatus = %02x\n", zdata[0]);
 					printf("  src_node = %d\n", zdata[1]);
@@ -3241,7 +3242,7 @@ void zwave_check_state(unsigned char c)
 					cmd_succ=1;
 				else
 					cmd_succ=0;
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					if (zdata[1] == TRANSMIT_COMPLETE_OK) {
 						printf("Transmit complete ok.\n");
 					} else if (zdata[1] == TRANSMIT_COMPLETE_NO_ACK) {
@@ -3318,7 +3319,7 @@ void zwave_check_state(unsigned char c)
 				printf("Z-Wave controller is back to factory default\n");
 			} 
 			else {
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					printf("Get command for %x\n [", curcmd);
 					for(i=0;i<zdataptr;i++) {
 						printf("%x ", zdata[i]);
@@ -3611,9 +3612,9 @@ int process_cmd(int argc, char * argv[])
 		} else if (strcmp(argv[i],"norepeat")==0) {
 			repeat = 0;
 		} else if (strcmp(argv[i],"noprint")==0) {
-			print = 0;
+			PyZwave_print_debug_info = 0;
 		} else if (strcmp(argv[i],"print")==0) {
-			print = 1;
+			PyZwave_print_debug_info = 1;
 		} else if (strcmp(argv[i],"interval")==0) {
 			interval = atoi(argv[i+1]);
 			i++;
@@ -3691,7 +3692,7 @@ int process_cmd(int argc, char * argv[])
 				ZW_RemoveNodeFromNetwork(ADD_NODE_STOP);
 			}
 		} else if (strcmp(argv[i],"test")==0) {
-			print = 0;
+			PyZwave_print_debug_info = 0;
 			id = atoi(argv[i+1]);
 			v = atoi(argv[i+2]);
 			do_test(id,v,atoi(argv[i+3]));

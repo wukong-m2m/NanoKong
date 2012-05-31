@@ -48,3 +48,6 @@ def send(dest, buf):
             raise IOError("ZB packet delivery: Failed")
     else:
         raise IOError("ZB packet delivery status: Unknown")
+
+def setdebug(enabled):
+  pass # TODO
