@@ -17,12 +17,6 @@ public class TestWKPF {
     public void update() {}
   }
 
-  private static void callVirtualWuObjectUpdates() {
-    VirtualWuObject wuclass;
-    while ((wuclass=WKPF.select())!=null)
-        wuclass.update();
-  }
-
   public static void assertEqual(int value, int expected, String message) {
     if (value == expected) {
       System.out.println("OK: " + message);
@@ -54,7 +48,7 @@ public class TestWKPF {
 
   public static void main(String[] args) {
     System.out.println("WuKong WuClass Framework test");
-
+/*
     WKPF.registerWuClass((short)0x42, VirtualTestWuClass.properties);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualTestWuClass.");
 
@@ -90,68 +84,51 @@ public class TestWKPF {
     WKPF.setPropertyBoolean(wuclassInstanceB, (byte)1, false);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting property 1 for wuclass instance B to false.");
     assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceB, (byte)1), false, "Getting value for property 1 for wuclass instance B, should be false.");
-
+*/
     VirtualWuObject wuclassInstanceThreshold = new VirtualThresholdWuObject();
+
+    WKPF.registerWuClass(WKPF.WUCLASS_THRESHOLD, GENERATEDVirtualThresholdWuObject.properties);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualThresholdWuObject.");
+
+
     WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, (byte)0x20, wuclassInstanceThreshold);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for virtual Threshold wuclass at port 0x20.");
 
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_GT);
+    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_GT);
     assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): operator=>");
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)1000);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): threshold=1000");
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): value=1200");
 
-    callVirtualWuObjectUpdates();
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Calling update() on wuclass returned by WKPF.select() (the threshold wuclass instance should be returned).");
+
+    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)1000);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): threshold=1000");
+    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): value=1200");
+    
+    wuclassInstanceThreshold.update();
+
     assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), true, "Getting output of virtual threshold wuclass, should be true.");
 
-    WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, (byte)0x30, null);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for native Threshold wuclass at port 0x30.");
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_GT);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): operator=> (compile with DEBUG_WKPFUPDATE to see output)");
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)1000);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): threshold=1000 (compile with DEBUG_WKPFUPDATE to see output)");
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_VALUE, (short)1200);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "setup initial properties using methods that will be called from propertyDispatch (to cause update() to be triggered): value=1200 (compile with DEBUG_WKPFUPDATE to see output)");
+    
 
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_VALUE, (short)800);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting value to 800");
-    callVirtualWuObjectUpdates();
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Calling update() on wuclass returned by WKPF.select() (the threshold wuclass instance should be returned).");
-    assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_OUTPUT), false, "Getting output of threshold wuclass, should be false.");
+    VirtualWuObject wuclassInstanceLogical = new VirtualLogicalWuObject();
 
-    assertEqualObject(WKPF.select(), null, "Calling WKPF.select() again. Should return null now.");
+   /* WKPF.registerWuClass(WKPF.WUCLASS_LOGICAL, GENERATEDVirtualLogicalWuObject.properties);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Registering VirtualLogicalWuObject.");
+    WKPF.createWuObject((short)WKPF.WUCLASS_LOGICAL, (byte)0x21, wuclassInstanceLogical);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Creating wuobject for virtual logical wuclass at port 0x21.");
 
-    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_VALUE, (short)123);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting value using internal setPropertyShort method (the one the wuclasses should use internally).");
-    assertEqualObject(WKPF.select(), null, "Calling WKPF.select() again. It should still return null.");
-
-    //System.out.println("Clearing dirty properties");
-    //while(WKPF.loadNextDirtyProperty()) { }
-
-    WKPF.setPropertyShort(wuclassInstanceThreshold, WKPF.PROPERTY_THRESHOLD_THRESHOLD, (short)200);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting threshold (property " + WKPF.PROPERTY_THRESHOLD_THRESHOLD + ") to 200 using internal setPropertyShort method (the one the wuclasses should use internally)");
-    WKPF.setPropertyShort(WKPF.getMyNodeId(), WKPF.PROPERTY_THRESHOLD_VALUE, (short)500);
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Setting value (property " + WKPF.PROPERTY_THRESHOLD_VALUE + ") to 500 using external setPropertyShort method.");
-    callVirtualWuObjectUpdates();
-    assertEqual(WKPF.getErrorCode(), WKPF.OK, "Calling update() on wuclass returned by WKPF.select() (the threshold wuclass instance should be returned).");
-/*
-    System.out.println("Both should be returned by WKPF.getNextDirtyProperty()");
-    assertEqualBoolean(WKPF.loadNextDirtyProperty(), true, "Loading first dirty property.");
-    assertEqual(WKPF.getDirtyPropertyPortNumber(), 0x20, "Dirty property: port 0x20.");
-    assertEqual(WKPF.getDirtyPropertyNumber(), WKPF.PROPERTY_THRESHOLD_THRESHOLD, "Dirty property: property " + WKPF.PROPERTY_THRESHOLD_THRESHOLD + ".");
-    assertEqual(WKPF.getDirtyPropertyShortValue(), 200, "Dirty property: value 200.");
-    assertEqualBoolean(WKPF.loadNextDirtyProperty(), true, "Loading second dirty property.");
-    assertEqual(WKPF.getDirtyPropertyPortNumber(), 0x20, "Dirty property: port 0x20.");
-    assertEqual(WKPF.getDirtyPropertyNumber(), WKPF.PROPERTY_THRESHOLD_VALUE, "Dirty property: property " + WKPF.PROPERTY_THRESHOLD_VALUE + ".");
-    assertEqual(WKPF.getDirtyPropertyShortValue(), 500, "Dirty property: value 500.");
-    assertEqualBoolean(WKPF.loadNextDirtyProperty(), true, "Loading third dirty property.");
-    assertEqual(WKPF.getDirtyPropertyPortNumber(), 0x20, "Dirty property: port 0x20.");
-    assertEqual(WKPF.getDirtyPropertyNumber(), WKPF.PROPERTY_THRESHOLD_OUTPUT, "Dirty property: property " + WKPF.PROPERTY_THRESHOLD_OUTPUT + ".");
-    assertEqualBoolean(WKPF.getDirtyPropertyBooleanValue(), true, "Dirty property: value true.");
-    assertEqualBoolean(WKPF.loadNextDirtyProperty(), false, "No more dirty properties.");
-    */
+    WKPF.setPropertyShort(wuclassInstanceLogical, WKPF.PROPERTY_LOGICAL_OPERATOR, WKPF.ENUM_LOGICAL_OPERATOR_AND);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "operator = AND");
+    WKPF.setPropertyBoolean(wuclassInstanceLogical, WKPF.PROPERTY_LOGICAL_INPUT1, 1);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "INPUT1 = 1");
+    WKPF.setPropertyBoolean(wuclassInstanceLogical, WKPF.PROPERTY_LOGICAL_INPUT2, 0);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "INPUT2 = 0");
+    WKPF.setPropertyBoolean(wuclassInstanceLogical, WKPF.PROPERTY_LOGICAL_INPUT3, 0);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "INPUT3 = 0");
+    WKPF.setPropertyBoolean(wuclassInstanceLogical, WKPF.PROPERTY_LOGICAL_INPUT4, 1);
+    assertEqual(WKPF.getErrorCode(), WKPF.OK, "INPUT4 = 1");
+    wuclassInstanceLogical.update();
+    assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceLogical, WKPF.PROPERTY_LOGICAL_OUTPUT), false, "output should be false.");
+*/
     System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
   }
 }
