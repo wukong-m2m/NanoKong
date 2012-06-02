@@ -28,10 +28,10 @@
     </WuClass>
 
     <WuClass name="Threshold" id="1" virtual="true" type="soft">
-        <property name="operator" datatype="ThresholdOperator" access="readwrite" />
-        <property name="threshold" datatype="short" access="readwrite" />
-        <property name="value" datatype="short" access="readwrite" />
-        <property name="output" datatype="boolean" access="readonly" />
+        <property name="operator" datatype="ThresholdOperator" access="readwrite" default="ThresholdOperator.gt" />
+        <property name="threshold" datatype="short" access="readwrite" default="30" />
+        <property name="value" datatype="short" access="readwrite" default="20" />
+        <property name="output" datatype="boolean" access="readonly" default="false" />
     </WuClass>
 
     <WuClass name="Temperature_Sensor" id="2" virtual="false" type="hard">
@@ -102,7 +102,7 @@
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
     </WuClass>
 
-    <WuClass name="Light" id="4" virtual="false" type="hard">
+    <WuClass name="Light_Actuator" id="4" virtual="false" type="hard">
         <property name="on_off" datatype="boolean" access="readwrite" />
     </WuClass>
 

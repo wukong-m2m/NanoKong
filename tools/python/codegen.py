@@ -11,8 +11,13 @@
 # Date: May 13, 2012
 
 import os
+import sys
 import re
+import distutils.dir_util
+sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from lxml import etree
+from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
 from optparse import OptionParser
 
 CWD = os.getcwd()
@@ -20,34 +25,12 @@ CWD = os.getcwd()
 parser = OptionParser()
 parser.add_option('-i', '--input_xml', dest='component_file')
 parser.add_option('-p', '--projectdir', dest='project_dir')
+parser.add_option('-u', '--plugin', dest='plugin_name')
 (options, args) = parser.parse_args()
 
 print options, args
 
-# Directories
-global_vm_dir = os.path.join('vm', 'src')
-vm_dir = os.path.join('vm', 'src', 'native_wuclasses')
-java_dir = os.path.join('java', 'nanovm', 'wkpf')
-plugin_dir = os.path.join('plugins')
-
-# Filenames
-global_vm_header_filename = 'GENERATEDwkpf_wuclass_library.h'
-global_virtual_constants_filename = 'GENERATEDWKPF.java'
-
-# Paths
-component_library_path = options.component_file
-global_vm_header_path = os.path.join(options.project_dir, global_vm_dir, global_vm_header_filename)
-global_virtual_constants_path = os.path.join(options.project_dir, java_dir, global_virtual_constants_filename)
-
-# IOs
-component_library = open(component_library_path)
-global_vm = open(global_vm_header_path, 'w')
-global_virtual_constants = open(global_virtual_constants_path, 'w')
-
-# Lines
-global_vm_header_lines = []
-global_virtual_constants_lines = []
-
+# ------------ Utility functions ------------ #
 def CamelCaseToUnderscore(name):
   s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
   return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
@@ -67,11 +50,57 @@ def convert_filename_to_java(raw):
 def convert_constant(raw):
   return convert_filename_to_c(raw).upper()
 
+def get_immediate_subdirectories(dir):
+  return [name for name in os.listdir(dir)
+          if os.path.isdir(os.path.join(dir, name))]
+
+def get_all_subdirectories(dir):
+  directories = []
+  directories += map(lambda x: os.path.join(dir, x), get_immediate_subdirectories(dir))
+  for directory in map(lambda x: os.path.join(dir, x), get_immediate_subdirectories(dir)):
+    directories += get_all_subdirectories(directory)
+  return directories
+
+# Directories
+global_vm_dir = os.path.join('vm', 'src')
+vm_dir = os.path.join('vm', 'src', 'native_wuclasses')
+java_dir = os.path.join('java', 'nanovm', 'wkpf')
+
+plugin_dir = os.path.join(options.project_dir, 'plugins')
+template_dir = os.path.join(plugin_dir, 'templates')
+
+if options.plugin_name:
+  plugin_template_dir = os.path.join(template_dir, options.plugin_name, 'wukongObject')
+  plugin_root_dir = os.path.join(plugin_dir, options.plugin_name, 'wukongObject')
+
+  jinja2_env = Environment(loader=FileSystemLoader(get_all_subdirectories(plugin_template_dir) + [plugin_template_dir]))
+  jinja2_env.filters["convert_filename_to_java"] = convert_filename_to_java
+
+# Filenames
+global_vm_header_filename = 'GENERATEDwkpf_wuclass_library.h'
+global_virtual_constants_filename = 'GENERATEDWKPF.java'
+
+# Paths
+component_library_path = options.component_file
+global_vm_header_path = os.path.join(options.project_dir, global_vm_dir, global_vm_header_filename)
+global_virtual_constants_path = os.path.join(options.project_dir, java_dir, global_virtual_constants_filename)
+
+# IOs
+component_library = open(component_library_path)
+global_vm = open(global_vm_header_path, 'w')
+global_virtual_constants = open(global_virtual_constants_path, 'w')
+
+# Lines
+global_vm_header_lines = []
+global_virtual_constants_lines = []
+
+
 # Parse ComponentLibrary XML
 component_tree = etree.parse(component_library)
 component_root = component_tree.getroot()
 wuclasses = component_root.xpath("WuClass")
 wutypedefs = component_root.xpath("WuTypedef")
+wucomponents = component_root.xpath("WuClass | WuTypedef")
 wutypedefs_hash = []
 
 # Boilerplate for Java global constants file
@@ -82,17 +111,17 @@ global_virtual_constants_lines.append('''
 ''')
 
 # Parsing to WuKong Profile Framework Component Library header
-typeind = len(wuclasses)
 for wutypedef in wutypedefs:
   wutypedefs_hash.append(convert_constant(wutypedef.get("name")))
 
   # Generate global header typedef definition for VM
+  enumvalue = 0
   for item in wutypedef:
-    cline = "#define WKPF_" + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " %d\n" % (typeind)
-    jline = "public static final short " + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " = %d;\n" % (typeind)
+    cline = "#define WKPF_" + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " %d\n" % (enumvalue)
+    jline = "public static final short " + convert_constant(wutypedef.get("type")) + "_" + convert_constant(wutypedef.get("name")) + "_" + convert_constant(item.get("value")) + " = %d;\n" % (enumvalue)
     global_vm_header_lines.append(cline)
     global_virtual_constants_lines.append(jline)
-    typeind += 1
+    enumvalue += 1
 print "==================End of TypeDefs====================="
 
 for wuclass in wuclasses:
@@ -265,3 +294,45 @@ global_vm.close()
 
 global_virtual_constants.writelines(global_virtual_constants_lines)
 global_virtual_constants.close()
+
+
+# Create plugin folder structure
+if options.plugin_name:
+  distutils.dir_util.copy_tree(plugin_template_dir, plugin_root_dir)
+
+  if options.plugin_name == "niagara":
+    module_include_path = os.path.join(plugin_root_dir, 'module-include.xml')
+    module_include = open(module_include_path, 'w')
+    module_include_template = jinja2_env.get_template('module-include.xml')
+    module_include.write(module_include_template.render(components=wucomponents))
+    module_include.close()
+
+
+    module_palette_path = os.path.join(plugin_root_dir, 'module.palette')
+    module_palette = open(module_palette_path, 'w')
+    module_palette_template = jinja2_env.get_template('module.palette')
+    module_palette.write(module_palette_template.render(virtuals=component_root.xpath("//*[@virtual='true']"), 
+      sensors=component_root.xpath("//*[contains(@name, 'Sensor')]"), 
+      controller=component_root.xpath("//*[contains(@name, 'Controller')]"),
+      actuators=component_root.xpath("//*[contains(@name, 'Actuator')]")))
+    module_palette.close()
+
+
+    class_implementation_dir = os.path.join(plugin_root_dir, 'com', 'wukong', 'wukongObject')
+    distutils.dir_util.mkpath(class_implementation_dir)
+    #class_implementation_template = Template(open(os.path.join(class_implementation_dir, 'BTemplate.java')).read())
+    class_implementation_template = jinja2_env.get_template('BTemplate.java')
+    enum_implementation_template = jinja2_env.get_template('BTemplateEnum.java')
+
+    for wuclass in wuclasses:
+      wuclass_implementation_path = os.path.join(class_implementation_dir, 'B%s.java' % (convert_filename_to_java(wuclass.get("name"))))
+      wuclass_implementation = open(wuclass_implementation_path, 'w')
+      wuclass_implementation.write(class_implementation_template.render(component=wuclass))
+
+    for wutypedef in wutypedefs:
+      if wutypedef.get("type").lower() == 'enum':
+        wutypedef_implementation_path = os.path.join(class_implementation_dir, 'B%sEnum.java' % (convert_filename_to_java(wutypedef.get("name"))))
+        wutypedef_implementation = open(wutypedef_implementation_path, 'w')
+        wutypedef_implementation.write(enum_implementation_template.render(component=wutypedef))
+
+  print "==================End of Plugin====================="

@@ -1,10 +1,10 @@
 //========== Components Definitions ==========
-// 0 InputController1 {'classid': 3, 'defaults': [(u'output', 127)], 'class': u'Numeric_Controller', 'cmpid': 0}
-// 1 LightSensor1 {'classid': 5, 'defaults': [(u'refresh_rate', ('r', 1000))], 'class': u'Light_Sensor', 'cmpid': 1}
-// 2 Threshold1 {'classid': 1, 'defaults': [(u'operator', u'WKPF.ENUM_THRESHOLD_OPERATOR_LTE')], 'class': u'Threshold', 'cmpid': 2}
-// 3 Occupancy1 {'classid': 4101, 'defaults': [(u'occupied', True)], 'class': u'Occupancy_Sensor', 'cmpid': 3}
-// 4 AndGate1 {'classid': 6, 'defaults': [], 'class': u'And_Gate', 'cmpid': 4}
-// 5 Light1 {'classid': 4, 'defaults': [], 'class': u'Light', 'cmpid': 5}
+// 0 InputController1 {'classid': 3, 'cmpname': u'InputController1', 'defaults': [(u'output', 127)], 'class': u'Numeric_Controller', 'cmpid': 0}
+// 1 LightSensor1 {'classid': 5, 'cmpname': u'LightSensor1', 'defaults': [(u'refresh_rate', ('r', 1000))], 'class': u'Light_Sensor', 'cmpid': 1}
+// 2 Threshold1 {'classid': 1, 'cmpname': u'Threshold1', 'defaults': [(u'operator', u'WKPF.ENUM_THRESHOLD_OPERATOR_LTE')], 'class': u'Threshold', 'cmpid': 2}
+// 3 Occupancy1 {'classid': 4101, 'cmpname': u'Occupancy1', 'defaults': [(u'occupied', True)], 'class': u'Occupancy_Sensor', 'cmpid': 3}
+// 4 AndGate1 {'classid': 6, 'cmpname': u'AndGate1', 'defaults': [], 'class': u'And_Gate', 'cmpid': 4}
+// 5 Light_Actuator1 {'classid': 4, 'cmpname': u'Light_Actuator1', 'defaults': [], 'class': u'Light_Actuator', 'cmpid': 5}
 //
 //========== Links Definitions ==========
 // fromCompInstanceId(2 bytes), fromPropertyId(1 byte), toCompInstanceId(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)
@@ -16,7 +16,7 @@
 // (2, 0) 3 (4, 0) 0 (6, 0)
 // (u'Occupancy1', u'occupied', u'AndGate1', u'input2', u'AndGate1')
 // (3, 0) 0 (4, 0) 1 (6, 0)
-// (u'AndGate1', u'output', u'Light1', u'on_off', u'Light1')
+// (u'AndGate1', u'output', u'Light_Actuator1', u'on_off', u'Light_Actuator1')
 // (4, 0) 2 (5, 0) 0 (4, 0)
 //
 //========== Code ==========
@@ -62,7 +62,6 @@ public class HAScenario2 {
         WKPF.registerWuClass(WKPF.WUCLASS_AND_GATE, GENERATEDVirtualAndGateWuObject.properties);
         if (WKPF.isLocalComponent((short)0)) {
             WKPF.setPropertyShort((short)0, WKPF.PROPERTY_NUMERIC_CONTROLLER_OUTPUT, (short)127);
-            System.out.println("=======WKPFERROR" + WKPF.getErrorCode());
         }
         if (WKPF.isLocalComponent((short)1)) {
             WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_LIGHT_SENSOR_REFRESH_RATE, (short)1000);

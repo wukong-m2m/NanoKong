@@ -10,8 +10,11 @@ DEFAULT_CLASS=$(FLOWXML)
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
 else
+
 DEFAULT_CLASS = TestWKPF
 #DEFAULT_CLASS = AdcDemo
+#DEFAULT_CLASS = HAScenario1
+
 endif
 
 PORT = /dev/ttyACM0
@@ -63,7 +66,7 @@ endef
 	$(DEP-GEN-CMD)
 
 # avr specific entries
-%.elf: generate translate $(OBJS)
+%.elf: generate $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	avr-size -A $@
 
@@ -103,16 +106,7 @@ upload_bootloader:
 	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
 generate: $(COMPONENTXML_PATH)
-	$(ROOT_DIR)/tools/python/codegen.py -i $(COMPONENTXML_PATH) -p $(ROOT_DIR)
-
-ifdef FLOWXML
-translate: $(COMPONENTXML_PATH) $(FLOWXML_DIR)/$(FLOWXML).xml $(ROOT_DIR)/tools/xml2java/translator.py
-		$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
-		DEFAULT_CLASS=$(FLOWXML)
-else
-translate:
-	
-endif
+	$(ROOT_DIR)/tools/python/codegen.py -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
 #include $(OBJS:.o=.d)
 

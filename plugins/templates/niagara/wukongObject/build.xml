@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module
+  name = "wukongObject"
+  bajaVersion = "0"
+  vendor = "WuKong NTU"
+  description = "Library of WuKong Objects"
+  preferredSymbol = "wukongObject"
+>
+
+  <dependency name="baja" vendor="Tridium" vendorVersion="3.4"/>
+  <dependency name="bajaui" vendor="Tridium" vendorVersion="3.4"/>
+  <dependency name="bql" vendor="Tridium" vendorVersion="3.4"/>
+  <dependency name="gx" vendor="Tridium" vendorVersion="3.4"/>
+  <dependency name="workbench" vendor="Tridium" vendorVersion="3.4"/>
+  <dependency name="control" vendor="Tridium" vendorVersion="3.4"/>
+  
+  <package name="com.wukong.wukongObject" />
+
+</module>

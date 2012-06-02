@@ -8,7 +8,7 @@ NATIVE_WUCLASSES_OBJS = \
     wuclass_generic_update.o \
     wuclass_threshold_update.o \
     wuclass_numeric_controller_update.o \
-    wuclass_light_update.o \
+    wuclass_light_actuator_update.o \
     wuclass_light_sensor_update.o \
     wuclass_logical_update.o \
     wuclass_math_update.o \
@@ -19,7 +19,7 @@ NATIVE_WUCLASSES_OBJS = \
     GENERATEDwuclass_generic.o \
     GENERATEDwuclass_threshold.o \
     GENERATEDwuclass_numeric_controller.o \
-    GENERATEDwuclass_light.o \
+    GENERATEDwuclass_light_actuator.o \
     GENERATEDwuclass_light_sensor.o \
     GENERATEDwuclass_logical.o \
     GENERATEDwuclass_math.o \

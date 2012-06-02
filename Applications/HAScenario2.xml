@@ -16,7 +16,7 @@
 		<link fromProperty="occupied" toInstanceId="AndGate1" toProperty="input2" />
 	</component>
 	<component type="And_Gate" instanceId="AndGate1">
-		<link fromProperty="output" toInstanceId="Light1" toProperty="on_off" />
+		<link fromProperty="output" toInstanceId="Light_Actuator1" toProperty="on_off" />
 	</component>
-	<component type="Light" instanceId="Light1" />
+	<component type="Light_Actuator" instanceId="Light_Actuator1" />
 </application>

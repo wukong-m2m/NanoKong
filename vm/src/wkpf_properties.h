@@ -44,6 +44,7 @@ extern uint8_t wkpf_read_property_boolean(wkpf_local_wuobject *wuobject, uint8_t
 extern uint8_t wkpf_write_property_boolean(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, bool value);
 extern uint8_t wkpf_read_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t *value);
 extern uint8_t wkpf_write_property_refresh_rate(wkpf_local_wuobject *wuobject, uint8_t property_number, bool external_access, wkpf_refresh_rate_t value);
+extern uint8_t wkpf_get_property_status(wkpf_local_wuobject *wuobject, uint8_t property_number, uint8_t *status);
 
 extern uint8_t wkpf_alloc_properties_for_wuobject(wkpf_local_wuobject *wuobject);
 extern uint8_t wkpf_free_properties_for_wuobject(wkpf_local_wuobject *wuobject);
