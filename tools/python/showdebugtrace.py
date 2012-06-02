@@ -11,6 +11,7 @@ while(True):
     continue
   command = message[0]
   debugtext = ''.join(chr(i) for i in message[1:])
+  print '%d %d "%s"' % (command, len(debugtext), debugtext)
   if command == pynvc.DEBUG_TRACE_PART:
     if not messages_in_progress.has_key(src):
       messages_in_progress[src] = ""

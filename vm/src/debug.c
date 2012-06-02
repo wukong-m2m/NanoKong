@@ -77,6 +77,10 @@ void debugf(bool send_wireless_trace, const char *fmt, ...) {
         u08_t cmd = remaining_messages == 0 ? NVMCOMM_DEBUG_TRACE_FINAL : NVMCOMM_DEBUG_TRACE_PART;
         u08_t msglen = remaining_messages == 0 ? (size % chunk_size) : chunk_size;
         DEBUGF_COMM("DEBUG_WIRELESS_TRACE size:%d(%d) pos:%d cmd:%d msglen:%d\n", size, chunk_size, (int)message_payload-(int)buf, cmd, msglen);
+        for(int i=0; i<msglen; i++)
+          uart_write_byte(DEBUG_UART, message_payload[i]);
+        uart_write_byte(DEBUG_UART, '\n');
+        uart_write_byte(DEBUG_UART, '\r');
         nvmcomm_send(DEBUG_WIRELESS_TRACE_TARGET_NODE_ID,
                      cmd,
                      message_payload,

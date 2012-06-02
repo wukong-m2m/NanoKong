@@ -88,6 +88,7 @@ void nvmcomm_zwave_receive(int processmessages) {
   			ack_got=1;
   		} else if (c == 0x15) {
         // send: no ACK from other side
+  			DEBUGF_COMM("[NAK] SerialAPI LRC checksum error!!!\n");
   			state = ZWAVE_STATUS_WAIT_SOF;
   			ack_got=0;
       } else if (c == 0x18) {
@@ -236,7 +237,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 	unsigned char c = 1;
 	int i;
 	unsigned char crc;
-	int retry = 5;
+	int retry = 50;
 
 	while (1) {
 		// read out pending request from Z-Wave
@@ -273,22 +274,17 @@ int SerialAPI_request(unsigned char *buf, int len)
 		ack_got = 0;
 
 		// get SerialAPI ack
-		while(1) {
-      i = 0;
-      while(!uart_available(ZWAVE_UART) && i++<100)
-        delay(MILLISEC(1));
-      if (uart_available(ZWAVE_UART)) {
-        nvmcomm_zwave_poll();			
-  			if (ack_got == 1) {
-  				return 0;
-  			} else {
-  				DEBUGF_COMM("Ack error!!! zstate="DBG8" ack_got="DBG8"\n", state, ack_got);
-  			}
-		  } else {
-				DEBUGF_COMM("No ack!!! zstate="DBG8" ack_got="DBG8"\n", state, ack_got);
-        break;
-		  }
-		}
+    i = 0;
+    while(!uart_available(ZWAVE_UART) && i++<100)
+      delay(MILLISEC(1));
+    if (uart_available(ZWAVE_UART)) {
+      nvmcomm_zwave_poll();			
+			if (ack_got == 1) {
+				return 0;
+			} else {
+				DEBUGF_COMM("Ack error!!! zstate="DBG8" ack_got="DBG8"\n", state, ack_got);
+			}
+	  }
 		if (state == ZWAVE_STATUS_WAIT_ACK) {
       state = ZWAVE_STATUS_WAIT_SOF; // Give up and don't get stuck in the WAIT_ACK state
 			DEBUGF_COMM("Back to WAIT_SOF state.\n");
