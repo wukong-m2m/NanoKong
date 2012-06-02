@@ -7,10 +7,10 @@ import javax.baja.sys.Property.*;
 import javax.baja.sys.Action.*;
 import javax.baja.sys.Topic.*;
 
-public final class B{{ component.get("name") }} extends BComponent {
+public final class B{{ component.get("name")|convert_filename_to_java }} extends BComponent {
 
 /*-
-class B{{ component.get("name") }}
+class B{{ component.get("name")|convert_filename_to_java }}
 {
   properties 
   {

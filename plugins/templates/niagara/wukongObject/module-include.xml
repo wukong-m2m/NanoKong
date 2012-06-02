@@ -1,5 +1,5 @@
 <types>
   {% for component in components %}
-  <type name="{{ component.get("name") }}" class="com.wukong.wukongObject.B{{ component.get("name") }}" />
+  <type name="{{ component.get("name")|convert_filename_to_java }}" class="com.wukong.wukongObject.B{{ component.get("name")|convert_filename_to_java }}" />
   {% endfor %}
 </types>

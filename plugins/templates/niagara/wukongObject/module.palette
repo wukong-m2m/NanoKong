@@ -8,32 +8,32 @@
       <!-- Sensors -->
       <p n="Sensors" t="b:UnrestrictedFolder">
         {% for sensor in sensors %}
-        <!-- {{ sensor.get("name") }} -->
-        <p n="{{ sensor.get("name") }}" m="c=wukongObject" t="c:{{ sensor.get("name") }}" />
+        <!-- {{ sensor.get("name")|convert_filename_to_java }} -->
+        <p n="{{ sensor.get("name")|convert_filename_to_java }}" m="c=wukongObject" t="c:{{ sensor.get("name")|convert_filename_to_java }}" />
         {% endfor %}
       </p> <!-- Sensors -->
       
       <!-- Controller -->
       <p n="Controller" t="b:UnrestrictedFolder">
         {% for controller in controllers %}
-        <!-- {{ controller.get("name") }} -->
-        <p n="{{ controller.get("name") }}" m="c=wukongObject" t="c:{{ controller.get("name") }}" />
+        <!-- {{ controller.get("name")|convert_filename_to_java }} -->
+        <p n="{{ controller.get("name")|convert_filename_to_java }}" m="c=wukongObject" t="c:{{ controller.get("name")|convert_filename_to_java }}" />
         {% endfor %}
       </p> <!-- Controller -->
 
       <!-- Actuator -->
       <p n="Actuators" t="b:UnrestrictedFolder">
         {% for actuator in actuators %}
-        <!-- {{ actuator.get("name") }} -->
-        <p n="{{ actuator.get("name") }}" m="c=wukongObject" t="c:{{ actuator.get("name") }}" />
+        <!-- {{ actuator.get("name")|convert_filename_to_java }} -->
+        <p n="{{ actuator.get("name")|convert_filename_to_java }}" m="c=wukongObject" t="c:{{ actuator.get("name")|convert_filename_to_java }}" />
         {% endfor %}
       </p> <!-- Actuator -->
       
       <!-- Virtuals -->
       <p n="Virtuals" t="b:UnrestrictedFolder">
         {% for virtual in virtuals %}
-        <!-- {{ virtual.get("name") }} -->
-        <p n="{{ virtual.get("name") }}" m="c=wukongObject" t="c:{{ virtual.get("name") }}" />
+        <!-- {{ virtual.get("name")|convert_filename_to_java }} -->
+        <p n="{{ virtual.get("name")|convert_filename_to_java }}" m="c=wukongObject" t="c:{{ virtual.get("name")|convert_filename_to_java }}" />
         {% endfor %}
       </p> <!-- Virtuals -->
 

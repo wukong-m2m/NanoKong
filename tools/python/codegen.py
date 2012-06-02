@@ -54,6 +54,23 @@ def get_immediate_subdirectories(dir):
   return [name for name in os.listdir(dir)
           if os.path.isdir(os.path.join(dir, name))]
 
+def findInSubdirectory(filename, subdirectory=''):
+  if subdirectory:
+    path = subdirectory
+  else:
+    path = os.getcwd()
+
+  for root, dirs, names in os.walk(path):
+    if filename in names:
+      return os.path.join(root, filename)
+
+    for dirname in dirs:
+      result = findInSubdirectory(filename, os.path.join(dirpath, dirname))
+      if result != None:
+        return result
+
+  return None
+
 def get_all_subdirectories(dir):
   directories = []
   directories += map(lambda x: os.path.join(dir, x), get_immediate_subdirectories(dir))
@@ -334,5 +351,18 @@ if options.plugin_name:
         wutypedef_implementation_path = os.path.join(class_implementation_dir, 'B%sEnum.java' % (convert_filename_to_java(wutypedef.get("name"))))
         wutypedef_implementation = open(wutypedef_implementation_path, 'w')
         wutypedef_implementation.write(enum_implementation_template.render(component=wutypedef))
+
+  # delete template files
+  if options.plugin_name:
+    try:
+      os.remove(findInSubdirectory('BTemplate.java', plugin_root_dir))
+    except IOError:
+      print "Attempting to remove non-existing file %s" % ('BTemplate.java')
+
+    try:
+      os.remove(findInSubdirectory('BTemplateEnum.java', plugin_root_dir))
+    except IOError:
+      print "Attempting to remove non-existing file %s" % ('BTemplateEnum.java')
+
 
   print "==================End of Plugin====================="
