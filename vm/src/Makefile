@@ -40,6 +40,12 @@ else
 endif
 
 $(DEFAULT_CLASS): $(JAVA_FILES)
+ifdef FLOWXML
+	$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
+	cp $(FLOWXML_DIR)/$(FLOWXML).xml $(CURDIR)/currentFlow.xml
+	cp $(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml $(CURDIR)/currentMapping.xml
+	DEFAULT_CLASS=$(FLOWXML)
+endif
 	-mkdir $(CLASSES_PATH)
 	javac -d $(CLASSES_PATH) $^
 	#javac -classpath "$(NANOVM_PATH)$(PATH_SEP)$(EXAMPLES_PATH)" $^
