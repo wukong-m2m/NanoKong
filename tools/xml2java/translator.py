@@ -45,7 +45,6 @@ def getNodeList(options):
   elif options.use_hardcoded_discovery:
     node1 = NodeInfo(nodeId=1,
                      wuClasses=(WuClass(nodeId=1, wuClassId=0, isVirtual=False),
-                                WuClass(nodeId=1, wuClassId=1, isVirtual=False),
                                 WuClass(nodeId=1, wuClassId=3, isVirtual=False),
                                 WuClass(nodeId=1, wuClassId=5, isVirtual=False)), # generic, threshold, numeric_controller, light_sensor
                      wuObjects=(WuObject(nodeId=1, portNumber=0, wuClassId=0),
