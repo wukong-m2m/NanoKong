@@ -45,7 +45,10 @@ def convert_filename_to_c(raw):
     return raw.lower()
 
 def convert_filename_to_java(raw):
-  return underscore_to_camel_case(raw)
+  if re.search('.*_.*', raw):
+    return underscore_to_camel_case(raw)
+  else:
+    return raw
 
 def convert_constant(raw):
   return convert_filename_to_c(raw).upper()
@@ -65,7 +68,7 @@ def findInSubdirectory(filename, subdirectory=''):
       return os.path.join(root, filename)
 
     for dirname in dirs:
-      result = findInSubdirectory(filename, os.path.join(dirpath, dirname))
+      result = findInSubdirectory(filename, os.path.join(path, dirname))
       if result != None:
         return result
 
@@ -335,7 +338,7 @@ if options.plugin_name:
     module_palette.close()
 
 
-    class_implementation_dir = os.path.join(plugin_root_dir, 'com', 'wukong', 'wukongObject')
+    class_implementation_dir = os.path.join(plugin_root_dir, 'src', 'com', 'wukong', 'wukongObject')
     distutils.dir_util.mkpath(class_implementation_dir)
     #class_implementation_template = Template(open(os.path.join(class_implementation_dir, 'BTemplate.java')).read())
     class_implementation_template = jinja2_env.get_template('BTemplate.java')
@@ -348,7 +351,7 @@ if options.plugin_name:
 
     for wutypedef in wutypedefs:
       if wutypedef.get("type").lower() == 'enum':
-        wutypedef_implementation_path = os.path.join(class_implementation_dir, 'B%sEnum.java' % (convert_filename_to_java(wutypedef.get("name"))))
+        wutypedef_implementation_path = os.path.join(class_implementation_dir, 'B%s.java' % (convert_filename_to_java(wutypedef.get("name"))))
         wutypedef_implementation = open(wutypedef_implementation_path, 'w')
         wutypedef_implementation.write(enum_implementation_template.render(component=wutypedef))
 

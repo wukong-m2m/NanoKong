@@ -28,7 +28,7 @@
     </WuClass>
 
     <WuClass name="Threshold" id="1" virtual="true" type="soft">
-        <property name="operator" datatype="ThresholdOperator" access="readwrite" default="ThresholdOperator.gt" />
+        <property name="operator" datatype="ThresholdOperator" access="readwrite" default="ThresholdOperator.gt" depends="ThresholdOperator" />
         <property name="threshold" datatype="short" access="readwrite" default="30" />
         <property name="value" datatype="short" access="readwrite" default="20" />
         <property name="output" datatype="boolean" access="readonly" default="false" />
@@ -43,7 +43,7 @@
         <property name="input2" datatype="boolean" access="readwrite" />
         <property name="input3" datatype="boolean" access="readwrite" />
         <property name="input4" datatype="boolean" access="readwrite" />
-        <property name="operator" datatype="LogicalOperator" access="readwrite" />
+        <property name="operator" datatype="LogicalOperator" access="readwrite" default="LogicalOperator.and" depends="LogicalOperator" />
         <property name="output" datatype="boolean" access="readonly" />
     </WuClass>
 
@@ -78,7 +78,7 @@
         <property name="input2" datatype="short" access="readwrite" />
         <property name="input3" datatype="short" access="readwrite" />
         <property name="input4" datatype="short" access="readwrite" />
-        <property name="operator" datatype="MathOperator" access="readwrite" />  
+        <property name="operator" datatype="MathOperator" access="readwrite" default="MathOperator.max" depends="MathOperator" />
         <property name="output" datatype="short" access="readonly" />
         <property name="remainder" datatype="short" access="readonly" />
     </WuClass>
@@ -89,7 +89,7 @@
 
     <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
         <property name="current_value" datatype="short" access="readonly" />
-        <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
+        <property name="refresh_rate" datatype="short" access="readwrite"/>
     </WuClass>
 
     <WuClass name="Light_Actuator" id="4" virtual="false" type="hard">
