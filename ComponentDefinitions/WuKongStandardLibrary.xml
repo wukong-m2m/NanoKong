@@ -39,12 +39,21 @@
     </WuClass>
 
     <WuClass name="Logical" id="11" virtual="true" type="soft">
+<<<<<<< HEAD
         <property name="input1" datatype="boolean" access="readwrite" />
         <property name="input2" datatype="boolean" access="readwrite" />
         <property name="input3" datatype="boolean" access="readwrite" />
         <property name="input4" datatype="boolean" access="readwrite" />
         <property name="operator" datatype="LogicalOperator" access="readwrite" default="LogicalOperator.and" depends="LogicalOperator" />
         <property name="output" datatype="boolean" access="readonly" />
+=======
+        <property name="input1" datatype="boolean" access="readwrite" default="false" />
+        <property name="input2" datatype="boolean" access="readwrite" default="false" />
+        <property name="input3" datatype="boolean" access="readwrite" default="false" />
+        <property name="input4" datatype="boolean" access="readwrite" default="false" />
+        <property name="operator" datatype="LogicalOperator" access="readwrite" default="LogicalOperator.and" />
+        <property name="output" datatype="boolean" access="readonly" default="false" />
+>>>>>>> 1c56e1604909d707eee0339747704457b3043560
     </WuClass>
 
     <WuClass name="Condition_selector_boolean" id="21" virtual="true" type="soft">
@@ -90,6 +99,16 @@
     <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
         <property name="current_value" datatype="short" access="readonly" />
         <property name="refresh_rate" datatype="short" access="readwrite"/>
+    </WuClass>
+
+    <WuClass name="Sound_Sensor" id="7" virtual="false" type="hard">
+        <property name="current_value" datatype="short" access="readonly" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
+    </WuClass>
+
+    <WuClass name="PIR_Sensor" id="8" virtual="false" type="hard">
+        <property name="current_value" datatype="short" access="readonly" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
     </WuClass>
 
     <WuClass name="Light_Actuator" id="4" virtual="false" type="hard">

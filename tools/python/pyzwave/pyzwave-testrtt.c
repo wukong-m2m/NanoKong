@@ -56,7 +56,7 @@ int testmode=0;
 int ack_got=1;
 int send_data_fin=1;
 int cmd_succ=-1;
-int print=1;
+int PyZwave_print_debug_info=1;
 int rtt_start_ms;
 int interval = 500;
 int verbose=0;
@@ -494,7 +494,7 @@ int ZW_sendData(unsigned id,unsigned char *in,int len)
 static void (*senddata_ack_callback)(void *data,int r)=NULL;
 static void *senddata_ack_callback_data=NULL;
 static void (*class_callback[256])(void *data, void *payload,int len)={NULL};
-static void (*class_persistent_callback[256])(void *payload,int len)={NULL};
+static void (*class_persistent_callback[256])(int src, void *payload,int len)={NULL};
 static void *class_callback_data[256]={NULL};
 
 void register_senddata_ack_callback(void (*f)(void *data,int r), void *data)
@@ -508,12 +508,12 @@ void register_class_callback(int class,void (*f)(void *data, void *payload,int l
 	class_callback[class] = f;
 	class_callback_data[class] = data;
 }
-void register_persistent_class_callback(int class,void (*f)(void *payload,int len))
+void register_persistent_class_callback(int class,void (*f)(int src, void *payload,int len))
 {
 	class_persistent_callback[class] = f;
 }
 
-void execute_class_callback(int class,void *payload,int len)
+void execute_class_callback(int src, int class,void *payload,int len)
 {
         //printf("class %x: cmd %x\n", class, ((unsigned char *)payload)[0]);
 	if (class_callback[class]) {
@@ -522,8 +522,8 @@ void execute_class_callback(int class,void *payload,int len)
 		cb(class_callback_data[class],payload,len);
 	}
 	if (class_persistent_callback[class]) {
-		void (*cb)(void *payload,int len) = class_persistent_callback[class];
-		cb(payload,len);
+		void (*cb)(int src, void *payload,int len) = class_persistent_callback[class];
+		cb(src, payload,len);
 	}
 }
 
@@ -884,7 +884,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 		for(i=0;i<len;i++)
 			crc = crc ^ buf[i];
 		write(zwavefd,&crc,1);	// LRC checksum
-		if (print) {
+		if (PyZwave_print_debug_info) {
 			printf("Send len=%d ", len+1);
 			for(i=0;i<len;i++) 
 				printf("%02x ", buf[i]);
@@ -1107,7 +1107,7 @@ int hsk200_config_save(char * filename)
 	return 0;
 }
 
-void hsk200_association_report_cb(void * payload, int len)
+void hsk200_association_report_cb(int src, void * payload, int len)
 {
 	unsigned char * buf = (unsigned char *)payload;
 	int group;
@@ -1128,7 +1128,7 @@ void hsk200_association_report_cb(void * payload, int len)
 		}
 	}
 }
-void hsk200_configuration_report_cb(void * payload, int len)
+void hsk200_configuration_report_cb(int src, void * payload, int len)
 {
 	unsigned char * buf = (unsigned char *)payload;
 	unsigned char addr;
@@ -1749,7 +1749,7 @@ void multilevel_dump(void *data,void *payload,int len)
 	printf("val: %lu\n", val);
 	printf("%s is %lu.%lu %s\n", get_sensor_type_string(type), val/div, val%div, get_sensor_scale_string(type, scale));
 }
-void multilevel_sensor_persistent_dump(void *payload,int len)
+void multilevel_sensor_persistent_dump(int src, void *payload,int len)
 {
         multilevel_dump(NULL,payload,len);
 }
@@ -2046,7 +2046,7 @@ char * get_meter_scale_string(int type, int scale)
 	sprintf(buf, "(unknown meter scale %d)", scale);
 	return buf;
 }
-void meter_monitor_dump(void *payload,int len) 
+void meter_monitor_dump(int src, void *payload,int len) 
 {
 	unsigned char *pp = (unsigned char *) payload;
 	int type,size,scale,precision,i;
@@ -2692,7 +2692,8 @@ int zwave_init()
 		}
 #endif //_WIN32		
 	}
-	print = 0;
+  int PyZwave_print_debug_info_old = PyZwave_print_debug_info;
+	PyZwave_print_debug_info = 0;
 	clear_serial_api_queue();
 
 	zwave_ready = 0;
@@ -2704,7 +2705,7 @@ int zwave_init()
 		printf("Z-Wave is ready.\n");
 		//usleep(100*1000);	// wait z-wave ready after reset
 	}
-	print = 1;
+	PyZwave_print_debug_info = PyZwave_print_debug_info_old;
 
 	return zwavefd;
 }
@@ -2972,8 +2973,8 @@ void ApplicationCommandHandler(unsigned char * buf, int len)
 	int cmd      = buf[4];
 	int delay;
 	int i;
-
-	execute_class_callback(class, buf+4, len-4-1);
+//  printf("LENGTH======TMPNR====== %d %d\n", len, len-4-1);
+	execute_class_callback(src, class, buf+4, len-4-1);
 
 	if (class == COMMAND_CLASS_BASIC) {
 		if      (cmd == BASIC_SET) {
@@ -3040,7 +3041,7 @@ void ApplicationCommandHandler(unsigned char * buf, int len)
 			printf("src=%d dest=%d\n", buf[5],buf[6]);
 			g_instance_src = buf[5];
 			g_instance_dst = buf[6];
-			execute_class_callback(buf[7], buf+8,len-8-1);
+			execute_class_callback(src, buf[7], buf+8,len-8-1);
 		}
 	} 
 	else if (class == 0x20 && cmd == 0xff) {
@@ -3051,7 +3052,7 @@ void ApplicationCommandHandler(unsigned char * buf, int len)
 		printf("\n");
 	}
 	else {
-		if (print) {
+		if (PyZwave_print_debug_info) {
 			printf("rxStatus = %d\n", rxStatus);
 			printf("src_node = %d\n", src);
 			printf("class = %x\n", class);
@@ -3093,6 +3094,7 @@ void zwave_check_state(unsigned char c)
 	static unsigned char cksum;
 
 	if (verbose) printf("cur state %d token %x\n", zstate,c);
+//	printf("======TMPNR======cur state %d token %x\n", zstate,c);
 
 	switch(zstate) {
 	case WAIT_ACK:
@@ -3138,6 +3140,7 @@ void zwave_check_state(unsigned char c)
 		break;
 	case WAIT_LEN:
 		zlen = c-2;
+//		printf("WAIT_LEN======TMPNR====== %d\n", zlen);
 		cksum = 0xff;
 		cksum ^= c;
 		zstate = WAIT_TYPE;
@@ -3193,7 +3196,7 @@ void zwave_check_state(unsigned char c)
 				zwave_ready = 1;
 				printf("HomeID: %02x%02x%02x%02x\n", zdata[0], zdata[1], zdata[2], zdata[3]);
 			} else {
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					printf("Get response for command %x\n [", curcmd);
 					for(i=0;i<zdataptr;i++) {
 						printf("%x ", zdata[i]);
@@ -3216,7 +3219,7 @@ void zwave_check_state(unsigned char c)
 			if (curcmd == 4) {	// ApplicationCommandHandler
 				ApplicationCommandHandler(zdata, zdataptr);
 			} else if (curcmd == 0x49) {	// ApplicationSlaveUpdate
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					printf("ApplicationSlaveUpdate:\n");
 					printf("  rxStatus = %02x\n", zdata[0]);
 					printf("  src_node = %d\n", zdata[1]);
@@ -3241,7 +3244,7 @@ void zwave_check_state(unsigned char c)
 					cmd_succ=1;
 				else
 					cmd_succ=0;
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					if (zdata[1] == TRANSMIT_COMPLETE_OK) {
 						printf("Transmit complete ok.\n");
 					} else if (zdata[1] == TRANSMIT_COMPLETE_NO_ACK) {
@@ -3318,7 +3321,7 @@ void zwave_check_state(unsigned char c)
 				printf("Z-Wave controller is back to factory default\n");
 			} 
 			else {
-				if (print) {
+				if (PyZwave_print_debug_info) {
 					printf("Get command for %x\n [", curcmd);
 					for(i=0;i<zdataptr;i++) {
 						printf("%x ", zdata[i]);
@@ -3611,9 +3614,9 @@ int process_cmd(int argc, char * argv[])
 		} else if (strcmp(argv[i],"norepeat")==0) {
 			repeat = 0;
 		} else if (strcmp(argv[i],"noprint")==0) {
-			print = 0;
+			PyZwave_print_debug_info = 0;
 		} else if (strcmp(argv[i],"print")==0) {
-			print = 1;
+			PyZwave_print_debug_info = 1;
 		} else if (strcmp(argv[i],"interval")==0) {
 			interval = atoi(argv[i+1]);
 			i++;
@@ -3691,7 +3694,7 @@ int process_cmd(int argc, char * argv[])
 				ZW_RemoveNodeFromNetwork(ADD_NODE_STOP);
 			}
 		} else if (strcmp(argv[i],"test")==0) {
-			print = 0;
+			PyZwave_print_debug_info = 0;
 			id = atoi(argv[i+1]);
 			v = atoi(argv[i+2]);
 			do_test(id,v,atoi(argv[i+3]));
@@ -4246,10 +4249,11 @@ int main(int argc, char *argv[])
 
 //// 20111025 Niels Reijers: for PyZwave
 int PyZwave_bytesReceived = 0;
+int PyZwave_src = 0;
 unsigned char PyZwave_messagebuffer[1024];
 int PyZwave_senddataAckReceived = 0;
 
-void PyZwave_proprietary_class_cb(void * payload, int len) {
+void PyZwave_proprietary_class_cb(int src, void * payload, int len) {
   if (len>1024) {
     printf("Received too much data. :-(");
     exit(0);
@@ -4257,12 +4261,13 @@ void PyZwave_proprietary_class_cb(void * payload, int len) {
   
   memcpy(PyZwave_messagebuffer, (unsigned char *)payload, len);
   PyZwave_bytesReceived = len;
+  PyZwave_src = src;
 
-  // int i;
-  // printf("Received %i bytes: ", len);
-  // for (i=0; i<len; i++)
-  //   printf("[%x] ", PyZwave_messagebuffer[i]);
-  // printf("\n");
+  int i;
+  printf("Received %i bytes: ", len);
+  for (i=0; i<len; i++)
+    printf("[%x] ", PyZwave_messagebuffer[i]);
+  printf("\n");
 }
 
 int PyZwave_init(char *host) {

@@ -1,6 +1,9 @@
 #
 #  Makefile for Mega8 test version of the NanoVM
 #
+#  Usage:
+#		make FLOWXML=HAScenario2 DISCOVERY_FLAGS=-h
+#  Note that the HAScenario2 should be in the /Applications directory
 
 CONFIG = Mega8.config
 DEVICE = atmega2560
@@ -10,7 +13,11 @@ DEFAULT_CLASS=$(FLOWXML)
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
 else
+
+#DEFAULT_CLASS = TestWKPF
+#DEFAULT_CLASS = AdcDemo
 DEFAULT_CLASS = HAScenario1
+
 endif
 
 PORT = /dev/tty.usbmodem411

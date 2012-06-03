@@ -5,6 +5,7 @@
 #include "heap.h"
 #include "array.h"
 #include "wkpf.h"
+#include "vm.h"
 #include "avr/native_avr.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
@@ -147,13 +148,15 @@ void native_wkpf_invoke(u08_t mref) {
     while(true) {
       // Process any incoming messages
       nvmcomm_poll();
-      // Propagate any dirty properties
-      wkpf_propagate_dirty_properties();
-      // Check if any wuobjects need updates
-      while(wkpf_get_next_wuobject_to_update(&wuobject)) { // Will call update() for native profiles directly, and return true for virtual profiles requiring an update.
-        stack_push(wuobject->virtual_wuclass_instance_heap_id | NVM_TYPE_MASK);
-        DEBUGF_WKPF("WKPF: WKPF.select returning wuclass at port %x.\n", wuobject->port_number);
-        return;
+      if (nvm_runlevel == NVM_RUNLVL_VM) {
+        // Propagate any dirty properties
+        wkpf_propagate_dirty_properties();
+        // Check if any wuobjects need updates
+        while(wkpf_get_next_wuobject_to_update(&wuobject)) { // Will call update() for native profiles directly, and return true for virtual profiles requiring an update.
+          stack_push(wuobject->virtual_wuclass_instance_heap_id | NVM_TYPE_MASK);
+          DEBUGF_WKPF("WKPF: WKPF.select returning wuclass at port %x.\n", wuobject->port_number);
+          return;
+        }
       }
     }
 

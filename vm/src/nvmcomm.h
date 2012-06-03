@@ -41,6 +41,9 @@
 #define NVMCOMM_WKPF_REQUEST_PROPERTY_INIT_R     0x99
 #define NVMCOMM_WKPF_ERROR_R		                 0x9F
 
+#define NVMCOMM_DEBUG_TRACE_PART                 0xA0
+#define NVMCOMM_DEBUG_TRACE_FINAL                0xA2
+
 //#define NVMCOMM_WKPF_...
 
 #define NVMCOMM_MAX_FID 0           // maximum supported file id
