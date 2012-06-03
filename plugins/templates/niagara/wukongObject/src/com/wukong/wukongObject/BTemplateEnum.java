@@ -7,27 +7,14 @@ import javax.baja.sys.Property.*;
 import javax.baja.sys.Action.*;
 import javax.baja.sys.Topic.*;
 
-public final class BThresholdOperatorEnum extends BFrozenEnum {
+public final class B{{ component.get("name")|convert_filename_to_java }} extends BFrozenEnum {
 
 /*-
-enum BThresholdOperatorEnum
+enum B{{ component.get("name")|convert_filename_to_java }}
 {
   range 
   {
-    gt,
-    gte,
-    eq,
-    lt,
-    lte
-    {% for property in component.xpath("property") %}
-    {{ property.get("name")|convert_filename_to_java }}: {{ property.get("datatype").lower() }}
-    flags { summary }
-    {% if property.get("datatype").lower() == 'boolean' %}
-    default {[ false ]}
-    {% elif property.get("datatype").lower() == 'short' %}
-    default {[ "" ]}
-    {% endif %}
-
+    {% for property in component.xpath("enum") %}{{ property.get("value").lower() }},
     {% endfor %}
   }
 }
