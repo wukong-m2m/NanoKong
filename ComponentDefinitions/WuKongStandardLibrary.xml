@@ -39,12 +39,12 @@
     </WuClass>
 
     <WuClass name="Logical" id="11" virtual="true" type="soft">
-        <property name="input1" datatype="boolean" access="readwrite" />
-        <property name="input2" datatype="boolean" access="readwrite" />
-        <property name="input3" datatype="boolean" access="readwrite" />
-        <property name="input4" datatype="boolean" access="readwrite" />
-        <property name="operator" datatype="LogicalOperator" access="readwrite" />
-        <property name="output" datatype="boolean" access="readonly" />
+        <property name="input1" datatype="boolean" access="readwrite" default="false" />
+        <property name="input2" datatype="boolean" access="readwrite" default="false" />
+        <property name="input3" datatype="boolean" access="readwrite" default="false" />
+        <property name="input4" datatype="boolean" access="readwrite" default="false" />
+        <property name="operator" datatype="LogicalOperator" access="readwrite" default="LogicalOperator.and" />
+        <property name="output" datatype="boolean" access="readonly" default="false" />
     </WuClass>
 
     <WuClass name="Condition_selector_boolean" id="21" virtual="true" type="soft">
