@@ -331,9 +331,10 @@ if options.plugin_name:
     module_palette_path = os.path.join(plugin_root_dir, 'module.palette')
     module_palette = open(module_palette_path, 'w')
     module_palette_template = jinja2_env.get_template('module.palette')
-    module_palette.write(module_palette_template.render(virtuals=component_root.xpath("//*[@virtual='true']"), 
+    module_palette.write(module_palette_template.render(
+      virtuals=component_root.xpath("//*[@virtual='true']"), 
       sensors=component_root.xpath("//*[contains(@name, 'Sensor')]"), 
-      controller=component_root.xpath("//*[contains(@name, 'Controller')]"),
+      controllers=component_root.xpath("//*[contains(@name, 'Controller')]"),
       actuators=component_root.xpath("//*[contains(@name, 'Actuator')]")))
     module_palette.close()
 
