@@ -3,6 +3,7 @@
 #include "wkpf.h"
 #include "debug.h"
 #include "delay.h"
+#include "vm.h"
 
 #define WKFPCOMM_SET_MESSAGE_HEADER_LEN 7
 
@@ -82,6 +83,9 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
   uint8_t retval;
   wkpf_local_wuobject *wuobject;
   
+  if (nvm_runlevel != NVM_RUNLVL_VM)
+    return;
+
   switch (nvmcomm_command) {
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
       number_of_wuclasses = wkpf_get_number_of_wuclasses();
