@@ -9,12 +9,12 @@ public class VirtualConditionSelectorShortWuObject extends GENERATEDVirtualCondi
         if (control==false) {
 	  WKPF.setPropertyShort(this, OUTPUT1, input);
 	  WKPF.setPropertyShort(this, OUTPUT2, (short)(0));
-          System.out.println("WKPFUPDATE(condition_selector_short): input " + input + " control " + control);
+          //System.out.println("WKPFUPDATE(condition_selector_short): input " + input + " control " + control);
         }
         else {
 	  WKPF.setPropertyShort(this, OUTPUT1, (short)(0));
 	  WKPF.setPropertyShort(this, OUTPUT2, input);
-          System.out.println("WKPFUPDATE(condition_selector_short): input " + input + " control " + control);
+          //System.out.println("WKPFUPDATE(condition_selector_short): input " + input + " control " + control);
         }
 
     }

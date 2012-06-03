@@ -9,12 +9,12 @@ public class VirtualConditionSelectorBooleanWuObject extends GENERATEDVirtualCon
         if (control==false) {
 	  WKPF.setPropertyBoolean(this, OUTPUT1, input);
 	  WKPF.setPropertyBoolean(this, OUTPUT2, false);
-          System.out.println("WKPFUPDATE(condition_selector_boolean): input " + input + " control " + control);
+          //System.out.println("WKPFUPDATE(condition_selector_boolean): input " + input + " control " + control);
         }
         else {
 	  WKPF.setPropertyBoolean(this, OUTPUT1, false);
 	  WKPF.setPropertyBoolean(this, OUTPUT2, input);
-          System.out.println("WKPFUPDATE(condition_selector_boolean): input " + input + " control " + control);
+          //System.out.println("WKPFUPDATE(condition_selector_boolean): input " + input + " control " + control);
         }
 
     }
