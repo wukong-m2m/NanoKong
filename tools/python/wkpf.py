@@ -32,15 +32,17 @@ class WuClass:
     return 'wuclass(node %d wuclass %d isvirtual %s)' % (self.nodeId, self.wuClassId, str(self.isVirtual))
 
 class NodeInfo:
-    def __init__(self, nodeId, wuClasses, wuObjects):
+    def __init__(self, nodeId, wuClasses, wuObjects, isResponding=True):
         self.nodeId = nodeId
-        self.wuClasses = wuClasses
-        self.wuObjects = wuObjects
-        self.nativeWuClasses = [wuclass.wuClassId for wuclass in self.wuClasses if not wuclass.isVirtual]
-        self.virtualWuClasses = [wuclass.wuClassId for wuclass in self.wuClasses if wuclass.isVirtual]
-        # Technically this is not 100% correct since we could make a virtual wuObject even if the native class is present, but this will work for now
-        self.nativeWuObjects = [wuobject for wuobject in self.wuObjects if wuobject.wuClassId in self.nativeWuClasses]
-        self.virtualWuObjects = [wuobject for wuobject in self.wuObjects if wuobject.wuClassId in self.virtualWuClasses]
+        self.isResponding = isResponding
+        if isResponding:
+          self.wuClasses = wuClasses
+          self.wuObjects = wuObjects
+          self.nativeWuClasses = [wuclass.wuClassId for wuclass in self.wuClasses if not wuclass.isVirtual]
+          self.virtualWuClasses = [wuclass.wuClassId for wuclass in self.wuClasses if wuclass.isVirtual]
+          # Technically this is not 100% correct since we could make a virtual wuObject even if the native class is present, but this will work for now
+          self.nativeWuObjects = [wuobject for wuobject in self.wuObjects if wuobject.wuClassId in self.nativeWuClasses]
+          self.virtualWuObjects = [wuobject for wuobject in self.wuObjects if wuobject.wuClassId in self.virtualWuClasses]
     def __repr__(self):
         return '(nodeinfo node %d\nwuclasses %s\nnative wuclasses %s\nvirtual wuclasses %s\nwuobjects %s)\n' % (self.nodeId, str(self.wuClasses), str(self.nativeWuClasses), str(self.virtualWuClasses), str(self.wuObjects))
 

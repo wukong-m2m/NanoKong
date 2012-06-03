@@ -2973,7 +2973,7 @@ void ApplicationCommandHandler(unsigned char * buf, int len)
 	int cmd      = buf[4];
 	int delay;
 	int i;
-  printf("LENGTH======TMPNR====== %d %d\n", len, len-4-1);
+//  printf("LENGTH======TMPNR====== %d %d\n", len, len-4-1);
 	execute_class_callback(src, class, buf+4, len-4-1);
 
 	if (class == COMMAND_CLASS_BASIC) {
@@ -3094,7 +3094,7 @@ void zwave_check_state(unsigned char c)
 	static unsigned char cksum;
 
 	if (verbose) printf("cur state %d token %x\n", zstate,c);
-	printf("======TMPNR======cur state %d token %x\n", zstate,c);
+//	printf("======TMPNR======cur state %d token %x\n", zstate,c);
 
 	switch(zstate) {
 	case WAIT_ACK:
@@ -3140,7 +3140,7 @@ void zwave_check_state(unsigned char c)
 		break;
 	case WAIT_LEN:
 		zlen = c-2;
-		printf("WAIT_LEN======TMPNR====== %d\n", zlen);
+//		printf("WAIT_LEN======TMPNR====== %d\n", zlen);
 		cksum = 0xff;
 		cksum ^= c;
 		zstate = WAIT_TYPE;
@@ -3168,7 +3168,6 @@ void zwave_check_state(unsigned char c)
 		zlen--;
 		zdata[zdataptr] = c;
 		zdataptr++;
-    printf("~%c~",c);
 		if (zlen == 0) {
 			if (c != cksum) {
 				printf("CRC ERROR!!! crc1=%x crc2=%x\n", c, cksum);

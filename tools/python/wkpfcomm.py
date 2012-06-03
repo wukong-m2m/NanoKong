@@ -23,9 +23,17 @@ def getNodeInfos():
   return [getNodeInfo(destination) for destination in nodeIds]
 
 def getNodeInfo(destination):
-  return NodeInfo(nodeId = destination,
-                  wuClasses = getWuClassList(destination),
-                  wuObjects = getWuObjectList(destination))
+  wuClasses = getWuClassList(destination)
+  wuObjects = getWuObjectList(destination)
+  if wuClasses == None:
+    return NodeInfo(nodeId = destination,
+                    wuClasses = None,
+                    wuObjects = None,
+                    isResponding = False)
+  else:
+    return NodeInfo(nodeId = destination,
+                    wuClasses = wuClasses,
+                    wuObjects = wuObjects)
 
 def getWuClassList(destination):
   sn = _getNextSequenceNumberAsList()

@@ -94,11 +94,12 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
 
 def readNodeInfo(nodeId, componentDefinitions):
   wkpfcommNodeInfo = wkpfcomm.getNodeInfo(nodeId)
-  for wuClass in wkpfcommNodeInfo.wuClasses:
-    wuClass.name = getComponentName(wuClass.wuClassId, componentDefinitions)
-  for wuObject in wkpfcommNodeInfo.wuObjects:
-    wuObject.wuClassName = getComponentName(wuObject.wuClassId, componentDefinitions)
-    wuObject.properties = [readPropertyInfo(wuObject, i, componentDefinitions) for i in range(getComponentPropertyCount(wuObject.wuClassId, componentDefinitions))]
+  if wkpfcommNodeInfo.isResponding:
+    for wuClass in wkpfcommNodeInfo.wuClasses:
+      wuClass.name = getComponentName(wuClass.wuClassId, componentDefinitions)
+    for wuObject in wkpfcommNodeInfo.wuObjects:
+      wuObject.wuClassName = getComponentName(wuObject.wuClassId, componentDefinitions)
+      wuObject.properties = [readPropertyInfo(wuObject, i, componentDefinitions) for i in range(getComponentPropertyCount(wuObject.wuClassId, componentDefinitions))]
   return wkpfcommNodeInfo
 
 ## Print functions
@@ -106,40 +107,48 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
   for nodeInfo in sorted(nodeInfos, key=lambda x:x.nodeId):
     print "============================="
     print "NodeID: %d" % (nodeInfo.nodeId)
-    print "WuClasses:"
-    for wuClassInfo in sorted(nodeInfo.wuClasses, key=lambda x:x.wuClassId):
-      print "\tClass name %s %s" % (wuClassInfo.name, "VIRTUAL" if wuClassInfo.isVirtual else "NATIVE")
-    print "WuObjects:"
-    for wuObjectInfo in sorted(nodeInfo.wuObjects, key=lambda x:x.wuClassId):
-      if mapping:
-        componentInstanceName = getComponentInstanceName(nodeInfo.nodeId, wuObjectInfo.portNumber, mapping)
-        if componentInstanceName:
-          print "\tComponent instance name: %s" % (componentInstanceName)
-      print "\tClass name %s" % (wuObjectInfo.wuClassName)
-      print "\tPort number %d" % (wuObjectInfo.portNumber)
-      print "\tPropNr  Datatype         Name      value (status) [(remote property value, status)]"
-      for propertyInfo in wuObjectInfo.properties:
-        propertyInfoString = "\t   %d %8s %15s %10s (%0#4x)" % (propertyInfo.propertyNumber,
-                                             wkpf.datatypeToString(propertyInfo.datatype),
-                                             propertyInfo.name,
-                                             stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value),
-                                             propertyInfo.status)
-        remoteLinkAndValue = ""
-        if mapping and flowDefinition:
-          remoteLinks = getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
-          for remoteLink in remoteLinks:
-            try:
-              remoteNodeId, remotePortNumber = getNodeAndPortForComponent(remoteLink[1], mapping)
-              remoteNodeInfo = find(nodeInfos, lambda x:x.nodeId == remoteNodeId)
-              remoteWuObject = find(remoteNodeInfo.wuObjects, lambda x:x.portNumber == remotePortNumber)
-              remotePropertyInfo = find(remoteWuObject.properties, lambda x:x.name == remoteLink[2])
-              propertyInfoString += "   (%s %s %s = %s, %0#4x)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value, remotePropertyInfo.status)
-              if propertyInfo.value != remotePropertyInfo.value:
-                propertyInfoString += " !!!!"
-            except:
-              propertyInfoString += "REMOTE PROPERTY NOT FOUND!!!!"
-        print propertyInfoString
-      print ""
+    if not nodeInfo.isResponding:
+      print "NOT RESPONDING"
+    else:
+      print "WuClasses:"
+      for wuClassInfo in sorted(nodeInfo.wuClasses, key=lambda x:x.wuClassId):
+        print "\tClass name %s %s" % (wuClassInfo.name, "VIRTUAL" if wuClassInfo.isVirtual else "NATIVE")
+      print "WuObjects:"
+      for wuObjectInfo in sorted(nodeInfo.wuObjects, key=lambda x:x.wuClassId):
+        if mapping:
+          componentInstanceName = getComponentInstanceName(nodeInfo.nodeId, wuObjectInfo.portNumber, mapping)
+          if componentInstanceName:
+            print "\tComponent instance name: %s" % (componentInstanceName)
+        print "\tClass name %s" % (wuObjectInfo.wuClassName)
+        print "\tPort number %d" % (wuObjectInfo.portNumber)
+        print "\tPropNr  Datatype         Name      value (status) [(remote property value, status)]"
+        for propertyInfo in wuObjectInfo.properties:
+          propertyInfoString = "\t   %d %8s %15s %10s (%0#4x)" % (propertyInfo.propertyNumber,
+                                               wkpf.datatypeToString(propertyInfo.datatype),
+                                               propertyInfo.name,
+                                               stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value),
+                                               propertyInfo.status)
+          remoteLinkAndValue = ""
+          if mapping and flowDefinition:
+            remoteLinks = getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
+            for remoteLink in remoteLinks:
+              try:
+                remoteNodeId, remotePortNumber = getNodeAndPortForComponent(remoteLink[1], mapping)
+                remoteNodeInfo = find(nodeInfos, lambda x:x.nodeId == remoteNodeId)
+                if remoteNodeInfo == None:
+                  propertyInfoString += " NODE NOT FOUND"
+                elif not remoteNodeInfo.isResponding:
+                  propertyInfoString += " NODE %d NOT RESPONDING" % (remoteNodeInfo.nodeId)                
+                else:
+                  remoteWuObject = find(remoteNodeInfo.wuObjects, lambda x:x.portNumber == remotePortNumber)
+                  remotePropertyInfo = find(remoteWuObject.properties, lambda x:x.name == remoteLink[2])
+                  propertyInfoString += "   (%s %s %s = %s, %0#4x)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value, remotePropertyInfo.status)
+                  if propertyInfo.value != remotePropertyInfo.value:
+                    propertyInfoString += " !!!!"
+              except:
+                propertyInfoString += " REMOTE PROPERTY NOT FOUND!!!!"
+          print propertyInfoString
+        print ""
 
 if __name__ == "__main__":
   optionParser = OptionParser("usage: %prog [options]")

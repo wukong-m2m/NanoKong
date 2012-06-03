@@ -168,8 +168,9 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     break;
     case NVMCOMM_CMD_SETRUNLVL:
       DEBUGF_COMM("Goto runlevel "DBG8"\n", payload[0]);
+      nvmcomm_send(src, NVMCOMM_CMD_SETRUNLVL_R, payload, 0); // Send here instead of at the bottom because we might be resetting.
+      response_cmd = 0;
       vm_set_runlevel(payload[0]);
-      response_cmd = NVMCOMM_CMD_SETRUNLVL_R;
     break;
     case NVMCOMM_CMD_APPMSG:
       if (nvc3_appmsg_size == 0) {

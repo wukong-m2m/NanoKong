@@ -16,10 +16,10 @@ public class VirtualLogicalWuObject extends GENERATEDVirtualLogicalWuObject {
              ((operator==WKPF.ENUM_LOGICAL_OPERATOR_XOR) && (in1 ^ in2 ^ in3 ^ in4)) 
 		) {
             WKPF.setPropertyBoolean(this, OUTPUT, true);
-            System.out.println("WKPFUPDATE(Logical): in1 " + in1 + " in2 " + in2 + " in3 " + in3 + " in4 " + in4 + " operator " + operator + " -> TRUE");
+//            System.out.println("WKPFUPDATE(Logical): in1 " + in1 + " in2 " + in2 + " in3 " + in3 + " in4 " + in4 + " operator " + operator + " -> TRUE");
         } else {
             WKPF.setPropertyBoolean(this, OUTPUT, false);
-            System.out.println("WKPFUPDATE(Logical): in1 " + in1 + " in2 " + in2 + " in3 " + in3 + " in4 " + in4 + " operator " + operator + " -> FALSE");
+//            System.out.println("WKPFUPDATE(Logical): in1 " + in1 + " in2 " + in2 + " in3 " + in3 + " in4 " + in4 + " operator " + operator + " -> FALSE");
         }
     }
 }

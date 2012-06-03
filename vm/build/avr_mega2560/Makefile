@@ -11,13 +11,13 @@ DEFAULT_CLASS=$(FLOWXML)
 DISCOVERY_FLAGS=-D
 else
 
-DEFAULT_CLASS = TestWKPF
+#DEFAULT_CLASS = TestWKPF
 #DEFAULT_CLASS = AdcDemo
-#DEFAULT_CLASS = HAScenario1
+DEFAULT_CLASS = HAScenario1
 
 endif
 
-PORT = /dev/ttyACM0
+PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
