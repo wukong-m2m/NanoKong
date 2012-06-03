@@ -48,6 +48,8 @@ u08_t seq;          // Sequence number which is used to match the callback funct
 u08_t ack_got = 0;
 // u32_t expire;  // The expire time of the last command
 
+u08_t wait_CAN_NAK = 1;
+
 bool nvmcomm_zwave_my_address_loaded = FALSE;
 address_t nvmcomm_zwave_my_address;
 
@@ -85,15 +87,22 @@ void nvmcomm_zwave_receive(int processmessages) {
     if (state == ZWAVE_STATUS_WAIT_ACK) {
       if (c == ZWAVE_ACK) {
   			state = ZWAVE_STATUS_WAIT_SOF;
+        wait_CAN_NAK = 1;
   			ack_got=1;
   		} else if (c == 0x15) {
         // send: no ACK from other side
-  			DEBUGF_COMM("[NAK] SerialAPI LRC checksum error!!!\n");
+  			if (wait_CAN_NAK != 128)
+          wait_CAN_NAK *= 2;
+  			DEBUGF_COMM("[NAK] SerialAPI LRC checksum error!!! delay: %dms\n", wait_CAN_NAK);
+        delay(MILLISEC(wait_CAN_NAK));
   			state = ZWAVE_STATUS_WAIT_SOF;
   			ack_got=0;
       } else if (c == 0x18) {
         // send: chip busy
-  			DEBUGF_COMM("[CAN] SerialAPI frame is dropped by ZW!!!\n");
+  			if (wait_CAN_NAK != 128)
+          wait_CAN_NAK *= 2;
+  			DEBUGF_COMM("[CAN] SerialAPI frame is dropped by ZW!!! delay: %dms\n", wait_CAN_NAK);
+        delay(MILLISEC(wait_CAN_NAK));
   			state = ZWAVE_STATUS_WAIT_SOF;
   			ack_got=0;
       } else {
