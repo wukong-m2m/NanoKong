@@ -89,17 +89,17 @@
 
     <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
         <property name="current_value" datatype="short" access="readonly" />
-        <property name="refresh_rate" datatype="short" access="readwrite"/>
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
     </WuClass>
 
     <WuClass name="Sound_Sensor" id="7" virtual="false" type="hard">
         <property name="current_value" datatype="short" access="readonly" />
-        <property name="refresh_rate" datatype="short" access="readwrite"/>
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
     </WuClass>
 
     <WuClass name="PIR_Sensor" id="8" virtual="false" type="hard">
         <property name="current_value" datatype="short" access="readonly" />
-        <property name="refresh_rate" datatype="short" access="readwrite"/>
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
     </WuClass>
 
     <WuClass name="Light_Actuator" id="4" virtual="false" type="hard">
