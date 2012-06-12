@@ -140,7 +140,7 @@ void nvmcomm_zwave_receive(int processmessages) {
       uart_write_byte(ZWAVE_UART, 6);
       state = ZWAVE_STATUS_WAIT_SOF;
       if (type == ZWAVE_TYPE_REQ && cmd == 0x13) {
-        zwsend_ack_got = (payload[1] != 0);
+        zwsend_ack_got = payload[1];
       }
       
       if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER) {
@@ -348,11 +348,12 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t tx
     nvmcomm_poll();
     delay(MILLISEC(1));
   }
-  DEBUGF_COMM("ZW_sendDATA ack got: %x\n", zwsend_ack_got);
-	if (zwsend_ack_got == 1)
+	if (zwsend_ack_got == 0) // ACK 0 indicates success
     return 0;
-  else
-    return -1;	
+  else {
+    DEBUGF_COMM("========================================ZW_sendDATA ack got: %x\n", zwsend_ack_got);
+    return -1;    
+  }
 }
 //===================================================================================================================
 // End: copied & modified from testrtt.c
