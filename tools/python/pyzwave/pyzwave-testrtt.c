@@ -4263,11 +4263,11 @@ void PyZwave_proprietary_class_cb(int src, void * payload, int len) {
   PyZwave_bytesReceived = len;
   PyZwave_src = src;
 
-  int i;
+/*  int i;
   printf("Received %i bytes: ", len);
   for (i=0; i<len; i++)
     printf("[%x] ", PyZwave_messagebuffer[i]);
-  printf("\n");
+  printf("\n");*/
 }
 
 int PyZwave_init(char *host) {

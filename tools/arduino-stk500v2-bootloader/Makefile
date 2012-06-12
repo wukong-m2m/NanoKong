@@ -338,7 +338,7 @@ mega2560:	begin gccversion sizebefore build sizeafter end
 mega1280: MCU = atmega1280
 mega1280: F_CPU = 16000000
 mega1280: BOOTLOADER_ADDRESS = 1E000
-mega1280: CFLAGS += -D_MEGA_BOARD_
+mega1280: CFLAGS += -D_MEGA_BOARD_ -DBAUDRATE=115200
 mega1280: begin gccversion sizebefore build sizeafter end 
 			mv $(TARGET).hex stk500boot_v2_mega1280.hex
 
