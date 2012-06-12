@@ -217,10 +217,9 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
       // Hopefully succesful propagations will be the most common case.
       // The original status will be passed back through wkpf_propagating_dirty_property_failed in case the propagation fails
       if (properties[i].property_status & PROPERTY_STATUS_NEEDS_PUSH) {
-        properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PUSH;
-        properties[i].property_status &= ~PROPERTY_STATUS_FORCE_NEXT_PUSH;
+        properties[i].property_status &= (~PROPERTY_STATUS_NEEDS_PUSH & ~PROPERTY_STATUS_FORCE_NEXT_PUSH & 0xF0);
       } else { // PROPERTY_STATUS_NEEDS_PULL: after sending the request, wait for the source node to send the value
-        properties[i].property_status &= ~PROPERTY_STATUS_NEEDS_PULL;
+        properties[i].property_status &= (~PROPERTY_STATUS_NEEDS_PULL & 0xF0);
         properties[i].property_status |= PROPERTY_STATUS_NEEDS_PULL_WAITING;
       }
       return TRUE;

@@ -43,7 +43,7 @@ public class HAScenario1 {
     private final static byte[] componentInstanceToWuObjectAddrMap = {
         (byte)1, (byte)1, 
         (byte)1, (byte)2, 
-        (byte)3, (byte)2, 
+        (byte)3, (byte)1, 
         (byte)3, (byte)4, 
     };
 
