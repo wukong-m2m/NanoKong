@@ -3,7 +3,7 @@
 # Translator convert the flow of WuKong components and their definitions into one application Java file
 #
 # Author: B.L.Tsai
-# Date: May 18, 2012
+# Date: Jun 10, 2012
 
 import os
 import sys
@@ -11,20 +11,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from wkpf import NodeInfo, WuClass, WuObject
 import pickle
 from xml.dom.minidom import parse
-from optparse import OptionParser
-from jinja2 import Template
-from struct import pack
-from operator import itemgetter
 
+## print flag for parsed files
 print_wuClasses = False
 print_Components = True
 print_links = True
+
+## output file descriptor
 out_fd = None
 out_xml_fd = None
 
-def indentor(s, num):
-    return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
-
+## node list methods. Written by Niels
 def loadNodeList(filename):
   with open(filename, "r") as f:
     node_list = pickle.load(f)
@@ -70,7 +67,14 @@ def getNodeList(options):
   print node_list
   return node_list
 
+## parser, mapper, and codegen. Written by B.L.Tsai
+# function for indenting text line to make a code readable
+def indentor(s, num):
+    return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
+
 def parser():
+    # program argument handler by OptionParser module
+    from optparse import OptionParser
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-c", "--component", action="store", type="string", dest="pathc", help="WuKong Component XML file path")
     parser.add_option("-f", "--flow", action="store", type="string", dest="pathf", help="WuKong Flow XML file path")
@@ -78,15 +82,17 @@ def parser():
     parser.add_option("-d", "--discovery-result", action="store", type="string", dest="discovery_file", help="The file containing the discovery result. Will be read if -D isn't specified, or created/overwritten if -D is specified. Either -D, -H, -d or both must be used.")
     parser.add_option("-D", "--do-discovery", action="store_true", dest="do_discovery", help="Do a new discovery of the network nodes. If a discovery file is specified using -d, the result will be stored there for future use. Either -D, -H, -d or both must be used.")
     parser.add_option("-H", "--use-hardcoded-discovery", action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
-    
     (options, args) = parser.parse_args()
     if not options.pathc or not options.pathf: parser.error("invalid component and flow xml, please refer to -h for help")
 
+    # get discovery result
     node_list = getNodeList(options)
 
-    c_dom = parse(options.pathc)
+    # parse out java class name from flow xml dom 
     f_dom = parse(options.pathf)
     java_class_name = f_dom.getElementsByTagName('application')[0].getAttribute('name')
+
+    # set output descriptors
     out_dir = options.out
     if not out_dir: out_dir = os.getcwd()
     assert os.path.exists(out_dir), "Error! the specified output directory does not exist."
@@ -96,77 +102,70 @@ def parser():
     out_xml_fd = open(os.path.join(out_dir, java_class_name+"Mapping.xml"), 'w')
    
     ## First, parse out WuClasse definitions with additional customized property types
-    path = options.pathc
+    from wkxml import WuClassXMLParser
+    wcxp = WuClassXMLParser(options.pathc)
     wuTypedefs_dict = {}
-    for wuTypedef in c_dom.getElementsByTagName('WuTypedef'):
-        tmp_typedef_dict = {}
-        if wuTypedef.getAttribute('type') == u'enum':
-            for enum in wuTypedef.getElementsByTagName('enum'):
-                tmp_typedef_dict[enum.getAttribute('value')] = 'WKPF.ENUM_%s_' + enum.getAttribute('value').upper()
-        assert len(tmp_typedef_dict) > 0, 'Error! unclear wuTypedef %s in xml %s' % (wuTypedef.getAttribute('name'), path)
-        wuTypedefs_dict[wuTypedef.getAttribute('name')] = tmp_typedef_dict
-    
-    if print_wuClasses: print>>out_fd, "//========== WuClass Definitions =========="
     wuClasses_dict = {}
-    truefalse_dict = {u'true':True, u'false':False, u'soft':True, u'hard':False}
-    tmp_access_dict = {u'readwrite':'rw', u'readonly':'ro', u'writeonly':'wo'}
-    for wuClass in c_dom.getElementsByTagName('WuClass'):
-        wuClassName = wuClass.getAttribute('name')
-        wuClassId = int(wuClass.getAttribute('id'),0)
+    for wuType in wcxp.getAllWuTypes():
+        tmp_typedef_dict = {}
+        tmp_type = wuType.getType()
+        if tmp_type == u'enum':
+            for enum in wuType.getValues():
+                tmp_typedef_dict[enum] = wuType.getJavaConstValueByValue(enum)
+            wuTypedefs_dict[wuType.getXmlName()] = tmp_typedef_dict
+        else: 
+            wuTypedefs_dict[wuType.getXmlName()] = tmp_type
+
+    for wuClass in wcxp.getAllWuClasses():
+        wuClassName = wuClass.getNiagaraName()
+        wuClassId = wuClass.getId()
         tmp_prop_dict = {}
-        for i, prop in enumerate(wuClass.getElementsByTagName('property')):
-            prop_type = prop.getAttribute('datatype')
-            prop_name = prop.getAttribute('name')
-            # if the property is customized
-            if prop_type in wuTypedefs_dict:
-                prop_type = wuTypedefs_dict[prop_type]
-                # since we know the customized property's name, update the const. str.
-                for enum_value, enum_str in prop_type.items():
-                    prop_type[enum_value] = enum_str % (wuClassName.upper()+"_"+prop_name.upper())
-            tmp_prop_dict[prop_name] = {'id':i, 'type':prop_type, 'access':tmp_access_dict[prop.getAttribute('access')]}
-        assert len(tmp_prop_dict) > 0, 'Error! no property found in wuClass %s in xml %s' % (wuClassName, path)
-        wuClasses_dict[wuClassName] = {'id':wuClassId, 'prop':tmp_prop_dict, 'vrtl':truefalse_dict[wuClass.getAttribute('virtual')],'soft':truefalse_dict[wuClass.getAttribute('type')]}
-        assert wuClassId not in wuClasses_dict, "Error! wuClass %s's id % conflict with wuClass %s in xml %s" % (wuClassName, wuClassId, wuClasses_dict[wuClassId], path)
-        wuClasses_dict[wuClassId] = wuClassName
-        if print_wuClasses: print>>out_fd, "//", wuClassName, wuClasses_dict[wuClassName]
-    if print_wuClasses: print>>out_fd, "//"
+        for prop in wuClass.getProperties():
+            prop_type = wuTypedefs_dict[prop.getType()]
+            tmp_prop_dict[prop.getNiagaraName()] = {'jconst':prop.getJavaConstName(),'id':prop.getId(), 'type':prop_type, 'access':prop.getAccess()}
+        wuClasses_dict[wuClassName] = {'xml':wuClass.getXmlName(),'jclass': wuClass.getJavaClassName(), 'jgclass':wuClass.getJavaGenClassName(), 'jconst':wuClass.getJavaConstName(),'id':wuClassId, 'prop':tmp_prop_dict, 'vrtl':wuClass.isVirtual(), 'soft':wuClass.isSoft()}
+        wuClasses_dict[wuClassId] = wuClasses_dict[wuClassName]
+    
+    del wuTypedefs_dict, tmp_prop_dict, tmp_typedef_dict, wcxp
 
-    wuTypedefs_dict = tmp_prop_dict = tmp_access_dict = tmp_typedef_dict = c_dom = {}
-
-    # wuClasses_dict [ wuClass' name ] = { 
+    # wuClasses_dict [ wuClass' name or wuClass' ID] = {
+    #   'jclass': Java Class Name
+    #   'jgclass': Generated Java Class Name
+    #   'xml': WuClass name in XML
     #   'id' : wuClass ID
     #   'prop' : wuClass' properties
-    #            {'id' : property's ID, 'type' : u'short' or u'boolean' or enum's dict[enum's value] , 'access': 'rw' or 'ro' or 'wo'}
+    #            {'jconst': java constant name, 'id' : property's ID, 'type' : u'short' or u'boolean' or enum's dict[enum's value] , 'access': 'rw' or 'ro' or 'wo'}
     #   'vrtl' : true or false (whether wuClass is virtual or not)
     #   'soft' : true (soft) or false (hard)
     # }
 
+    ## Second, from Flow XML, parse out components (wuClass instances) and links btwn components
     def findProperty(prop_name, class_dict, class_name, path):
         assert class_name in class_dict, 'Error! illegal component type (wuClass name) %s in xml %s' % (wuClassName, path)
         tmp_prop_dict = class_dict[class_name]['prop']
         assert prop_name in tmp_prop_dict, 'Error! property %s is not in wuClass %s in xml %s' % (prop_name,class_name,path)
         return tmp_prop_dict[prop_name]
 
-    ## Second, parse out components (wuClass instances) and links btwn components
     if print_Components: print>>out_fd, "//========== Components Definitions =========="
     components_dict = {}
+    truefalse_dict = {u'true':True, u'false':False}
     links_list = []
     path = options.pathf
     for i, component in enumerate(f_dom.getElementsByTagName('component')):
         wuClassName = component.getAttribute('type')
         instanceName = component.getAttribute('instanceId')
-
         tmp_dflt_list = []
         for prop in component.getElementsByTagName('property'):
-            prop_name = prop.getAttribute('name')
-            prop_type = findProperty(prop_name, wuClasses_dict, wuClassName, path)['type']
+            prop_found = findProperty(prop.getAttribute('name'), wuClasses_dict, wuClassName, path)
+            prop_name = prop_found['jconst']
+            prop_type = prop_found['type']
             prop_dflt_value = prop.getAttribute('default')
             if type(prop_type) is dict:
                 prop_dflt_value = prop_type[prop_dflt_value]    # it becomes type str
             elif prop_type == u'short':
-                prop_dflt_value = int(prop_dflt_value,0)
+                prop_dflt_value = int(prop_dflt_value,0)    # it becomes type int
             elif prop_type == u'boolean':
-                prop_dflt_value = truefalse_dict[prop_dflt_value]
+                prop_dflt_value = truefalse_dict[prop_dflt_value.lower()] # it becomes type boolean
             elif prop_type == u'refresh_rate':
                 prop_dflt_value = ('r', int(prop_dflt_value,0)) # it becomes type tuple
             else:
@@ -179,9 +178,10 @@ def parser():
 
         for link in component.getElementsByTagName('link'):
             toInstanceName = link.getAttribute('toInstanceId')
-            links_list += [ (instanceName, link.getAttribute('fromProperty'), toInstanceName, link.getAttribute('toProperty'), toInstanceName) ]
+            links_list += [ (instanceName, link.getAttribute('fromProperty'), toInstanceName, link.getAttribute('toProperty')) ]
     if print_Components: print>>out_fd, "//"
 
+    from struct import pack
     def short2byte(i): return [ord(b) for b in pack("H", i)]
 
     ## Finally, check the validity of links and output as a string
@@ -190,7 +190,7 @@ def parser():
         print>>out_fd, "// fromCompInstanceId(2 bytes), fromPropertyId(1 byte), toCompInstanceId(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)"
     link_table_str = ''
     for link in links_list:
-        assert link[2] in components_dict, 'Error! cannot find target component %s linked from component %s in xml %s' % (link[2], link[0])
+        assert link[2] in components_dict, 'Error! cannot find target component %s linked from component %s in xml %s' % (link[2], link[0],path)
    
         fromInstanceId = short2byte(components_dict[ link[0] ]['cmpid'])
         fromPropertyId = findProperty(link[1], wuClasses_dict, components_dict[ link[0] ]['class'], path)['id']
@@ -202,8 +202,8 @@ def parser():
         link_table_str += "(byte)%d,(byte)%d, " % (toInstanceId[0], toInstanceId[1])
         link_table_str += "(byte)%d,  " % toPropertyId
 
-        wuClassId = short2byte(components_dict[ link[4] ]['classid'])
-        link_table_str += "(byte)%d, (byte)%d,\n" % (wuClassId[0], wuClassId[1])
+        wuClassId = short2byte(components_dict[ link[2] ]['classid'])
+        link_table_str += "(byte)%d,(byte)%d,\n" % (wuClassId[0], wuClassId[1])
         if print_links: 
             print>>out_fd, "//", link
             print>>out_fd, "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
@@ -226,100 +226,65 @@ def mapper(wuClasses_dict, components_dict, node_list):
     for node in node_list:
         for wuObject in node.nativeWuObjects:
             assert wuObject.wuClassId in node.nativeWuClasses, 'Error! the wuClass of wuObject %s does not exist on node %d' % (wuObject, node.nodeId)
-            if node.nodeId in node_port_dict:
-                node_port_dict[node.nodeId] = sorted(node_port_dict[node.nodeId] + [wuObject.portNumber])
-            else:
-                node_port_dict[node.nodeId] = [wuObject.portNumber]
-
-            if wuObject.wuClassId in hard_dict:
-                hard_dict[wuObject.wuClassId] += [(node.nodeId, wuObject.portNumber)]
-            else:
-                hard_dict[wuObject.wuClassId] = [(node.nodeId, wuObject.portNumber)]
+            node_port_dict.setdefault(node.nodeId, []).append(wuObject.portNumber)
+            hard_dict.setdefault(wuObject.wuClassId, []).append( (node.nodeId, wuObject.portNumber) )
 
         for wuClassId in node.nativeWuClasses:
-            wuClass = wuClasses_dict[wuClasses_dict[wuClassId]]
-            if wuClass['soft']:
-                if wuClassId in soft_dict:
-                    soft_dict[wuClassId] += [(node.nodeId, False)] # (nodeId, virtual?) for now, assumed all to be native
-                else:
-                    soft_dict[wuClassId] = [(node.nodeId, False)] # (nodeId, virtual?) for now, assumed all to be native
+            if wuClasses_dict[wuClassId]['soft']:
+                soft_dict.setdefault(wuClassId, []).append((node.nodeId, False)) # (nodeId, virtual?) for now, assumed all to be native
 
+    from operator import itemgetter
     components_list = sorted(components_dict.values(), key=itemgetter('cmpid'))
 
-    ## TODO: define mapping algorithm & generate mapping table
     map_table_str = ""
     map_xml_str = ""
 
     ## generate WKPF initialization statements
-    reg_func_call = "WKPF.registerWuClass(WKPF.WUCLASS_%s, GENERATEDVirtual%sWuObject.properties);\n"
-    create_obj_call = "WKPF.createWuObject((short)WKPF.WUCLASS_%s, WKPF.getPortNumberForComponent((short)%d), %s);\n" 
-    set_prop_call = "WKPF.setProperty%s((short)%d, WKPF.PROPERTY_%s_%s, %s);\n" 
+    reg_func_call = "WKPF.registerWuClass(WKPF.%s, %s.properties);\n"
+    create_obj_call = "WKPF.createWuObject((short)WKPF.%s, WKPF.getPortNumberForComponent((short)%d), %s);\n" 
+    set_prop_call = "WKPF.setProperty%s((short)%d, WKPF.%s, %s);\n" 
     reg_stmts = ''
     init_stmts = ''
 
+    from mapalgo import Algorithm
+    algo = Algorithm(wuClasses_dict, components_list, soft_dict, hard_dict, node_port_dict)
+
     for component in components_list:
-        wuClassName = component['class']
-        wuClass = wuClasses_dict[wuClassName]
-        wuClassName = wuClassName.replace(' ', '_')
+        wuClass = wuClasses_dict[component['class']]
+        wuClassName = wuClass['jclass']
+        wuGenClassName = wuClass['jgclass']
+        wuClassConstName = wuClass['jconst']
         cmpId = component['cmpid']
         if_stmts = ''
 
-        if wuClass['soft']: # it is a soft component
-            if wuClass['id'] in soft_dict:
-                # pick the first that has the wuClass present
-                soft_component = soft_dict[wuClass['id']][0]
+        if wuClass['soft']: # it is a soft componen
+            port_num = algo.getPortNum(cmpId)
+            map_table_str += "(byte)%d, (byte)%d, \n" % (algo.getNodeId(cmpId), port_num)
+            map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'], component['cmpname'], component['class'], component['classid'],algo.getNodeId(cmpId), port_num)
+            if not algo.isCreated(cmpId): # if it is virtual?
+                reg_stmts += reg_func_call % (wuClassConstName, wuGenClassName)
+                wuClassInstVar = "wuclassInstance%s" % wuClass['xml']
+                if_stmts += "VirtualWuObject %s = new %s();\n" % (wuClassInstVar, wuClassName)
+                if_stmts += create_obj_call % (wuClassConstName, cmpId, wuClassInstVar)
             else:
-                # use virtual wuClass
-                soft_component = (node_port_dict.iterkeys().next(), True) # any node will do
-            port_list = node_port_dict[soft_component[0]]
-            vrtlflag = soft_component[1]
-            port_num = None
-            print "------", component['class'], soft_component, port_list
-            print node_port_dict
-            for i in range(256): # Port numbers are in the range 0-255 (Bolun, is this a correct fix?)
-                if i not in port_list:
-                    port_list += [i]
-                    port_list.sort()
-                    port_num = i
-                    break
-            assert port_num != None, "Error! cannot find an unique port number"
-            map_table_str += "(byte)%d, (byte)%d, \n" % (soft_component[0], port_num)
-            map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'],
-                                                                                                                                          component['cmpname'],
-                                                                                                                                          component['class'],
-                                                                                                                                          component['classid'],
-                                                                                                                                          soft_component[0],
-                                                                                                                                          port_num)
-            if vrtlflag: # if it is virtual?
-                reg_stmts += reg_func_call % (wuClassName.upper(), wuClassName.replace('_',''))
-                wuClassInstVar = "wuclassInstance%s" % wuClassName
-                if_stmts += "VirtualWuObject %s = new Virtual%sWuObject();\n" % (wuClassInstVar, wuClassName.replace('_', ''))
-                if_stmts += create_obj_call % (wuClassName.upper(), cmpId, wuClassInstVar)
-            else:
-                if_stmts += create_obj_call % (wuClassName.upper(), cmpId, "null")
+                if_stmts += create_obj_call % (wuClassConstName, cmpId, "null")
         else: # it is a hard component
-            hard_component = hard_dict[wuClass['id']][0]
-            map_table_str += "(byte)%d, (byte)%d, \n" % (hard_component[0], hard_component[1])
-            map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'],
-                                                                                                                                          component['cmpname'],
-                                                                                                                                          component['class'],
-                                                                                                                                          component['classid'],
-                                                                                                                                          hard_component[0],
-                                                                                                                                          hard_component[1])
+            map_table_str += "(byte)%d, (byte)%d, \n" % (algo.getNodeId(cmpId), algo.getPortNum(cmpId))
+            map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'],component['cmpname'], component['class'],component['classid'],algo.getNodeId(cmpId),algo.getPortNum(cmpId))
 
         # set default values
         for prop_name, prop_value in component['defaults']:
             prop_type = type(prop_value)
             if prop_type is int:
-                if_stmts += set_prop_call % ("Short", cmpId, wuClassName.upper(), prop_name.upper(), "(short)"+str(prop_value))
+                if_stmts += set_prop_call % ("Short", cmpId, prop_name, "(short)"+str(prop_value))
             elif prop_type is bool:
-                if_stmts += set_prop_call % ("Boolean", cmpId, wuClassName.upper(), prop_name.upper(), str(prop_value).lower()) 
+                if_stmts += set_prop_call % ("Boolean", cmpId, prop_name, str(prop_value).lower()) 
             elif prop_type is unicode:
-                if_stmts += set_prop_call % ("Short", cmpId, wuClassName.upper(),prop_name.upper(), prop_value)
+                if_stmts += set_prop_call % ("Short", cmpId, prop_name, prop_value)
             elif prop_type is tuple and prop_value[0] == 'r':
-                if_stmts += set_prop_call % ("RefreshRate", cmpId, wuClassName.upper(),prop_name.upper(), "(short)"+str(prop_value[1]))
+                if_stmts += set_prop_call % ("RefreshRate", cmpId, prop_name, "(short)"+str(prop_value[1]))
             else:
-                assert False, 'Error! property %s of unknown type %s' % (prop_name.upper(), prop_type)
+                assert False, 'Error! property %s of unknown type %s' % (prop_name, prop_type)
 
         init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1)) if if_stmts != '' else '// no need to init component %d' % cmpId
 
@@ -364,6 +329,7 @@ if (wuclass != null) {
 }
     """, 3)
 
+    from jinja2 import Template
     tpl = Template("""{{ IMPORT_STATEMENTS }}
 
 public class {{ CLASS_NAME }} {
