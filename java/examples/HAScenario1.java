@@ -1,16 +1,16 @@
 //========== Components Definitions ==========
-// 0 InputController1 {'classid': 3, 'cmpname': u'InputController1', 'defaults': [(u'output', 127)], 'class': u'Numeric_Controller', 'cmpid': 0}
-// 1 LightSensor1 {'classid': 5, 'cmpname': u'LightSensor1', 'defaults': [(u'refresh_rate', ('r', 1000))], 'class': u'Light_Sensor', 'cmpid': 1}
-// 2 Threshold1 {'classid': 1, 'cmpname': u'Threshold1', 'defaults': [(u'operator', u'WKPF.ENUM_THRESHOLD_OPERATOR_LTE')], 'class': u'Threshold', 'cmpid': 2}
+// 0 InputController1 {'classid': 3, 'cmpname': u'InputController1', 'defaults': [(u'PROPERTY_NUMERIC_CONTROLLER_OUTPUT', 127)], 'class': u'Numeric_Controller', 'cmpid': 0}
+// 1 LightSensor1 {'classid': 5, 'cmpname': u'LightSensor1', 'defaults': [(u'PROPERTY_LIGHT_SENSOR_REFRESH_RATE', ('r', 1000))], 'class': u'Light_Sensor', 'cmpid': 1}
+// 2 Threshold1 {'classid': 1, 'cmpname': u'Threshold1', 'defaults': [(u'PROPERTY_THRESHOLD_OPERATOR', u'GENERATEDWKPF.ENUM_THRESHOLD_OPERATOR_LTE')], 'class': u'Threshold', 'cmpid': 2}
 // 3 Light_Actuator1 {'classid': 4, 'cmpname': u'Light_Actuator1', 'defaults': [], 'class': u'Light_Actuator', 'cmpid': 3}
 //
 //========== Links Definitions ==========
 // fromCompInstanceId(2 bytes), fromPropertyId(1 byte), toCompInstanceId(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)
-// (u'InputController1', u'output', u'Threshold1', u'threshold', u'Threshold1')
+// (u'InputController1', u'output', u'Threshold1', u'threshold')
 // (0, 0) 0 (2, 0) 1 (1, 0)
-// (u'LightSensor1', u'current_value', u'Threshold1', u'value', u'Threshold1')
+// (u'LightSensor1', u'current_value', u'Threshold1', u'value')
 // (1, 0) 0 (2, 0) 2 (1, 0)
-// (u'Threshold1', u'output', u'Light_Actuator1', u'on_off', u'Light_Actuator1')
+// (u'Threshold1', u'output', u'Light_Actuator1', u'on_off')
 // (2, 0) 3 (3, 0) 0 (4, 0)
 //
 //========== Code ==========
@@ -35,9 +35,9 @@ public class HAScenario1 {
     }
 
     private final static byte[] linkDefinitions = {
-        (byte)0,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)1,  (byte)1, (byte)0,
-        (byte)1,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)2,  (byte)1, (byte)0,
-        (byte)2,(byte)0, (byte)3,  (byte)3,(byte)0, (byte)0,  (byte)4, (byte)0,
+        (byte)0,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)1,  (byte)1,(byte)0,
+        (byte)1,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)2,  (byte)1,(byte)0,
+        (byte)2,(byte)0, (byte)3,  (byte)3,(byte)0, (byte)0,  (byte)4,(byte)0,
     };
 
     private final static byte[] componentInstanceToWuObjectAddrMap = {
@@ -56,7 +56,7 @@ public class HAScenario1 {
         }
         if (WKPF.isLocalComponent((short)2)) {
             WKPF.createWuObject((short)WKPF.WUCLASS_THRESHOLD, WKPF.getPortNumberForComponent((short)2), null);
-            WKPF.setPropertyShort((short)2, WKPF.PROPERTY_THRESHOLD_OPERATOR, WKPF.ENUM_THRESHOLD_OPERATOR_LTE);
+            WKPF.setPropertyShort((short)2, WKPF.PROPERTY_THRESHOLD_OPERATOR, GENERATEDWKPF.ENUM_THRESHOLD_OPERATOR_LTE);
         }
         // no need to init component 3
     }

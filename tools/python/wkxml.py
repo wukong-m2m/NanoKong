@@ -4,23 +4,33 @@ from xml.dom.minidom import parse
 import re
 
 class Convert:
-    def CamelCase_to_underscore(self,name):
+
+    @staticmethod
+    def CamelCase_to_underscore(name):
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-    def underscore_to_CamelCase(self,name):
+
+    @staticmethod
+    def underscore_to_CamelCase(name):
         return ''.join(x.capitalize() or '_' for x in name.split('_'))
-    def to_c(self,raw):
+
+    @staticmethod
+    def to_c(raw):
         if re.search('.*_.*', raw) == None:
-            return self.__CamelCase_to_underscore(raw)
+            return Convert.CamelCase_to_underscore(raw)
         else:
             return raw.lower()
-    def to_java(self,raw):
+
+    @staticmethod
+    def to_java(raw):
         if re.search('.*_.*', raw):
-            return self.__underscore_to_CamelCase(raw)
+            return Convert.underscore_to_CamelCase(raw)
         else:
           return raw
-    def to_constant(self,raw):
-        return to_c(raw).upper()
+
+    @staticmethod
+    def to_constant(raw):
+        return Convert.to_c(raw).upper()
 
 class WuClassDef:
     def __init__(self, name, id, properties, virtual, soft):
@@ -29,7 +39,7 @@ class WuClassDef:
         self.__java_generated_baseclass_name = "GENERATED" + self.__java_class_name
         self.__c_update_function_name = self.__name + "_update"
         self.__c_class_definition_struct_name = self.__name
-        self.__java_wkpf_constant_name = "WUCLASS_" + self.__name.upper()
+        self.__java_wkpf_constant_name = "WUCLASS_" + Convert.to_constant(self.__name.upper())
 
         self.__id = id      # an integer for class' id
         self.__properties = properties  # a dict of WuClassProperty objects accessed thru the prop's name
@@ -92,7 +102,7 @@ class WuType:
     def __init__(self, name, type, values):
         self.__name = name  # an unicode for WuType's name
         self.__type = type  # an unicode for WuType's type (for now, there is only one enum type)
-        self.__java_wkpf_constant_name = self.__type.upper() + "_" + self.__name.upper()
+        self.__java_wkpf_constant_name = Convert.to_constant(self.__type) + "_" + Convert.to_constant(self.__name)
 
         self.__values = values # a tuple of sequential unicode values of the specified type
     def __repr__(self):

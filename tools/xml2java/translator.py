@@ -111,7 +111,8 @@ def parser():
         tmp_type = wuType.getType()
         if tmp_type == u'enum':
             for enum in wuType.getValues():
-                tmp_typedef_dict[enum] = wuType.getJavaConstValueByValue(enum)
+                # need to refer to the class that defines this constant
+                tmp_typedef_dict[enum] = 'GENERATEDWKPF.' + wuType.getJavaConstValueByValue(enum)
             wuTypedefs_dict[wuType.getXmlName()] = tmp_typedef_dict
         else: 
             wuTypedefs_dict[wuType.getXmlName()] = tmp_type
@@ -229,6 +230,7 @@ def mapper(wuClasses_dict, components_dict, node_list):
             node_port_dict.setdefault(node.nodeId, []).append(wuObject.portNumber)
             hard_dict.setdefault(wuObject.wuClassId, []).append( (node.nodeId, wuObject.portNumber) )
 
+        print node.nativeWuClasses
         for wuClassId in node.nativeWuClasses:
             if wuClasses_dict[wuClassId]['soft']:
                 soft_dict.setdefault(wuClassId, []).append((node.nodeId, False)) # (nodeId, virtual?) for now, assumed all to be native
