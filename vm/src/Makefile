@@ -46,7 +46,7 @@ ifdef FLOWXML
 	cp "$(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml" "$(CURDIR)/currentMapping.xml"
 	DEFAULT_CLASS=$(FLOWXML)
 endif
-	-mkdir $(CLASSES_PATH)
+	-mkdir -p $(CLASSES_PATH)
 	javac -d $(CLASSES_PATH) $^
 	#javac -classpath "$(NANOVM_PATH)$(PATH_SEP)$(EXAMPLES_PATH)" $^
 	#jar -cf $(JAR_FILE) $(JAVA_FILES:.java=.class)
@@ -65,7 +65,9 @@ upload-%: $(ROOT_DIR)/java/examples/%.java
 	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/$(CONFIG) "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $*
 
 %.o: $(NVM_DIR)/%.c Makefile
-	$(COMPILE-CMD)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 %.d: $(NVM_DIR)/%.c
-	$(DEP-GEN-CMD)
+	set -e; $(CC) -MM $(CFLAGS) $< \
+	| sed 's/\($*\)\.o[ :]*/\1.o $@ : /g' > $@ ; \
+	[ -s $@ ] || rm -f $@
