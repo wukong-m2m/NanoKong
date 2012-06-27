@@ -35,10 +35,10 @@ class Convert:
 class WuClassDef:
     def __init__(self, name, id, properties, virtual, soft):
         self.__name = name  # an unicode for class' name
-        self.__java_class_name = "Virtual" + self.__name + "WuObject"
+        self.__java_class_name = "Virtual" + Convert.to_java(self.__name) + "WuObject"
         self.__java_generated_baseclass_name = "GENERATED" + self.__java_class_name
-        self.__c_update_function_name = self.__name + "_update"
-        self.__c_class_definition_struct_name = self.__name
+        self.__c_update_function_name = Convert.to_c(self.__name) + "_update"
+        self.__c_class_definition_struct_name = Convert.to_c(self.__name)
         self.__java_wkpf_constant_name = "WUCLASS_" + Convert.to_constant(self.__name.upper())
 
         self.__id = id      # an integer for class' id
