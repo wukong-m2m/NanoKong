@@ -64,10 +64,8 @@ upload-%: $(ROOT_DIR)/java/examples/%.java
 	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$*.java
 	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/$(CONFIG) "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $*
 
-%.o:$(NVM_DIR)/%.c Makefile
+%.o: $(NVM_DIR)/%.c Makefile
 	$(COMPILE-CMD)
 
-%.d:$(NVM_DIR)/%.c
+%.d: $(NVM_DIR)/%.c
 	$(DEP-GEN-CMD)
-
-.PHONY : generate

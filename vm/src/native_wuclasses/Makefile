@@ -31,11 +31,11 @@ NATIVE_WUCLASSES_OBJS = \
 OBJS += $(NATIVE_WUCLASSES_OBJS)
 
 # convert and upload a class file
+GENERATED%.c: $(COMPONENTXML_PATH) $(ROOT_DIR)/tools/python/codegen.py
+	$(ROOT_DIR)/tools/python/codegen.py -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
 %.o:$(NATIVE_WUCLASSES_DIR)/%.c Makefile
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(COMPILE-CMD)
 
 %.d:$(NATIVE_WUCLASSES_DIR)/%.c
-	set -e; $(CC) -MM $(CFLAGS) $< \
-	| sed 's#\($*\)\.o[ :]*#\1.o $@ : #g' > $@ ; \
-	[ -s $@ ] || rm -f $@
+	$(DEP-GEN-CMD)

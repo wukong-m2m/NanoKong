@@ -65,11 +65,11 @@ endef
 %.o: %.c Makefile
 	$(COMPILE-CMD)
 
-%.d:%.c
+%.d: %.c
 	$(DEP-GEN-CMD)
 
 # avr specific entries
-%.elf: generate $(OBJS)
+%.elf: $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	avr-size -C  --mcu=atmega2560 $@
 
@@ -88,7 +88,7 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=flash  -dprog=stk200 --upload if=NanoVM.hex --verify
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
-nvmcomm_reprogram: generate nvmdefault.h
+nvmcomm_reprogram: nvmdefault.h
 	$(NVMCOMM_REPROGRAM) 3 nvmdefault.h
 	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
 
@@ -114,7 +114,7 @@ upload_bootloader1280:
 	#avrdude -p atmega1280 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	avrdude -p atmega1280 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
   
-generate: $(COMPONENTXML_PATH)
+generate: $(COMPONENTXML_PATH) $(ROOT_DIR)/tools/python/codegen.py
 	$(ROOT_DIR)/tools/python/codegen.py -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
 #include $(OBJS:.o=.d)
