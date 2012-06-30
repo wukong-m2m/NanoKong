@@ -21,4 +21,4 @@ def upload_bog():
     return {'status': 0}
 
 if __name__ == "__main__":
-  app.run()
+  app.run(host='192.168.133.132')
