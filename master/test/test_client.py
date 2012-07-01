@@ -1,7 +1,12 @@
 # test_client.py
+import sys
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 import urllib2
+
+IP = '127.0.0.1'
+if len(sys.argv) > 1:
+  IP = sys.argv[1]
 
 # Register the streaming http handlers with urllib2
 register_openers()
@@ -15,6 +20,6 @@ register_openers()
 datagen, headers = multipart_encode({'file': open("test.jpg")})
 
 # Create the Request object
-request = urllib2.Request("http://127.0.0.1:5000/", datagen, headers)
+request = urllib2.Request("http://"+IP+":5000/", datagen, headers)
 # Actually do the request, and get the response
 print urllib2.urlopen(request).read()
