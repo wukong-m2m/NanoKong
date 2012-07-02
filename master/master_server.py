@@ -32,7 +32,7 @@ def upload_bog():
     z = zipfile.ZipFile(file)
     z.extract('file.xml')
     os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, APP_PATH))
-    os.chdir('../vm/build/avr_mega2560/')
+    os.chdir(os.join.path(os.getpwd(), 'vm', 'build', 'avr_mega2560')
     os.system('make generate')
     os.system('make FLOWXML=%s' % (TARGET))
     os.system('make avrdude')
