@@ -7,6 +7,7 @@ from xml.dom.minidom import parse
 
 UPLOAD_FOLDER = 'bog'
 ALLOWED_EXTENSIONS = set(['bog'])
+TARGET = 'HAScenario1'
 ROOT_PATH = '..'
 APP_PATH = os.path.join(ROOT_PATH, 'Applications')
 IP = '127.0.0.1'
@@ -32,7 +33,11 @@ def upload_bog():
     #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     z = zipfile.ZipFile(file)
     z.extract('file.xml').save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % (os.path.join(app.config['UPLOAD_FOLDER'], filename), 'HAScenario1', APP_PATH))
+    os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % (os.path.join(app.config['UPLOAD_FOLDER'], filename), TARGET, APP_PATH))
+    os.chdir('../vm/build/avr_mega2560/')
+    os.system('make generate')
+    os.system('make FLOWXML=%s' % (TARGET))
+    os.system('make avrdude' % (TARGET))
     return jsonify(status=0)
   else:
     return jsonify(status=1)
