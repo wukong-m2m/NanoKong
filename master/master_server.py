@@ -37,4 +37,5 @@ def upload_bog():
     return jsonify(status=1)
 
 if __name__ == "__main__":
+  app.debug = True
   app.run(host=IP)
