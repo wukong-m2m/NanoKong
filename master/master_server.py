@@ -5,7 +5,6 @@ from flask import Flask, request, redirect, url_for, render_template, jsonify
 from werkzeug import secure_filename
 from xml.dom.minidom import parse
 
-UPLOAD_FOLDER = 'bog'
 ALLOWED_EXTENSIONS = set(['bog'])
 TARGET = 'HAScenario1'
 ROOT_PATH = '..'
@@ -15,7 +14,6 @@ if len(sys.argv) >= 2:
   IP = sys.argv[1]
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
   return '.' in filename and \
@@ -32,15 +30,12 @@ def upload_bog():
     filename = secure_filename(file.filename)
     #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     z = zipfile.ZipFile(file)
-    os.system('mkdir -p %s' % (app.config['UPLOAD_FOLDER']))
-    f = open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'w')
-    f.write(z.extract('file.xml'))
-    f.close()
-    os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % (os.path.join(app.config['UPLOAD_FOLDER'], filename), TARGET, APP_PATH))
+    z.extract('file.xml')
+    os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, APP_PATH))
     os.chdir('../vm/build/avr_mega2560/')
     os.system('make generate')
     os.system('make FLOWXML=%s' % (TARGET))
-    os.system('make avrdude' % (TARGET))
+    os.system('make avrdude')
     return jsonify(status=0)
   else:
     return jsonify(status=1)
