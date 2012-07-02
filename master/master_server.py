@@ -7,6 +7,8 @@ from xml.dom.minidom import parse
 
 UPLOAD_FOLDER = 'bog'
 ALLOWED_EXTENSIONS = set(['bog'])
+ROOT_PATH = '..'
+APP_PATH = os.path.join(ROOT_PATH, 'Applications')
 IP = '127.0.0.1'
 if len(sys.argv) >= 2:
   IP = sys.argv[1]
@@ -29,9 +31,8 @@ def upload_bog():
     filename = secure_filename(file.filename)
     #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     z = zipfile.ZipFile(file)
-    print z
-    dom = parse(z.extract('file.xml'))
-    print dom
+    z.extract('file.xml').save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % (os.path.join(app.config['UPLOAD_FOLDER'], filename), 'HAScenario1', APP_PATH))
     return jsonify(status=0)
   else:
     return jsonify(status=1)
