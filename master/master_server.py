@@ -32,7 +32,7 @@ def upload_bog():
     filename = secure_filename(file.filename)
     #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     z = zipfile.ZipFile(file)
-    z.extract('file.xml').save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'w').write(z.extract('file.xml')).close()
     os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % (os.path.join(app.config['UPLOAD_FOLDER'], filename), TARGET, APP_PATH))
     os.chdir('../vm/build/avr_mega2560/')
     os.system('make generate')
