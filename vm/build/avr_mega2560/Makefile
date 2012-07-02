@@ -100,6 +100,7 @@ avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 	screen $(PORT) 115200
 
 clean:
+	find $(ROOT_DIR) -name 'GENERATED*' -exec rm -rf {} \;
 	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
 
 upload_bootloader:

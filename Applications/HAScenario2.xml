@@ -1,22 +1,19 @@
+<?xml version="1.0" ?>
 <application name="HAScenario2">
-	<component type="Numeric_Controller" instanceId="InputController1">
-        <property name="output" default="127"/>
-		<link fromProperty="output" toInstanceId="Threshold1" toProperty="threshold" />		
-	</component>
-	<component type="Light_Sensor" instanceId="LightSensor1">
-        <property name="refresh_rate" default="1000"/>
-		<link fromProperty="current_value" toInstanceId="Threshold1" toProperty="value" />
-	</component>
-	<component type="Threshold" instanceId="Threshold1">
-		<property name="operator" default="LTE"/>
-		<link fromProperty="output" toInstanceId="AndGate1" toProperty="input1" />
-	</component>
-	<component type="Occupancy_Sensor" instanceId="Occupancy1">
-        <property name="occupied" default="true"/>
-		<link fromProperty="occupied" toInstanceId="AndGate1" toProperty="input2" />
-	</component>
-	<component type="And_Gate" instanceId="AndGate1">
-		<link fromProperty="output" toInstanceId="Light_Actuator1" toProperty="on_off" />
-	</component>
-	<component type="Light_Actuator" instanceId="Light_Actuator1" />
+    <component instancdId="AndGate1" type="AndGate">
+        <link fromProperty="output" toInstanceId="Light1" toProperty="OnOff"/>
+    </component>
+    <component instancdId="Occupancy1" type="OccupancySensor">
+        <property default="true" name="occupied"/>
+        <link fromProperty="occupied" toInstanceId="AndGate1" toProperty="input2"/>
+    </component>
+    <component instancdId="Threshold1" type="Threshold">
+        <property default="lte" name="operator"/>
+        <link fromProperty="output" toInstanceId="AndGate1" toProperty="input1"/>
+    </component>
+    <component instancdId="LightSensor1" type="LightSensor">
+        <property default="1000" name="RefreshRate"/>
+        <link fromProperty="CurrentValue" toInstanceId="Threshold1" toProperty="value"/>
+    </component>
+    <component instancdId="Light1" type="LightActuator"/>
 </application>

@@ -6,7 +6,7 @@ from werkzeug import secure_filename
 from xml.dom.minidom import parse
 
 ALLOWED_EXTENSIONS = set(['bog'])
-TARGET = 'HAScenario1'
+TARGET = 'HAScenario2'
 ROOT_PATH = '..'
 APP_PATH = os.path.join(ROOT_PATH, 'Applications')
 IP = '127.0.0.1'
@@ -34,7 +34,7 @@ def upload_bog():
     os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, APP_PATH))
     os.chdir('../vm/build/avr_mega2560/')
     os.system('make generate')
-    os.system('make FLOWXML=%s' % (TARGET))
+    os.system('make FLOWXML=%s DISCOVERY_FLAGS=-H' % (TARGET))
     os.system('make avrdude')
     return jsonify(status=0)
   else:
