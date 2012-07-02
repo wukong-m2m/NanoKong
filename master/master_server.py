@@ -28,7 +28,7 @@ def upload_bog():
   if file and allowed_file(file.filename):
     filename = secure_filename(file.filename)
     #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    z = zipfile.Zipfile(file)
+    z = zipfile.ZipFile(file)
     print z
     dom = parse(z.extract('file.xml'))
     print dom
