@@ -1,6 +1,5 @@
 *.o
 *.class
-*.html
 *.hex
 *.d
 *.jar
