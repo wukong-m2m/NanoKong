@@ -19,26 +19,27 @@ def allowed_file(filename):
   return '.' in filename and \
       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-@app.route("/", methods=['GET'])
-def display_master():
-  return render_template('upload.html')
-
-@app.route("/", methods=['POST'])
+@app.route("/", methods=['GET', 'POST'])
 def upload_bog():
-  file = request.files['file']
-  if file and allowed_file(file.filename):
-    filename = secure_filename(file.filename)
-    #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    z = zipfile.ZipFile(file)
-    z.extract('file.xml')
-    os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, APP_PATH))
-    os.chdir('../vm/build/avr_mega2560/')
-    os.system('make generate')
-    os.system('make FLOWXML=%s DISCOVERY_FLAGS=-H' % (TARGET))
-    os.system('make avrdude')
-    return jsonify(status=0)
+  print request
+  if request.method == 'POST':
+    print request.files
+    file = request.files['bog_file']
+    if file and allowed_file(file.filename):
+      filename = secure_filename(file.filename)
+      #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+      z = zipfile.ZipFile(file)
+      z.extract('file.xml')
+      os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, APP_PATH))
+      os.chdir('../vm/build/avr_mega2560/')
+      os.system('make generate')
+      os.system('make FLOWXML=%s DISCOVERY_FLAGS=-H' % (TARGET))
+      os.system('make avrdude')
+      return jsonify(status=0)
+    else:
+      return jsonify(status=1)
   else:
-    return jsonify(status=1)
+    return render_template('upload.html')
 
 if __name__ == "__main__":
   app.debug = True
