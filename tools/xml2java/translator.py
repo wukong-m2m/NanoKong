@@ -72,6 +72,8 @@ def getNodeList(options):
 def indentor(s, num):
     return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
 
+
+#making dictionaries, generate [Application].class
 def parser():
     # program argument handler by OptionParser module
     from optparse import OptionParser
@@ -106,6 +108,8 @@ def parser():
     wcxp = WuClassXMLParser(options.pathc)
     wuTypedefs_dict = {}
     wuClasses_dict = {}
+
+	## create a dict of WuType (AND/XOR....., see Component Definations/WukongStandardLibrary.xml), short boolean,... or enumeration type
     for wuType in wcxp.getAllWuTypes():
         tmp_typedef_dict = {}
         tmp_type = wuType.getType()
@@ -125,10 +129,10 @@ def parser():
             prop_type = wuTypedefs_dict[prop.getType()]
             tmp_prop_dict[prop.getNiagaraName()] = {'jconst':prop.getJavaConstName(),'id':prop.getId(), 'type':prop_type, 'access':prop.getAccess()}
         wuClasses_dict[wuClassName] = {'xml':wuClass.getXmlName(),'jclass': wuClass.getJavaClassName(), 'jgclass':wuClass.getJavaGenClassName(), 'jconst':wuClass.getJavaConstName(),'id':wuClassId, 'prop':tmp_prop_dict, 'vrtl':wuClass.isVirtual(), 'soft':wuClass.isSoft()}
-        wuClasses_dict[wuClassId] = wuClasses_dict[wuClassName]
+        wuClasses_dict[wuClassId] = wuClasses_dict[wuClassName]  #wuClassName, wuClassId could both be keys
     
     del wuTypedefs_dict, tmp_prop_dict, tmp_typedef_dict, wcxp
-
+	# About various names : Niagara Name = (xml name) for now: And_Gate(in StandardLibrary), jgclass: GENERATEDVirtualAndGateWuObject, jclass: VirtualAndGateWuObject
     # wuClasses_dict [ wuClass' name or wuClass' ID] = {
     #   'jclass': Java Class Name
     #   'jgclass': Generated Java Class Name
@@ -142,7 +146,7 @@ def parser():
 
     ## Second, from Flow XML, parse out components (wuClass instances) and links btwn components
     def findProperty(prop_name, class_dict, class_name, path):
-        assert class_name in class_dict, 'Error! illegal component type (wuClass name) %s in xml %s' % (wuClassName, path)
+        assert class_name in class_dict, 'Error! illegal component type (wuClass name) %s in xml %s' % (wuClassName, path) #TODO should be in outer loop
         tmp_prop_dict = class_dict[class_name]['prop']
         assert prop_name in tmp_prop_dict, 'Error! property %s is not in wuClass %s in xml %s' % (prop_name,class_name,path)
         return tmp_prop_dict[prop_name]
@@ -151,20 +155,22 @@ def parser():
     components_dict = {}
     truefalse_dict = {u'true':True, u'false':False}
     links_list = []
-    path = options.pathf
+    path = options.pathf		#used for debug path of file
     for i, component in enumerate(f_dom.getElementsByTagName('component')):
         wuClassName = component.getAttribute('type')
         instanceName = component.getAttribute('instanceId')
         tmp_dflt_list = []
+		##retrieving propoerty and default value
         for prop in component.getElementsByTagName('property'):
             prop_found = findProperty(prop.getAttribute('name'), wuClasses_dict, wuClassName, path)
             prop_name = prop_found['jconst']
             prop_type = prop_found['type']
             prop_dflt_value = prop.getAttribute('default')
+			#TODO change type definiation tuple(type, value)
             if type(prop_type) is dict:
                 prop_dflt_value = prop_type[prop_dflt_value]    # it becomes type str
             elif prop_type == u'short':
-                prop_dflt_value = int(prop_dflt_value,0)    # it becomes type int
+                prop_dflt_value = int(prop_dflt_value,0)    # it becomes type int 
             elif prop_type == u'boolean':
                 prop_dflt_value = truefalse_dict[prop_dflt_value.lower()] # it becomes type boolean
             elif prop_type == u'refresh_rate':
@@ -176,7 +182,8 @@ def parser():
         components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list, 'cmpname':instanceName }
         if print_Components:
           print>>out_fd, "//", i, instanceName, components_dict[instanceName]
-
+	
+		#create a list of links
         for link in component.getElementsByTagName('link'):
             toInstanceName = link.getAttribute('toInstanceId')
             links_list += [ (instanceName, link.getAttribute('fromProperty'), toInstanceName, link.getAttribute('toProperty')) ]
@@ -190,6 +197,9 @@ def parser():
         print>>out_fd, "//========== Links Definitions =========="
         print>>out_fd, "// fromCompInstanceId(2 bytes), fromPropertyId(1 byte), toCompInstanceId(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)"
     link_table_str = ''
+	#establishing link table (refer to HAScenario2.java)
+	#eg. (byte)0,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)1,  (byte)1,(byte)0,
+	# from     Compo. 0      prop. 0  to Comp. 2 prop.0,  (why WuClass 1 ????? ---Sen) 
     for link in links_list:
         assert link[2] in components_dict, 'Error! cannot find target component %s linked from component %s in xml %s' % (link[2], link[0],path)
    
