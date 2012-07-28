@@ -1,0 +1,49 @@
+<!doctype html>
+<link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+<script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/index.js"></script>
+<title>Welcome to Wukong Master - List of applications</title>
+
+<div class="container">
+
+  <header class="jumbotron subhead">
+    <h1>WuKong Master</h1>
+    <p class="lead">Blah Blah</p>
+  </header>
+
+  <section>
+    <div class="page-header">
+      <h1>List of applications</h1>
+    </div>
+    <div class="row">
+      <div class="span12">
+        <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="application" id="add_app">
+              <td colspan="4">
+                <a href="/applications/new">Click to add new application.</a>
+              </td>
+            </tr>
+            {% for app in applications %}
+            <tr class="application" id="app_{{ loop.index }}">
+              <td><a href="{{ app.url }}">{{ loop.index }}</a></td>
+              <td>{{ app.name }}</td>
+              <td>{{ app.desc }}</td>
+              <td>{{ app.status }}</td>
+            </tr>
+            {% end %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
