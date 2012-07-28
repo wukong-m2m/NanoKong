@@ -1,12 +1,29 @@
 <!doctype html>
 <link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
 <script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="http://malsup.github.com/jquery.form.js"></script>
 <title>Welcome to Wukong Master — Upload your bog file to initiate deployment</title>
 
-<h1>WuKong Master Application deployment portal</h1>
-<h1>
-  <form enctype="multipart/form-data" action="/" method="POST">
-    <input type="file" name="bog_file" />
-    <input type="submit" value="upload bog" />
-  </form>
-</h1>
+<div class="container">
+
+  <section>
+    <div class="page-header">
+      <h1>Upload Application</h1>
+    </div>
+    <div class="row">
+      <div class="span12">
+        <form id="form1" action="/applications" method="POST" enctype="multipart/form-data">
+          <input type="file" name="bog_file" />
+          <input type="submit" value="upload bog" />
+        </form>
+      </div>
+    </div>
+  </section>
+  <div class="row" id="status">
+    <ul class="unstyled">
+      <li>waiting...</li>
+    </ul>
+  </div>
+</div>
+<script type="text/javascript" src="/static/js/upload.js"></script>
