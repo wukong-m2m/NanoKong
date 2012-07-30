@@ -5,7 +5,11 @@
 <script type="text/javascript" src="http://malsup.github.com/jquery.form.js"></script>
 <title>Welcome to Wukong Master — Upload your bog file to initiate deployment</title>
 
-<div class="container">
+<div class="container" style="margin-top: 50px">
+
+  <section>
+    <a href="/applications" class="btn">Go back</a>
+  </section>
 
   <section>
     <div class="page-header">
@@ -14,12 +18,22 @@
     <div class="row">
       <div class="span12">
         <form id="form1" action="/applications" method="POST" enctype="multipart/form-data">
+          <label>Name</label>
+          <input type="text" name="name" placeholder="A name for this application" />
+          <label>Description (optional)</label>
+          <input type="text" name="desc" placeholder="A description for this application" />
+          <label>Bog file</label>
           <input type="file" name="bog_file" />
-          <input type="submit" value="upload bog" />
+          <input type="submit" value="Create application" />
         </form>
       </div>
     </div>
   </section>
+  <div class="row">
+    <div class="progress progress-info progress-striped">
+      <div class="bar" style="width: 0%"></div>
+    </div>
+  </div>
   <div class="row" id="status">
     <ul class="unstyled">
       <li>waiting...</li>

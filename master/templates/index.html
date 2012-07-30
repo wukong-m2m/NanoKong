@@ -5,7 +5,7 @@
 <script type="text/javascript" src="/static/js/index.js"></script>
 <title>Welcome to Wukong Master - List of applications</title>
 
-<div class="container">
+<div class="container" style="margin-top: 50px">
 
   <header class="jumbotron subhead">
     <h1>WuKong Master</h1>
@@ -33,12 +33,12 @@
                 <a href="/applications/new">Click to add new application.</a>
               </td>
             </tr>
-            {% for app in applications %}
-            <tr class="application" id="app_{{ loop.index }}">
-              <td><a href="{{ app.url }}">{{ loop.index }}</a></td>
+            {% for index, app in enumerate(applications) %}
+            <tr class="application" id="app_{{ index+1 }}">
+              <td><a href="/applications/{{ index }}">{{ index+1 }}</a></td>
               <td>{{ app.name }}</td>
               <td>{{ app.desc }}</td>
-              <td>{{ app.status }}</td>
+              <td>{{ app.getStatus() }}</td>
             </tr>
             {% end %}
           </tbody>

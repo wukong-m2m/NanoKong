@@ -1,5 +1,4 @@
 # author: Penn Su
-# reference url: http://flask.pocoo.org/docs/patterns/fileuploads/
 import tornado.ioloop
 import tornado.web
 import os, sys, zipfile
@@ -16,7 +15,6 @@ IP = '127.0.0.1'
 if len(sys.argv) >= 2:
   IP = sys.argv[1]
 
-current_status = 0
 applications = []
 worker = None
 
@@ -25,44 +23,74 @@ def allowed_file(filename):
   return '.' in filename and \
       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+def statusString(status):
+  if len(status) == 0:
+    return 'uploading...'
+  elif len(status) == 1:
+    return 'extracting...'
+  elif len(status) == 2:
+    return 'converting...'
+  elif len(status) == 3:
+    return 'compiling...'
+  elif len(status) == 4:
+    return 'done'
+
+class Application:
+  def __init__(self, name, desc, factory, file):
+    self.name = name
+    self.desc = desc
+    self.status = []
+    self.worker = Thread(target=factory, args=(file, self.status))
+    self.worker.start()
+
+  def getStatus(self):
+    return statusString(self.status)
+
 # List all uploaded applications
 class list_applications(tornado.web.RequestHandler):
-  def factory(self, file):
-    global current_status
-    current_status = 1
+  def factory(self, file, status):
+    status.append(1)
+    print status
     #time.sleep(2)
     z = zipfile.ZipFile(file)
     z.extract('file.xml')
-    current_status = 2
+    status.append(2)
+    print status
     #time.sleep(2)
     os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, APP_PATH))
-    current_status = 3
+    status.append(3)
+    print status
     #time.sleep(2)
     os.chdir('../vm/build/avr_mega2560/')
     os.system('make generate')
     os.system('make FLOWXML=%s DISCOVERY_FLAGS=-H' % (TARGET))
     os.system('make avrdude')
-    current_status = 4
+    status.append(4)
     #time.sleep(2)
     print 'done'
-
 
   def get(self):
     self.render('templates/index.html', applications=applications)
 
   def post(self):
-    received = self.request.files['bog_file'][0]
-    file = StringIO.StringIO()
-    file.write(received['body'])
-    filename = received['filename']
-    if file and allowed_file(filename):
-      self.thread = Thread(target=self.factory, args=(file,))
-      self.thread.start()
+    global applications
+
+    if not self.get_argument('name') or not self.request.files['bog_file']:
       self.content_type = 'application/json'
-      self.write({'status':0})
+      self.write({'status':1, 'mesg': 'name or bog file is missing, please fill in the information'})
     else:
-      self.content_type = 'application/json'
-      self.write({'status':1})
+      received = self.request.files['bog_file'][0]
+      file = StringIO.StringIO()
+      file.write(received['body'])
+      filename = received['filename']
+
+      if file and allowed_file(filename):
+        applications.append(Application(self.get_argument('name'), self.get_argument('desc'), self.factory, file))
+        self.content_type = 'application/json'
+        self.write({'status':0, 'id':len(applications)-1})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':1})
 
 # Returns a form to upload new application
 class upload_bog(tornado.web.RequestHandler):
@@ -91,9 +119,11 @@ class destroy_application(tornado.web.RequestHandler):
 
 class return_status(tornado.web.RequestHandler):
   def post(self):
-    global current_status
+    global applications
+    current_status = applications[int(self.get_argument('id'))].status
+    print '**[current_status]**', current_status
     self.content_type = 'application/json'
-    self.write({'status':0, 'current_status':current_status})
+    self.write({'status':0, 'current_status':len(current_status)})
 
 settings = {
   "static_path": os.path.join(os.path.dirname(__file__), "static"),
