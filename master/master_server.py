@@ -36,11 +36,16 @@ def statusString(status):
     return 'done'
 
 class Application:
-  def __init__(self, name, desc, factory, file):
+  def __init__(self, name='', desc='', factory='', file=''):
+    self.id = 0
     self.name = name
     self.desc = desc
+    self.factory = factory
+    self.file = file
     self.status = []
-    self.worker = Thread(target=factory, args=(file, self.status))
+
+  def setupFactory(self):
+    self.worker = Thread(target=self.factory, args=(self.file, self.status))
     self.worker.start()
 
   def getStatus(self):
@@ -51,22 +56,18 @@ class list_applications(tornado.web.RequestHandler):
   def factory(self, file, status):
     status.append(1)
     print status
-    #time.sleep(2)
     z = zipfile.ZipFile(file)
     z.extract('file.xml')
     status.append(2)
     print status
-    #time.sleep(2)
     os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, APP_PATH))
     status.append(3)
     print status
-    #time.sleep(2)
     os.chdir('../vm/build/avr_mega2560/')
     os.system('make generate')
     os.system('make FLOWXML=%s DISCOVERY_FLAGS=-H' % (TARGET))
     os.system('make avrdude')
     status.append(4)
-    #time.sleep(2)
     print 'done'
 
   def get(self):
@@ -93,27 +94,28 @@ class list_applications(tornado.web.RequestHandler):
         self.write({'status':1})
 
 # Returns a form to upload new application
-class upload_bog(tornado.web.RequestHandler):
+class new_application(tornado.web.RequestHandler):
   def get(self):
-    self.render('templates/upload.html')
+    global applications
+    applications.append(Application())
+    applications[-1].id = len(applications)-1
+    print applications
+    self.redirect('/applications/'+str(applications[-1].id), permanent=True)
+    #self.render('templates/upload.html')
 
 # Display a specific application
-class display_application(tornado.web.RequestHandler):
+class application(tornado.web.RequestHandler):
   def get(self, app_id):
-    pass
+    global applications
+    self.render('templates/display.html', app_id=app_id, application=applications[int(app_id)])
 
-# Edit a specific application
-class edit_application(tornado.web.RequestHandler):
-  def get(self, app_id):
-    pass
+  # Edit a specific application
+  # Update a specific application
+  def post(self, app_id):
+    new_name = self.get_argument('name')
+    new_desc = self.get_argument('desc')
 
-# Update a specific application
-class update_application(tornado.web.RequestHandler):
-  def put(self, app_id):
-    pass
-
-# Destroy a specific application
-class destroy_application(tornado.web.RequestHandler):
+  # Destroy a specific application
   def delete(self, app_id):
     pass
 
@@ -125,6 +127,14 @@ class return_status(tornado.web.RequestHandler):
     self.content_type = 'application/json'
     self.write({'status':0, 'current_status':len(current_status)})
 
+class save_fbp(tornado.web.RequestHandler):
+  def post(self, app_id):
+    xml = self.get_argument('xml')
+
+class load_fbp(tornado.web.RequestHandler):
+  def get(self, app_id):
+    self.render('templates/fbp.html')
+
 settings = {
   "static_path": os.path.join(os.path.dirname(__file__), "static"),
   "debug": True
@@ -133,11 +143,10 @@ settings = {
 app = tornado.web.Application([
   (r"/", list_applications),
   (r"/applications", list_applications),
-  (r"/applications/new", upload_bog),
-  (r"/applications/([0-9]+)", display_application),
-  (r"/applications/([0-9]+)/edit", edit_application),
-  (r"/applications/([0-9]+)", update_application),
-  (r"/applications/([0-9]+)", destroy_application),
+  (r"/applications/new", new_application),
+  (r"/applications/([0-9]+)", application),
+  (r"/applications/([0-9]+)/fbp/save", save_fbp),
+  (r"/applications/([0-9]+)/fbp/load", load_fbp),
   (r"/status", return_status)
 ], **settings)
 
