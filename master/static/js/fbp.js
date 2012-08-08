@@ -3,9 +3,13 @@ var FBP_canvas;
 var FBP_CANVAS_TOP=50;
 var g_lines=[];
 var g_nodes=[];
+var g_filename;
 var id=window.location.href;
 var f=id.split("/");
 id = f[2];
+$.post("/application/"+id, function(r) {
+	g_filename = r.name;
+});
 $(document).ready(function() {
 	$('#client').append('<div id=toolbar></div>');
 	$('#client').append('<div id=content></div>');
