@@ -3,18 +3,16 @@
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
 <script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="/static/js/index.js"></script>
-<title>Welcome to Wukong Master - List of applications</title>
+<title>Welcome to Wukong Master</title>
 
 <div class="container" style="margin-top: 50px">
 
   <header class="jumbotron subhead">
     <h1>WuKong Master</h1>
-    <p class="lead">Blah Blah</p>
-  </header>
-
-  <section>
-    <div class="page-header">
-      <h1>List of applications</h1>
+    <div class="row">
+      <div class="span12">
+        <a href="/applications/new">Click to add new application.</a>
+      </div>
     </div>
     <div class="row">
       <div class="span12">
@@ -28,11 +26,6 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="application" id="add_app">
-              <td colspan="4">
-                <a href="/applications/new">Click to add new application.</a>
-              </td>
-            </tr>
             {% for index, app in enumerate(applications) %}
             <tr class="application" id="app_{{ index+1 }}">
               <td><a href="/applications/{{ index }}">{{ index+1 }}</a></td>
@@ -45,5 +38,5 @@
         </table>
       </div>
     </div>
-  </section>
+  </header>
 </div>
