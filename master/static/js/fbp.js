@@ -177,8 +177,11 @@ function FBP_save()
 function FBP_loadFromServer(id)
 {
 	$.ajax({
-		url:'/cgi-bin/file?load='+$('#fileloader_file').val(),
+		url:'/application/'+id+'/fbp/load',
+		type: 'POST',
 		success: function(r) {
+			alert('xml');
+			return;
 			meta = JSON.parse(r);
 			$('#content').empty();
 			g_nodes = [];
