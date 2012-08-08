@@ -29,6 +29,7 @@ function application_fill()
 {
 	$.ajax({
 		url: '/application/json',
+		method: 'POST',
 		success: function(r) {
 			application_fillList(r);
 		}
@@ -60,6 +61,9 @@ function application_fillList(r)
 		$('#appact'+i).append('<button class=appdel id=appdel'+i+'></button>');
 		obj = $('#appname'+i);
 		obj.html(r[i].name);
+		obj.click(function() {
+			
+		});
 		application_setupButtons(i);
 	}
 }
