@@ -52,6 +52,10 @@ class Application:
     return statusString(self.status)
 
 # List all uploaded applications
+class main(tornado.web.RequestHandler):
+  def get(self):
+    self.render('templates/application.html', applications=applications)
+
 class list_applications(tornado.web.RequestHandler):
   def factory(self, file, status):
     status.append(1)
@@ -141,7 +145,8 @@ settings = {
 }
 
 app = tornado.web.Application([
-  (r"/", list_applications),
+  (r"/", main),
+  (r"/main", main),
   (r"/applications", list_applications),
   (r"/applications/new", new_application),
   (r"/applications/([0-9]+)", application),
