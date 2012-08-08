@@ -180,7 +180,8 @@ function FBP_loadFromServer(id)
 		url:'/application/'+id+'/fbp/load',
 		type: 'POST',
 		success: function(r) {
-			alert('xml');
+			if (console) console.log(r);
+			alert(r.xml);
 			return;
 			meta = JSON.parse(r);
 			$('#content').empty();
