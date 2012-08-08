@@ -168,7 +168,7 @@ function FBP_save()
 	data = FBP_toXML(g_nodes,g_lines);
 	$.ajax({
 		url:'/application/'+id+'/fbp/save',
-		data: data,
+		data: {xml:data},
 		type:'POST'
 	});
 }
