@@ -6,7 +6,7 @@ var g_nodes=[];
 var g_filename;
 var id=window.location.href;
 var f=id.split("/");
-id = f[2];
+id = f[4];
 $.post("/application/"+id, function(r) {
 	g_filename = r.name;
 });
