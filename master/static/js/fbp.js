@@ -8,7 +8,7 @@ var id=window.location.href;
 var f=id.split("/");
 id = f[4];
 $.post("/application/"+id, function(r) {
-	g_filename = r.name;
+	g_filename = r.app.name;
 });
 $(document).ready(function() {
 	$('#client').append('<div id=toolbar></div>');
