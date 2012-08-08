@@ -71,18 +71,11 @@ function application_fillList(r)
 		$('#appact'+i).append('<button class=appdeploy id=appdeploy'+i+'></button>');
 		$('#appact'+i).append('<button class=appdel id=appdel'+i+'></button>');
 		obj = $('#appname'+i);
-<<<<<<< HEAD
-		obj.html(r[i].name);
-		obj.click(function() {
-			
-		});
-=======
 		obj.html('<a href="#">' + r[i].name + '</a>');
     var index = i;
     obj.click(function() {
       application_setupLink(r, index);
     });
->>>>>>> f7e605039de406ece1a911ad3b494044e28752e1
 		application_setupButtons(i);
 	}
 }
