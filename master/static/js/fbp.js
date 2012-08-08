@@ -3,6 +3,9 @@ var FBP_canvas;
 var FBP_CANVAS_TOP=50;
 var g_lines=[];
 var g_nodes=[];
+var id=window.location.href;
+var f=id.split("/");
+id = f[2];
 $(document).ready(function() {
 	$('#client').append('<div id=toolbar></div>');
 	$('#client').append('<div id=content></div>');
@@ -53,6 +56,7 @@ $(document).ready(function() {
 	});
 	$('#fileloader').dialog({autoOpen:false});
 	$('#fileloader_file').val('fbp.sce');
+	FBP_loadFromServer(id);
 });
 
 function FBP_fillBlockType(div)
@@ -157,11 +161,40 @@ function FBP_link()
 }
 function FBP_save()
 {
-	data = JSON.stringify(FBP_serialize(g_nodes,g_lines));
+	data = FBP_toXML(g_nodes,g_lines);
 	$.ajax({
-		url:'/cgi-bin/file?save=fbp.sce',
+		url:'/application/'+id+'/fbp/save',
 		data: data,
 		type:'POST'
+	});
+}
+
+
+function FBP_loadFromServer(id)
+{
+	$.ajax({
+		url:'/cgi-bin/file?load='+$('#fileloader_file').val(),
+		success: function(r) {
+			meta = JSON.parse(r);
+			$('#content').empty();
+			g_nodes = [];
+			g_lines = [];
+			var hash={};
+			for(i=0;i<meta.nodes.length;i++) {
+				n = Block.restore(meta.nodes[i]);
+				// This should be replaced with the node type system latter
+				n.attach($('#content'));
+				hash[n.id] = n;
+				g_nodes.push(n);
+			}
+			for(i=0;i<meta.lines.length;i++) {
+				var a = meta.lines[i];
+				a.source = hash[a.source];
+				a.dest = hash[a.dest];
+				g_lines.push(Line.restore(a));
+			}
+			FBP_refreshLines();
+		}
 	});
 }
 
@@ -222,7 +255,7 @@ function FBP_serialize(gnodes,glines)
 	meta['lines'] = lines;
 	return meta;
 }
-function FBP_activate(gnodes,glines)
+function FBP_toXML(gnodes,glines)
 {
 	var linehash={};
 	var i;
@@ -246,7 +279,7 @@ function FBP_activate(gnodes,glines)
 		}
 		xml = xml + '    </component>\n';
 	}
-	alert(xml);
+	return xml;
 }
 
 function Signal(name)

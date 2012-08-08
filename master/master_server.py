@@ -2,6 +2,7 @@
 import tornado.ioloop
 import tornado.web
 import os, sys, zipfile
+import json
 from xml.dom.minidom import parse
 from threading import Thread
 import time
@@ -79,6 +80,13 @@ class list_applications(tornado.web.RequestHandler):
 
   def post(self):
     global applications
+    apps = [{'id': application.id, 'name': application.name, 'desc': application.desc, 'status': application.status} for application in applications]
+    self.content_type = 'application/json'
+    self.write(json.dumps(apps))
+
+'''
+  def post(self):
+    global applications
 
     if not self.get_argument('name') or not self.request.files['bog_file']:
       self.content_type = 'application/json'
@@ -96,16 +104,23 @@ class list_applications(tornado.web.RequestHandler):
       else:
         self.content_type = 'application/json'
         self.write({'status':1})
+'''
 
 # Returns a form to upload new application
 class new_application(tornado.web.RequestHandler):
-  def get(self):
+  def post(self):
     global applications
-    applications.append(Application())
-    applications[-1].id = len(applications)-1
-    print applications
-    self.redirect('/applications/'+str(applications[-1].id), permanent=True)
+    #self.redirect('/applications/'+str(applications[-1].id), permanent=True)
     #self.render('templates/upload.html')
+    try:
+      applications.append(Application(name='application' + str(len(applications))))
+      applications[-1].id = len(applications)-1
+      print applications
+      self.content_type = 'application/json'
+      self.write({'status':0})
+    except Exception:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg':'Cannot create application'})
 
 # Display a specific application
 class application(tornado.web.RequestHandler):
@@ -116,8 +131,11 @@ class application(tornado.web.RequestHandler):
   # Edit a specific application
   # Update a specific application
   def post(self, app_id):
-    new_name = self.get_argument('name')
-    new_desc = self.get_argument('desc')
+    app_id = int(app_id)
+    app = {'name': applications[app_id].name, 'desc': applications[app_id].desc, 'id': applications[app_id].id}
+    self.content_type = 'application/json'
+    self.write({'status':0, 'app': app})
+
 
   # Destroy a specific application
   def delete(self, app_id):
@@ -147,11 +165,11 @@ settings = {
 app = tornado.web.Application([
   (r"/", main),
   (r"/main", main),
-  (r"/applications", list_applications),
-  (r"/applications/new", new_application),
-  (r"/applications/([0-9]+)", application),
-  (r"/applications/([0-9]+)/fbp/save", save_fbp),
-  (r"/applications/([0-9]+)/fbp/load", load_fbp),
+  (r"/application/json", list_applications),
+  (r"/application/new", new_application),
+  (r"/application/([0-9]+)", application),
+  (r"/application/([0-9]+)/fbp/save", save_fbp),
+  (r"/application/([0-9]+)/fbp/load", load_fbp),
   (r"/status", return_status)
 ], **settings)
 
