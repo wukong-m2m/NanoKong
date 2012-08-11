@@ -43,6 +43,7 @@ class Application:
     self.desc = desc
     self.factory = factory
     self.file = file
+    self.xml = ''
     self.status = []
 
   def setupFactory(self):
@@ -151,11 +152,19 @@ class return_status(tornado.web.RequestHandler):
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
-    xml = self.get_argument('xml')
+    global applications
+    applications[int(app_id)].xml = self.get_argument('xml')
+    self.content_type = 'application/json'
+    self.write({'status':0})
 
 class load_fbp(tornado.web.RequestHandler):
   def get(self, app_id):
     self.render('templates/fbp.html')
+  
+  def post(self, app_id):
+    global applications
+    self.content_type = 'application/json'
+    self.write({'status':0, 'xml':applications[int(app_id)].xml})
 
 settings = {
   "static_path": os.path.join(os.path.dirname(__file__), "static"),
