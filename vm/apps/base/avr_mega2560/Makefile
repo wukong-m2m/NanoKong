@@ -2,25 +2,22 @@
 #  Makefile for Mega8 test version of the NanoVM
 #
 #  Usage:
-#		make FLOWXML=HAScenario2 DISCOVERY_FLAGS=-h
-#  Note that the HAScenario2 should be in the /Applications directory
+#  make FLOWXML=[XML name] DISCOVERY_FLAGS=[Flag] PORT=[Port]
+#  Note that the [XML name] should be in the /Applications directory
 
 CONFIG = Mega8.config
 DEVICE = atmega2560
-
 ifdef FLOWXML
-DEFAULT_CLASS=$(FLOWXML)
+DEFAULT_CLASS = $(FLOWXML)
+else
+DEFAULT_CLASS = TestWKPF
+endif
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
-else
-#DEFAULT_CLASS = TestWKPF
-#DEFAULT_CLASS = AdcDemo
-#DEFAULT_CLASS = HAScenario1
-endif
-
 PORT = /dev/tty.usbmodem411
 
-ROOT_DIR = ../../..
+ROOT_DIR = ../../../..
+VM_DIR = $(ROOT_DIR)/vm
 FLOWXML_DIR = $(ROOT_DIR)/Applications
 COMPONENTXML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
 CODEGEN_PATH = $(ROOT_DIR)/tools/python/codegen.py
@@ -38,15 +35,16 @@ OBJDUMP = $(PREFIX)avr-objdump
 # AVR compiler and linker flags
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 
-CLDFLAGS += -Wl,--gc-sections,-Tavr4_nanokong.x,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+# Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+CLDFLAGS += -Wl,--gc-sections,-Tavr4_nanokong.x,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE)
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
 
-include ../../src/Makefile
-include ../../src/avr/Makefile
-include ../../src/tests/Makefile
-include ../../src/native_wuclasses/Makefile
+include $(VM_DIR)/src/Makefile
+include $(VM_DIR)/src/avr/Makefile
+include $(VM_DIR)/src/tests/Makefile
+include $(VM_DIR)/src/native_wuclasses/Makefile
 
 nvmdefault.h: Makefile
 
@@ -88,10 +86,6 @@ uisp: NanoVM.hex NanoVM_eeprom.hex
 	uisp --segment=flash  -dprog=stk200 --upload if=NanoVM.hex --verify
 	uisp --segment=eeprom  -dprog=stk200 --upload if=NanoVM_eeprom.hex --verify
 
-nvmcomm_reprogram: nvmdefault.h
-	$(NVMCOMM_REPROGRAM) 3 nvmdefault.h
-	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
-
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
@@ -99,10 +93,22 @@ avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 	screen $(PORT) 115200
 
-clean: deep_clean
+.PHONY : generate
+generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
+	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
+
+application:
+	$(MAKE) generate
+	$(MAKE) nvmdefault.h
+
+nvmcomm_reprogram: nvmdefault.h
+	$(NVMCOMM_REPROGRAM) 3 nvmdefault.h
+	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
+
+clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
 
-deep_clean:
+clobber: clean
 	find $(ROOT_DIR) -name 'GENERATED*' -exec rm -rf {} \;
 
 upload_bootloader:
@@ -116,8 +122,5 @@ upload_bootloader1280:
 	avrdude -p atmega1280 -P usb -c usbtiny -D -V -U flash:w:../../../tools/arduino-stk500v2-bootloader/stk500boot_v2_mega1280.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	#avrdude -p atmega1280 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
 	avrdude -p atmega1280 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
-
-generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
-	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
 #include $(OBJS:.o=.d)
