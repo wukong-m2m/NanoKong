@@ -56,7 +56,7 @@ function application_fillList(r)
 	var i;
 	var len = r.length;
 	var m = $('#content');
-	var obj;
+	var obj, act;
 
 	m.empty();
 	m.html('<table id=applist></table>');
@@ -67,38 +67,49 @@ function application_fillList(r)
 		} else {
 			applist.append('<tr class=listitem_odd><td class=appname id=appname'+i+'></td><td class=appact id=appact'+i+'></td></tr>');
 		}
-		$('#appact'+i).append('<button class=appmonitor id=appmonitor'+i+'></button>');
-		$('#appact'+i).append('<button class=appdeploy id=appdeploy'+i+'></button>');
-		$('#appact'+i).append('<button class=appdel id=appdel'+i+'></button>');
+        act = $('#appact'+i);
+		act.append('<button class=appmonitor id=appmonitor'+i+'></button>');
+		act.append('<button class=appdeploy id=appdeploy'+i+'></button>');
+		act.append('<button class=appdel id=appdel'+i+'></button>');
 		obj = $('#appname'+i);
 		obj.html('<a href="#">' + r[i].name + '</a>');
     var index = i;
     obj.click(function() {
       application_setupLink(r, index);
     });
-		application_setupButtons(i);
+		application_setupButtons(i, r[i].id);
 	}
 }
 
 function application_setupLink(r, i)
 {
-  $.post('/application/' + r[i].id, function() {
+  $.post('/application/' + r[i].id, function(data) {
     // create application
     $('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/application/' + r[i].id + '/fbp/load"></iframe>');
-    $('#topbar').append($('<button id="back">Back</button>'));
+    $('#topbar').append(data.topbar);
     $('#topbar #back').click(function() {
       application_fill();
     });
   });
 }
 
-function application_setupButtons(i)
+function application_setupButtons(i, id)
 {
 		$('#appmonitor'+i).click(function() {
 				alert("not implemented yet");
 		});
 		$('#appdel'+i).click(function() {
-				alert("not implemented yet");
+            $.ajax({
+              type: 'delete',
+              url: '/application/' + id, 
+              success: function(data) {
+                if (data.status == 1) {
+                  alert(data.mesg);
+                } else {
+                  application_fill();
+                }
+              }
+            });
 		});
 		$('#appdeploy'+i).click(function() {
 				alert("not implemented yet");

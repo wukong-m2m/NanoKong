@@ -1,0 +1,30 @@
+<script>
+  var current_application = {{ application.id }};
+</script>
+<script type="text/javascript" src="/static/js/topbar.js"></script>
+
+<button id="back">Back</button>
+
+<p>
+  <p>
+    <label>Name</label>
+    <input id="name" value="{{ application.name }}" />
+  </p>
+  <p>
+    <label>Description</label>
+    <input id="desc" value="{{ application.desc }}" />
+  </p>
+  <p>
+    <label>Directory name</label>
+    {{ application.dir }}
+  </p>
+
+  <p>
+    TODO: Advanced settings (config.h)
+  </p>
+
+  <p>
+  <button id="save">Save</button>
+  </p>
+
+</p>
