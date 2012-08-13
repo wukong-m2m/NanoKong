@@ -63,7 +63,7 @@ function application_fillList(r)
     applist = $('#applist');
     for(i=0;i<len;i++) {
         if ((i % 2) == 0) {
-            applist.append('<tr class=listitem_even><td class=appname id=appname'+i+'></td><td id=appact'+i+'></td></tr>');
+            applist.append('<tr class=listitem_even><td class=appname id=appname'+i+'></td><td class=appact id=appact'+i+'></td></tr>');
         } else {
             applist.append('<tr class=listitem_odd><td class=appname id=appname'+i+'></td><td class=appact id=appact'+i+'></td></tr>');
         }
