@@ -1,5 +1,5 @@
 <script>
-  var current_application = {{ application.id }};
+  var current_application = "{{ application.id }}";
 </script>
 <script type="text/javascript" src="/static/js/topbar.js"></script>
 
@@ -14,6 +14,11 @@
     <label>Description</label>
     <input id="desc" value="{{ application.desc }}" />
   </p>
+  <p>
+    <label>ID</label>
+    {{ application.id }}
+  </p>
+
   <p>
     <label>Directory name</label>
     {{ application.dir }}

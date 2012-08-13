@@ -3,13 +3,18 @@ import tornado.ioloop
 import tornado.web
 import tornado.template as template
 import os, sys, zipfile
-import json
+import simplejson as json
+import hashlib
 from xml.dom.minidom import parse
 from threading import Thread
 import time
 import StringIO
 import shutil, errno
 
+if len(sys.argv) == 2:
+  IP = sys.argv[1]
+else:
+  IP = ''
 ALLOWED_EXTENSIONS = set(['bog'])
 TARGET = 'HAScenario1'
 ROOT_PATH = '..'
@@ -36,6 +41,19 @@ def copyAnything(src, dst):
       shutil.copy(src, dst)
     else: raise
 
+def getAppIndex(app_id):
+  global applications
+  # make sure it is not unicode
+  app_id = app_id.encode('ascii','ignore')
+  print 'getAppIndex'
+  for index, app in enumerate(applications):
+    if app.id == app_id:
+      print 'found'
+      print repr(app.id)
+      print repr(app_id)
+      return index
+  return None
+
 def statusString(status):
   if len(status) == 0:
     return 'uploading...'
@@ -58,8 +76,14 @@ def delete_application(i):
     print e
     print False
 
+def load_app_from_dir(dir):
+  app = Application(dir=dir)
+  app.loadConfig()
+  return app
+
 def update_applications():
   global applications
+  print 'update applications'
 
   application_basenames = [os.path.basename(app.dir) for app in applications]
 
@@ -67,7 +91,11 @@ def update_applications():
     if dirname.lower() == 'base': continue
     app_dir = os.path.join(APP_DIR, dirname)
     if dirname not in application_basenames:
-      applications.append(Application(name=dirname, dir=app_dir))
+      print 'not found'
+      print repr(dirname)
+      print repr(application_basenames)
+      applications.append(load_app_from_dir(app_dir))
+      application_basenames = [os.path.basename(app.dir) for app in applications]
 
 class Worker:
   # bog is the bog archive file object
@@ -128,8 +156,8 @@ class Worker:
 
 
 class Application:
-  def __init__(self, name='', desc='', factory='', file='', dir=''):
-    self.id = 0
+  def __init__(self, id='', name='', desc='', factory='', file='', dir=''):
+    self.id = id
     self.name = name
     self.desc = desc
     self.factory = factory
@@ -138,12 +166,30 @@ class Application:
     self.dir = dir
     self.status = []
 
+  def loadConfig(self):
+    print 'loadConfig'
+    config = json.load(open(os.path.join(self.dir, 'config.json')))
+    self.id = config['id']
+    self.name = config['name']
+    self.desc = config['desc']
+    self.dir = config['dir']
+    self.xml = config['xml']
+
+  def saveConfig(self):
+    json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
+
   def setupFactory(self):
     self.worker = Thread(target=self.factory, args=(self.file, self.status))
     self.worker.start()
 
   def getStatus(self):
     return statusString(self.status)
+
+  def config(self):
+    return {'id': self.id, 'name': self.name, 'desc': self.desc, 'dir': self.dir, 'xml': self.xml}
+
+  def __repr__(self):
+    return json.dumps(self.config())
 
 # List all uploaded applications
 class main(tornado.web.RequestHandler):
@@ -157,11 +203,12 @@ class list_applications(tornado.web.RequestHandler):
   def post(self):
     global applications
     update_applications()
-    apps = [{'id': application.id, 'name': application.name, 'desc': application.desc, 'status': application.status} for application in applications]
+    apps = [application.config() for application in applications]
+    #apps = [{'id': application.id, 'name': application.name, 'desc': application.desc, 'status': application.status} for application in applications]
     self.content_type = 'application/json'
     self.write(json.dumps(apps))
 
-'''
+  '''
   def post(self):
     global applications
 
@@ -181,7 +228,7 @@ class list_applications(tornado.web.RequestHandler):
       else:
         self.content_type = 'application/json'
         self.write({'status':1})
-'''
+  '''
 
 # Returns a form to upload new application
 class new_application(tornado.web.RequestHandler):
@@ -189,18 +236,24 @@ class new_application(tornado.web.RequestHandler):
     global applications
     #self.redirect('/applications/'+str(applications[-1].id), permanent=True)
     #self.render('templates/upload.html')
-    app_name = 'application' + str(len(applications))
     try:
-      applications.append(Application(name=app_name, dir=os.path.join(APP_DIR, app_name)))
-      applications[-1].id = len(applications)-1
+      app_name = 'application' + str(len(applications))
+      app_id = hashlib.md5(app_name).hexdigest()
+
+      app = Application(id=app_id, name=app_name, dir=os.path.join(APP_DIR, app_id))
+      applications.append(app)
 
       # copy base for the new application
-      print os.path.join(APP_DIR, app_name)
-      print BASE_DIR, applications[-1].dir
-      copyAnything(BASE_DIR, applications[-1].dir)
+      print 'setting up app directory from base...'
+      copyAnything(BASE_DIR, app.dir)
+
+      print app
+
+      # dump config file to app
+      app.saveConfig()
 
       self.content_type = 'application/json'
-      self.write({'status':0})
+      self.write({'status':0, 'app': app.config()})
     except Exception as e:
       print e
       self.content_type = 'application/json'
@@ -208,73 +261,100 @@ class new_application(tornado.web.RequestHandler):
 
 class application(tornado.web.RequestHandler):
   # Deprecated
+  '''
   def get(self, app_id):
     global applications
     self.render('templates/display.html', app_id=app_id, application=applications[int(app_id)])
+  '''
 
   # Display a specific application
   def post(self, app_id):
-    app_id = int(app_id)
-    app = {'name': applications[app_id].name, 'desc': applications[app_id].desc, 'id': applications[app_id].id}
-    topbar = template.Loader('.').load('templates/topbar.html').generate(application=applications[app_id])
-    self.content_type = 'application/json'
-    self.write({'status':0, 'app': app, 'topbar': topbar})
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      app = repr(applications[app_ind])
+      #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
+      topbar = template.Loader('.').load('templates/topbar.html').generate(application=applications[app_ind])
+      self.content_type = 'application/json'
+      self.write({'status':0, 'app': app, 'topbar': topbar})
 
   # Update a specific application
   def put(self, app_id):
     global applications
-    print 'save_application'
-    try:
-      applications[int(app_id)].name = self.get_argument('name', 'application name')
-      applications[int(app_id)].desc = self.get_argument('desc', '')
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
       self.content_type = 'application/json'
-      self.write({'status':0})
-    except Exception as e:
-      print e
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot save application'})
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      print 'save_application'
+      try:
+        applications[app_ind].name = self.get_argument('name', 'application name')
+        applications[app_ind].desc = self.get_argument('desc', '')
+        applications[app_ind].saveConfig()
+        self.content_type = 'application/json'
+        self.write({'status':0})
+      except Exception as e:
+        print e
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Cannot save application'})
 
   # Destroy a specific application
   def delete(self, app_id):
     global applications
-    print 'delete_application'
-    if delete_application(int(app_id)):
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
       self.content_type = 'application/json'
-      self.write({'status':0})
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot delete application'})
+      print 'delete_application'
+      if delete_application(app_ind):
+        self.content_type = 'application/json'
+        self.write({'status':0})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Cannot delete application'})
 
 class deploy_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
-    app_id = int(app_id)
-    target = self.get_argument('target')
-    #platforms = self.get_argument('platforms')
-    platforms = ['avr_mega2560']
-    # TODO: need platforms from fbp
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      target = self.get_argument('target')
+      #platforms = self.get_argument('platforms')
+      platforms = ['avr_mega2560']
+      # TODO: need platforms from fbp
 
-    self.deployer = Thread(target=Worker.deployer, args=(application[app_id].dir, target, platforms))
-    self.deployer.start()
+      self.deployer = Thread(target=Worker.deployer, args=(application[app_ind].dir, target, platforms))
+      self.deployer.start()
 
-    self.content_type = 'application/json'
-    self.write({'status':0})
+      self.content_type = 'application/json'
+      self.write({'status':0})
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
-    app_id = int(app_id)
-    applications[app_id].xml = self.get_argument('xml')
-    target = self.get_argument('target')
-    #platforms = self.get_argument('platforms')
-    platforms = ['avr_mega2560']
-    # TODO: need platforms from fbp
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      applications[app_ind].xml = self.get_argument('xml')
+      applications[app_ind].saveConfig()
+      target = self.get_argument('target')
+      #platforms = self.get_argument('platforms')
+      platforms = ['avr_mega2560']
+      # TODO: need platforms from fbp
 
-    self.compiler = Thread(target=Worker.compiler, args=(application[app_id].dir, applications[app_id].xml, target, platforms))
-    self.compiler.start()
+      self.compiler = Thread(target=Worker.compiler, args=(application[app_ind].dir, applications[app_ind].xml, target, platforms))
+      self.compiler.start()
 
-    self.content_type = 'application/json'
-    self.write({'status':0})
+      self.content_type = 'application/json'
+      self.write({'status':0})
 
 class load_fbp(tornado.web.RequestHandler):
   def get(self, app_id):
@@ -282,20 +362,29 @@ class load_fbp(tornado.web.RequestHandler):
   
   def post(self, app_id):
     global applications
-    self.content_type = 'application/json'
-    self.write({'status':0, 'xml':applications[int(app_id)].xml})
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      self.content_type = 'application/json'
+      self.write({'status':0, 'xml':applications[app_ind].xml})
 
 class return_status(tornado.web.RequestHandler):
   def post(self):
     global applications
-    current_status = applications[int(self.get_argument('id'))].status
-    print '**[current_status]**', current_status
-    self.content_type = 'application/json'
-    self.write({'status':0, 'current_status':len(current_status)})
+    app_ind = getAppIndex(self.get(argument('id')))
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      current_status = applications[app_ind].status
+      print '**[current_status]**', current_status
+      self.content_type = 'application/json'
+      self.write({'status':0, 'current_status':len(current_status)})
 
 settings = {
-  "static_path": os.path.join(os.path.dirname(__file__), "static"),
-  "debug": True
+  "static_path": os.path.join(os.path.dirname(__file__), "static")
 }
 
 app = tornado.web.Application([
@@ -303,12 +392,13 @@ app = tornado.web.Application([
   (r"/main", main),
   (r"/application/json", list_applications),
   (r"/application/new", new_application),
-  (r"/application/([0-9]+)", application),
-  (r"/application/([0-9]+)/deploy", deploy_application),
-  (r"/application/([0-9]+)/fbp/save", save_fbp),
-  (r"/application/([0-9]+)/fbp/load", load_fbp),
+  (r"/application/([a-fA-F\d]{32})", application),
+  (r"/application/([a-fA-F\d]{32})/deploy", deploy_application),
+  (r"/application/([a-fA-F\d]{32})/fbp/save", save_fbp),
+  (r"/application/([a-fA-F\d]{32})/fbp/load", load_fbp),
+  #(r"/application/([0-9]+)/fbp/load", load_fbp),
   (r"/status", return_status)
-], sys.argv[1], **settings)
+], IP, debug=True, **settings)
 
 if __name__ == "__main__":
   app.listen(5000)
