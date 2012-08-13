@@ -32,6 +32,7 @@ $(document).ready(function() {
 	$('#toolbar_save').click(function() {
 		FBP_save();
 	});
+	/*
 	toolbar.append('<button id=toolbar_load>Load</button>');
 	$('#toolbar_load').click(function() {
 		FBP_load();
@@ -40,6 +41,7 @@ $(document).ready(function() {
 	$('#toolbar_activate').click(function() {
 		FBP_activate(g_nodes,g_lines);
 	});
+	*/
 	FBP_canvastop=$('#canvastop');
 	FBP_canvas=$('#canvas');
 	$('#canvastop').hide();
