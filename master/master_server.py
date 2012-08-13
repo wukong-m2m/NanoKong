@@ -308,7 +308,7 @@ app = tornado.web.Application([
   (r"/application/([0-9]+)/fbp/save", save_fbp),
   (r"/application/([0-9]+)/fbp/load", load_fbp),
   (r"/status", return_status)
-], **settings)
+], sys.argv[1], **settings)
 
 if __name__ == "__main__":
   app.listen(5000)
