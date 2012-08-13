@@ -32,6 +32,7 @@ $(document).ready(function() {
 	$('#toolbar_save').click(function() {
 		FBP_save();
 	});
+	/*
 	toolbar.append('<button id=toolbar_load>Load</button>');
 	$('#toolbar_load').click(function() {
 		FBP_load();
@@ -40,6 +41,7 @@ $(document).ready(function() {
 	$('#toolbar_activate').click(function() {
 		FBP_activate(g_nodes,g_lines);
 	});
+	*/
 	FBP_canvastop=$('#canvastop');
 	FBP_canvas=$('#canvas');
 	$('#canvastop').hide();
@@ -173,15 +175,66 @@ function FBP_save()
 	});
 }
 
+function FBP_parseXML(r)
+{
+	var xml = $.parseXML(r);	
+	var app = $(xml).find("application");
+	var comps = app.find("component");
+	var i,len,j;
+
+	$('#content').empty();
+	g_nodes = [];
+	g_lines = [];
+	var hash={};
+	
+	for(i=0;i<comps.length;i++) {
+		var c = $(comps[i]);
+		var meta ={};
+		meta.x = c.attr("x");
+		meta.y = c.attr("y");
+		meta.w = c.attr("w");
+		meta.h = c.attr("h");
+		meta.id = c.attr("instanceId");
+		meta.type = c.attr("type");
+		meta.location = c.attr("location");
+		n = Block.restore(meta);
+		// This should be replaced with the node type system latter
+		n.attach($('#content'));
+		hash[n.id] = n;
+		g_nodes.push(n);
+	}
+	for(i=0;i<comps.length;i++) {
+		var c = $(comps[i]);
+		var links = c.find("link");
+		for(j=0;j<links.length;j++) {
+			var l = $(links[i]);
+			var source = c.attr("instanceId");
+			var signal = l.attr("fromProperty");
+			var dest = l.attr("toInstanceId");
+			var action = l.attr("toProperty");
+			var a = {};
+			a.source = hash[source];
+			a.signal = signal;
+			a.dest = hash[dest];
+			a.action = action;
+			g_lines.push(Line.restore(a));
+		}
+	}
+	FBP_refreshLines();
+	
+}
 
 function FBP_loadFromServer(id)
 {
 	$.ajax({
 		url:'/application/'+id+'/fbp/load',
 		type: 'POST',
+		error: function(msg) {
+			alert(msg)
+		},
 		success: function(r) {
 			if (console) console.log(r);
-			alert(r.xml);
+			FBP_parseXML(r.xml);
 			return;
 			meta = JSON.parse(r);
 			$('#content').empty();
@@ -278,8 +331,9 @@ function FBP_toXML(gnodes,glines)
 	}
 	var xml='<application name="'+g_filename+'">\n';
 	for(var k in linehash) {
-		var source = linehash[k][0].source;
-		xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'">\n';
+		var source ={};
+		linehash[k][0].source.serialize(source);
+		xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'">\n';
 		len = linehash[k].length;
 		for(i=0;i<len;i++) {
 			var line = linehash[k][i];
@@ -287,6 +341,15 @@ function FBP_toXML(gnodes,glines)
 		}
 		xml = xml + '    </component>\n';
 	}
+	for(var k in gnodes) {
+		var source ={};
+		gnodes[k].serialize(source);
+		if (linehash[gnodes[k].id] == undefined) {
+			xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'"></component>\n';
+		}
+	}
+	xml = xml + "</application>\n";
+
 	return xml;
 }
 
