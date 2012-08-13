@@ -20,4 +20,4 @@ Temperature.prototype.getPeriod=function() {
 	return 0;
 }
 
-Block.register('temperature',Temperature);
+Block.register('Temperature',Temperature)	;
