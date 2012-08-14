@@ -101,6 +101,7 @@ generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
 
 application:
 	$(MAKE) generate
+	$(MAKE) $(DEFAULT_FILE)
 	$(MAKE) nvmdefault.h
 
 nvmcomm_reprogram: nvmdefault.h
