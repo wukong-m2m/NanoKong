@@ -113,6 +113,27 @@ function application_setupButtons(i, id)
         });
     });
     $('#appdeploy'+i).click(function() {
-        alert("not implemented yet");
+        $.get('/application/' + id + '/deploy', function(data) {
+            if (data.status == 1) {
+                alert(data.mesg);
+            } else {
+                deploy_show(data.page, id);
+            }
+        });
+    });
+}
+
+function deploy_show(page, id)
+{
+    // deployment page
+    $('#content').html(page);
+    $('#content #back').click(function() {
+        application_fill();
+    });
+
+    $('#content #deploy').click(function() {
+        $.post('/application/' + id + '/deploy', function(data) {
+            //TODO
+        });
     });
 }

@@ -17,12 +17,12 @@ if len(sys.argv) == 2:
   IP = sys.argv[1]
 else:
   IP = ''
-ALLOWED_EXTENSIONS = set(['bog'])
-TARGET = 'HAScenario1'
+#ALLOWED_EXTENSIONS = set(['bog'])
+#TARGET = 'HAScenario1'
+#XML_PATH = os.path.join(ROOT_PATH, 'Applications')
 ROOT_PATH = os.path.abspath('..')
 APP_DIR = os.path.join(ROOT_PATH, 'vm', 'apps')
 BASE_DIR = os.path.join(APP_DIR, 'base')
-#XML_PATH = os.path.join(ROOT_PATH, 'Applications')
 IP = '127.0.0.1'
 if len(sys.argv) >= 2:
   IP = sys.argv[1]
@@ -128,11 +128,22 @@ class Worker:
   # target is the target application name (e.g. HAScenario1)
   # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
   # XML_PATH is the output of the compiled wukong xml
-  def deployer(self, app_path, target, platforms):
+  def deployer(self, app, ports, platforms):
+    app_path = app.dir
     for platform in platforms:
-      os.chdir(os.path.join(app_path, platform))
-      # TODO: return error for commands
-      os.system('make nvmcomm_reprogram')
+      platform_dir = os.path.join(app_path, platform)
+      os.chdir(platform_dir)
+      print 'changing to path: %s...' % platform_dir
+      for port in ports:
+        pp = Popen('make nvmcomm_reprogram NODE_ID=%d' % (port), shell=True, stdout=PIPE, stderr=STDOUT)
+        app.status = -1
+        while pp.poll() == None:
+          print 'polling from popen...'
+          line = pp.stdout.readline()
+          if line != '':
+            app.appendCompileLog(line, NORMAL)
+          app.version += 1
+        app.status = pp.returncode
 
   # Deprecated
   def factory(self, file, status):
@@ -162,6 +173,7 @@ class Application:
     self.xml = ''
     self.dir = dir
     self.compiler = None
+    self.deployer = None
     self.version = 0
     self.status = NOTOK
 
@@ -370,6 +382,18 @@ class application(tornado.web.RequestHandler):
         self.write({'status':1, 'mesg': 'Cannot delete application'})
 
 class deploy_application(tornado.web.RequestHandler):
+  def get(self, app_id):
+    #node_ids = wkpfcomm.getNodeIds()
+    node_ids = []
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      deployment = template.Loader('.').load('templates/deployment.html').generate(app=applications[app_ind], node_ids=node_ids)
+      self.content_type = 'application/json'
+      self.write({'status':0, 'page': deployment})
+
   def post(self, app_id):
     global applications
     app_ind = getAppIndex(app_id)
@@ -377,13 +401,11 @@ class deploy_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      target = self.get_argument('target')
-      #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-      self.deployer = Thread(target=Worker.deployer, args=(application[app_ind].dir, target, platforms))
-      self.deployer.start()
+      applications[app_ind].deployer = Thread(target=Worker().deployer, args=(application[app_ind], ports, platforms))
+      applications[app_ind].deployer.start()
 
       self.content_type = 'application/json'
       self.write({'status':0})
@@ -434,19 +456,6 @@ class load_fbp(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':0, 'xml': applications[app_ind].xml})
 
-class return_status(tornado.web.RequestHandler):
-  def post(self):
-    global applications
-    app_ind = getAppIndex(self.get(argument('id')))
-    if app_ind == None:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot find the application'})
-    else:
-      current_status = applications[app_ind].status
-      print '**[current_status]**', current_status
-      self.content_type = 'application/json'
-      self.write({'status':0, 'current_status':len(current_status)})
-
 settings = {
   "static_path": os.path.join(os.path.dirname(__file__), "static")
 }
@@ -460,9 +469,7 @@ app = tornado.web.Application([
   (r"/application/([a-fA-F\d]{32})/deploy", deploy_application),
   (r"/application/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/application/([a-fA-F\d]{32})/fbp/load", load_fbp),
-  (r"/application/([a-fA-F\d]{32})/fbp/poll", poll_fbp),
-  #(r"/application/([0-9]+)/fbp/load", load_fbp),
-  (r"/status", return_status)
+  (r"/application/([a-fA-F\d]{32})/fbp/poll", poll_fbp)
 ], IP, debug=True, **settings)
 
 if __name__ == "__main__":

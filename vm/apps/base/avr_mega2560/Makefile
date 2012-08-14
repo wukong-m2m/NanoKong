@@ -105,8 +105,11 @@ application:
 	$(MAKE) nvmdefault.h
 
 nvmcomm_reprogram: nvmdefault.h
-	"$(NVMCOMM_REPROGRAM)" 3 nvmdefault.h
-	"$(NVMCOMM_REPROGRAM)" 1 nvmdefault.h
+ifdef NODE_ID
+	$(NVMCOMM_REPROGRAM) $(NODE_ID) nvmdefault.h
+endif
+	#$(NVMCOMM_REPROGRAM) 3 nvmdefault.h
+	#$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
 
 clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex $(DEFAULT_FILE)
