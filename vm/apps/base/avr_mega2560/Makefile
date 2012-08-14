@@ -20,7 +20,7 @@ ROOT_DIR = ../../../..
 VM_DIR = $(ROOT_DIR)/vm
 #FLOWXML_DIR = $(ROOT_DIR)/Applications
 # All application xml will be in the current directory
-FLOWXML_DIR = $(CURDIR)
+FLOWXML_DIR = $(CURDIR)/..
 COMPONENTXML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
 CODEGEN_PATH = $(ROOT_DIR)/tools/python/codegen.py
 NVMCOMM_REPROGRAM = $(ROOT_DIR)/tools/python/reprogram.py
@@ -97,15 +97,16 @@ avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 
 .PHONY : generate
 generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
-	"$(CODEGEN_PATH)" -i "$(COMPONENTXML_PATH)" -p $(ROOT_DIR) -u niagara
+	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
 application:
 	$(MAKE) generate
+	$(MAKE) $(DEFAULT_FILE)
 	$(MAKE) nvmdefault.h
 
 nvmcomm_reprogram: nvmdefault.h
-	$(NVMCOMM_REPROGRAM) 3 nvmdefault.h
-	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
+	"$(NVMCOMM_REPROGRAM)" 3 nvmdefault.h
+	"$(NVMCOMM_REPROGRAM)" 1 nvmdefault.h
 
 clean:
 	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
