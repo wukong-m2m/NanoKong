@@ -100,8 +100,8 @@ generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
 	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
 application:
+	$(MAKE) clean
 	$(MAKE) generate
-	$(MAKE) $(DEFAULT_FILE)
 	$(MAKE) nvmdefault.h
 
 nvmcomm_reprogram: nvmdefault.h
@@ -109,7 +109,8 @@ nvmcomm_reprogram: nvmdefault.h
 	"$(NVMCOMM_REPROGRAM)" 1 nvmdefault.h
 
 clean:
-	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
+	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex $(DEFAULT_FILE)
+	rm -rf $(CLASSES_PATH)
 
 clobber: clean
 	find $(ROOT_DIR) -name 'GENERATED*' -exec rm -rf {} \;
