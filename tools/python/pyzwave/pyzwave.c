@@ -3,7 +3,8 @@
 #include "pyzwave-testrtt.h"
 
 int initialised = 0;
-
+extern char init_data_buf[256];
+extern unsigned int zwave_my_address;
 //#define DEBUGF(...)  printf(__VA_ARGS__)
 #define DEBUGF(...) 
 
@@ -113,11 +114,29 @@ static PyObject* pyzwave_setdebug(PyObject *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+static PyObject* pyzwave_discover(PyObject *self, PyObject *args) {
+	int i;
+	PyObject* message_list;
+	if (!initialised) {
+    	PyErr_SetString(PyExc_IOError, "Call pyzwave.init first.");
+    	return NULL;
+  	}
+	PyZwave_discover();
+ 	message_list = PyList_New(0);
+	PyList_Append(message_list, PyInt_FromLong((long)zwave_my_address & 0xFF));
+    for (i=0; i<init_data_buf[0]+1; i++) {
+      PyList_Append(message_list, PyInt_FromLong((long)init_data_buf[i] & 0xFF));
+
+    }
+    return message_list;
+}
+
 PyMethodDef methods[] = {
   {"init", pyzwave_init, METH_VARARGS, "Sets the IP address to connect to"},
   {"send", pyzwave_send, METH_VARARGS, "Sends a list of bytes to a node"},
   {"receive", pyzwave_receive, METH_VARARGS, "Receive data"},
   {"setdebug", pyzwave_setdebug, METH_VARARGS, "Turn debug info on or off"},
+  {"discover", pyzwave_discover, METH_VARARGS, "discover nodes"},
   {NULL, NULL, 0, NULL}
 };
 

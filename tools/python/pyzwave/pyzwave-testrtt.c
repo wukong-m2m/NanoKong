@@ -503,6 +503,13 @@ void register_senddata_ack_callback(void (*f)(void *data,int r), void *data)
 	senddata_ack_callback_data = data;
 }
 
+//Added discover call back function- Sen 2011.8.8
+void register_discover_callback(void (*f)(void *data,int r), void *data)
+{
+	senddata_ack_callback = f;
+	senddata_ack_callback_data = data;
+}
+
 void register_class_callback(int class,void (*f)(void *data, void *payload,int len), void *data)
 {
 	class_callback[class] = f;
@@ -2642,6 +2649,7 @@ void zwavecmd_manufacture_get(unsigned int id)
 }
 int zlen;
 unsigned char zdata[256];
+char init_data_buf[256]={0};
 int zdataptr;
 int curcmd;
 int zwave_init()
@@ -2797,18 +2805,25 @@ void dumpInitData()
 	else
 		printf("Timer is not available\n");
 	len=zdata[2];
+	//init_data_buf, init_data_buf_ptr added for node discovery Sen 12.8.8
+	int init_data_buf_ptr=1;
 	for(i=0;i<len;i++) {
 		int mask = 1,j;
 		printf("%03d: ",i*8);
 		for(j=0;j<8;j++) {
-			if (zdata[3+i]&mask)
+			if (zdata[3+i]&mask){
 				printf("X");
-			else
+				init_data_buf[init_data_buf_ptr]=i*8+j+1;
+				init_data_buf_ptr+=1;
+			}
+			else{
 				printf(" ");
+			}
 			mask <<=1;
 		}
 		printf("\n");
 	}
+	init_data_buf[0]=init_data_buf_ptr-1;	//init_data_buf[0] stores the number of nodes(including self) in zwave
 }
 void dumpBasicType(int bt)
 {
@@ -4304,13 +4319,13 @@ int PyZwave_receiveByte(int wait_msec) {
 	zwave_check_state(c);
   return 1;
 }
-
+unsigned int zwave_my_address;
 int PyZwave_receive(int wait_msec) {
 	int tmpBytesReceived;
 
 	while(PyZwave_bytesReceived == 0) {
 	  if (!PyZwave_receiveByte(wait_msec)) {
-      break; // No data received.
+      	break; // No data received.
 	  }
 	}
   tmpBytesReceived = PyZwave_bytesReceived;
@@ -4343,4 +4358,44 @@ int PyZwave_send(unsigned id,unsigned char *in,int len) {
     printf("Transmit failed: %i\n", PyZwave_senddataAckReceived);
     return -1;
   }
+}
+
+
+//discover - Sen 12.8.8
+
+void PyZwave_discover_ack_cb(void * data, int txStatus) //TODO: this function is not called, why??????!
+{
+	int i=0;
+  PyZwave_senddataAckReceived = txStatus;
+	for(i=0;i<10;++i){
+//		init_data_buf[i]=zdata[i];
+		printf("buf%d: %d", i, init_data_buf[i]);
+	}
+
+
+}
+void PyZwave_discover(){
+	int i=0;
+	PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+	register_discover_callback(PyZwave_discover_ack_cb, NULL);
+	printf("calling GetInitData!");
+	ZW_GetInitData();
+	while (1) {
+		if (!PyZwave_receiveByte(1000)) {
+	      break; // No data received.
+		}
+		if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+	      break; // Ack or error received.
+	  }
+	
+	ZW_MemoryGetID();
+	while (1) {
+		if (!PyZwave_receiveByte(1000)) {
+	      break; // No data received.
+		}
+		if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+	      break; // Ack or error received.
+	  }
+	 zwave_my_address = zdata[4];
+	printf("my zwave address: %d\n", zdata[4]);
 }
