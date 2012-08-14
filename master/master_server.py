@@ -8,8 +8,10 @@ import hashlib
 from xml.dom.minidom import parse
 from threading import Thread
 import time
+import re
 import StringIO
 import shutil, errno
+from subprocess import Popen, PIPE, STDOUT
 
 if len(sys.argv) == 2:
   IP = sys.argv[1]
@@ -17,13 +19,20 @@ else:
   IP = ''
 ALLOWED_EXTENSIONS = set(['bog'])
 TARGET = 'HAScenario1'
-ROOT_PATH = '..'
+ROOT_PATH = os.path.abspath('..')
 APP_DIR = os.path.join(ROOT_PATH, 'vm', 'apps')
 BASE_DIR = os.path.join(APP_DIR, 'base')
 #XML_PATH = os.path.join(ROOT_PATH, 'Applications')
 IP = '127.0.0.1'
 if len(sys.argv) >= 2:
   IP = sys.argv[1]
+
+NORMAL = 'NORMAL'
+URGENT = 'URGENT'
+CRITICAL = 'CRITICAL'
+
+OK = 0
+NOTOK = 1
 
 applications = []
 worker = None
@@ -45,31 +54,16 @@ def getAppIndex(app_id):
   global applications
   # make sure it is not unicode
   app_id = app_id.encode('ascii','ignore')
-  print 'getAppIndex'
   for index, app in enumerate(applications):
     if app.id == app_id:
-      print 'found'
-      print repr(app.id)
-      print repr(app_id)
       return index
   return None
-
-def statusString(status):
-  if len(status) == 0:
-    return 'uploading...'
-  elif len(status) == 1:
-    return 'extracting...'
-  elif len(status) == 2:
-    return 'converting...'
-  elif len(status) == 3:
-    return 'compiling...'
-  elif len(status) == 4:
-    return 'done'
 
 def delete_application(i):
   global applications
   try:
-    os.system('rm -rf ' + applications[i].dir)
+    shutil.rmtree(applications[i].dir)
+    #os.system('rm -rf ' + applications[i].dir)
     applications.pop(i)
     return True
   except Exception as e:
@@ -98,11 +92,8 @@ def update_applications():
       application_basenames = [os.path.basename(app.dir) for app in applications]
 
 class Worker:
-  # bog is the bog archive file object
-  # target is the target application name (e.g. HAScenario1)
-  # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
-  # XML_PATH is the output of the compiled wukong xml
-  def bog_compiler(app_path, bog, target, platforms):
+  # Deprecated?
+  def bog_compiler(self, app_path, bog, target, platforms):
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
       os.chdir(platform_dir)
@@ -117,20 +108,27 @@ class Worker:
   # xml is the wukong xml string
   # target is the target application name (e.g. HAScenario1)
   # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
-  def compiler(app_path, xml, target, platforms):
+  def compiler(self, app, platforms):
+    app_path = app.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
       os.chdir(platform_dir)
-      f = open(target + '.xml', 'w')
-      f.write(xml)
-      f.close()
-      # TODO: return error for comamnds
-      os.system('make application FLOWXML=%s DISCOVERY_FLAGS=-H' % (target))
+      print 'changing to path: %s...' % platform_dir
+      pp = Popen('make application FLOWXML=%s DISCOVERY_FLAGS=-H' % (app.id), shell=True, stdout=PIPE, stderr=STDOUT)
+      app.status = -1
+      while pp.poll() == None:
+        print 'polling from popen...'
+        line = pp.stdout.readline()
+        if line != '':
+          app.appendCompileLog(line, NORMAL)
+        app.version += 1
+      app.status = pp.returncode
+      print 'compiler done'
 
   # target is the target application name (e.g. HAScenario1)
   # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
   # XML_PATH is the output of the compiled wukong xml
-  def deployer(app_path, target, platforms):
+  def deployer(self, app_path, target, platforms):
     for platform in platforms:
       os.chdir(os.path.join(app_path, platform))
       # TODO: return error for commands
@@ -156,15 +154,73 @@ class Worker:
 
 
 class Application:
-  def __init__(self, id='', name='', desc='', factory='', file='', dir=''):
+  def __init__(self, id='', name='', desc='', file='', dir=''):
     self.id = id
     self.name = name
     self.desc = desc
-    self.factory = factory
     self.file = file
     self.xml = ''
     self.dir = dir
-    self.status = []
+    self.compiler = None
+    self.version = 0
+    self.status = NOTOK
+
+  def appendCompileLog(self, line, tag):
+    print 'appendCompileLog'
+    if not os.path.exists(os.path.join(self.dir, 'compile.log')):
+      curpath = os.path.abspath(os.curdir)
+      f = open(os.path.join(self.dir, 'compile.log'), 'w')
+    else:
+      f = open(os.path.join(self.dir, 'compile.log'), 'a')
+    f.write("[%s] %s" % (tag, line))
+    f.close
+
+  def clearLog(self):
+    print 'clearLog'
+    if os.path.exists(os.path.join(self.dir, 'compile.log')):
+      try:
+        os.remove(os.path.join(self.dir, 'compile.log'))
+      except Exception as e:
+        print e
+
+  # the format for the log should be [TAG] Detailed messages for the bug.
+  # filter matches the corresponding TAG
+  # TAG = NORMAL, URGENT, CRITICAL
+  def compileLog(self, filter):
+    print 'compileLog'
+    lines = []
+    if os.path.exists(os.path.join(self.dir, 'compile.log')):
+      f = open(os.path.join(self.dir, 'compile.log'))
+      for line in f.readlines():
+        line = line.strip()
+        m = re.search('^\[(.*)\]', line)
+        if m and m.group(1) == filter:
+          lines.append(line)
+    return lines
+
+  # the format for the log should be [TAG] Detailed messages for the bug.
+  # filter matches the corresponding TAG
+  # TAG = NORMAL, URGENT, CRITICAL
+  def deployLog(self, filter):
+    print 'deployLog'
+    lines = []
+    if os.path.exists(os.path.join(self.dir, 'deploy.log')):
+      f = open(os.path.join(self.dir, 'deploy.log'))
+      for line in f.readlines():
+        line = line.strip()
+        m = re.search('^\[(.*)\]', line)
+        if m.group(1) == filter:
+          lines.append(line)
+    return lines
+
+  def updateXML(self, xml):
+    print 'updateConfig'
+    self.xml = xml
+    self.saveConfig()
+    self.clearLog()
+    f = open(os.path.join(self.dir, self.id + '.xml'), 'w')
+    f.write(xml)
+    f.close()
 
   def loadConfig(self):
     print 'loadConfig'
@@ -176,17 +232,14 @@ class Application:
     self.xml = config['xml']
 
   def saveConfig(self):
+    print 'saveConfig'
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
-
-  def setupFactory(self):
-    self.worker = Thread(target=self.factory, args=(self.file, self.status))
-    self.worker.start()
 
   def getStatus(self):
     return statusString(self.status)
 
   def config(self):
-    return {'id': self.id, 'name': self.name, 'desc': self.desc, 'dir': self.dir, 'xml': self.xml}
+    return {'id': self.id, 'name': self.name, 'desc': self.desc, 'dir': self.dir, 'xml': self.xml, 'version': self.version}
 
   def __repr__(self):
     return json.dumps(self.config())
@@ -274,7 +327,7 @@ class application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      app = repr(applications[app_ind])
+      app = applications[app_ind].config()
       #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
       topbar = template.Loader('.').load('templates/topbar.html').generate(application=applications[app_ind])
       self.content_type = 'application/json'
@@ -335,6 +388,19 @@ class deploy_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':0})
 
+class poll_fbp(tornado.web.RequestHandler):
+  def post(self, app_id):
+    global applications
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      while applications[app_ind].version == self.get_argument('version'):
+        continue
+      self.content_type = 'application/json'
+      self.write({'status':0, 'version': applications[app_ind].version, 'compile_status': applications[app_ind].status, 'normal': applications[app_ind].compileLog(NORMAL), 'error': {'critical': applications[app_ind].compileLog(CRITICAL), 'urgent': applications[app_ind].compileLog(URGENT)}})
+
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
@@ -343,18 +409,16 @@ class save_fbp(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      applications[app_ind].xml = self.get_argument('xml')
-      applications[app_ind].saveConfig()
-      target = self.get_argument('target')
+      applications[app_ind].updateXML(self.get_argument('xml'))
+      # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
-      # TODO: need platforms from fbp
 
-      self.compiler = Thread(target=Worker.compiler, args=(application[app_ind].dir, applications[app_ind].xml, target, platforms))
-      self.compiler.start()
+      applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], platforms,))
+      applications[app_ind].compiler.start()
 
       self.content_type = 'application/json'
-      self.write({'status':0})
+      self.write({'status':0, 'version': applications[app_ind].version})
 
 class load_fbp(tornado.web.RequestHandler):
   def get(self, app_id):
@@ -368,7 +432,7 @@ class load_fbp(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       self.content_type = 'application/json'
-      self.write({'status':0, 'xml':applications[app_ind].xml})
+      self.write({'status':0, 'xml': applications[app_ind].xml})
 
 class return_status(tornado.web.RequestHandler):
   def post(self):
@@ -396,6 +460,7 @@ app = tornado.web.Application([
   (r"/application/([a-fA-F\d]{32})/deploy", deploy_application),
   (r"/application/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/application/([a-fA-F\d]{32})/fbp/load", load_fbp),
+  (r"/application/([a-fA-F\d]{32})/fbp/poll", poll_fbp),
   #(r"/application/([0-9]+)/fbp/load", load_fbp),
   (r"/status", return_status)
 ], IP, debug=True, **settings)

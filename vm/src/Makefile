@@ -39,12 +39,14 @@ else
 ./nvmfile.d: ./nvmdefault.h Makefile
 endif
 
-$(DEFAULT_CLASS): $(JAVA_FILES)
+$(DEFAULT_FILE):
 ifdef FLOWXML
-	$(ROOT_DIR)/tools/xml2java/translator.py -c "$(COMPONENTXML_PATH)" -f "$(FLOWXML_DIR)/$(FLOWXML).xml" -o "$(ROOT_DIR)/java/examples" $(DISCOVERY_FLAGS)
-	cp "$(FLOWXML_DIR)/$(FLOWXML).xml" "$(CURDIR)/currentFlow.xml"
-	cp "$(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml" "$(CURDIR)/currentMapping.xml"
+	$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
+	cp $(FLOWXML_DIR)/$(FLOWXML).xml $(CURDIR)/currentFlow.xml
+	cp $(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml $(CURDIR)/currentMapping.xml
 endif
+
+$(DEFAULT_CLASS): $(JAVA_FILES)
 	-mkdir -p $(CLASSES_PATH)
 	javac -d $(CLASSES_PATH) $^
 	#javac -classpath "$(NANOVM_PATH)$(PATH_SEP)$(EXAMPLES_PATH)" $^
@@ -60,8 +62,8 @@ nvmdefault.h: $(DEFAULT_CLASS)
 
 # convert and upload a class file
 upload-%: $(ROOT_DIR)/java/examples/%.java
-	javac -classpath "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $(ROOT_DIR)/java/examples/$*.java
-	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/$(CONFIG) "$(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples" $*
+	javac -classpath $(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples $(ROOT_DIR)/java/examples/$*.java
+	java -jar $(ROOT_DIR)/nanovmtool/NanoVMTool.jar $(ROOT_DIR)/nanovmtool/config/$(CONFIG) $(ROOT_DIR)/java$(PATH_SEP)$(ROOT_DIR)/java/examples $*
 
 %.o: $(NVM_DIR)/%.c Makefile
 	$(CC) $(CFLAGS) -c $< -o $@

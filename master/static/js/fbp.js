@@ -8,7 +8,7 @@ var id=window.location.href;
 var f=id.split("/");
 id = f[4];
 $.post("/application/"+id, function(r) {
-	g_filename = r.app.name;
+	g_filename = r.app.id;
 });
 $(document).ready(function() {
 	$('#client').append('<div id=toolbar></div>');
@@ -63,6 +63,8 @@ $(document).ready(function() {
 	$('#fileloader').dialog({autoOpen:false});
 	$('#fileloader_file').val('fbp.sce');
 	FBP_loadFromServer(id);
+    window.progress = $('#progress');
+    $('#progress').dialog({autoOpen:false, modal:true, width:'auto'});
 });
 
 function FBP_fillBlockType(div)
@@ -171,8 +173,31 @@ function FBP_save()
 	$.ajax({
 		url:'/application/'+id+'/fbp/save',
 		data: {xml:data},
-		type:'POST'
+		type:'POST',
+        success: function(data) {
+            window.progress.dialog('open');
+            FBP_waitSaveDone(id, data.version);
+        }
 	});
+}
+
+function FBP_waitSaveDone(id, version)
+{
+    $.post('/application/'+id+'/fbp/poll', {version: version}, function(data) {
+        $('#progress #compile_status').html('<p>' + data.compile_status + '</p>');
+        $('#progress #normal').html('<h2>NORMAL</h2><pre>' + data.normal.join('\n') + '</pre>');
+        $('#progress #urgent_error').html('<h2>URGENT</h2><pre>' + data.error.urgent.join('\n') + '</pre>');
+        $('#progress #critical_error').html('<h2>CRITICAL</h2><pre>' + data.error.critical.join('\n') + '</pre>');
+
+        if (data.compile_status < 0) {
+            FBP_waitSaveDone(id, data.version);
+        }
+        else {
+            $('#progress').dialog({buttons: {Ok: function() {
+                $(this).dialog('close');
+            }}})
+        }
+    });
 }
 
 function FBP_parseXML(r)
