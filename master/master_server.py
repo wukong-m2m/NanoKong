@@ -390,11 +390,11 @@ class application(tornado.web.RequestHandler):
 
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
-    #wkpfcomm.init(0, debug=True)
-    #node_ids = wkpfcomm.getNodeIds()
+    wkpfcomm.init(0, debug=True)
+    node_ids = wkpfcomm.getNodeIds()
 
     # debug purpose
-    node_ids = [3, 4, 1, 2]
+    #node_ids = [3, 4, 1, 2]
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:
