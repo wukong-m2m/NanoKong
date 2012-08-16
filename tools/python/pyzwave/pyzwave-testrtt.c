@@ -2654,6 +2654,7 @@ int zdataptr;
 int curcmd;
 int zwave_init()
 {
+  printf("zwave_init");
 #ifndef _WIN32		
 	struct termios newtio;
 #endif //_WIN32		
@@ -2661,6 +2662,7 @@ int zwave_init()
 	struct hostent *host;
 
 	if (g_host) {
+    printf("g_host");
 		if((zwavefd=socket(AF_INET,SOCK_STREAM,0))==-1) {
 			perror("socket");
 			exit(-1);
@@ -2677,6 +2679,7 @@ int zwave_init()
 			exit(-1);
 		}
 	} else {
+    printf("not g_host");
 #ifdef _WIN32		
 		return 0;
 #else //_WIN32		
@@ -4286,9 +4289,13 @@ void PyZwave_proprietary_class_cb(int src, void * payload, int len) {
 }
 
 int PyZwave_init(char *host) {
+  printf("inside PyZwave_init\n");
   g_host = host;
-    txoptions |= TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE;
+  printf("g_host\n");
+  txoptions |= TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE;
+  printf("txoptions\n");
   register_persistent_class_callback(COMMAND_CLASS_PROPRIETARY, PyZwave_proprietary_class_cb);
+  printf("register_persistent_class_callback\n");
   return zwave_init();
 }
 

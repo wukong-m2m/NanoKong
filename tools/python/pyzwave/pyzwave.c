@@ -48,12 +48,15 @@ static PyObject* pyzwave_receive(PyObject *self, PyObject *args) {
 static PyObject* pyzwave_init(PyObject *self, PyObject *args) {
   char *host;
   
+  printf("pyzwave_init\n");
   if (!PyArg_ParseTuple( args, "s", &host))
     return NULL;
+  printf("PyArg_ParseTuple\n");
   if (PyZwave_init(host) < 0) {
     PyErr_SetString(PyExc_IOError, "Call to zwave_init failed.");
     return NULL;
   }
+  printf("PyZwave_init\n");
 
   initialised = 1;
   Py_RETURN_NONE;

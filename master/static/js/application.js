@@ -132,8 +132,40 @@ function deploy_show(page, id)
     });
 
     $('#content #deploy').click(function() {
-        $.post('/application/' + id + '/deploy', function(data) {
-            //TODO
-        });
+        if ($('#content input').length == 0) {
+            alert('The master cannot detect any nearby deployable nodes. Please move them in range of the basestation and try again.');
+        } else if ($('#content input[type="checkbox"]:checked').length == 0) {
+            alert('Please select at least one node');
+        } else {
+            var nodes = new Array();
+            nodes = _.map($('#content input[type="checkbox"]:checked'), function(elem) {
+                return parseInt($(elem).val(), 10);
+            });
+
+            console.log(nodes);
+
+            $.post('/application/' + id + '/deploy', {selected_node_ids: nodes}, function(data) {
+                deploy_poll(id, data.version);
+            });
+        }
+    });
+}
+
+function deploy_poll(id, version)
+{
+    $.post('/application/'+id+'/deploy/poll', {version: version}, function(data) {
+        $('#progress #compile_status').html('<p>' + data.deploy_status + '</p>');
+        $('#progress #normal').html('<h2>NORMAL</h2><pre>' + data.normal.join('\n') + '</pre>');
+        $('#progress #urgent_error').html('<h2>URGENT</h2><pre>' + data.error.urgent.join('\n') + '</pre>');
+        $('#progress #critical_error').html('<h2>CRITICAL</h2><pre>' + data.error.critical.join('\n') + '</pre>');
+
+        if (data.compile_status < 0) {
+            deploy_poll(id, data.version);
+        }
+        else {
+            $('#progress').dialog({buttons: {Ok: function() {
+                $(this).dialog('close');
+            }}})
+        }
     });
 }

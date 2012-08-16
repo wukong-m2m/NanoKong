@@ -38,6 +38,7 @@ def getNodeList(options):
 
   if options.do_discovery:
     import wkpfcomm
+    wkpfcomm.init(0)
     node_list = wkpfcomm.getNodeInfos();
   elif options.use_hardcoded_discovery:
     node1 = NodeInfo(nodeId=1,

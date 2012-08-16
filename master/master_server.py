@@ -13,6 +13,9 @@ import StringIO
 import shutil, errno
 from subprocess import Popen, PIPE, STDOUT
 
+sys.path.append(os.path.abspath("../tools/python"))
+import wkpfcomm
+
 if len(sys.argv) == 2:
   IP = sys.argv[1]
 else:
@@ -109,6 +112,7 @@ class Worker:
   # target is the target application name (e.g. HAScenario1)
   # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
   def compiler(self, app, platforms):
+    app.clearLog()
     app_path = app.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
@@ -129,12 +133,14 @@ class Worker:
   # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
   # XML_PATH is the output of the compiled wukong xml
   def deployer(self, app, ports, platforms):
+    app.clearLog()
     app_path = app.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
       os.chdir(platform_dir)
       print 'changing to path: %s...' % platform_dir
       for port in ports:
+        print 'deploying to node: %d' % (port)
         pp = Popen('make nvmcomm_reprogram NODE_ID=%d' % (port), shell=True, stdout=PIPE, stderr=STDOUT)
         app.status = -1
         while pp.poll() == None:
@@ -144,6 +150,7 @@ class Worker:
             app.appendCompileLog(line, NORMAL)
           app.version += 1
         app.status = pp.returncode
+      print 'deployer done'
 
   # Deprecated
   def factory(self, file, status):
@@ -383,8 +390,12 @@ class application(tornado.web.RequestHandler):
 
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
+    #wkpfcomm.init(0, debug=True)
     #node_ids = wkpfcomm.getNodeIds()
-    node_ids = []
+
+    # debug purpose
+    node_ids = [3, 4, 1, 2]
+
     app_ind = getAppIndex(app_id)
     if app_ind == None:
       self.content_type = 'application/json'
@@ -396,6 +407,9 @@ class deploy_application(tornado.web.RequestHandler):
 
   def post(self, app_id):
     global applications
+    print self.request.arguments
+    selected_node_ids = [int(id) for id in self.request.arguments.get('selected_node_ids[]')]
+    print selected_node_ids
     app_ind = getAppIndex(app_id)
     if app_ind == None:
       self.content_type = 'application/json'
@@ -404,11 +418,25 @@ class deploy_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-      applications[app_ind].deployer = Thread(target=Worker().deployer, args=(application[app_ind], ports, platforms))
-      applications[app_ind].deployer.start()
+      if len(selected_node_ids) > 0:
+        applications[app_ind].deployer = Thread(target=Worker().deployer, args=(applications[app_ind], selected_node_ids, platforms))
+        applications[app_ind].deployer.start()
 
       self.content_type = 'application/json'
-      self.write({'status':0})
+      self.write({'status':0, 'version': applications[app_ind].version})
+
+class poll_deployer(tornado.web.RequestHandler):
+  def post(self, app_id):
+    global applications
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      while applications[app_ind].version == self.get_argument('version'):
+        continue
+      self.content_type = 'application/json'
+      self.write({'status':0, 'version': applications[app_ind].version, 'deploy_status': applications[app_ind].status, 'normal': applications[app_ind].compileLog(NORMAL), 'error': {'critical': applications[app_ind].compileLog(CRITICAL), 'urgent': applications[app_ind].compileLog(URGENT)}})
 
 class poll_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
@@ -456,21 +484,49 @@ class load_fbp(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':0, 'xml': applications[app_ind].xml})
 
-settings = {
-  "static_path": os.path.join(os.path.dirname(__file__), "static")
-}
+class ex_testrtt(tornado.web.RequestHandler):
+  def post(self, app_id):
+    global applications
+    nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
+    # TODO:call testrtt functions, could be exposed by wkpfcomm
+    if status:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot exclude this device.'})
+    else:
+      self.content_type = 'application/json'
+      self.write({'status':0})
+
+class in_testrtt(tornado.web.RequestHandler):
+  def post(self, app_id):
+    global applications
+    nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
+    # TODO:call testrtt functions, could be exposed by wkpfcomm
+    if status:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot include this device.'})
+    else:
+      self.content_type = 'application/json'
+      self.write({'status':0})
+
+settings = dict(
+  static_path=os.path.join(os.path.dirname(__file__), "static"),
+  debug=True
+)
 
 app = tornado.web.Application([
   (r"/", main),
   (r"/main", main),
+  (r"/testrtt/exclude", ex_testrtt),
+  (r"/testrtt/include", in_testrtt),
   (r"/application/json", list_applications),
   (r"/application/new", new_application),
   (r"/application/([a-fA-F\d]{32})", application),
   (r"/application/([a-fA-F\d]{32})/deploy", deploy_application),
+  (r"/application/([a-fA-F\d]{32})/deploy/poll", poll_deployer),
   (r"/application/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/application/([a-fA-F\d]{32})/fbp/load", load_fbp),
   (r"/application/([a-fA-F\d]{32})/fbp/poll", poll_fbp)
-], IP, debug=True, **settings)
+], IP, **settings)
 
 if __name__ == "__main__":
   app.listen(5000)

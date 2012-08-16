@@ -1,0 +1,33 @@
+<script>
+  var current_application = "{{ app.id }}";
+</script>
+
+<button id="back">Back</button>
+
+<p>
+  <h1>
+    <label>Name</label>
+    {{ app.name }}
+    ({{ app.id}})
+  </h1>
+
+  <p>
+    {% for node_id in node_ids %}
+    <p>
+      <label>Node id: {{ node_id }}</label>
+      <input type="checkbox" id="{{ node_id }}" name="target_group" value="{{ node_id }}" />
+    </p>
+    {% end %}
+    {% if len(node_ids) == 0 %}
+    <p>
+      <h2>No nodes have been detected, please move them closer to places which the basestation has line of sight of the nodes and try again.</h2>
+    </p>
+    {% end %}
+  </p>
+
+  <p>
+    <button id="deploy">Deploy</button>
+  </p>
+
+  <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
+</p>
