@@ -24,8 +24,10 @@ else:
 #TARGET = 'HAScenario1'
 #XML_PATH = os.path.join(ROOT_PATH, 'Applications')
 ROOT_PATH = os.path.abspath('..')
+TESTRTT_PATH = os.path.join(ROOT_PATH, 'tools', 'python', 'pyzwave')
 APP_DIR = os.path.join(ROOT_PATH, 'vm', 'apps')
 BASE_DIR = os.path.join(APP_DIR, 'base')
+MASTER_IP = '10.3.36.231'
 IP = '127.0.0.1'
 if len(sys.argv) >= 2:
   IP = sys.argv[1]
@@ -483,28 +485,46 @@ class load_fbp(tornado.web.RequestHandler):
       self.write({'status':0, 'xml': applications[app_ind].xml})
 
 class ex_testrtt(tornado.web.RequestHandler):
-  def post(self, app_id):
+  def post(self):
     global applications
-    nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
-    # TODO:call testrtt functions, could be exposed by wkpfcomm
-    if status:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot exclude this device.'})
-    else:
-      self.content_type = 'application/json'
-      self.write({'status':0})
+    #nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
+    log = []
+    pp = Popen('cd %s; ./testrtt host %s network delete' % (TESTRTT_PATH, MASTER_IP), shell=True, stdout=PIPE, stderr=STDOUT)
+    while pp.poll() == None:
+      print 'polling from popen...'
+      line = pp.stdout.readline()
+      if line != '':
+        log.append(line)
+    log.append(str(pp.returncode))
+    log = '\n'.join(log)
+
+    self.content_type = 'application/json'
+    self.write({'status':0, 'log':log})
 
 class in_testrtt(tornado.web.RequestHandler):
-  def post(self, app_id):
+  def post(self):
     global applications
-    nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
-    # TODO:call testrtt functions, could be exposed by wkpfcomm
-    if status:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot include this device.'})
-    else:
-      self.content_type = 'application/json'
-      self.write({'status':0})
+    #nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
+    log = []
+    pp = Popen('cd %s; ./testrtt host %s network add' % (TESTRTT_PATH, MASTER_IP), shell=True, stdout=PIPE, stderr=STDOUT)
+    while pp.poll() == None:
+      print 'polling from popen...'
+      line = pp.stdout.readline()
+      if line != '':
+        log.append(line)
+    log.append(str(pp.returncode))
+    log = '\n'.join(log)
+
+    self.content_type = 'application/json'
+    self.write({'status':0, 'log':log})
+
+class testrtt(tornado.web.RequestHandler):
+  def get(self):
+    #wkpfcomm.init(0, debug=True)
+    #node_ids = wkpfcomm.getNodeIds()
+    testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the include or exclude button on the nodes.'])
+    self.content_type = 'application/json'
+    self.write({'status':0, 'testrtt':testrtt})
 
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
@@ -516,6 +536,7 @@ app = tornado.web.Application([
   (r"/main", main),
   (r"/testrtt/exclude", ex_testrtt),
   (r"/testrtt/include", in_testrtt),
+  (r"/testrtt", testrtt),
   (r"/application/json", list_applications),
   (r"/application/new", new_application),
   (r"/application/([a-fA-F\d]{32})", application),

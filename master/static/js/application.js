@@ -8,13 +8,26 @@ function application_init()
     obj = $('#menu');
     obj.empty();
     obj.append('<button id=appadd class=appadd></button>')
-    obj.click(function() {
+    obj.find('#appadd').click(function() {
         $.post('/application/new', function(data) {
             if (data.status == '1') {
                 alert(data.mesg);
             }
             else {
                 application_fill();
+            }
+        });
+    });
+
+    obj.append('<button id=zwave class=zwave></button>')
+    obj.find('#zwave').click(function() {
+        $.get('/testrtt', function(data) {
+            if (data.status == '1') {
+                alert(data.mesg);
+            }
+            else {
+                $('#content').html(data.testrtt);
+                setup_testrtt();
             }
         });
     });
@@ -37,6 +50,25 @@ function application_init()
     */
 }
 
+function setup_testrtt()
+{
+    // testrtt page
+    $('#content #back').click(function() {
+        application_fill();
+    });
+
+    $('#content #include').click(function() {
+        $.post('/testrtt/include', function(data) {
+            $('#log').html(data.log);
+        });
+    });
+
+    $('#content #exclude').click(function() {
+        $.post('/testrtt/exclude', function(data) {
+            $('#log').html(data.log);
+        });
+    });
+}
 
 function application_fill()
 {
