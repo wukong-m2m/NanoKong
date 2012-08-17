@@ -129,6 +129,7 @@ def init(option):
     global pymodule
     if option == 0:
         pyzwave.init("10.3.36.231")
+  #      pyzwave.init("192.168.2.1")
         pymodule = pyzwave
     elif option == 1:
         pyzigbee.init()

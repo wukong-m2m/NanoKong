@@ -2652,6 +2652,23 @@ unsigned char zdata[256];
 char init_data_buf[256]={0};
 int zdataptr;
 int curcmd;
+
+/** Returns true on success, or false if there was an error */
+int SetSocketBlockingEnabled(int fd, int blocking)
+{
+   if (fd < 0) return 0;
+
+#ifdef _WIN32
+   unsigned long mode = blocking ? 0 : 1;
+   return (ioctlsocket(fd, FIONBIO, &mode) == 0) ? 1 : 0;
+#else
+  int flags = fcntl(fd, F_GETFL, 0);
+  if (flags < 0) return 0;
+  flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
+  return (fcntl(fd, F_SETFL, flags) == 0) ? 1 : 0;
+#endif
+}
+
 int zwave_init()
 {
 #ifndef _WIN32		
@@ -2659,7 +2676,6 @@ int zwave_init()
 #endif //_WIN32		
 	struct sockaddr_in server_addr;
 	struct hostent *host;
-
 	if (g_host) {
 		if((zwavefd=socket(AF_INET,SOCK_STREAM,0))==-1) {
 			perror("socket");
@@ -2672,8 +2688,12 @@ int zwave_init()
 		server_addr.sin_family=AF_INET;
 		server_addr.sin_port=htons(1001);
 		server_addr.sin_addr=*((struct in_addr *)host->h_addr); 
+	//	int ret_val = SetSocketBlockingEnabled(zwavefd, 0);
+	//	printf("blocking or not? %d\n", ret_val);
+		
 		if(connect(zwavefd,(struct sockaddr *)(&server_addr),sizeof(struct sockaddr))==-1) {
 			perror("connect");
+			return -1;
 			exit(-1);
 		}
 	} else {
@@ -4375,7 +4395,6 @@ void PyZwave_discover_ack_cb(void * data, int txStatus) //TODO: this function is
 
 }
 void PyZwave_discover(){
-	int i=0;
 	PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
 	register_discover_callback(PyZwave_discover_ack_cb, NULL);
 	printf("calling GetInitData!");

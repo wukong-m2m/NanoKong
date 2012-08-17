@@ -10,7 +10,13 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from wkpf import NodeInfo, WuClass, WuObject
 import pickle
-from xml.dom.minidom import parse
+from xml.dom.minidom import parse 
+from inspector import readNodeInfo
+from locationTree import *
+from URLParser import *
+import wkpfcomm
+from inspector import *
+from optparse import OptionParser
 
 ## print flag for parsed files
 print_wuClasses = False
@@ -37,16 +43,16 @@ def getNodeList(options):
     exit(1)
 
   if options.do_discovery:
-    import wkpfcomm
+
     node_list = wkpfcomm.getNodeInfos();
   elif options.use_hardcoded_discovery:
     node1 = NodeInfo(nodeId=1,
                      wuClasses=(WuClass(nodeId=1, wuClassId=0, isVirtual=False),
                                 WuClass(nodeId=1, wuClassId=3, isVirtual=False),
                                 WuClass(nodeId=1, wuClassId=5, isVirtual=False)), # generic, threshold, numeric_controller, light_sensor
-                     wuObjects=(WuObject(nodeId=1, portNumber=0, wuClassId=0),
-                                WuObject(nodeId=1, portNumber=1, wuClassId=3),
-                                WuObject(nodeId=1, portNumber=2, wuClassId=5))) # numeric_controller at port 1, light sensor at port 2
+                     wuObjects=(WuObject(nodeId=3, portNumber=0, wuClassId=0),
+                                WuObject(nodeId=3, portNumber=1, wuClassId=3),
+                                WuObject(nodeId=3, portNumber=2, wuClassId=5))) # numeric_controller at port 1, light sensor at port 2
     node3 = NodeInfo(nodeId=3,
                      wuClasses=(WuClass(nodeId=3, wuClassId=0, isVirtual=False),
                                 WuClass(nodeId=3, wuClassId=1, isVirtual=False),
@@ -74,23 +80,11 @@ def indentor(s, num):
 
 
 #making dictionaries, generate [Application].class
-def parser():
-    # program argument handler by OptionParser module
-    from optparse import OptionParser
-    parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-c", "--component", action="store", type="string", dest="pathc", help="WuKong Component XML file path")
-    parser.add_option("-f", "--flow", action="store", type="string", dest="pathf", help="WuKong Flow XML file path")
-    parser.add_option("-o", "--output-path", action="store", type="string", dest="out", help="the dest. folder path of output java file")
-    parser.add_option("-d", "--discovery-result", action="store", type="string", dest="discovery_file", help="The file containing the discovery result. Will be read if -D isn't specified, or created/overwritten if -D is specified. Either -D, -H, -d or both must be used.")
-    parser.add_option("-D", "--do-discovery", action="store_true", dest="do_discovery", help="Do a new discovery of the network nodes. If a discovery file is specified using -d, the result will be stored there for future use. Either -D, -H, -d or both must be used.")
-    parser.add_option("-H", "--use-hardcoded-discovery", action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
-    (options, args) = parser.parse_args()
-    if not options.pathc or not options.pathf: parser.error("invalid component and flow xml, please refer to -h for help")
-
+def xmlparser():
     # get discovery result
     node_list = getNodeList(options)
 
-    # parse out java class name from flow xml dom 
+    # parse out java class name from flow.xml dom, using xml.dom.minidom.parse 
     f_dom = parse(options.pathf)
     java_class_name = f_dom.getElementsByTagName('application')[0].getAttribute('name')
 
@@ -178,7 +172,7 @@ def parser():
             else:
                 assert False, 'Error! property %s of unknown type %s in xml %s' % (prop_name, prop_type, path)
             tmp_dflt_list += [(prop_name, prop_dflt_value)]
-
+        print "instanceName" + str(wuClasses_dict.keys())
         components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list, 'cmpname':instanceName }
         if print_Components:
           print>>out_fd, "//", i, instanceName, components_dict[instanceName]
@@ -229,15 +223,19 @@ def parser():
     #   'defaults': a list of tuples [ ( property's name, property's default value(int or bool value) ) ]
     # }
 
-def mapper(wuClasses_dict, components_dict, node_list):
+def mapper(wuClasses_dict, components_dict, node_list, locationTree, queries):
     # find nodes
     hard_dict = {}
     soft_dict = {}
     node_port_dict = {}
     for node in node_list:
+        if node.isResponding == False:
+            print "node "+str(node.nodeId) +"is not responding"
+            continue
         for wuObject in node.nativeWuObjects:
             assert wuObject.wuClassId in node.nativeWuClasses, 'Error! the wuClass of wuObject %s does not exist on node %d' % (wuObject, node.nodeId)
             node_port_dict.setdefault(node.nodeId, []).append(wuObject.portNumber)
+            print "appending nodeId to hard_dict: "+ str(node.nodeId)
             hard_dict.setdefault(wuObject.wuClassId, []).append( (node.nodeId, wuObject.portNumber) )
 
         print node.nativeWuClasses
@@ -378,8 +376,58 @@ public class {{ CLASS_NAME }} {
     print>>out_fd, rendered_tpl
 
 if __name__ == "__main__":
-    java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = parser()
-    map_table, comp_init, map_table_xml = mapper(wuClasses_dict, components_dict, node_list)
-    javacodegen(links_table, map_table, comp_init, java_class_name)
-    print>>out_xml_fd, "<ComponentToNodeMapping>\n%s</ComponentToNodeMapping>" % (map_table_xml)
-    print "Translator msg: the file %s.java generated is on the path %s" % (java_class_name, out_dir)
+	
+#Sen Zhou 12.8.14 Move arg parser from parser() to main() here
+   # program argument handler by OptionParser module
+	parser = OptionParser("usage: %prog [options]")
+	parser.add_option("-c", "--component", action="store", type="string", dest="pathc", help="WuKong Component XML file path")
+	parser.add_option("-f", "--flow", action="store", type="string", dest="pathf", help="WuKong Flow XML file path")
+	parser.add_option("-o", "--output-path", action="store", type="string", dest="out", help="the dest. folder path of output java file")
+	parser.add_option("-d", "--discovery-result", action="store", type="string", dest="discovery_file", help="The file containing the discovery result. Will be read if -D isn't specified, or created/overwritten if -D is specified. Either -D, -H, -d or both must be used.")
+	parser.add_option("-D", "--do-discovery", action="store_true", dest="do_discovery", help="Do a new discovery of the network nodes. If a discovery file is specified using -d, the result will be stored there for future use. Either -D, -H, -d or both must be used.")
+	parser.add_option("-H", "--use-hardcoded-discovery", action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
+	(options, args) = parser.parse_args()
+	rootpath = os.path.dirname(os.path.abspath(__file__)) + "/../.."
+	if not options.pathc and os.path.exists(rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"):
+		print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
+		options.pathc = rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"
+	if not options.pathf and os.path.exists(rootpath + "/Applications/HAScenario1.xml"):
+		print "flow.xml file not specified, default HAScenario1.xml used"
+		options.pathf = rootpath + "/Applications/HAScenario1.xml"
+	if not options.pathc or not options.pathf: 
+		parser.error("invalid component and flow xml, please refer to -h for help")
+
+
+#Sen Zhou 12.8.14 Add location tree and node discovery here
+	locTree = LocationTree("Boli_Building")
+	componentDefinitions = getComponentDefinitions(options.pathc)
+	loc = "Boli_Building/3F/South_Corridor/Room319"
+#	loc1 = "Boli_Building/3F/East_Corridor/Room318"
+#	loc2 = "Boli_Building/3F/East_Corridor/Room318"
+#	loc3 = "Boli_Building/3F/East_Corridor/Room318"
+#	nodeIds = wkpfcomm.getNodeIds()
+#	nodeInfos = [readNodeInfo(nodeId, componentDefinitions) for nodeId in nodeIds]
+	nodeInfos = getNodeList(options)
+	loc_args = [[0,1,2],[0,5,3],[3,3,2],[2,1,2]]
+	sensorNodes = []
+	for i in range(len(nodeInfos)):
+		if nodeInfos[i].isResponding == True:
+			sensorNodes.append(SensorNode(locTree.parseLocation(loc), nodeInfos[i], *loc_args[i]))
+			locTree.addSensor(locTree.root, sensorNodes[-1])
+			
+			
+	locTree.printTree(locTree.root, 0)
+	queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
+	 		    
+				"Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
+				None,
+				None]
+
+
+
+
+	java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = xmlparser()
+	map_table, comp_init, map_table_xml = mapper(wuClasses_dict, components_dict, node_list)
+	javacodegen(links_table, map_table, comp_init, java_class_name)
+#	print>>out_xml_fd, "<ComponentToNodeMapping>\n%s</ComponentToNodeMapping>" % (map_table_xml)
+#	print "Translator msg: the file %s.java generated is on the path %s" % (java_class_name, out_dir)
