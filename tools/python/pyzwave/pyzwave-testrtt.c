@@ -3213,6 +3213,7 @@ void zwave_check_state(unsigned char c)
 			} else if (curcmd == FUNC_ID_MEMORY_GET_ID) {
 				zwave_ready = 1;
 				printf("HomeID: %02x%02x%02x%02x\n", zdata[0], zdata[1], zdata[2], zdata[3]);
+        fflush(stdout);
 			} else {
 				if (PyZwave_print_debug_info) {
 					printf("Get response for command %x\n [", curcmd);

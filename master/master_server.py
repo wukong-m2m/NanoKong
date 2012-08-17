@@ -489,10 +489,19 @@ class ex_testrtt(tornado.web.RequestHandler):
     global applications
     #nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
     log = []
-    pp = Popen('cd %s; ./testrtt host %s network delete' % (TESTRTT_PATH, MASTER_IP), shell=True, stdout=PIPE, stderr=STDOUT)
+    print 'ex_testrtt'
+    print 'cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP)
+    pp = Popen('cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
     while pp.poll() == None:
       print 'polling from popen...'
       line = pp.stdout.readline()
+      print line
+      if line.find('HomeID: ') > -1:
+        print 'HomeID'
+        pp.stdin.write('network delete\n')
+        print pp.communicate()
+      if line.find('Remove: done.') > -1 or line.find('Remove: failed.') > -1:
+        pp.communicate(input='network stop')
       if line != '':
         log.append(line)
     log.append(str(pp.returncode))
@@ -505,11 +514,20 @@ class in_testrtt(tornado.web.RequestHandler):
   def post(self):
     global applications
     #nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
+    print 'in_testrtt'
     log = []
-    pp = Popen('cd %s; ./testrtt host %s network add' % (TESTRTT_PATH, MASTER_IP), shell=True, stdout=PIPE, stderr=STDOUT)
+    print 'cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP)
+    pp = Popen('cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
     while pp.poll() == None:
       print 'polling from popen...'
       line = pp.stdout.readline()
+      print line
+      if line.find('HomeID: ') > -1:
+        print 'HomeID'
+        output = pp.communicate(input='network add\n')
+        print output
+      if line.find('Add: protocol done.') > -1 or line.find('Add: failed.') > -1:
+        pp.communicate(input='network stop')
       if line != '':
         log.append(line)
     log.append(str(pp.returncode))

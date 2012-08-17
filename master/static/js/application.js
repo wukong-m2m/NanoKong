@@ -58,15 +58,23 @@ function setup_testrtt()
     });
 
     $('#content #include').click(function() {
+        console.log('include');
+        $('#log').html('<p>The basestation is ready to include devices.</p>');
+        /*
         $.post('/testrtt/include', function(data) {
             $('#log').html(data.log);
         });
+        */
     });
 
     $('#content #exclude').click(function() {
+        console.log('include');
+        $('#log').html('<p>The basestation is ready to exclude devices.</p>');
+        /*
         $.post('/testrtt/exclude', function(data) {
             $('#log').html(data.log);
         });
+        */
     });
 }
 
