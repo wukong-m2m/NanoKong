@@ -167,6 +167,8 @@ if __name__ == "__main__":
   if not options.pathComponentXml:
     optionParser.error("invalid component xml, please refer to -h for help")
 
+  wkpfcomm.init(0)
+
   componentDefinitions = getComponentDefinitions(options.pathComponentXml)
   mapping = getMapping(options.pathMappingXml) if options.pathMappingXml else None
   flowDefinition = getFlow(options.pathFlowXml) if options.pathFlowXml else None

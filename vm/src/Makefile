@@ -22,7 +22,7 @@ CLASSES_PATH = $(ROOT_DIR)/java/classes
 EXAMPLES_PATH = $(ROOT_DIR)/java/examples
 NANOVM_PATH = $(ROOT_DIR)/java/nanovm
 WKPF_PATH = $(NANOVM_PATH)/wkpf
-JAVA_FILES += $(NANOVM_PATH)/*/*.java $(DEFAULT_FILE)
+JAVA_FILES += $(NANOVM_PATH)/*/*.java
 
 JAR_FILE = NanoKong.jar
 
@@ -46,7 +46,7 @@ ifdef FLOWXML
 	cp $(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml $(CURDIR)/currentMapping.xml
 endif
 
-$(DEFAULT_CLASS): $(JAVA_FILES)
+$(DEFAULT_CLASS): $(JAVA_FILES) $(DEFAULT_FILE)
 	-mkdir -p $(CLASSES_PATH)
 	javac -d $(CLASSES_PATH) $^
 	#javac -classpath "$(NANOVM_PATH)$(PATH_SEP)$(EXAMPLES_PATH)" $^

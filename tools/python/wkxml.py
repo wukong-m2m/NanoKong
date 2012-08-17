@@ -4,7 +4,6 @@ from xml.dom.minidom import parse
 import re
 
 class Convert:
-
     @staticmethod
     def CamelCase_to_underscore(name):
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)

@@ -125,7 +125,7 @@ def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload
   else:
     return None, None
 
-def init(option):
+def init(option, debug=False):
     global pymodule
     if option == 0:
         pyzwave.init("10.3.36.231")
@@ -134,7 +134,8 @@ def init(option):
     elif option == 1:
         pyzigbee.init()
         pymodule = pyzigbee
-    pymodule.setdebug(False)
+    print 'pynvc debugging'
+    pymodule.setdebug(debug)
 
 #Sen 12.8.7
 #result structure (self_id, total_nodes(include self), node_1_id, node_2_id.....)

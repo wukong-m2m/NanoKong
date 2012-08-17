@@ -2671,12 +2671,14 @@ int SetSocketBlockingEnabled(int fd, int blocking)
 
 int zwave_init()
 {
+  printf("zwave_init");
 #ifndef _WIN32		
 	struct termios newtio;
 #endif //_WIN32		
 	struct sockaddr_in server_addr;
 	struct hostent *host;
 	if (g_host) {
+    printf("g_host");
 		if((zwavefd=socket(AF_INET,SOCK_STREAM,0))==-1) {
 			perror("socket");
 			exit(-1);
@@ -2697,6 +2699,7 @@ int zwave_init()
 			exit(-1);
 		}
 	} else {
+    printf("not g_host");
 #ifdef _WIN32		
 		return 0;
 #else //_WIN32		
@@ -3230,6 +3233,7 @@ void zwave_check_state(unsigned char c)
 			} else if (curcmd == FUNC_ID_MEMORY_GET_ID) {
 				zwave_ready = 1;
 				printf("HomeID: %02x%02x%02x%02x\n", zdata[0], zdata[1], zdata[2], zdata[3]);
+        fflush(stdout);
 			} else {
 				if (PyZwave_print_debug_info) {
 					printf("Get response for command %x\n [", curcmd);
@@ -4306,9 +4310,13 @@ void PyZwave_proprietary_class_cb(int src, void * payload, int len) {
 }
 
 int PyZwave_init(char *host) {
+  printf("inside PyZwave_init\n");
   g_host = host;
-    txoptions |= TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE;
+  printf("g_host\n");
+  txoptions |= TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE;
+  printf("txoptions\n");
   register_persistent_class_callback(COMMAND_CLASS_PROPRIETARY, PyZwave_proprietary_class_cb);
+  printf("register_persistent_class_callback\n");
   return zwave_init();
 }
 

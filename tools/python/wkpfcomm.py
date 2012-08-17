@@ -3,6 +3,8 @@ import sys
 import pynvc
 from wkpf import *
 
+HASBASESTATION = False
+
 global __sequenceNumber
 __sequenceNumber = 0
 
@@ -116,7 +118,9 @@ def setProperty(wuobject, propertyNumber, datatype, value):
     return None
   return value
 
-pynvc.init(0)
+def init(mode, debug=False):
+  pynvc.init(0, debug=debug)
+
 #print getWuClassList(3)
 #print getWuObjectList(3)
 #print getProperty(WuObject(nodeId=3, portNumber=4, wuClassId=4), 0)
