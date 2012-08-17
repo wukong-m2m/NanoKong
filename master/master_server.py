@@ -116,9 +116,8 @@ class Worker:
     app_path = app.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
-      os.chdir(platform_dir)
       print 'changing to path: %s...' % platform_dir
-      pp = Popen('make application FLOWXML=%s DISCOVERY_FLAGS=-H' % (app.id), shell=True, stdout=PIPE, stderr=STDOUT)
+      pp = Popen('cd %s; make application FLOWXML=%s DISCOVERY_FLAGS=-H' % (platform_dir, app.id), shell=True, stdout=PIPE, stderr=STDOUT)
       app.status = -1
       while pp.poll() == None:
         print 'polling from popen...'
@@ -137,11 +136,10 @@ class Worker:
     app_path = app.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
-      os.chdir(platform_dir)
       print 'changing to path: %s...' % platform_dir
       for port in ports:
         print 'deploying to node: %d' % (port)
-        pp = Popen('make nvmcomm_reprogram NODE_ID=%d' % (port), shell=True, stdout=PIPE, stderr=STDOUT)
+        pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d' % (platform_dir, port), shell=True, stdout=PIPE, stderr=STDOUT)
         app.status = -1
         while pp.poll() == None:
           print 'polling from popen...'
@@ -348,7 +346,7 @@ class application(tornado.web.RequestHandler):
     else:
       app = applications[app_ind].config()
       #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
-      topbar = template.Loader('.').load('templates/topbar.html').generate(application=applications[app_ind])
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind])
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
 
@@ -401,7 +399,7 @@ class deploy_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      deployment = template.Loader('.').load('templates/deployment.html').generate(app=applications[app_ind], node_ids=node_ids)
+      deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_ids=node_ids)
       self.content_type = 'application/json'
       self.write({'status':0, 'page': deployment})
 
@@ -529,5 +527,6 @@ app = tornado.web.Application([
 ], IP, **settings)
 
 if __name__ == "__main__":
+  update_applications()
   app.listen(5000)
   tornado.ioloop.IOLoop.instance().start()

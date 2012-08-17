@@ -2,10 +2,8 @@
 function Temperature()
 {
 	Block.prototype.init.call(this);	
-	this.type='Temperature';
-	this.addSignal( new Signal('current'));
-	this.addAction( new Action('refresh'));
-	this.addAction( new Action('period'));
+	this.type='Temperature_Sensor';
+	this.addSignal( new Signal('current_temperature'));
 }
 
 Temperature.prototype = new Block();
@@ -20,4 +18,4 @@ Temperature.prototype.getPeriod=function() {
 	return 0;
 }
 
-Block.register('Temperature',Temperature)	;
+Block.register('Temperature_Sensor',Temperature)	;

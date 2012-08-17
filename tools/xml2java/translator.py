@@ -299,7 +299,7 @@ def mapper(wuClasses_dict, components_dict, node_list):
             else:
                 assert False, 'Error! property %s of unknown type %s' % (prop_name, prop_type)
 
-        init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1)) if if_stmts != '' else '// no need to init component %d' % cmpId
+        init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1)) if if_stmts != '' else '// no need to init component %d\n' % cmpId
 
     return indentor(map_table_str, 1), reg_stmts + init_stmts, map_xml_str
 

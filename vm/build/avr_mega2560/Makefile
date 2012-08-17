@@ -12,7 +12,6 @@ ifdef FLOWXML
 DEFAULT_CLASS=$(FLOWXML)
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
-else
 #DEFAULT_CLASS = TestWKPF
 #DEFAULT_CLASS = AdcDemo
 #DEFAULT_CLASS = HAScenario1
