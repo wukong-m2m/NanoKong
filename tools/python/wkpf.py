@@ -1,7 +1,10 @@
 # vim: ts=4 sw=4
 #!/usr/bin/python
+
+import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
+#sys.path.append(os.path.join(os.path.dirname(__file__), "../xml2java"))
 from wkxml import WuClassXMLParser
 
 DATATYPE_INT16 = 0
@@ -20,8 +23,8 @@ def datatypeToString(datatype):
 
 class WuLink:
     def __init__(self, fromWuObject, fromProperty, toWuObject, toProperty):
-        self.from = (fromWuObject, fromProperty)
-        self.to = (toWuObject, toProperty)
+        self.linkSrc = (fromWuObject, fromProperty)
+        self.linkDst = (toWuObject, toProperty)
 
 class WuApplication:
     def __init__(self, flowDom, outputDir, componentDir):
@@ -29,14 +32,15 @@ class WuApplication:
         self.applicationName = flowDom.getElementsByTagName('application')[0].getAttribute('name')
         self.destinationDir = outputDir
         self.componentDir = componentDir
+        self.wuClassdefs = None
+        self.wuObjectList = WuObjectDefList()
+        self.wuLinks = []
 
     def parseComponents(self):
         componentParser = WuClassXMLParser(self.componentDir)
         self.wuClassdefs = componentParser.parse() # wuClassdefs of components
 
     def scaffoldingWithComponents(self):
-        self.wuObjects = WuObjectDefList()
-        self.wuLinks = []
         # TODO: parse application XML to generate WuClasses, WuObjects and WuLinks
         for componentTag in self.applicationDom.getElementsByTagName('component'):
             # make sure application component is found in wuClassdef component list
@@ -61,9 +65,6 @@ class WuApplication:
 
             self.wuLinks.append( WuLink(fromWuObject, fromProperty, toWuObject, toProperty) )
 
-    def mappingWithNodeList(self, nodes):
-        # TODO: mapping results for generating the appropriate instiantiation for different nodes
-        pass
 
     def generateJava(self):
         # TODO: jinja2
@@ -78,6 +79,12 @@ class WuObjectDefList:
 
     def __contains__(self, typeName):
         return typeName in [wuobject.getXmlName() for wuobject in self.wuobjects]
+#Sen 8.21 override len, [] operator
+    def __len__(self):
+	    return len(self.wuobjects)
+
+    def __getitem__(self, index):
+        return self.wuobjects[index]
 
     def getByInstanceId(self, instanceId):
         for wuobject in self.wuobjects:
@@ -92,13 +99,7 @@ class WuObjectDefList:
     def append(self, wuobject):
         self.wuobjects.append(wuobject)
 
-class WuObject(WuClass):
-    def __init__(self, portNumber=None, instanceId, **param):
-        super(WuObject, self).__init__(param)
-        self.portNumber = portNumber
-        self.instanceId = instanceId
-    def __repr__(self):
-        return 'wuobject(node %d port %d wuclass %d)' % (self.nodeId, self.portNumber, self.wuClassId)
+
 
 class WuClass:
     def __init__(self, wuClassDef, nodeId=None):
@@ -106,6 +107,15 @@ class WuClass:
         self.wuClassDef = wuClassDef
     def __repr__(self):
         return 'wuclass(node %d wuclass %d isvirtual %s)' % (self.nodeId, self.wuClassId, str(self.isVirtual))
+
+class WuObject(WuClass):
+    def __init__(self, portNumber, instanceId, **param):
+        super(WuObject, self).__init__(param)
+        self.portNumber = portNumber
+        self.instanceId = instanceId
+    def __repr__(self):
+        return 'wuobject(node %d port %d wuclass %d)' % (self.nodeId, self.portNumber, self.wuClassId)
+
 
 class NodeInfo:
     def __init__(self, nodeId, wuClasses, wuObjects, isResponding=True):
