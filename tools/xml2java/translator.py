@@ -49,19 +49,24 @@ def getNodeList():
     wkpfcomm.init(0)
     node_list = wkpfcomm.getNodeInfos();
   elif options.use_hardcoded_discovery:
+    wuClasses = [WuClass(nodeId=1, WuClassDef(name='class0', id=0, properties=[], virtual=False, soft=False)),
+               WuClass(nodeId=1, WuClassDef(name='class3', id=3, properties=[], virtual=False, soft=False)),
+               WuClass(nodeId=1, WuClassDef(name='class5', id=5, properties=[], virtual=False, soft=False))]
+    wuObjects=[WuObject(nodeId=3, portNumber=0, instanceId="class01", wuClass=wuClasses[0]),
+               WuObject(nodeId=3, portNumber=1, instanceId="class31", wuClass=wuClasses[1]),
+               WuObject(nodeId=3, portNumber=2, instanceId="class51", wuClass=wuClasses[2]))] # numeric_controller at port 1, light sensor at port 2
     node1 = NodeInfo(nodeId=1,
-    wuClasses=(WuClass(nodeId=1, wuClassId=0),
-               WuClass(nodeId=1, wuClassId=3),
-               WuClass(nodeId=1, wuClassId=5)), # generic, threshold, numeric_controller, light_sensor
-    wuObjects=(WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
-               WuObject(nodeId=3, portNumber=1, wuClass=wuClasses[1]),
-               WuObject(nodeId=3, portNumber=2, wuClass=wuClasses[2]))) # numeric_controller at port 1, light sensor at port 2
+              wuClasses=wuClasses, # generic, threshold, numeric_controller, light_sensor
+              wuObjects=wuObjects) # numeric_controller at port 1, light sensor at port 2
+
+    wuClasses = [WuClass(nodeId=3, WuClassDef(name='class0', id=0, properties=[], virtual=False, soft=False)),
+              WuClass(nodeId=3, WuClassDef(name='class1', id=1, properties=[], virtual=False, soft=False)),
+              WuClass(nodeId=3, WuClassDef(name='class4', id=4, properties=[], virtual=False, soft=False))]
+    wuObjects=[WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
+              WuObject(nodeId=3, portNumber=4, wuClass=wuClasses[2])]
     node3 = NodeInfo(nodeId=3,
-              wuClasses=(WuClass(nodeId=3, wuClassId=0),
-              WuClass(nodeId=3, wuClassId=1),
-              WuClass(nodeId=3, wuClassId=4)), # generic, threshold, light
-    wuObjects=(WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
-              WuObject(nodeId=3, portNumber=4, wuClass=wuClasses[2]))) # light at port 4
+              wuClasses=wuClasses, # generic, threshold, light
+              wuObjects=wuObjects) # light at port 4
     node_list = (node1, node3)
   else:
     node_list = loadNodeList(options.discovery_file)
