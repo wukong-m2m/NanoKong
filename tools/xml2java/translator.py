@@ -50,19 +50,19 @@ def getNodeList():
     node_list = wkpfcomm.getNodeInfos();
   elif options.use_hardcoded_discovery:
     node1 = NodeInfo(nodeId=1,
-        wuClasses=(WuClass(nodeId=1, wuClassId=0, isVirtual=False),
-          WuClass(nodeId=1, wuClassId=3, isVirtual=False),
-          WuClass(nodeId=1, wuClassId=5, isVirtual=False)), # generic, threshold, numeric_controller, light_sensor
-        wuObjects=(WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
-          WuObject(nodeId=3, portNumber=1, wuClass=wuClasses[1]),
-          WuObject(nodeId=3, portNumber=2, wuClass=wuClasses[2]))) # numeric_controller at port 1, light sensor at port 2
-        node3 = NodeInfo(nodeId=3,
-            wuClasses=(WuClass(nodeId=3, wuClassId=0, isVirtual=False),
-              WuClass(nodeId=3, wuClassId=1, isVirtual=False),
-              WuClass(nodeId=3, wuClassId=4, isVirtual=False)), # generic, threshold, light
-            wuObjects=(WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
+    wuClasses=(WuClass(nodeId=1, wuClassId=0),
+               WuClass(nodeId=1, wuClassId=3),
+               WuClass(nodeId=1, wuClassId=5)), # generic, threshold, numeric_controller, light_sensor
+    wuObjects=(WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
+               WuObject(nodeId=3, portNumber=1, wuClass=wuClasses[1]),
+               WuObject(nodeId=3, portNumber=2, wuClass=wuClasses[2]))) # numeric_controller at port 1, light sensor at port 2
+    node3 = NodeInfo(nodeId=3,
+              wuClasses=(WuClass(nodeId=3, wuClassId=0),
+              WuClass(nodeId=3, wuClassId=1),
+              WuClass(nodeId=3, wuClassId=4)), # generic, threshold, light
+    wuObjects=(WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
               WuObject(nodeId=3, portNumber=4, wuClass=wuClasses[2]))) # light at port 4
-            node_list = (node1, node3)
+    node_list = (node1, node3)
   else:
     node_list = loadNodeList(options.discovery_file)
 
@@ -114,46 +114,47 @@ def xmlparser():
 
     ## Second, from Flow XML, parse out components (wuClass instances) and links btwn components
     def findProperty(prop_name, class_dict, class_name, path):
-      assert class_name in class_dict, 'Error! illegal component type (wuClass name) %s in xml %s' % (wuClassName, path) #TODO should be in outer loop
-      tmp_prop_dict = class_dict[class_name]['prop']
-      assert prop_name in tmp_prop_dict, 'Error! property %s is not in wuClass %s in xml %s' % (prop_name,class_name,path)
-      return tmp_prop_dict[prop_name]
+        assert class_name in class_dict, 'Error! illegal component type (wuClass name) %s in xml %s' % (wuClassName, path) #TODO should be in outer loop
+        tmp_prop_dict = class_dict[class_name]['prop']
+        assert prop_name in tmp_prop_dict, 'Error! property %s is not in wuClass %s in xml %s' % (prop_name,class_name,path)
+        return tmp_prop_dict[prop_name]
 
-    if print_Components: print>>out_fd, "//========== Components Definitions =========="
+    if print_Components: 
+        print>>out_fd, "//========== Components Definitions =========="
     components_dict = {}
     truefalse_dict = {u'true':True, u'false':False}
     links_list = []
     path = options.pathf		#used for debug path of file
     for i, component in enumerate(f_dom.getElementsByTagName('component')):
-      wuClassName = component.getAttribute('type')
+        wuClassName = component.getAttribute('type')
         instanceName = component.getAttribute('instanceId')
         tmp_dflt_list = []
     ##retrieving propoerty and default value
         for prop in component.getElementsByTagName('property'):
-          prop_found = findProperty(prop.getAttribute('name'), wuClasses_dict, wuClassName, path)
+            prop_found = findProperty(prop.getAttribute('name'), wuClasses_dict, wuClassName, path)
             prop_name = prop_found['jconst']
             prop_type = prop_found['type']
             prop_dflt_value = prop.getAttribute('default')
       #TODO change type definiation tuple(type, value)
             if type(prop_type) is dict:
-              prop_dflt_value = prop_type[prop_dflt_value]    # it becomes type str
+                prop_dflt_value = prop_type[prop_dflt_value]    # it becomes type str
             elif prop_type == u'short':
-              prop_dflt_value = int(prop_dflt_value,0)    # it becomes type int 
+                prop_dflt_value = int(prop_dflt_value,0)    # it becomes type int 
             elif prop_type == u'boolean':
-              prop_dflt_value = truefalse_dict[prop_dflt_value.lower()] # it becomes type boolean
+                prop_dflt_value = truefalse_dict[prop_dflt_value.lower()] # it becomes type boolean
             elif prop_type == u'refresh_rate':
-              prop_dflt_value = ('r', int(prop_dflt_value,0)) # it becomes type tuple
+                prop_dflt_value = ('r', int(prop_dflt_value,0)) # it becomes type tuple
             else:
-              assert False, 'Error! property %s of unknown type %s in xml %s' % (prop_name, prop_type, path)
+                assert False, 'Error! property %s of unknown type %s in xml %s' % (prop_name, prop_type, path)
             tmp_dflt_list += [(prop_name, prop_dflt_value)]
         print "instanceName" + str(wuClasses_dict.keys())
         components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list, 'cmpname':instanceName }
         if print_Components:
-          print>>out_fd, "//", i, instanceName, components_dict[instanceName]
+            print>>out_fd, "//", i, instanceName, components_dict[instanceName]
 
     #create a list of links
         for link in component.getElementsByTagName('link'):
-          toInstanceName = link.getAttribute('toInstanceId')
+            toInstanceName = link.getAttribute('toInstanceId')
             links_list += [ (instanceName, link.getAttribute('fromProperty'), toInstanceName, link.getAttribute('toProperty')) ]
     if print_Components: print>>out_fd, "//"
 
@@ -162,14 +163,14 @@ def xmlparser():
 
     ## Finally, check the validity of links and output as a string
     if print_links: 
-      print>>out_fd, "//========== Links Definitions =========="
+        print>>out_fd, "//========== Links Definitions =========="
         print>>out_fd, "// fromCompInstanceId(2 bytes), fromPropertyId(1 byte), toCompInstanceId(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)"
     link_table_str = ''
   #establishing link table (refer to HAScenario2.java)
   #eg. (byte)0,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)1,  (byte)1,(byte)0,
   # from     Compo. 0      prop. 0  to Comp. 2 prop.0,  (why WuClass 1 ????? ---Sen) 
     for link in links_list:
-      assert link[2] in components_dict, 'Error! cannot find target component %s linked from component %s in xml %s' % (link[2], link[0],path)
+        assert link[2] in components_dict, 'Error! cannot find target component %s linked from component %s in xml %s' % (link[2], link[0],path)
 
         fromInstanceId = short2byte(components_dict[ link[0] ]['cmpid'])
         fromPropertyId = findProperty(link[1], wuClasses_dict, components_dict[ link[0] ]['class'], path)['id']
@@ -184,9 +185,10 @@ def xmlparser():
         wuClassId = short2byte(components_dict[ link[2] ]['classid'])
         link_table_str += "(byte)%d,(byte)%d,\n" % (wuClassId[0], wuClassId[1])
         if print_links: 
-          print>>out_fd, "//", link
+            print>>out_fd, "//", link
             print>>out_fd, "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
-    if print_links: print>>out_fd, "//"
+    if print_links: 
+        print>>out_fd, "//"
 
     return java_class_name, wuClasses_dict, components_dict, indentor(link_table_str,1), out_dir, node_list
 
@@ -203,19 +205,19 @@ def mapper(wuClasses_dict, components_dict, node_list, locationTree, queries):
     soft_dict = {}
     node_port_dict = {}
     for node in node_list:
-      if node.isResponding == False:
-        print "node "+str(node.nodeId) +"is not responding"
+        if node.isResponding == False:
+            print "node "+str(node.nodeId) +"is not responding"
             continue
         for wuObject in node.nativeWuObjects:
-          assert wuObject.wuClassId in node.nativeWuClasses, 'Error! the wuClass of wuObject %s does not exist on node %d' % (wuObject, node.nodeId)
+            assert wuObject.wuClassId in node.nativeWuClasses, 'Error! the wuClass of wuObject %s does not exist on node %d' % (wuObject, node.nodeId)
             node_port_dict.setdefault(node.nodeId, []).append(wuObject.portNumber)
             print "appending nodeId to hard_dict: "+ str(node.nodeId)
             hard_dict.setdefault(wuObject.wuClassId, []).append( (node.nodeId, wuObject.portNumber) )
 
         print node.nativeWuClasses
         for wuClassId in node.nativeWuClasses:
-          if wuClasses_dict[wuClassId]['soft']:
-            soft_dict.setdefault(wuClassId, []).append((node.nodeId, False)) # (nodeId, virtual?) for now, assumed all to be native
+            if wuClasses_dict[wuClassId]['soft']:
+                soft_dict.setdefault(wuClassId, []).append((node.nodeId, False)) # (nodeId, virtual?) for now, assumed all to be native
 
     from operator import itemgetter
     components_list = sorted(components_dict.values(), key=itemgetter('cmpid'))
@@ -234,7 +236,7 @@ def mapper(wuClasses_dict, components_dict, node_list, locationTree, queries):
     algo = Algorithm(wuClasses_dict, components_list, soft_dict, hard_dict, node_port_dict)
 
     for component in components_list:
-      wuClass = wuClasses_dict[component['class']]
+        wuClass = wuClasses_dict[component['class']]
         wuClassName = wuClass['jclass']
         wuGenClassName = wuClass['jgclass']
         wuClassConstName = wuClass['jconst']
@@ -242,33 +244,33 @@ def mapper(wuClasses_dict, components_dict, node_list, locationTree, queries):
         if_stmts = ''
 
         if wuClass['soft']: # it is a soft componen
-          port_num = algo.getPortNum(cmpId)
+            port_num = algo.getPortNum(cmpId)
             map_table_str += "(byte)%d, (byte)%d, \n" % (algo.getNodeId(cmpId), port_num)
             map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'], component['cmpname'], component['class'], component['classid'],algo.getNodeId(cmpId), port_num)
             if not algo.isCreated(cmpId): # if it is virtual?
-              reg_stmts += reg_func_call % (wuClassConstName, wuGenClassName)
+                reg_stmts += reg_func_call % (wuClassConstName, wuGenClassName)
                 wuClassInstVar = "wuclassInstance%s" % wuClass['xml']
                 if_stmts += "VirtualWuObject %s = new %s();\n" % (wuClassInstVar, wuClassName)
                 if_stmts += create_obj_call % (wuClassConstName, cmpId, wuClassInstVar)
             else:
-              if_stmts += create_obj_call % (wuClassConstName, cmpId, "null")
+                if_stmts += create_obj_call % (wuClassConstName, cmpId, "null")
         else: # it is a hard component
-          map_table_str += "(byte)%d, (byte)%d, \n" % (algo.getNodeId(cmpId), algo.getPortNum(cmpId))
+            map_table_str += "(byte)%d, (byte)%d, \n" % (algo.getNodeId(cmpId), algo.getPortNum(cmpId))
             map_xml_str += '\t<entry componentid="%s" componentname="%s" wuclassid="%s" wuclassname="%s" nodeid="%s" portnumber="%s" />\n' % (component['cmpid'],component['cmpname'], component['class'],component['classid'],algo.getNodeId(cmpId),algo.getPortNum(cmpId))
 
         # set default values
         for prop_name, prop_value in component['defaults']:
-          prop_type = type(prop_value)
+            prop_type = type(prop_value)
             if prop_type is int:
-              if_stmts += set_prop_call % ("Short", cmpId, prop_name, "(short)"+str(prop_value))
+                if_stmts += set_prop_call % ("Short", cmpId, prop_name, "(short)"+str(prop_value))
             elif prop_type is bool:
-              if_stmts += set_prop_call % ("Boolean", cmpId, prop_name, str(prop_value).lower()) 
+                if_stmts += set_prop_call % ("Boolean", cmpId, prop_name, str(prop_value).lower()) 
             elif prop_type is unicode:
-              if_stmts += set_prop_call % ("Short", cmpId, prop_name, prop_value)
+                if_stmts += set_prop_call % ("Short", cmpId, prop_name, prop_value)
             elif prop_type is tuple and prop_value[0] == 'r':
-              if_stmts += set_prop_call % ("RefreshRate", cmpId, prop_name, "(short)"+str(prop_value[1]))
+                if_stmts += set_prop_call % ("RefreshRate", cmpId, prop_name, "(short)"+str(prop_value[1]))
             else:
-              assert False, 'Error! property %s of unknown type %s' % (prop_name, prop_type)
+                assert False, 'Error! property %s of unknown type %s' % (prop_name, prop_type)
 
         init_stmts += "if (WKPF.isLocalComponent((short)%d)) {\n%s\n}\n" % (cmpId, indentor(if_stmts,1)) if if_stmts != '' else '// no need to init component %d\n' % cmpId
 
@@ -277,33 +279,33 @@ def mapper(wuClasses_dict, components_dict, node_list, locationTree, queries):
 
 def javacodegen(link_table, map_table, comp_init, java_class_name):
 
-  import_stmt = indentor("""
+    import_stmt = indentor("""
 import java.io.*;
 import nanovm.avr.*;
 import nanovm.wkpf.*;
 import nanovm.lang.Math;
     """, 0)
 
-  linkDefinitions = indentor("""
+    linkDefinitions = indentor("""
 private final static byte[] linkDefinitions = {
 %s
 };
     """ % link_table, 1)
 
-  componentInstanceToWuObjectAddrMap = indentor("""
+    componentInstanceToWuObjectAddrMap = indentor("""
 private final static byte[] componentInstanceToWuObjectAddrMap = {
 %s
 };
     """ % map_table, 1)
 
-  wkpf_init = indentor("""
+    wkpf_init = indentor("""
 System.out.println("%s");
 WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
 WKPF.loadLinkDefinitions(linkDefinitions);
     """ % java_class_name
     , 2)
 
-  comp_init_func_name = "initialiseLocalWuObjects"
+    comp_init_func_name = "initialiseLocalWuObjects"
     comp_init_stmts = indentor(comp_init, 2)
 
     main_loop = indentor("""
@@ -349,6 +351,29 @@ public class {{ CLASS_NAME }} {
     print>>out_fd, "//========== Code =========="
     print>>out_fd, rendered_tpl
 
+
+
+def mappingWithNodeList(self, app, locTree, queries):
+		#input: nodes, WuObjects, WuLinks, WuClassdefs
+		#output: assign node id to WuObjects
+        # TODO: mapping results for generating the appropriate instiantiation for different nodes
+		locURLHandler = LocationURL(query, locTree)
+		locURLHandler.parseURL()
+		candidateSets = []
+		tmpSet = locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
+		if len(tmpSet) >0:
+			candidateSets.append(tmpSet)
+		else:
+			print 'Conditions for component '+str(len(candidateSets))+'(start form 0) too strict, no available candidate found'
+			return None
+		for i in range(len(app.wuObjectList)):
+			app.wuObjectList[i].nodeId = candidatesSets[i][0]    #select the first candidate who satisfies the condiditon
+		print app.wuObjectList
+
+
+
+
+
 if __name__ == "__main__":
 
   #Sen Zhou 12.8.14 Move arg parser from parser() to main() here
@@ -369,14 +394,14 @@ if __name__ == "__main__":
   (options, args) = parser.parse_args()
   if not options.pathc and \
       os.path.exists(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")):
-        print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
-    options.pathc = os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")
+      print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
+      options.pathc = os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")
   if not options.pathf and \
       os.path.exists(os.path.join(rootpath, "Applications", "HAScenario1.xml")):
-        print "flow.xml file not specified, default HAScenario1.xml used"
-    options.pathf = os.path.join(rootpath, "Applications", "HAScenario1.xml")
+      print "flow.xml file not specified, default HAScenario1.xml used"
+      options.pathf = os.path.join(rootpath, "Applications", "HAScenario1.xml")
   if not options.pathc or not options.pathf: 
-    parser.error("invalid component and flow xml, please refer to -h for help")
+      parser.error("invalid component and flow xml, please refer to -h for help")
 
 
 #Sen Zhou 12.8.14 Add location tree and node discovery here
@@ -397,7 +422,7 @@ if __name__ == "__main__":
       locTree.addSensor(locTree.root, sensorNodes[-1])
 
 
-  locTree.printTree(locTree.root, 0)
+#  locTree.printTree(locTree.root, 0)
   queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
       "Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
       None,
@@ -408,6 +433,8 @@ if __name__ == "__main__":
   application.scaffoldingWithComponents()
   application.mappingWithNodeList(getNodeList())
   application.generateJava()
+  application.addLocationTree(locTree)
+  application.mappingWithNodeList(nodes, queries)
 
   #old stuff below
   #java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = xmlparser()

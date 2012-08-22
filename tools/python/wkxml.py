@@ -155,7 +155,7 @@ class WuType:
     def getValues(self):
         return self.__values
     def getValueInJavaConstByValue(self, value):
-        if self.__type.lower() == 'enum'
+        if self.__type.lower() == 'enum':
             return 'GENERATEDWKPF.' + self.__java_wkpf_constant_name + "_" + value.upper()
         else:
             # TODO: not sure what to do here
