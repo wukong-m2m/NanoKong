@@ -66,6 +66,7 @@ class WuApplication:
         pass
 
     def generateJava(self):
+        # TODO: jinja2
         open(os.path.join(self.destinationDir, self.applicationName+".java"), 'w')
 
 class WuObjectDefList:
