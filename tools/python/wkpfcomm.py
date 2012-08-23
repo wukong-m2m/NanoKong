@@ -2,8 +2,7 @@
 import sys
 import pynvc
 from wkpf import *
-
-HASBASESTATION = False
+from wkxml import *
 
 global __sequenceNumber
 __sequenceNumber = 0
@@ -79,8 +78,8 @@ def getWuObjectList(destination):
 
 def getProperty(wuobject, propertyNumber):
   sn = _getNextSequenceNumberAsList()
-  payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber]
-  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
+  payload=sn+[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber]
+  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.getNodeId(),
                                                     command=pynvc.WKPF_READ_PROPERTY,
                                                     payload=payload,
                                                     allowedReplies=[pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R],
@@ -103,10 +102,10 @@ def getProperty(wuobject, propertyNumber):
 def setProperty(wuobject, propertyNumber, datatype, value):
   sn = _getNextSequenceNumberAsList()
   if datatype == DATATYPE_BOOLEAN:
-    payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber, datatype, 1 if value else 0]
+    payload=sn+[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, 1 if value else 0]
   elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
-    payload=sn+[wuobject.portNumber, wuobject.wuClassId/256, wuobject.wuClassId%256, propertyNumber, datatype, value/256, value%256]
-  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.nodeId,
+    payload=sn+[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, value/256, value%256]
+  src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.getNodeId(),
                                                     command=pynvc.WKPF_WRITE_PROPERTY,
                                                     payload=payload,
                                                     allowedReplies=[pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R],
@@ -118,9 +117,7 @@ def setProperty(wuobject, propertyNumber, datatype, value):
     return None
   return value
 
-def init(mode, debug=False):
-  pynvc.init(0, debug=debug)
-
+#pynvc.init(0)
 #print getWuClassList(3)
 #print getWuObjectList(3)
 #print getProperty(WuObject(nodeId=3, portNumber=4, wuClassId=4), 0)

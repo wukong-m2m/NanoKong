@@ -11,9 +11,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from wkpf import NodeInfo, WuClass, WuObject, WuApplication
 import pickle
 from xml.dom.minidom import parse 
-from inspector import readNodeInfo
-from locationTree import *
-from URLParser import *
+from locationTree import LocationTree, SensorNode
+
+#from inspector import readNodeInfo
+
 import wkpfcomm
 from inspector import *
 from optparse import OptionParser
@@ -49,24 +50,20 @@ def getNodeList():
     wkpfcomm.init(0)
     node_list = wkpfcomm.getNodeInfos();
   elif options.use_hardcoded_discovery:
-    wuClasses = [WuClass(nodeId=1, WuClassDef(name='class0', id=0, properties=[], virtual=False, soft=False)),
-               WuClass(nodeId=1, WuClassDef(name='class3', id=3, properties=[], virtual=False, soft=False)),
-               WuClass(nodeId=1, WuClassDef(name='class5', id=5, properties=[], virtual=False, soft=False))]
-    wuObjects=[WuObject(nodeId=3, portNumber=0, instanceId="class01", wuClass=wuClasses[0]),
-               WuObject(nodeId=3, portNumber=1, instanceId="class31", wuClass=wuClasses[1]),
-               WuObject(nodeId=3, portNumber=2, instanceId="class51", wuClass=wuClasses[2]))] # numeric_controller at port 1, light sensor at port 2
-    node1 = NodeInfo(nodeId=1,
-              wuClasses=wuClasses, # generic, threshold, numeric_controller, light_sensor
-              wuObjects=wuObjects) # numeric_controller at port 1, light sensor at port 2
-
-    wuClasses = [WuClass(nodeId=3, WuClassDef(name='class0', id=0, properties=[], virtual=False, soft=False)),
-              WuClass(nodeId=3, WuClassDef(name='class1', id=1, properties=[], virtual=False, soft=False)),
-              WuClass(nodeId=3, WuClassDef(name='class4', id=4, properties=[], virtual=False, soft=False))]
-    wuObjects=[WuObject(nodeId=3, portNumber=0, wuClass=wuClasses[0]),
-              WuObject(nodeId=3, portNumber=4, wuClass=wuClasses[2])]
-    node3 = NodeInfo(nodeId=3,
-              wuClasses=wuClasses, # generic, threshold, light
-              wuObjects=wuObjects) # light at port 4
+    #generic, numeric_controller, light_sensor
+    wuClasses=(WuClass(nodeId=4, wuClassId=0),
+               WuClass(nodeId=4, wuClassId=3),
+               WuClass(nodeId=4, wuClassId=5))
+    wuObjects=[WuObject(portNumber=0, wuClass=wuClasses[0]),
+               WuObject(portNumber=1, wuClass=wuClasses[1]),
+               WuObject(portNumber=2, wuClass=wuClasses[2])]   
+    node1 = NodeInfo(4, wuClasses, wuObjects) # numeric_controller at port 1, light sensor at port 2
+    node3 = NodeInfo(nodeId=6,
+              wuClasses=(WuClass(nodeId=6, wuClassId=0),
+              WuClass(nodeId=6, wuClassId=1),
+              WuClass(nodeId=6, wuClassId=4)), # generic, threshold, light
+              wuObjects=(WuObject(portNumber=0, wuClass=wuClasses[0]),
+              WuObject(portNumber=4, wuClass=wuClasses[2]))) # light at port 4
     node_list = (node1, node3)
   else:
     node_list = loadNodeList(options.discovery_file)
@@ -358,26 +355,6 @@ public class {{ CLASS_NAME }} {
 
 
 
-def mappingWithNodeList(self, app, locTree, queries):
-		#input: nodes, WuObjects, WuLinks, WuClassdefs
-		#output: assign node id to WuObjects
-        # TODO: mapping results for generating the appropriate instiantiation for different nodes
-		locURLHandler = LocationURL(query, locTree)
-		locURLHandler.parseURL()
-		candidateSets = []
-		tmpSet = locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
-		if len(tmpSet) >0:
-			candidateSets.append(tmpSet)
-		else:
-			print 'Conditions for component '+str(len(candidateSets))+'(start form 0) too strict, no available candidate found'
-			return None
-		for i in range(len(app.wuObjectList)):
-			app.wuObjectList[i].nodeId = candidatesSets[i][0]    #select the first candidate who satisfies the condiditon
-		print app.wuObjectList
-
-
-
-
 
 if __name__ == "__main__":
 
@@ -436,10 +413,9 @@ if __name__ == "__main__":
   application = WuApplication(parse(options.pathf), options.out, options.pathc)
   application.parseComponents()
   application.scaffoldingWithComponents()
-  application.mappingWithNodeList(getNodeList())
+  application.mappingWithNodeList(locTree, queries)
   application.generateJava()
-  application.addLocationTree(locTree)
-  application.mappingWithNodeList(nodes, queries)
+
 
   #old stuff below
   #java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = xmlparser()

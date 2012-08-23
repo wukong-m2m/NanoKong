@@ -26,6 +26,12 @@ class LocationTreeNode(object):
 		self.sensorLst.append(sensorNode)
 		self.sensorCnt = self.sensorCnt + 1
 		self.idSet.add(sensorNode.nodeInfo.nodeId)
+
+	def getAllNodes(self):
+		ret_val = self.idSet
+		for child in self.children:
+			ret_val = ret_val | child.getAllNodes()
+		return ret_val
 		
 class LocationTree(object):
 	def __init__(self, root):
@@ -36,6 +42,7 @@ class LocationTree(object):
 		tmp = LocationTreeNode(name, None)
 		self.root = tmp
 		self.totalSensorCount = 0
+	
 
 	#insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
 	def addSensor(self, startPos, sensorNd):

@@ -7,7 +7,7 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
-from wkpf import NodeInfo, WuClass, WuObject
+from wkpf import WuClass, WuObject, NodeInfo
 from locationTree import *
 
 
@@ -52,6 +52,9 @@ class LocationURL(object):
 
 	def negate(locationTreeNode, set1):
 		return locationTreeNode.idSet - set1
+		
+	def getAll(locationTreeNode):
+	    return locationTreeNode.getAllNodes()
 	
 	connector_lst=["&", "|", "~"]
 	connector_dict = {"&":[getIntersect,2], "|":[getUnion,2], "~":[negate,1]}  #for CNF(conjunctive norm form expression), function call and num of variables

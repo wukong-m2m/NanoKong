@@ -4,6 +4,7 @@ import xml.dom.minidom
 import os
 import wkpfcomm
 import wkpf
+import pynvc
 
 def find(seq, f):
   """Return first item in sequence where f(item) == True."""
@@ -50,8 +51,8 @@ def getFlow(path):
   return xml.dom.minidom.parse(path)
 
 def getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions):
-  componentInstanceName = getComponentInstanceName(wuObjectInfo.nodeId, wuObjectInfo.portNumber, mapping)
-  propertyName = getComponentPropertyName(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions)
+  componentInstanceName = getComponentInstanceName(wuObjectInfo.getNodeId(), wuObjectInfo.portNumber, mapping)
+  propertyName = getComponentPropertyName(wuObjectInfo.getWuClassId(), propertyInfo.propertyNumber, componentDefinitions)
   links = []
   for component in flowDefinition.getElementsByTagName('component'):
     for link in component.getElementsByTagName('link'):
@@ -84,7 +85,7 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
   class PropertyInfo:
     pass
   propertyInfo = PropertyInfo()
-  propertyInfo.name = getComponentPropertyName(wuObject.wuClassId, propertyNumber, componentDefinitions)
+  propertyInfo.name = getComponentPropertyName(wuObject.getWuClassId(), propertyNumber, componentDefinitions)
   wkpfcommData = wkpfcomm.getProperty(wuObject, propertyNumber)
   propertyInfo.value = wkpfcommData[0]
   propertyInfo.datatype = wkpfcommData[1]
@@ -98,8 +99,8 @@ def readNodeInfo(nodeId, componentDefinitions):
     for wuClass in wkpfcommNodeInfo.wuClasses:
       wuClass.name = getComponentName(wuClass.wuClassId, componentDefinitions)
     for wuObject in wkpfcommNodeInfo.wuObjects:
-      wuObject.wuClassName = getComponentName(wuObject.wuClassId, componentDefinitions)
-      wuObject.properties = [readPropertyInfo(wuObject, i, componentDefinitions) for i in range(getComponentPropertyCount(wuObject.wuClassId, componentDefinitions))]
+      wuObject.wuClassName = getComponentName(wuObject.getWuClassId(), componentDefinitions)
+      wuObject.properties = [readPropertyInfo(wuObject, i, componentDefinitions) for i in range(getComponentPropertyCount(wuObject.getWuClassId(), componentDefinitions))]
   return wkpfcommNodeInfo
 
 ## Print functions
@@ -114,7 +115,7 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
       for wuClassInfo in sorted(nodeInfo.wuClasses, key=lambda x:x.wuClassId):
         print "\tClass name %s %s" % (wuClassInfo.name, "VIRTUAL" if wuClassInfo.isVirtual else "NATIVE")
       print "WuObjects:"
-      for wuObjectInfo in sorted(nodeInfo.wuObjects, key=lambda x:x.wuClassId):
+      for wuObjectInfo in sorted(nodeInfo.wuObjects, key=lambda x:x.getWuClassId()):
         if mapping:
           componentInstanceName = getComponentInstanceName(nodeInfo.nodeId, wuObjectInfo.portNumber, mapping)
           if componentInstanceName:
@@ -126,7 +127,7 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
           propertyInfoString = "\t   %d %8s %15s %10s (%0#4x)" % (propertyInfo.propertyNumber,
                                                wkpf.datatypeToString(propertyInfo.datatype),
                                                propertyInfo.name,
-                                               stringRepresentationIfEnum(wuObjectInfo.wuClassId, propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value),
+                                               stringRepresentationIfEnum(wuObjectInfo.getWuClassId(), propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value),
                                                propertyInfo.status)
           remoteLinkAndValue = ""
           if mapping and flowDefinition:
@@ -166,9 +167,7 @@ if __name__ == "__main__":
     options.pathFlowXml = rootpath + "/vm/build/avr_mega2560/currentFlow.xml"
   if not options.pathComponentXml:
     optionParser.error("invalid component xml, please refer to -h for help")
-
-  wkpfcomm.init(0)
-
+  pynvc.init(0)
   componentDefinitions = getComponentDefinitions(options.pathComponentXml)
   mapping = getMapping(options.pathMappingXml) if options.pathMappingXml else None
   flowDefinition = getFlow(options.pathFlowXml) if options.pathFlowXml else None

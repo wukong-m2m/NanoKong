@@ -41,7 +41,10 @@ class WuClassDefList:
         self.wuclasses = []
 
     def __repr__(self):
-        return self.wuclasses
+        ret_val = ''
+        for wuclass in self.wuclasses:
+            ret_val += str(wuclass)+'\n' 
+        return ret_val
 
     def __contains__(self, typeName):
         return typeName in [wuclass.getXmlName() for wuclass in self.wuclasses]
@@ -50,58 +53,58 @@ class WuClassDefList:
         for wuclass in self.wuclasses:
             if typeName == wuclass.getXmlName():
                 return wuclass
+        return None
 
     def append(self, wuclassdef):
         self.wuclasses.append(wuclassdef)
 
 class WuClassDef:
     def __init__(self, name, id, properties, virtual, soft):
-        self.__name = name  # an unicode for class' name
-        self.__java_class_name = "Virtual" + Convert.to_java(self.__name) + "WuObject"
-        self.__java_generated_baseclass_name = "GENERATED" + self.__java_class_name
-        self.__c_update_function_name = Convert.to_c(self.__name) + "_update"
-        self.__c_class_definition_struct_name = Convert.to_c(self.__name)
-        self.__java_wkpf_constant_name = "WUCLASS_" + Convert.to_constant(self.__name.upper())
+        self.name = name  # an unicode for class' name
+        self.java_class_name = "Virtual" + Convert.to_java(self.name) + "WuObject"
+        self.java_generated_baseclass_name = "GENERATED" + self.java_class_name
+        self.c_update_function_name = Convert.to_c(self.name) + "_update"
+        self.c_class_definition_struct_name = Convert.to_c(self.name)
+        self.java_wkpf_constant_name = "WUCLASS_" + Convert.to_constant(self.name.upper())
 
-        self.__id = id      # an integer for class' id
-        self.__properties = properties  # a dict of WuClassProperty objects accessed thru the prop's name
-        for prop in self.__properties:
-            prop.setJavaConstName(self.__name.upper())
-            prop.setWuClassDefName(self.__name)
-        self.__virtual = virtual    # a boolean for virtual or native
-        self.__soft = soft  # a boolean for soft or hard
+        self.id = id      # an integer for class' id
+        self.properties = properties  # a dict of WuClassProperty objects accessed thru the prop's name
+        for prop in self.properties.items():
+            prop[1].setJavaConstName(self.name.upper())
+            prop[1].setWuClassDefName(self.name)
+        self.virtual = virtual    # a boolean for virtual or native
+        self.soft = soft  # a boolean for soft or hard
 
     def __contains__(self, propertyName):
-        return propertyName in [property.getXmlName() for property in self.__properties]
+        return propertyName in [property[1].getXmlName() for property in self.properties.items()]
 
     def __repr__(self):
-        return "WuClass %s (id=%d, virt=%s, soft=%s) prop:%s" % (self.__name,self.__id,str(self.__virtual),str(self.__soft),str(self.__properties))
+        return "WuClass %s (id=%d, virt=%s, soft=%s) prop:%s" % (self.name,self.id,str(self.virtual),str(self.soft),str(self.properties))
 
-    def getByName(self, name):
-        for property in self.__properties:
-            if name == property.getXmlName():
-                return property
+    def getPropertyByName(self, name):
+        print self.properties  
+        return self.properties[name]
 
     def getXmlName(self):
-        return self.__name 
+        return self.name 
     def getJavaClassName(self):
-        return self.__java_class_name
+        return self.java_class_name
     def getJavaGenClassName(self):
-        return self.__java_generated_baseclass_name
+        return self.java_generated_baseclass_name
     def getCStructName(self):
-        return self.__c_class_definition_struct_name
+        return self.c_class_definition_struct_name
     def getJavaConstName(self):
-        return self.__java_wkpf_constant_name
+        return self.java_wkpf_constant_name
     def getWuClassName(self):
-        return self.__name
+        return self.name
     def getProperties(self):
-        return tuple(self.__properties)
+        return tuple(self.properties)
     def getId(self):
-        return self.__id
+        return self.id
     def isVirtual(self):
-        return self.__virtual
+        return self.isVirtual
     def isSoft(self):
-        return self.__soft
+        return self.isSoft
 
 class WuClassProperty:
     def __init__(self, name, id, datatype, value_to_javanames, access):
@@ -162,6 +165,8 @@ class WuType:
             return 'GENERATEDWKPF.' + self.__type
     def getWuTypedef(self):
         defs = {}
+        if self.__values == None:     #Sen 8.23 add handler in case __values == None
+            return defs
         for value in self.__values:
             defs[value] = self.getValueInJavaConstByValue(value)
         return defs
@@ -171,12 +176,12 @@ class WuClassXMLParser:
         self.__wuClasses = WuClassDefList()
         self.__wuTypes = [WuType(i,i,None) for i in basicDataTypes]
         self.__path = path
-    
+
     def __repr__(self):
         return "//// wuTypes\n%s\n//// wuClasses\n%s" % (str(self.__wuTypes), str(self.__wuClasses))
     
-    def parse(self, path):
-        dom = xml.dom.minidom.parse(path)
+    def parse(self):
+        dom = xml.dom.minidom.parse(self.__path)
 
         """self.__wuTypes.update({
             wt.getAttribute('name'): WuType( wt.getAttribute('name'),wt.getAttribute('type'),tuple([e.getAttribute('value') for e in wt.getElementsByTagName('enum')]) ) for wt in dom.getElementsByTagName('WuTypedef') if wt.getAttribute('type') == u'enum'
@@ -189,16 +194,15 @@ class WuClassXMLParser:
             # for enum type
             if wuType.getAttribute('type') == u'enum':
                 self.__wuTypes.append( WuType( wuType.getAttribute('name'), wuType.getAttribute('type'), tuple([element.getAttribute('value') for element in wuType.getElementsByTagName('enum')]) ) )
-
         # create a dict of WuType index by xmlname corresponding to a dict of values to JavaNames
         for wuType in self.getAllWuTypes():
-            wuTypedefs_dict[wuType.getXmlName()] = wuType.getwuTypedef()
+            wuTypedefs_dict[wuType.getXmlName()] = wuType.getWuTypedef()
 
         # wuClass parsing
         for wuClass in dom.getElementsByTagName('WuClass'):
             wuClassName = wuClass.getAttribute('name')
             wuClassId = int(wuClass.getAttribute('id'),0)
-            wuClassProperties = []
+            wuClassProperties = {}
             for i, prop in enumerate(wuClass.getElementsByTagName('property')):
                 propType = prop.getAttribute('datatype')
                 propName = prop.getAttribute('name')
@@ -206,9 +210,8 @@ class WuClassXMLParser:
                 def comparison(s): return lambda x: x.getXmlName() == s
                 assert self.isValidWuType(comparison(propType), propType), "Error! undefinded property type %s in xml %s" % (propType, path)
 
-                wuClassProperties.append( WuClassProperty(propName, i, propType, wuTypedefs_dict[propType], accessTypes[prop.getAttribute('access')]) )
+                wuClassProperties[propName]= WuClassProperty(propName, i, propType, wuTypedefs_dict[propType], accessTypes[prop.getAttribute('access')]) 
             self.__wuClasses.append( WuClassDef(wuClassName, wuClassId, wuClassProperties, classTypes[wuClass.getAttribute('virtual')], classTypes[wuClass.getAttribute('type')]) )
-
         return self.__wuClasses
 
     def isValidWuType(self, lambda_func, typeQuery):
