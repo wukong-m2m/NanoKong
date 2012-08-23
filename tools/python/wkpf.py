@@ -194,11 +194,11 @@ class WuApplication:
             self.wuObjectList.append(wuObj)
 
         # links
-        for linkTag in componentTag.getElementsByTagName('link'):
-            fromWuObject = self.wuObjectList.getByInstanceId(linkTag.parentNode().getAttribute('instanceId'))
+        for linkTag in self.applicationDom.getElementsByTagName('link'):
+            fromWuObject = self.wuObjectList.getByInstanceId(linkTag.parentNode.getAttribute('instanceId'))
             fromProperty = fromWuObject.getPropertyByName(str(linkTag.getAttribute('fromProperty'))).getId()
 
-            toWuObject = self.wuObjectList.getByInstanceId(linkTag.getAttribute('toInstanceId'))
+            toWuObject = self.wuObjectList.getByInstanceId(str(linkTag.getAttribute('toInstanceId')))
             toProperty = toWuObject.getPropertyByName(str(linkTag.getAttribute('toProperty'))).getId()
 
             self.wuLinks.append( WuLink(fromWuObject, fromProperty, toWuObject, toProperty) )
