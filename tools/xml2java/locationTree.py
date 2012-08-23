@@ -52,8 +52,8 @@ class LocationTreeNode(object):
 		
 class LocationTree(object):
 	def __init__(self, root):
-		self.root= root
 		self.sensor_dict = {}
+		self.root= root
 		self.totalSensorCount = 0
 		
 	def __init__(self, name):
