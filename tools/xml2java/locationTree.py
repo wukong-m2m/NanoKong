@@ -52,11 +52,13 @@ class LocationTreeNode(object):
 		
 class LocationTree(object):
 	def __init__(self, root):
+		self.sensor_dict = {}
 		self.root= root
 		self.totalSensorCount = 0
 		
 	def __init__(self, name):
 		tmp = LocationTreeNode(name, None)
+		self.sensor_dict = {}
 		self.root = tmp
 		self.totalSensorCount = 0
 	
@@ -84,6 +86,7 @@ class LocationTree(object):
 					curPos = curPos.children[-1]
 				
 		curPos.addSensor(sensorNd)
+		self.sensor_dict[sensorNd.nodeInfo.nodeId] = sensorNd
 		self.totalSensorCount = self.totalSensorCount +1
 	
 	def findLocation(self, startPos, locationStr):
