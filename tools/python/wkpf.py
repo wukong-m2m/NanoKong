@@ -110,11 +110,13 @@ class WuClass:
         return 'wuclass(node %d wuclass %d)' % (self.nodeId, self.wuClassId)
 
 class WuObject:
- #   def __init__(self, portNumber, instanceId, **param):
-  #      self.wuClass = WuClass(param)
-   #     self.portNumber = portNumber
-    #    self.instanceId = instanceId
-    def __init__(self, nodeId, portNumber, wuClassId, instanceId):
+    def __init__(self, portNumber, instanceId, instanceIndex = None, **param):
+        self.wuClass = WuClass(param)
+        self.portNumber = portNumber
+        self.instanceId = instanceId
+        self.instanceIndex = instanceIndex
+    def __init__(self, nodeId, portNumber, wuClassId, instanceIndex = None, instanceId = None):
+        self.instanceIndex = instanceIndex
         self.wuClass = WuClass(nodeId, wuClassId)
         self.portNumber = portNumber
         self.instanceId = instanceId
@@ -128,11 +130,6 @@ class WuObject:
         return self.wuClass.wuClassId
     def getNodeId(self):
         return self.wuClass.nodeId
-    def setNodeId(self, nodeId):
-        self.wuClass.nodeId = nodeId
-    
-    def setPortNumber(self,portNumber):
-        self.portNumber = portNumber
     def getPropertyByName(self, prop_name):
         return self.wuClass.wuClassDef.getPropertyByName(prop_name)
     def toJava(self):
@@ -140,7 +137,7 @@ class WuObject:
         print self.getNodeId(), self.portNumber
         return ', '.join([int(self.getNodeId()), int(self.portNumber)])
     def __repr__(self):
-        return 'wuobject(node:'+ str(self.getNodeId())+' port:'+ str(self.portNumber)+ ' wuclass: '+ str(self.getWuClassId())+')'
+        return 'wuobject(node %d port %d wuclass %d)' % (self.getNodeId(), self.portNumber, self.getWuClassId())
 
 
 class NodeInfo:
@@ -223,32 +220,16 @@ class WuApplication:
                 candidateSets.append(tmpSet)
             else:
                 print 'Conditions for component '+str(len(candidateSets))+'(start form 0) too strict, no available candidate found'
-                return False
+                return None
         for i in range(len(app.wuObjectList)):
-            app.wuObjectList[i].setNodeId(tuple(candidateSets[i])[0])    #select the first candidate who satisfies the condiditon
-            sensorNode = locTree.sensor_dict[tuple(candidateSets[i])[0]]
-            port_lst = []
-            for wuObj in sensorNode.nodeInfo.wuObjects:
-                port_lst.append(wuObj.portNumber)
-            port_lst.sort()
-            print 'portLst', port_lst
-            portSet = False
-            for j in range(len(port_lst)):
-                if (port_lst[j]+1)%256 !=port_lst[(j+1)%len(port_lst)]:
-                    app.wuObjectList[i].setPortNumber((port_lst[j]+1)%256)
-                    portSet =True
-            print portSet, 
-            if portSet == False:
-                print 'all port in node', j, 'occupied, cannot assign new port'
-                return False
-        return True
-
+            app.wuObjectList[i].nodeId = tuple(candidateSets[i])[0]    #select the first candidate who satisfies the condiditon
+            print i, tuple(candidateSets[i])[0]
     def mappingWithNodeList(self, locTree, queries,mapFunc = firstCandidate):
         #input: nodes, WuObjects, WuLinks, WuClassDefs
         #output: assign node id to WuObjects
         # TODO: mapping results for generating the appropriate instiantiation for different nodes
-        ret = mapFunc(self, locTree, queries)
-        assert ret==True
+        wuObjectList = mapFunc(self, locTree, queries)
+        print wuObjectList
 
     def generateJava(self):
         print 'inside generate Java'
