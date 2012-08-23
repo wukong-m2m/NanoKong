@@ -3,6 +3,12 @@
 
 import os
 import sys
+
+from struct import pack
+
+from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 #sys.path.append(os.path.join(os.path.dirname(__file__), "../xml2java"))
 from wkxml import WuClassXMLParser
@@ -23,10 +29,16 @@ def datatypeToString(datatype):
     else:
         raise Error('Unknown datatype %d' % (datatype))
 
+def toByteString(i): 
+    return ['(byte)' + str(ord(b)) for b in pack("H", i)]
+
 class WuLink:
     def __init__(self, fromWuObject, fromProperty, toWuObject, toProperty):
         self.linkSrc = (fromWuObject, fromProperty)
         self.linkDst = (toWuObject, toProperty)
+
+    def toJava(self):
+        return ', '.join(toByteString(int(self.linkSrc[0].instanceIndex)) + toByteString(int(self.linkSrc[1])) + toByteString(int(self.linkDst[0].instanceIndex)) + toByteString(int(self.linkDst[1])) + toByteString(int(self.linkDst[0].getWuClassId())))
 
 
 class WuObjectDefList:
@@ -46,9 +58,14 @@ class WuObjectDefList:
         return self.wuobjects[index]
 
     def getByInstanceId(self, instanceId):
+        print 'getByInstanceId'
+        print instanceId
         for wuobject in self.wuobjects:
             if instanceId == wuobject.instanceId:
+                print wuobject
                 return wuobject
+            else:
+                return None
 
     def getByTypeName(self, typeName):
         for wuobject in self.wuobjects:
@@ -56,6 +73,7 @@ class WuObjectDefList:
                 return wuobject
 
     def append(self, wuobject):
+        wuobject.instanceIndex = len(self.wuobjects)
         self.wuobjects.append(wuobject)
 
 #   12.8.21 New WuObject and WuClass class designed for backward compatibility and further usage by mapper-- Sen
@@ -92,24 +110,32 @@ class WuClass:
         return 'wuclass(node %d wuclass %d)' % (self.nodeId, self.wuClassId)
 
 class WuObject:
-    def __init__(self, portNumber, instanceId, **param):
+    def __init__(self, portNumber, instanceId, instanceIndex = None, **param):
         self.wuClass = WuClass(param)
         self.portNumber = portNumber
         self.instanceId = instanceId
-    def __init__(self, nodeId, portNumber, wuClassId, instanceId = None):
+        self.instanceIndex = instanceIndex
+    def __init__(self, nodeId, portNumber, wuClassId, instanceIndex = None, instanceId = None):
+        self.instanceIndex = instanceIndex
         self.wuClass = WuClass(nodeId, wuClassId)
         self.portNumber = portNumber
         self.instanceId = instanceId
-    def __init__(self, portNumber, wuClass, instanceId = None):
+        self.instanceIndex = instanceIndex
+    def __init__(self, portNumber, wuClass, instanceIndex = None, instanceId = None):
         self.wuClass = wuClass
         self.portNumber = portNumber
         self.instanceId = instanceId
+        self.instanceIndex = instanceIndex
     def getWuClassId(self):
         return self.wuClass.wuClassId
     def getNodeId(self):
         return self.wuClass.nodeId
     def getPropertyByName(self, prop_name):
         return self.wuClass.wuClassDef.getPropertyByName(prop_name)
+    def toJava(self):
+        print self.instanceId
+        print self.getNodeId(), self.portNumber
+        return ', '.join([int(self.getNodeId()), int(self.portNumber)])
     def __repr__(self):
         return 'wuobject(node %d port %d wuclass %d)' % (self.getNodeId(), self.portNumber, self.getWuClassId())
 
@@ -132,11 +158,12 @@ class NodeInfo:
 from locationTree import LocationTree
 from URLParser import *
 class WuApplication:
-    def __init__(self, flowDom, outputDir, componentDir):
+    def __init__(self, flowDom, outputDir, componentDir, rootDir):
         self.applicationDom = flowDom;
         self.applicationName = flowDom.getElementsByTagName('application')[0].getAttribute('name')
         self.destinationDir = outputDir
         self.componentDir = componentDir
+        self.templateDir = os.path.join(rootDir, 'tools', 'xml2java')
         self.wuClassDefs = None
         self.wuObjectList = WuObjectDefList()
         self.wuLinks = []
@@ -167,12 +194,12 @@ class WuApplication:
             self.wuObjectList.append(wuObj)
 
         # links
-        for linkTag in self.applicationDom.getElementsByTagName('link'):
-            fromWuObject = wuObj
-            fromProperty = linkTag.getAttribute('fromProperty')
+        for linkTag in componentTag.getElementsByTagName('link'):
+            fromWuObject = self.wuObjectList.getByInstanceId(linkTag.parentNode().getAttribute('instanceId'))
+            fromProperty = fromWuObject.getPropertyByName(str(linkTag.getAttribute('fromProperty'))).getId()
 
             toWuObject = self.wuObjectList.getByInstanceId(linkTag.getAttribute('toInstanceId'))
-            toProperty = linkTag.getAttribute('toProperty')
+            toProperty = toWuObject.getPropertyByName(str(linkTag.getAttribute('toProperty'))).getId()
 
             self.wuLinks.append( WuLink(fromWuObject, fromProperty, toWuObject, toProperty) )
     def firstCandidate(app, locTree, queries):
@@ -204,9 +231,11 @@ class WuApplication:
         wuObjectList = mapFunc(self, locTree, queries)
         print wuObjectList
 
-
-
     def generateJava(self):
         print 'inside generate Java'
-        # TODO: jinja2
-#        open(os.path.join(self.destinationDir, self.applicationName+".java"), 'w')
+        print self.wuObjectList.wuobjects
+        jinja2_env = Environment(loader=FileSystemLoader([os.path.join(self.templateDir, 'jinja_templates')]))
+        output = open(os.path.join(self.destinationDir, self.applicationName+".java"), 'w')
+        jinja2_env.get_template('application.java').render(applicationName=self.applicationName, wuObjectList=self.wuObjectList, wuLinks=self.wuLinks)
+        output.write(jinja2_env.get_template('application.java').render(applicationName=self.applicationName, wuObjectList=self.wuObjectList, wuLinks=self.wuLinks))
+        output.close()
