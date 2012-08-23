@@ -202,20 +202,13 @@ class WuApplication:
         for i in range(len(app.wuObjectList)):
             app.wuObjectList[i].setNodeId(tuple(candidateSets[i])[0])    #select the first candidate who satisfies the condiditon
             sensorNode = locTree.sensor_dict[tuple(candidateSets[i])[0]]
-            port_lst = []
-            for wuObj in sensorNode.nodeInfo.wuObjects:
-                port_lst.append(wuObj.portNumber)
-            port_lst.sort()
-            print 'portLst', port_lst
-            portSet = False
-            for j in range(len(port_lst)):
-                if (port_lst[j]+1)%256 !=port_lst[(j+1)%len(port_lst)]:
-                    app.wuObjectList[i].setPortNumber((port_lst[j]+1)%256)
-                    portSet =True
-            print portSet, 
-            if portSet == False:
-                print 'all port in node', j, 'occupied, cannot assign new port'
+            sensorNode.initPortList(forceInit = False)
+            portNo = sensorNode.reserveNextPort()
+            if portNo == None:
+                print 'all port in node', i, 'occupied, cannot assign new port'
                 return False
+            app.wuObjectList[i].setPortNumber(portNo)
+                
         return True
 
     def mappingWithNodeList(self, locTree, queries,mapFunc = firstCandidate):
