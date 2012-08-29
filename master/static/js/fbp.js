@@ -229,7 +229,10 @@ function FBP_parseXML(r)
 		meta.h = c.attr("h");
 		meta.id = c.attr("instanceId");
 		meta.type = c.attr("type");
-		meta.location = c.attr("location");
+		loc = c.find("location");
+		if (loc) {
+			meta.location = loc.attr("requirement");
+		}
 		n = Block.restore(meta);
 		// This should be replaced with the node type system latter
 		n.attach($('#content'));
@@ -372,13 +375,20 @@ function FBP_toXML(gnodes,glines)
 			var line = linehash[k][i];
 			xml = xml + '        <link fromProperty="'+line.signal+'" toInstanceId="'+line.dest.id+'" toProperty="'+line.action+'"/>\n';
 		}
+		if (source.location && source.location != '') {
+			xml = xml + '        <location requirement="'+source.location+'" />\n';
+		}
 		xml = xml + '    </component>\n';
 	}
 	for(var k in gnodes) {
 		var source ={};
 		gnodes[k].serialize(source);
 		if (linehash[gnodes[k].id] == undefined) {
-			xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'"></component>\n';
+			xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'">\n';
+			if (gnodes[k].location && gnodes[k].location != '') {
+				xml = xml + '        <location requirement="'+gnodes[k].location+'" />\n';
+			}
+			xml = xml + '    </component>\n';
 		}
 	}
 	xml = xml + "</application>\n";
