@@ -64,7 +64,7 @@ $(document).ready(function() {
 	$('#fileloader_file').val('fbp.sce');
 	FBP_loadFromServer(id);
     window.progress = $('#progress');
-    $('#progress').dialog({autoOpen:false, modal:true, width:'auto'});
+    $('#progress').dialog({autoOpen:false, modal:true, width:'50%', height:'300'});
 });
 
 function FBP_fillBlockType(div)
@@ -88,7 +88,14 @@ function FBP_addBlock()
 
 function FBP_delBlock()
 {
-	alert("not implemented yet");
+	for(i=0;i<g_nodes;i++) {
+		if (g_nodes[i].id == Block.current.id) {
+			g_nodes[i].splice(i,1);
+			break;
+		}
+	}
+	Block.current.div.remove();
+	Block.current = null;
 }
 
 function FBP_refreshLines()
@@ -175,6 +182,7 @@ function FBP_save()
 		data: {xml:data},
 		type:'POST',
         success: function(data) {
+			window.progress.dialog({buttons:{}});
             window.progress.dialog('open');
             FBP_waitSaveDone(id, data.version);
         }
@@ -185,7 +193,7 @@ function FBP_waitSaveDone(id, version)
 {
     $.post('/application/'+id+'/fbp/poll', {version: version}, function(data) {
         $('#progress #compile_status').html('<p>' + data.compile_status + '</p>');
-        $('#progress #normal').html('<h2>NORMAL</h2><pre>' + data.normal.join('\n') + '</pre>');
+        $('#progress #normal').html('<h2>NORMAL</h2><pre>' + data.normal.join('\n') + '</pre>').scrollTop(-1);
         $('#progress #urgent_error').html('<h2>URGENT</h2><pre>' + data.error.urgent.join('\n') + '</pre>');
         $('#progress #critical_error').html('<h2>CRITICAL</h2><pre>' + data.error.critical.join('\n') + '</pre>');
 
@@ -232,7 +240,7 @@ function FBP_parseXML(r)
 		var c = $(comps[i]);
 		var links = c.find("link");
 		for(j=0;j<links.length;j++) {
-			var l = $(links[i]);
+			var l = $(links[j]);
 			var source = c.attr("instanceId");
 			var signal = l.attr("fromProperty");
 			var dest = l.attr("toInstanceId");
