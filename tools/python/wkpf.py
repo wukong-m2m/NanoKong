@@ -46,7 +46,7 @@ class WuObjectDefList:
         self.wuobjects = []
 
     def __repr__(self):
-        return self.wuobjects
+        return ','.join(map(str, self.wuobjects))
 
     def __contains__(self, typeName):
         return typeName in [wuobject.getXmlName() for wuobject in self.wuobjects]
@@ -59,13 +59,13 @@ class WuObjectDefList:
 
     def getByInstanceId(self, instanceId):
         print 'getByInstanceId'
-        print instanceId
+        print 'instanceId', instanceId
         for wuobject in self.wuobjects:
+            print wuobject.instanceId
             if instanceId == wuobject.instanceId:
                 print wuobject
                 return wuobject
-            else:
-                return None
+        return None
 
     def getByTypeName(self, typeName):
         for wuobject in self.wuobjects:
@@ -100,12 +100,15 @@ class WuClass:
     def __init__(self, nodeId, wuClassId, isVirtual=None, wuClassDef = None):
         self.nodeId = nodeId
         self.wuClassId = wuClassId
+        # TODO: not used, should modify the part in inspector.py to adapt to new format
         if wuClassDef == None:
             self.wuClassDef = WuClassDef(name='', id=wuClassId, properties={}, virtual=isVirtual, soft=None)
         else:
             self.wuClassDef = wuClassDef    
     def isVirtual(self):
         return self.wuClassDef.isVirtual()
+    def isSoft(self):
+        return self.wuClassDef.isSoft()
     def __repr__(self):
         return 'wuclass(node %d wuclass %d)' % (self.nodeId, self.wuClassId)
 
@@ -140,7 +143,7 @@ class WuObject:
     def toJava(self):
         print self.instanceId
         print self.getNodeId(), self.portNumber
-        return ', '.join([int(self.getNodeId()), int(self.portNumber)])
+        return ', '.join([str(self.getNodeId()), str(self.portNumber)])
     def __repr__(self):
         return 'wuobject(node:'+ str(self.getNodeId())+' port:'+ str(self.portNumber)+ ' wuclass: '+ str(self.getWuClassId())+')'
 
@@ -187,14 +190,17 @@ class WuApplication:
             wuClassDef = self.wuClassDefs.getByTypeName(componentTag.getAttribute('type'))
             assert wuClassDef != None
             # nodeId is not used here, portNumber is generated later
-            wuObj = WuObject(None, WuClass(None,wuClassDef.id, wuClassDef = wuClassDef), instanceId=componentTag.getAttribute('instanceId'))
+            wuObj = WuObject(portNumber=None, wuClass=WuClass(None,wuClassDef.id, wuClassDef = wuClassDef), instanceId=componentTag.getAttribute('instanceId'))
             print wuObj.wuClass.wuClassDef.properties
             # TODO: for java variable instantiation
             for propertyTag in componentTag.getElementsByTagName('property'):
                 assert propertyTag.getAttribute('name') in wuClassDef
                # wuObject = self.wuObjectList.getByTypeName(wuClassDef.getTypeName())
                 wuProperty = wuObj.getPropertyByName(propertyTag.getAttribute('name'))
-                wuProperty.default_value = propertyTag.getAttribute('default')
+                if wuProperty.getType() != 'int' and wuProperty.getType() != 'boolean' and wuProperty.getType() != 'short' and wuProperty.getType() != 'refresh_rate':
+                    wuProperty.default_value = wuProperty.getJavaNameForValue(propertyTag.getAttribute('default'))
+                else:
+                    wuProperty.default_value = propertyTag.getAttribute('default')
                 print wuProperty
             self.wuObjectList.append(wuObj)
 
@@ -203,6 +209,8 @@ class WuApplication:
             fromWuObject = self.wuObjectList.getByInstanceId(linkTag.parentNode.getAttribute('instanceId'))
             fromProperty = fromWuObject.getPropertyByName(str(linkTag.getAttribute('fromProperty'))).getId()
 
+            print 'links', self.wuObjectList
+            print linkTag.getAttribute('toInstanceId')
             toWuObject = self.wuObjectList.getByInstanceId(str(linkTag.getAttribute('toInstanceId')))
             toProperty = toWuObject.getPropertyByName(str(linkTag.getAttribute('toProperty'))).getId()
 
