@@ -64,7 +64,7 @@ $(document).ready(function() {
 	$('#fileloader_file').val('fbp.sce');
 	FBP_loadFromServer(id);
     window.progress = $('#progress');
-    $('#progress').dialog({autoOpen:false, modal:true, width:'auto'});
+    $('#progress').dialog({autoOpen:false, modal:true, width:'50%', height:'300'});
 });
 
 function FBP_fillBlockType(div)
@@ -88,7 +88,14 @@ function FBP_addBlock()
 
 function FBP_delBlock()
 {
-	alert("not implemented yet");
+	for(i=0;i<g_nodes;i++) {
+		if (g_nodes[i].id == Block.current.id) {
+			g_nodes[i].splice(i,1);
+			break;
+		}
+	}
+	Block.current.div.remove();
+	Block.current = null;
 }
 
 function FBP_refreshLines()
@@ -175,6 +182,7 @@ function FBP_save()
 		data: {xml:data},
 		type:'POST',
         success: function(data) {
+			window.progress.dialog({buttons:{}});
             window.progress.dialog('open');
             FBP_waitSaveDone(id, data.version);
         }
@@ -185,7 +193,7 @@ function FBP_waitSaveDone(id, version)
 {
     $.post('/application/'+id+'/fbp/poll', {version: version}, function(data) {
         $('#progress #compile_status').html('<p>' + data.compile_status + '</p>');
-        $('#progress #normal').html('<h2>NORMAL</h2><pre>' + data.normal.join('\n') + '</pre>');
+        $('#progress #normal').html('<h2>NORMAL</h2><pre>' + data.normal.join('\n') + '</pre>').scrollTop(-1);
         $('#progress #urgent_error').html('<h2>URGENT</h2><pre>' + data.error.urgent.join('\n') + '</pre>');
         $('#progress #critical_error').html('<h2>CRITICAL</h2><pre>' + data.error.critical.join('\n') + '</pre>');
 
@@ -221,7 +229,10 @@ function FBP_parseXML(r)
 		meta.h = c.attr("h");
 		meta.id = c.attr("instanceId");
 		meta.type = c.attr("type");
-		meta.location = c.attr("location");
+		loc = c.find("location");
+		if (loc) {
+			meta.location = loc.attr("requirement");
+		}
 		n = Block.restore(meta);
 		// This should be replaced with the node type system latter
 		n.attach($('#content'));
@@ -232,7 +243,7 @@ function FBP_parseXML(r)
 		var c = $(comps[i]);
 		var links = c.find("link");
 		for(j=0;j<links.length;j++) {
-			var l = $(links[i]);
+			var l = $(links[j]);
 			var source = c.attr("instanceId");
 			var signal = l.attr("fromProperty");
 			var dest = l.attr("toInstanceId");
@@ -364,13 +375,20 @@ function FBP_toXML(gnodes,glines)
 			var line = linehash[k][i];
 			xml = xml + '        <link fromProperty="'+line.signal+'" toInstanceId="'+line.dest.id+'" toProperty="'+line.action+'"/>\n';
 		}
+		if (source.location && source.location != '') {
+			xml = xml + '        <location requirement="'+source.location+'" />\n';
+		}
 		xml = xml + '    </component>\n';
 	}
 	for(var k in gnodes) {
 		var source ={};
 		gnodes[k].serialize(source);
 		if (linehash[gnodes[k].id] == undefined) {
-			xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'"></component>\n';
+			xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'">\n';
+			if (gnodes[k].location && gnodes[k].location != '') {
+				xml = xml + '        <location requirement="'+gnodes[k].location+'" />\n';
+			}
+			xml = xml + '    </component>\n';
 		}
 	}
 	xml = xml + "</application>\n";
