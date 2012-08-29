@@ -57,7 +57,7 @@ There are 13 routes so far:
 
 ## Main window
 
-![main][https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/main.png]
+![main](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/main.png)
 
 Operations corresponding to the routes:
 
@@ -67,33 +67,33 @@ Operations corresponding to the routes:
 
 ## Application editor
 
-![fbp][https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/editor.png]
+![fbp](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/editor.png)
 
 * Update application: /application/[1-fA-F\d]{32} [PUT]
 
 ## FBP.js (Flow Based Programming)
 
-![fbp-logic][]
+![fbp-logic]()
 
 ## Deploy window
 
-![deploy][https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/deploy.png]
+![deploy](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/deploy.png)
 
-![deploy-logic][https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/deploy-logic.png]
+![deploy-logic](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/deploy-logic.png)
 
 ## Monitor window
 
 ### Monitor logging
 
-![monitor-logging][https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-logging.png]
+![monitor-logging](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-logging.png)
 
 ### Monitor mapping
 
-![monitor-mapping][https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-mapping.png]
+![monitor-mapping](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-mapping.png)
 
 ### Monitor properties
 
-![monitor-properties][https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-properties.png]
+![monitor-properties](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-properties.png)
 
 # Contributing
 
