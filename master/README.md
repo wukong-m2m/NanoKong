@@ -95,10 +95,6 @@ Operations corresponding to the routes:
 
 ![monitor-properties](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-properties.png)
 
-# Contributing
-
-## GitHub Workflow
-
 [Tornado]:				http://www.tornadoweb.org/
 [easy_install]:			http://pypi.python.org/pypi/setuptools
 [pip]:						http://pypi.python.org/pypi/pip/
