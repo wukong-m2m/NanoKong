@@ -9,6 +9,23 @@ class SensorNode(object):
 		self.locationLst = locationLst
 		self.nodeInfo = nodeInfo
 		self.coord = (x_coord,y_coord,z_coord)
+		self.port_list = []
+	def initPortList(self, forceInit = True):
+		if len(self.port_list)!=0 and forceInit == False:
+			return
+		for wuObj in self.nodeInfo.wuObjects:
+			self.port_list.append(wuObj.portNumber)
+		self.port_list.sort()
+	def reserveNextPort(self):
+		portSet = False
+		for j in range(len(self.port_list)):
+			if (self.port_list[j]+1)%256 !=self.port_list[(j+1)%len(self.port_list)]:
+				self.port_list.append((self.port_list[j]+1)%256)
+				self.port_list.sort()
+				portSet =True
+				return (self.port_list[j]+1)%256
+		return None
+		
 class LocationTreeNode(object):
 	def __init__(self, name, parent):
 		self.name = name
@@ -26,16 +43,25 @@ class LocationTreeNode(object):
 		self.sensorLst.append(sensorNode)
 		self.sensorCnt = self.sensorCnt + 1
 		self.idSet.add(sensorNode.nodeInfo.nodeId)
+
+	def getAllNodes(self):
+		ret_val = self.idSet
+		for child in self.children:
+			ret_val = ret_val | child.getAllNodes()
+		return ret_val
 		
 class LocationTree(object):
 	def __init__(self, root):
+		self.sensor_dict = {}
 		self.root= root
 		self.totalSensorCount = 0
 		
 	def __init__(self, name):
 		tmp = LocationTreeNode(name, None)
+		self.sensor_dict = {}
 		self.root = tmp
 		self.totalSensorCount = 0
+	
 
 	#insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
 	def addSensor(self, startPos, sensorNd):
@@ -60,6 +86,7 @@ class LocationTree(object):
 					curPos = curPos.children[-1]
 				
 		curPos.addSensor(sensorNd)
+		self.sensor_dict[sensorNd.nodeInfo.nodeId] = sensorNd
 		self.totalSensorCount = self.totalSensorCount +1
 	
 	def findLocation(self, startPos, locationStr):

@@ -8,15 +8,18 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
-from wkpf import NodeInfo, WuClass, WuObject
+from wkpf import NodeInfo, WuClass, WuObject, WuApplication
 import pickle
 from xml.dom.minidom import parse 
-from inspector import readNodeInfo
-from locationTree import *
-from URLParser import *
+from locationTree import LocationTree, SensorNode
+
+#from inspector import readNodeInfo
+
 import wkpfcomm
 from inspector import *
 from optparse import OptionParser
+
+rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
 ## print flag for parsed files
 print_wuClasses = False
@@ -37,7 +40,7 @@ def saveNodeList(node_list, filename):
   with open(filename, "w") as f:
     pickle.dump(node_list, f)
 
-def getNodeList(options):
+def getNodeList():
   if (not options.do_discovery and not options.use_hardcoded_discovery and not options.discovery_file):
     print "Please specify either -D to do network discovery, -d to use a previously stored discovery result, or store the result of the discovery, or -H to use the hardcoded discovery result (DEBUG ONLY)"
     exit(1)
@@ -47,19 +50,20 @@ def getNodeList(options):
     wkpfcomm.init(0)
     node_list = wkpfcomm.getNodeInfos();
   elif options.use_hardcoded_discovery:
-    node1 = NodeInfo(nodeId=1,
-                     wuClasses=(WuClass(nodeId=1, wuClassId=0, isVirtual=False),
-                                WuClass(nodeId=1, wuClassId=3, isVirtual=False),
-                                WuClass(nodeId=1, wuClassId=5, isVirtual=False)), # generic, threshold, numeric_controller, light_sensor
-                     wuObjects=(WuObject(nodeId=3, portNumber=0, wuClassId=0),
-                                WuObject(nodeId=3, portNumber=1, wuClassId=3),
-                                WuObject(nodeId=3, portNumber=2, wuClassId=5))) # numeric_controller at port 1, light sensor at port 2
-    node3 = NodeInfo(nodeId=3,
-                     wuClasses=(WuClass(nodeId=3, wuClassId=0, isVirtual=False),
-                                WuClass(nodeId=3, wuClassId=1, isVirtual=False),
-                                WuClass(nodeId=3, wuClassId=4, isVirtual=False)), # generic, threshold, light
-                     wuObjects=(WuObject(nodeId=3, portNumber=0, wuClassId=0),
-                                WuObject(nodeId=3, portNumber=4, wuClassId=4))) # light at port 4
+    #generic, numeric_controller, light_sensor
+    wuClasses=(WuClass(nodeId=4, wuClassId=0),
+               WuClass(nodeId=4, wuClassId=3),
+               WuClass(nodeId=4, wuClassId=5))
+    wuObjects=[WuObject(portNumber=0, wuClass=wuClasses[0]),
+               WuObject(portNumber=1, wuClass=wuClasses[1]),
+               WuObject(portNumber=2, wuClass=wuClasses[2])]   
+    node1 = NodeInfo(4, wuClasses, wuObjects) # numeric_controller at port 1, light sensor at port 2
+    node3 = NodeInfo(nodeId=6,
+              wuClasses=(WuClass(nodeId=6, wuClassId=0),
+              WuClass(nodeId=6, wuClassId=1),
+              WuClass(nodeId=6, wuClassId=4)), # generic, threshold, light
+              wuObjects=(WuObject(portNumber=0, wuClass=wuClasses[0]),
+              WuObject(portNumber=4, wuClass=wuClasses[2]))) # light at port 4
     node_list = (node1, node3)
   else:
     node_list = loadNodeList(options.discovery_file)
@@ -77,13 +81,13 @@ def getNodeList(options):
 ## parser, mapper, and codegen. Written by B.L.Tsai
 # function for indenting text line to make a code readable
 def indentor(s, num):
-    return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
+  return "\n".join((num * 4 * " ") + line for line in s.splitlines() if line.strip() != '')
 
 
 #making dictionaries, generate [Application].class
 def xmlparser():
-    # get discovery result
-    node_list = getNodeList(options)
+  # get discovery result
+    node_list = getNodeList()
 
     # parse out java class name from flow.xml dom, using xml.dom.minidom.parse 
     f_dom = parse(options.pathf)
@@ -97,37 +101,8 @@ def xmlparser():
     global out_xml_fd
     out_fd = open(os.path.join(out_dir, java_class_name+".java"), 'w')
     out_xml_fd = open(os.path.join(out_dir, java_class_name+"Mapping.xml"), 'w')
-   
-    ## First, parse out WuClasse definitions with additional customized property types
-    from wkxml import WuClassXMLParser
-    wcxp = WuClassXMLParser(options.pathc)
-    wuTypedefs_dict = {}
-    wuClasses_dict = {}
 
-	## create a dict of WuType (AND/XOR....., see Component Definations/WukongStandardLibrary.xml), short boolean,... or enumeration type
-    for wuType in wcxp.getAllWuTypes():
-        tmp_typedef_dict = {}
-        tmp_type = wuType.getType()
-        if tmp_type == u'enum':
-            for enum in wuType.getValues():
-                # need to refer to the class that defines this constant
-                tmp_typedef_dict[enum] = 'GENERATEDWKPF.' + wuType.getJavaConstValueByValue(enum)
-            wuTypedefs_dict[wuType.getXmlName()] = tmp_typedef_dict
-        else: 
-            wuTypedefs_dict[wuType.getXmlName()] = tmp_type
-
-    for wuClass in wcxp.getAllWuClasses():
-        wuClassName = wuClass.getNiagaraName()
-        wuClassId = wuClass.getId()
-        tmp_prop_dict = {}
-        for prop in wuClass.getProperties():
-            prop_type = wuTypedefs_dict[prop.getType()]
-            tmp_prop_dict[prop.getNiagaraName()] = {'jconst':prop.getJavaConstName(),'id':prop.getId(), 'type':prop_type, 'access':prop.getAccess()}
-        wuClasses_dict[wuClassName] = {'xml':wuClass.getXmlName(),'jclass': wuClass.getJavaClassName(), 'jgclass':wuClass.getJavaGenClassName(), 'jconst':wuClass.getJavaConstName(),'id':wuClassId, 'prop':tmp_prop_dict, 'vrtl':wuClass.isVirtual(), 'soft':wuClass.isSoft()}
-        wuClasses_dict[wuClassId] = wuClasses_dict[wuClassName]  #wuClassName, wuClassId could both be keys
-    
-    del wuTypedefs_dict, tmp_prop_dict, tmp_typedef_dict, wcxp
-	# About various names : Niagara Name = (xml name) for now: And_Gate(in StandardLibrary), jgclass: GENERATEDVirtualAndGateWuObject, jclass: VirtualAndGateWuObject
+  # About various names : Niagara Name = (xml name) for now: And_Gate(in StandardLibrary), jgclass: GENERATEDVirtualAndGateWuObject, jclass: VirtualAndGateWuObject
     # wuClasses_dict [ wuClass' name or wuClass' ID] = {
     #   'jclass': Java Class Name
     #   'jgclass': Generated Java Class Name
@@ -146,7 +121,8 @@ def xmlparser():
         assert prop_name in tmp_prop_dict, 'Error! property %s is not in wuClass %s in xml %s' % (prop_name,class_name,path)
         return tmp_prop_dict[prop_name]
 
-    if print_Components: print>>out_fd, "//========== Components Definitions =========="
+    if print_Components: 
+        print>>out_fd, "//========== Components Definitions =========="
     components_dict = {}
     truefalse_dict = {u'true':True, u'false':False}
     links_list = []
@@ -155,13 +131,13 @@ def xmlparser():
         wuClassName = component.getAttribute('type')
         instanceName = component.getAttribute('instanceId')
         tmp_dflt_list = []
-		##retrieving propoerty and default value
+    ##retrieving propoerty and default value
         for prop in component.getElementsByTagName('property'):
             prop_found = findProperty(prop.getAttribute('name'), wuClasses_dict, wuClassName, path)
             prop_name = prop_found['jconst']
             prop_type = prop_found['type']
             prop_dflt_value = prop.getAttribute('default')
-			#TODO change type definiation tuple(type, value)
+      #TODO change type definiation tuple(type, value)
             if type(prop_type) is dict:
                 prop_dflt_value = prop_type[prop_dflt_value]    # it becomes type str
             elif prop_type == u'short':
@@ -176,9 +152,9 @@ def xmlparser():
         print "instanceName" + str(wuClasses_dict.keys())
         components_dict[instanceName] = {'cmpid':i, 'class':wuClassName, 'classid':wuClasses_dict[wuClassName]['id'], 'defaults':tmp_dflt_list, 'cmpname':instanceName }
         if print_Components:
-          print>>out_fd, "//", i, instanceName, components_dict[instanceName]
-	
-		#create a list of links
+            print>>out_fd, "//", i, instanceName, components_dict[instanceName]
+
+    #create a list of links
         for link in component.getElementsByTagName('link'):
             toInstanceName = link.getAttribute('toInstanceId')
             links_list += [ (instanceName, link.getAttribute('fromProperty'), toInstanceName, link.getAttribute('toProperty')) ]
@@ -192,12 +168,12 @@ def xmlparser():
         print>>out_fd, "//========== Links Definitions =========="
         print>>out_fd, "// fromCompInstanceId(2 bytes), fromPropertyId(1 byte), toCompInstanceId(2 bytes), toPropertyId(1 byte), toWuClassId(2 bytes)"
     link_table_str = ''
-	#establishing link table (refer to HAScenario2.java)
-	#eg. (byte)0,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)1,  (byte)1,(byte)0,
-	# from     Compo. 0      prop. 0  to Comp. 2 prop.0,  (why WuClass 1 ????? ---Sen) 
+  #establishing link table (refer to HAScenario2.java)
+  #eg. (byte)0,(byte)0, (byte)0,  (byte)2,(byte)0, (byte)1,  (byte)1,(byte)0,
+  # from     Compo. 0      prop. 0  to Comp. 2 prop.0,  (why WuClass 1 ????? ---Sen) 
     for link in links_list:
         assert link[2] in components_dict, 'Error! cannot find target component %s linked from component %s in xml %s' % (link[2], link[0],path)
-   
+
         fromInstanceId = short2byte(components_dict[ link[0] ]['cmpid'])
         fromPropertyId = findProperty(link[1], wuClasses_dict, components_dict[ link[0] ]['class'], path)['id']
         link_table_str += "(byte)%d,(byte)%d, " % (fromInstanceId[0], fromInstanceId[1])
@@ -213,11 +189,12 @@ def xmlparser():
         if print_links: 
             print>>out_fd, "//", link
             print>>out_fd, "//", (fromInstanceId[0],fromInstanceId[1]), fromPropertyId, (toInstanceId[0], toInstanceId[1]), toPropertyId, (wuClassId[0], wuClassId[1])
-    if print_links: print>>out_fd, "//"
+    if print_links: 
+        print>>out_fd, "//"
 
     return java_class_name, wuClasses_dict, components_dict, indentor(link_table_str,1), out_dir, node_list
 
-    # components_dict[instanceName] = {
+  # components_dict[instanceName] = {
     #   'cmpid': component's ID, 
     #   'class': WuClass's Name, 
     #   'classid': WuClasses's ID,
@@ -225,7 +202,7 @@ def xmlparser():
     # }
 
 def mapper(wuClasses_dict, components_dict, node_list, locationTree, queries):
-    # find nodes
+  # find nodes
     hard_dict = {}
     soft_dict = {}
     node_port_dict = {}
@@ -303,7 +280,7 @@ def mapper(wuClasses_dict, components_dict, node_list, locationTree, queries):
 
 
 def javacodegen(link_table, map_table, comp_init, java_class_name):
-    
+
     import_stmt = indentor("""
 import java.io.*;
 import nanovm.avr.*;
@@ -322,14 +299,14 @@ private final static byte[] componentInstanceToWuObjectAddrMap = {
 %s
 };
     """ % map_table, 1)
-    
+
     wkpf_init = indentor("""
 System.out.println("%s");
 WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
 WKPF.loadLinkDefinitions(linkDefinitions);
     """ % java_class_name
     , 2)
-    
+
     comp_init_func_name = "initialiseLocalWuObjects"
     comp_init_stmts = indentor(comp_init, 2)
 
@@ -347,7 +324,7 @@ public class {{ CLASS_NAME }} {
     public static void main (String[] args) {
 {{ WKPF_INIT_STATEMENTS }}
         {{ COMPONENT_INIT_FUNC_NAME }}();
-        
+
         while(true){
 {{ MAIN_LOOP_STATEMENTS }}
         }
@@ -364,71 +341,86 @@ public class {{ CLASS_NAME }} {
     """)
 
     rendered_tpl = tpl.render(IMPORT_STATEMENTS=import_stmt,
-            CLASS_NAME=java_class_name,
-            LINK_DEFINITIONS=linkDefinitions,
-            MAPPING_DEFINITIONS=componentInstanceToWuObjectAddrMap,
-            WKPF_INIT_STATEMENTS=wkpf_init,
-            MAIN_LOOP_STATEMENTS=main_loop,
-            COMPONENT_INIT_FUNC_NAME=comp_init_func_name,
-            COMPONENT_INIT=comp_init_stmts
+        CLASS_NAME=java_class_name,
+        LINK_DEFINITIONS=linkDefinitions,
+        MAPPING_DEFINITIONS=componentInstanceToWuObjectAddrMap,
+        WKPF_INIT_STATEMENTS=wkpf_init,
+        MAIN_LOOP_STATEMENTS=main_loop,
+        COMPONENT_INIT_FUNC_NAME=comp_init_func_name,
+        COMPONENT_INIT=comp_init_stmts
         )
 
     print>>out_fd, "//========== Code =========="
     print>>out_fd, rendered_tpl
 
+
+
+
 if __name__ == "__main__":
-	
-#Sen Zhou 12.8.14 Move arg parser from parser() to main() here
+
+  #Sen Zhou 12.8.14 Move arg parser from parser() to main() here
    # program argument handler by OptionParser module
-	parser = OptionParser("usage: %prog [options]")
-	parser.add_option("-c", "--component", action="store", type="string", dest="pathc", help="WuKong Component XML file path")
-	parser.add_option("-f", "--flow", action="store", type="string", dest="pathf", help="WuKong Flow XML file path")
-	parser.add_option("-o", "--output-path", action="store", type="string", dest="out", help="the dest. folder path of output java file")
-	parser.add_option("-d", "--discovery-result", action="store", type="string", dest="discovery_file", help="The file containing the discovery result. Will be read if -D isn't specified, or created/overwritten if -D is specified. Either -D, -H, -d or both must be used.")
-	parser.add_option("-D", "--do-discovery", action="store_true", dest="do_discovery", help="Do a new discovery of the network nodes. If a discovery file is specified using -d, the result will be stored there for future use. Either -D, -H, -d or both must be used.")
-	parser.add_option("-H", "--use-hardcoded-discovery", action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
-	(options, args) = parser.parse_args()
-	rootpath = os.path.dirname(os.path.abspath(__file__)) + "/../.."
-	if not options.pathc and os.path.exists(rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"):
-		print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
-		options.pathc = rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"
-	if not options.pathf and os.path.exists(rootpath + "/Applications/HAScenario1.xml"):
-		print "flow.xml file not specified, default HAScenario1.xml used"
-		options.pathf = rootpath + "/Applications/HAScenario1.xml"
-	if not options.pathc or not options.pathf: 
-		parser.error("invalid component and flow xml, please refer to -h for help")
+  parser = OptionParser("usage: %prog [options]")
+  parser.add_option("-c", "--component", 
+      action="store", type="string", dest="pathc", help="WuKong Component XML file path")
+  parser.add_option("-f", "--flow", 
+      action="store", type="string", dest="pathf", help="WuKong Flow XML file path")
+  parser.add_option("-o", "--output-path", 
+      action="store", type="string", dest="out", help="the dest. folder path of output java file")
+  parser.add_option("-d", "--discovery-result", 
+      action="store", type="string", dest="discovery_file", help="The file containing the discovery result. Will be read if -D isn't specified, or created/overwritten if -D is specified. Either -D, -H, -d or both must be used.")
+  parser.add_option("-D", "--do-discovery", 
+      action="store_true", dest="do_discovery", help="Do a new discovery of the network nodes. If a discovery file is specified using -d, the result will be stored there for future use. Either -D, -H, -d or both must be used.")
+  parser.add_option("-H", "--use-hardcoded-discovery", 
+      action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
+  (options, args) = parser.parse_args()
+  if not options.pathc and \
+      os.path.exists(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")):
+      print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
+      options.pathc = os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")
+  if not options.pathf and \
+      os.path.exists(os.path.join(rootpath, "Applications", "HAScenario1.xml")):
+      print "flow.xml file not specified, default HAScenario1.xml used"
+      options.pathf = os.path.join(rootpath, "Applications", "HAScenario1.xml")
+  if not options.pathc or not options.pathf: 
+      parser.error("invalid component and flow xml, please refer to -h for help")
 
 
 #Sen Zhou 12.8.14 Add location tree and node discovery here
-	locTree = LocationTree("Boli_Building")
-	componentDefinitions = getComponentDefinitions(options.pathc)
-	loc = "Boli_Building/3F/South_Corridor/Room319"
+  locTree = LocationTree("Boli_Building")
+  componentDefinitions = getComponentDefinitions(options.pathc)
+  loc = "Boli_Building/3F/South_Corridor/Room319"
 #	loc1 = "Boli_Building/3F/East_Corridor/Room318"
 #	loc2 = "Boli_Building/3F/East_Corridor/Room318"
 #	loc3 = "Boli_Building/3F/East_Corridor/Room318"
 #	nodeIds = wkpfcomm.getNodeIds()
 #	nodeInfos = [readNodeInfo(nodeId, componentDefinitions) for nodeId in nodeIds]
-	nodeInfos = getNodeList(options)
-	loc_args = [[0,1,2],[0,5,3],[3,3,2],[2,1,2]]
-	sensorNodes = []
-	for i in range(len(nodeInfos)):
-		if nodeInfos[i].isResponding == True:
-			sensorNodes.append(SensorNode(locTree.parseLocation(loc), nodeInfos[i], *loc_args[i]))
-			locTree.addSensor(locTree.root, sensorNodes[-1])
-			
-			
-	locTree.printTree(locTree.root, 0)
-	queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
-	 		    
-				"Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
-				None,
-				None]
+  nodeInfos = getNodeList()
+  loc_args = [[0,1,2],[0,5,3],[3,3,2],[2,1,2]]
+  sensorNodes = []
+  for i in range(len(nodeInfos)):
+    if nodeInfos[i].isResponding == True:
+      sensorNodes.append(SensorNode(locTree.parseLocation(loc), nodeInfos[i], *loc_args[i]))
+      locTree.addSensor(locTree.root, sensorNodes[-1])
 
 
+#  locTree.printTree(locTree.root, 0)
+  queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
+      "Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
+      None,
+      None]
+
+  application = WuApplication(parse(options.pathf), options.out, options.pathc)
+  application.parseComponents()
+  application.scaffoldingWithComponents()
+  application.mappingWithNodeList(locTree, queries)
+  application.generateJava()
 
 
-	java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = xmlparser()
-	map_table, comp_init, map_table_xml = mapper(wuClasses_dict, components_dict, node_list)
-	javacodegen(links_table, map_table, comp_init, java_class_name)
+  #old stuff below
+  #java_class_name, wuClasses_dict, components_dict, links_table, out_dir, node_list = xmlparser()
+  #map_table, comp_init, map_table_xml = mapper(wuClasses_dict, components_dict, node_list)
+  #javacodegen(links_table, map_table, comp_init, java_class_name)
+
 #	print>>out_xml_fd, "<ComponentToNodeMapping>\n%s</ComponentToNodeMapping>" % (map_table_xml)
 #	print "Translator msg: the file %s.java generated is on the path %s" % (java_class_name, out_dir)
