@@ -123,7 +123,7 @@ class WuClassProperty:
         return self.__name 
     def getJavaConstName(self):
         return self.__java_wkpf_constant_name
-    def getNiagaraName(self):
+    def getName(self):
         return self.__name
     def setWuClassDefName(self, name):
         self.__wuclassdefName = name

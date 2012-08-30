@@ -40,11 +40,9 @@ else
 endif
 
 $(DEFAULT_FILE):
-ifdef FLOWXML
 	$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
 	cp $(FLOWXML_DIR)/$(FLOWXML).xml $(CURDIR)/currentFlow.xml
 	cp $(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml $(CURDIR)/currentMapping.xml
-endif
 
 $(DEFAULT_CLASS): $(JAVA_FILES) $(DEFAULT_FILE)
 	-mkdir -p $(CLASSES_PATH)

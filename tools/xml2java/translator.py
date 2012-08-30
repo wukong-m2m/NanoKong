@@ -410,7 +410,7 @@ if __name__ == "__main__":
       None,
       None]
 
-  application = WuApplication(parse(options.pathf), options.out, options.pathc)
+  application = WuApplication(parse(options.pathf), options.out, options.pathc, rootpath)
   application.parseComponents()
   application.scaffoldingWithComponents()
   application.mappingWithNodeList(locTree, queries)
