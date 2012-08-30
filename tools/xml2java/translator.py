@@ -8,7 +8,7 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
-from wkpf import NodeInfo, WuClass, WuObject, WuApplication
+from wkpf import NodeInfo, WuClass, WuObject
 import pickle
 from xml.dom.minidom import parse 
 from locationTree import LocationTree, SensorNode
@@ -355,7 +355,7 @@ public class {{ CLASS_NAME }} {
 
 
 
-
+from wkapplication import *
 if __name__ == "__main__":
 
   #Sen Zhou 12.8.14 Move arg parser from parser() to main() here

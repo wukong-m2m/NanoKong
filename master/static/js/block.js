@@ -93,6 +93,8 @@ Block.prototype.getSignals=function() {
 Block.prototype.addAction=function(con) {
 	this.actions.push(con);
 }
+Block.prototype.setProperty=function(property,value) {
+}
 Block.prototype.findSignalPos=function(s) {
 	var i;
 
