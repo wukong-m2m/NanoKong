@@ -1,12 +1,14 @@
 from wkpf import *
 from locationTree import LocationTree
 from URLParser import *
+
 class WuApplication:
-    def __init__(self, flowDom, outputDir, componentDir):
+    def __init__(self, flowDom, outputDir, componentDir, rootDir):
         self.applicationDom = flowDom;
         self.applicationName = flowDom.getElementsByTagName('application')[0].getAttribute('name')
         self.destinationDir = outputDir
         self.componentDir = componentDir
+        self.templateDir = os.path.join(rootDir, 'tools', 'xml2java')
         self.wuClassDefs = None
         self.wuObjectList = WuObjectDefList()
         self.wuLinks = []
@@ -25,24 +27,29 @@ class WuApplication:
             wuClassDef = self.wuClassDefs.getByTypeName(componentTag.getAttribute('type'))
             assert wuClassDef != None
             # nodeId is not used here, portNumber is generated later
-            wuObj = WuObject(None, WuClass(None,wuClassDef.id, wuClassDef = wuClassDef), instanceId=componentTag.getAttribute('instanceId'))
+            wuObj = WuObject(portNumber=None, wuClass=WuClass(None,wuClassDef.id, wuClassDef = wuClassDef), instanceId=componentTag.getAttribute('instanceId'))
             print wuObj.wuClass.wuClassDef.properties
             # TODO: for java variable instantiation
             for propertyTag in componentTag.getElementsByTagName('property'):
                 assert propertyTag.getAttribute('name') in wuClassDef
                # wuObject = self.wuObjectList.getByTypeName(wuClassDef.getTypeName())
                 wuProperty = wuObj.getPropertyByName(propertyTag.getAttribute('name'))
-                wuProperty.default_value = propertyTag.getAttribute('default')
+                if wuProperty.getType() != 'int' and wuProperty.getType() != 'boolean' and wuProperty.getType() != 'short' and wuProperty.getType() != 'refresh_rate':
+                    wuProperty.default_value = wuProperty.getJavaNameForValue(propertyTag.getAttribute('default'))
+                else:
+                    wuProperty.default_value = propertyTag.getAttribute('default')
                 print wuProperty
             self.wuObjectList.append(wuObj)
 
         # links
         for linkTag in self.applicationDom.getElementsByTagName('link'):
-            fromWuObject = wuObj
-            fromProperty = linkTag.getAttribute('fromProperty')
+            fromWuObject = self.wuObjectList.getByInstanceId(linkTag.parentNode.getAttribute('instanceId'))
+            fromProperty = fromWuObject.getPropertyByName(str(linkTag.getAttribute('fromProperty'))).getId()
 
-            toWuObject = self.wuObjectList.getByInstanceId(linkTag.getAttribute('toInstanceId'))
-            toProperty = linkTag.getAttribute('toProperty')
+            print 'links', self.wuObjectList
+            print linkTag.getAttribute('toInstanceId')
+            toWuObject = self.wuObjectList.getByInstanceId(str(linkTag.getAttribute('toInstanceId')))
+            toProperty = toWuObject.getPropertyByName(str(linkTag.getAttribute('toProperty'))).getId()
 
             self.wuLinks.append( WuLink(fromWuObject, fromProperty, toWuObject, toProperty) )
     def firstCandidate(app, locTree, queries):
@@ -83,11 +90,11 @@ class WuApplication:
         ret = mapFunc(self, locTree, queries)
         assert ret==True
 
-
-
     def generateJava(self):
         print 'inside generate Java'
         print self.wuObjectList.wuobjects
-
-        # TODO: jinja2
-#        open(os.path.join(self.destinationDir, self.applicationName+".java"), 'w')
+        jinja2_env = Environment(loader=FileSystemLoader([os.path.join(self.templateDir, 'jinja_templates')]))
+        output = open(os.path.join(self.destinationDir, self.applicationName+".java"), 'w')
+        jinja2_env.get_template('application.java').render(applicationName=self.applicationName, wuObjectList=self.wuObjectList, wuLinks=self.wuLinks)
+        output.write(jinja2_env.get_template('application.java').render(applicationName=self.applicationName, wuObjectList=self.wuObjectList, wuLinks=self.wuLinks))
+        output.close()
