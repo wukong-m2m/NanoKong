@@ -1,7 +1,7 @@
 #Sen Zhou 12.8.14 
 #define how to parse URLs like EE_Building/3F/ROOM318#near(0,1,2)&inside(3F),  
 #(, ), &, |, are preserved key words
-#priority & < | < ~
+#priority | < & < ~
 #any kind of spaces, tabs or "\n" are not allowed in URL
 
 import os
@@ -56,8 +56,8 @@ class LocationURL(object):
 	def getAll(locationTreeNode):
 	    return locationTreeNode.getAllNodes()
 	
-	connector_lst=["&", "|", "~"]
-	connector_dict = {"&":[getIntersect,2], "|":[getUnion,2], "~":[negate,1]}  #for CNF(conjunctive norm form expression), function call and num of variables
+	connector_lst=[ "|", "&", "~"]
+	connector_dict = {"|":[getUnion,2], "&":[getIntersect,2], "~":[negate,1]}  #for DNF(disjunctive norm form expression), function call and num of variables
 	funct_dict = {"near":near, "exact":exact}
 	
 	
