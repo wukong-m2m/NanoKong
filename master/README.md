@@ -8,14 +8,14 @@ To run the server the following must be present in your system:
 
 Python modules:
 
-* lxml               - a fast xml parser
+* lxml					- a fast xml parser
 * tornado            - a scalable, non-blocking web server
 
-Install using [easy_install][] run:
+Install using [easy_install](http://pypi.python.org/pypi/setuptools) run:
 
     sudo easy_install lxml tornado
 
-Or using [pip][](You can install pip by `sudo easy_install pip`) run:
+Or using [pip](http://pypi.python.org/pypi/pip/)(You can install pip by `sudo easy_install pip`) run:
 
     sudo pip install lxml tornado
 
@@ -31,7 +31,7 @@ IP is the ip the server will bind to, so if you want to host a public server, yo
 
 # Structure
 
-To get more information about internal workings of tornado server, please refer to [Tornado][]
+To get more information about internal workings of tornado server, please refer to [Tornado](http://www.tornadoweb.org/)
 
 As the time of writing, we are planning for Tornado to be a user interface to Wukong master node to manage, modify, deploy applications. Including, not limited to, the ability to create applications in flow based programming style by dragging components and link them together.
 
@@ -65,15 +65,31 @@ Operations corresponding to the routes:
 * Show application: /application/[1-fA-F\d]{32} [POST]
 * Delete application: /application/[1-fA-F\d]{32} [DELETE]
 
+### Structure
+
+The main window consists of a list of existing application entries and a button on the left bar to add a new application. Each application entry has 3 buttons on the right side of the bar. 
+
+The first one from the left is monitor, which is used to monitor deployed application's status. The second one from the left is deploy, which is used to deploy applications with application created by the application editor. The last one is delete, which is used to delete and destroy all files related to this application.
+
+In order to let user interaction to feel more fluid, we have implemented a pure ajax based web application by using javascript to switch out and in the elements if necessary without refreshing the page at all, therefore creating this really fast transitions between screens without having to wait for the browser to finish the loading bar.
+
+When user adds an application, master_server.py will receive a ajax POST request from the browser client, and application will create a new Application object with an id, a md5 hash from application name to minimize collision, a Wukong Application xml string, a pointer to local application directory on local hard drive (makefile, etc), a pointer to the compiler thread and a pointer to the deployer thread. Once the application is created, a new directory will be created on the local harddrive which is a copy from a folder called 'base' in the same parent directory with the new application. The applications folder is located at [`NanoKong/vm/apps/`](https://github.com/wukong-m2m/NanoKong/tree/WukongMaster/vm/apps)
+
+It goes the same for deleting, monitoring, or deploying the application as they all have corresponding routes on the Tornado server side.
+
 ## Application editor
 
 ![fbp](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/editor.png)
 
 * Update application: /application/[1-fA-F\d]{32} [PUT]
 
-## FBP.js (Flow Based Programming)
+Application editor could be accessed by double clicking the empty area of an application entry from the main window. Application editor has two components; the one on the top is the configuration of the application such as application name, description, and possibly compilation configurations; the bottom area is filled with a canvas element for programming the application.
 
-![fbp-logic]()
+In our initial design, we have made application configuration form takes a different route from the FBP application editor, so there are one save button for each component. But we plan to integrate them into one route, or we could implement a more real time saving of the configuration without user hitting the save button twice.
+
+### FBP.js (Flow Based Programming)
+
+
 
 ## Deploy window
 
@@ -94,7 +110,3 @@ Operations corresponding to the routes:
 ### Monitor properties
 
 ![monitor-properties](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/monitor-properties.png)
-
-[Tornado]:				http://www.tornadoweb.org/
-[easy_install]:			http://pypi.python.org/pypi/setuptools
-[pip]:						http://pypi.python.org/pypi/pip/
