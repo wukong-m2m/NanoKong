@@ -1,3 +1,4 @@
+# vim: ts=2 sw=2
 # author: Penn Su
 import tornado.ioloop
 import tornado.web
@@ -14,12 +15,11 @@ import shutil, errno
 from subprocess import Popen, PIPE, STDOUT
 
 sys.path.append(os.path.abspath("../tools/python"))
-import wkpfcomm
+from wkpfcomm import Communication
+from inspector import Inspector
+sys.path.append(os.path.abspath("../tools/xml2java"))
+from translator import Mapper
 
-if len(sys.argv) == 2:
-  IP = sys.argv[1]
-else:
-  IP = ''
 #ALLOWED_EXTENSIONS = set(['bog'])
 #TARGET = 'HAScenario1'
 #XML_PATH = os.path.join(ROOT_PATH, 'Applications')
@@ -28,9 +28,7 @@ TESTRTT_PATH = os.path.join(ROOT_PATH, 'tools', 'python', 'pyzwave')
 APP_DIR = os.path.join(ROOT_PATH, 'vm', 'apps')
 BASE_DIR = os.path.join(APP_DIR, 'base')
 MASTER_IP = '10.3.36.231'
-IP = '127.0.0.1'
-if len(sys.argv) >= 2:
-  IP = sys.argv[1]
+IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
 NORMAL = 'NORMAL'
 URGENT = 'URGENT'
@@ -40,7 +38,6 @@ OK = 0
 NOTOK = 1
 
 applications = []
-worker = None
 
 # Helper functions
 def allowed_file(filename):
@@ -119,38 +116,46 @@ class Worker:
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
       print 'changing to path: %s...' % platform_dir
-      pp = Popen('cd %s; make application FLOWXML=%s DISCOVERY_FLAGS=-H' % (platform_dir, app.id), shell=True, stdout=PIPE, stderr=STDOUT)
-      app.status = -1
+      pp = Popen('cd %s; make application FLOWXML=%s DISCOVERY_FLAGS=-H' % (platform_dir, app.id), shell=True, stdout=PIPE, stderr=PIPE)
+      app.returnCode = None
       while pp.poll() == None:
         print 'polling from popen...'
         line = pp.stdout.readline()
         if line != '':
           app.appendCompileLog(line, NORMAL)
+
+        line = pp.stderr.readline()
+        if line != '':
+          app.appendCompileLog(line, CRITICAL)
         app.version += 1
-      app.status = pp.returncode
-      print 'compiler done'
+      app.returnCode = pp.returncode
+    print 'compiler done'
 
   # target is the target application name (e.g. HAScenario1)
   # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
   # XML_PATH is the output of the compiled wukong xml
-  def deployer(self, app, ports, platforms):
+  def deployer(self, app, node_ids, platforms):
     app.clearLog()
     app_path = app.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
       print 'changing to path: %s...' % platform_dir
-      for port in ports:
-        print 'deploying to node: %d' % (port)
-        pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d' % (platform_dir, port), shell=True, stdout=PIPE, stderr=STDOUT)
-        app.status = -1
+      for node_id in node_ids:
+        print 'deploying to node: %d' % (node_id)
+        pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d' % (platform_dir, node_id), shell=True, stdout=PIPE, stderr=PIPE)
+        app.returnCode = None
         while pp.poll() == None:
           print 'polling from popen...'
           line = pp.stdout.readline()
           if line != '':
             app.appendCompileLog(line, NORMAL)
+
+          line = pp.stderr.readline()
+          if line != '':
+            app.appendCompileLog(line, CRITICAL)
           app.version += 1
-        app.status = pp.returncode
-      print 'deployer done'
+        app.returnCode = pp.returncode
+    print 'deployer done'
 
   # Deprecated
   def factory(self, file, status):
@@ -182,7 +187,10 @@ class Application:
     self.compiler = None
     self.deployer = None
     self.version = 0
-    self.status = NOTOK
+    self.returnCode = NOTOK
+    self.status = "Idle"
+    self.mapping_results = []
+    self.inspector = None
 
   def appendCompileLog(self, line, tag):
     print 'appendCompileLog'
@@ -249,16 +257,20 @@ class Application:
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
+    self.mapping_results = config['mapping_results']
 
   def saveConfig(self):
     print 'saveConfig'
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
 
+  def getReturnCode(self):
+    return self.returnCode
+
   def getStatus(self):
-    return statusString(self.status)
+    return self.status
 
   def config(self):
-    return {'id': self.id, 'name': self.name, 'desc': self.desc, 'dir': self.dir, 'xml': self.xml, 'version': self.version}
+    return {'id': self.id, 'name': self.name, 'desc': self.desc, 'dir': self.dir, 'xml': self.xml, 'version': self.version, 'mapping_results': self.mapping_results}
 
   def __repr__(self):
     return json.dumps(self.config())
@@ -276,7 +288,6 @@ class list_applications(tornado.web.RequestHandler):
     global applications
     update_applications()
     apps = [application.config() for application in applications]
-    #apps = [{'id': application.id, 'name': application.name, 'desc': application.desc, 'status': application.status} for application in applications]
     self.content_type = 'application/json'
     self.write(json.dumps(apps))
 
@@ -332,12 +343,17 @@ class new_application(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg':'Cannot create application'})
 
 class application(tornado.web.RequestHandler):
-  # Deprecated
-  '''
+  # topbar info
   def get(self, app_id):
-    global applications
-    self.render('templates/display.html', app_id=app_id, application=applications[int(app_id)])
-  '''
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      app = applications[app_ind].config()
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind])
+      self.content_type = 'application/json'
+      self.write({'status':0, 'app': app, 'topbar': topbar})
 
   # Display a specific application
   def post(self, app_id):
@@ -390,26 +406,39 @@ class application(tornado.web.RequestHandler):
 
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
-    wkpfcomm.init(0, debug=True)
-    node_ids = wkpfcomm.getNodeIds()
+    try:
+      # Discovery results
+      # TODO: persistent store
+      #comm = Communication(0)
+      #node_infos = comm.getNodeInfos()
 
-    # debug purpose
-    #node_ids = [3, 4, 1, 2]
+      # debug purpose
+      node_infos = []
 
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+      app_ind = getAppIndex(app_id)
+      if app_ind == None:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Cannot find the application'})
+      else:
+        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_infos=node_infos, results=[])
+        self.content_type = 'application/json'
+        self.write({'status':0, 'page': deployment})
+
+    except Exception as e:
+      print e
       self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot find the application'})
-    else:
-      deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_ids=node_ids)
-      self.content_type = 'application/json'
-      self.write({'status':0, 'page': deployment})
+      self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
 
   def post(self, app_id):
     global applications
-    print self.request.arguments
-    selected_node_ids = [int(id) for id in self.request.arguments.get('selected_node_ids[]')]
-    print selected_node_ids
+    # Discovery results
+    # TODO: persistent store
+    #comm = Communication(0)
+    #node_infos = comm.getNodeInfos()
+
+    # debug purpose
+    node_infos = []
+
     app_ind = getAppIndex(app_id)
     if app_ind == None:
       self.content_type = 'application/json'
@@ -418,27 +447,59 @@ class deploy_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-      if len(selected_node_ids) > 0:
+
+      if len(node_ids) > 0:
+        applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], platforms,))
+        applications[app_ind].compiler.start()
+
         applications[app_ind].deployer = Thread(target=Worker().deployer, args=(applications[app_ind], selected_node_ids, platforms))
         applications[app_ind].deployer.start()
 
       self.content_type = 'application/json'
       self.write({'status':0, 'version': applications[app_ind].version})
 
-class poll_deployer(tornado.web.RequestHandler):
+class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot find the application'})
-    else:
-      while applications[app_ind].version == self.get_argument('version'):
-        continue
-      self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version, 'deploy_status': applications[app_ind].status, 'normal': applications[app_ind].compileLog(NORMAL), 'error': {'critical': applications[app_ind].compileLog(CRITICAL), 'urgent': applications[app_ind].compileLog(URGENT)}})
+    # Discovery results
+    # TODO: persistent store
+    #comm = Communication(0)
+    #node_infos = comm.getNodeInfos()
 
-class poll_fbp(tornado.web.RequestHandler):
+    # debug purpose
+    node_infos = []
+
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      platforms = ['avr_mega2560']
+      # TODO: need platforms from fbp
+
+      # TODO: rewrite translator.py to have a class that produces mapping results with node infos and Application xml to replace compiler (should be part of deploy)
+      mapper = Mapper(node_infos, applications[app_ind].xml)
+      #applications[app_ind].mapping_results = mapper.map_with_location_tree(locationTree, queries)
+      applications[app_ind].mapping_results = []
+
+      self.content_type = 'application/json'
+      self.write({'status':0, 'results': results})
+
+class monitor_application(tornado.web.RequestHandler):
+  def post(self, app_id):
+    global applications
+
+    app_ind = getAppIndex(app_id)
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
+
+      self.content_type = 'application/json'
+      self.write({'status':0})
+
+class poll(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
     app_ind = getAppIndex(app_id)
@@ -449,7 +510,7 @@ class poll_fbp(tornado.web.RequestHandler):
       while applications[app_ind].version == self.get_argument('version'):
         continue
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version, 'compile_status': applications[app_ind].status, 'normal': applications[app_ind].compileLog(NORMAL), 'error': {'critical': applications[app_ind].compileLog(CRITICAL), 'urgent': applications[app_ind].compileLog(URGENT)}})
+      self.write({'status':0, 'version': applications[app_ind].version, 'return_code': applications[app_ind].returnCode, 'normal': applications[app_ind].compileLog(NORMAL), 'error': {'critical': applications[app_ind].compileLog(CRITICAL)}})
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
@@ -463,9 +524,6 @@ class save_fbp(tornado.web.RequestHandler):
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
-
-      applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], platforms,))
-      applications[app_ind].compiler.start()
 
       self.content_type = 'application/json'
       self.write({'status':0, 'version': applications[app_ind].version})
@@ -555,14 +613,15 @@ app = tornado.web.Application([
   (r"/testrtt/exclude", ex_testrtt),
   (r"/testrtt/include", in_testrtt),
   (r"/testrtt", testrtt),
-  (r"/application/json", list_applications),
-  (r"/application/new", new_application),
-  (r"/application/([a-fA-F\d]{32})", application),
-  (r"/application/([a-fA-F\d]{32})/deploy", deploy_application),
-  (r"/application/([a-fA-F\d]{32})/deploy/poll", poll_deployer),
-  (r"/application/([a-fA-F\d]{32})/fbp/save", save_fbp),
-  (r"/application/([a-fA-F\d]{32})/fbp/load", load_fbp),
-  (r"/application/([a-fA-F\d]{32})/fbp/poll", poll_fbp)
+  (r"/applications", list_applications),
+  (r"/applications/new", new_application),
+  (r"/applications/([a-fA-F\d]{32})", application),
+  (r"/applications/([a-fA-F\d]{32})/poll", poll),
+  (r"/applications/([a-fA-F\d]{32})/deploy", deploy_application),
+  (r"/applications/([a-fA-F\d]{32})/deploy/map", map_application),
+  (r"/applications/([a-fA-F\d]{32})/monitor", monitor_application),
+  (r"/applications/([a-fA-F\d]{32})/fbp/save", save_fbp),
+  (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
 ], IP, **settings)
 
 if __name__ == "__main__":

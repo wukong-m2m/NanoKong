@@ -3,18 +3,21 @@ from locationTree import LocationTree
 from URLParser import *
 
 class WuApplication:
-    def __init__(self, flowDom, outputDir, componentDir, rootDir):
+    def __init__(self, flowDom, outputDir=None, componentDir=None, rootDir=None, componentXml=None):
         self.applicationDom = flowDom;
         self.applicationName = flowDom.getElementsByTagName('application')[0].getAttribute('name')
         self.destinationDir = outputDir
+
         self.componentDir = componentDir
+        self.componentXml = componentXml
+
         self.templateDir = os.path.join(rootDir, 'tools', 'xml2java')
         self.wuClassDefs = None
         self.wuObjectList = WuObjectDefList()
         self.wuLinks = []
 
     def parseComponents(self):
-        componentParser = WuClassXMLParser(self.componentDir)
+        componentParser = WuXMLParser(self.componentXml)
         self.wuClassDefs = componentParser.parse() # wuClassDefs of components
 
     def scaffoldingWithComponents(self):

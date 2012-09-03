@@ -1,33 +1,158 @@
-<script>
-  var current_application = "{{ app.id }}";
-</script>
+<div>
+    <script>
+        var current_application = "{{ app.id }}";
 
-<button id="back">Back</button>
+        $('#log a').click(function() {
+            e.preventDefault();
+            $(this).tab('show');
+        });
+        $('#nodes a').click(function() {
+            e.preventDefault();
+            $(this).tab('show');
+        });
 
-<p>
-  <h1>
-    <label>Name</label>
-    {{ app.name }}
-    ({{ app.id}})
-  </h1>
+        $('#map').click(function() {
+            $.post('/applications/' + current_application + '/deploy/map', function(data) {
+                poll(current_application, data.version);
+            });
+        });
 
-  <p>
-    {% for node_id in node_ids %}
-    <p>
-      <label>Node id: {{ node_id }}</label>
-      <input type="checkbox" id="{{ node_id }}" name="target_group" value="{{ node_id }}" />
-    </p>
-    {% end %}
-    {% if len(node_ids) == 0 %}
-    <p>
-      <h2>No nodes have been detected, please move them closer to places which the basestation has line of sight of the nodes and try again.</h2>
-    </p>
-    {% end %}
-  </p>
+        {% for node_info in node_infos %}
+        var {{ node_info.nodeId }}infos = "\
+        <h4>WuClasses:</h4>\
+        <ul>\
+            {% for wuClass in node_info.wuClasses %}
+            <li>Id: {{ wuClass.wuClassId }}</li>\
+            {% end %}
+        </ul>\
 
-  <p>
-    <button id="deploy">Deploy</button>
-  </p>
+        <h4>WuObjects:</h4>\
+        <ul>\
+            {% for wuObject in node_info.wuObjects %}
+            <li>Id: {{ wuObject.wuClass.wuClassId }} PortNumber: {{ wuObject.portNumber }}</li>\
+            {% end %}
+        </ul>\
+        ";
+        $('#{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: {{ node_info.nodeId }}infos, trigger: 'hover', placement: 'right'});
+        {% end %}
 
-  <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
-</p>
+        $('#deploy').click(function() {
+            poll(current_application, 0);
+        });
+    </script>
+
+    <div class=row-fluid>
+        <div class="span12">
+
+            <button id="map">Map</button>
+            <button disabled=disabled id="deploy">Deploy</button>
+
+            <div class=tabbable>
+                <ul class="nav nav-pills">
+                    <li class="active">
+                        <a href="#log" data-toggle="tab">Log</a>
+                    </li>
+                    <li>
+                        <a href="#nodes" data-toggle="tab">Nodes</a>
+                    </li>
+                    <li>
+                        <a href="#results" data-toggle="tab">Map results</a>
+                    </li>
+                </ul>
+                <div class=tab-content>
+                    <div class="tab-pane active" id="log">
+                        <p>
+                            Logs from mapping:
+                        </p>
+                        <div class=tabbable>
+                            <ul class="nav nav-pills">
+                                <li class="active">
+                                    <a href="#normal" data-toggle="tab">Normal</a>
+                                </li>
+                                <li>
+                                    <a href="#critical" data-toggle="tab">Critical</a>
+                                </li>
+                            </ul>
+                            <div class=tab-content>
+                                <div class="tab-pane active" id="normal">
+                                </div>
+                                <div class="tab-pane" id="critical">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="tab-pane" id="nodes">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>More</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for node_info in node_infos %}
+                                <tr class=success>
+                                    <td>
+                                        {{ node_info.nodeId }}
+                                    </td>
+                                    <td>
+                                        Location
+                                    </td>
+                                    <td>
+                                        {{ len(node_info.wuClasses) }} WuClasses and {{ len(node_info.wuObjects) }} WuObjects
+                                    </td>
+                                    <td>
+                                        <a class=more>Node info (hover me for more info)</a>
+                                    </td>
+                                </tr>
+                                {% end %}
+                            </tbody>
+                        </table>
+
+
+                        <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
+                    </div>
+                    <div class="tab-pane" id="results">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>WuObject Name</th>
+                                    <th>Node Id</th>
+                                    <th>Port Number</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for wuobject in results %}
+                                <tr class=success>
+                                    <td>
+                                        {{ wuobject.instanceId }}
+                                    </td>
+                                    <td>
+                                        {{ wuobject.getName() }}
+                                    </td>
+                                    <td>
+                                        {{ wuobject.getNodeId() }}
+                                    </td>
+                                    <td>
+                                        {{ wuobject.portNumber }}
+                                    </td>
+                                </tr>
+                                {% end %}
+
+                            </tbody>
+                        </table>
+
+
+                        <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

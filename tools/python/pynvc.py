@@ -1,7 +1,4 @@
-try:
-    import pyzwave
-except ImportError:
-    pyzwave = 0
+import pyzwave
 import pyzigbee
 
 
@@ -128,21 +125,25 @@ def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload
 def init(option, debug=False):
     global pymodule
     if option == 0:
-        pyzwave.init("10.3.36.231")
-  #      pyzwave.init("192.168.2.1")
-        pymodule = pyzwave
+        try:
+            pyzwave.init("10.3.36.231")
+            #pyzwave.init("192.168.2.1")
+            pymodule = pyzwave
+        except IOError:
+            return None
     elif option == 1:
         pyzigbee.init()
         pymodule = pyzigbee
     print 'pynvc debugging'
     pymodule.setdebug(debug)
+    return True
 
 #Sen 12.8.7
 #result structure (self_id, total_nodes(include self), node_1_id, node_2_id.....)
 def discover():		
 	global pymodule
 	
-	result = pyzwave.discover()
+	result = pymodule.discover()
 	print "discover result:"
 	print "self id:"+ str(result[0])
 	print "node id:",

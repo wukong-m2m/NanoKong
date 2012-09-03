@@ -5,7 +5,7 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 #sys.path.append(os.path.join(os.path.dirname(__file__), "../xml2java"))
-from wkxml import WuClassXMLParser
+from wkxml import WuXMLParser
 from wkxml import WuClassDef
 
 
@@ -35,6 +35,9 @@ class WuObjectDefList:
 
     def __repr__(self):
         return self.wuobjects
+
+    def __str__(self):
+        return ', '.join(['Name:' + wuobjectgetXmlName() for wuobject in self.wuobjects])
 
     def __contains__(self, typeName):
         return typeName in [wuobject.getXmlName() for wuobject in self.wuobjects]
@@ -106,6 +109,8 @@ class WuObject:
         self.instanceId = instanceId
     def getWuClassId(self):
         return self.wuClass.wuClassId
+    def getName(self):
+        return self.wuClass.wuClassDef.getXmlName()
     def getNodeId(self):
         return self.wuClass.nodeId
     def setNodeId(self, nodeId):
@@ -115,6 +120,8 @@ class WuObject:
         self.portNumber = portNumber
     def getPropertyByName(self, prop_name):
         return self.wuClass.wuClassDef.getPropertyByName(prop_name)
+    def getProperties(self):
+        return self.wuClass.wuClassDef.getProperties()
     def __repr__(self):
         return 'wuobject(node:'+ str(self.getNodeId())+' port:'+ str(self.portNumber)+ ' wuclass: '+ str(self.getWuClassId())+')'
 

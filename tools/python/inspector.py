@@ -1,10 +1,13 @@
+# vim: ts=2 sw=2
 #!/usr/bin/python
 from optparse import OptionParser
 import xml.dom.minidom
 import os
-import wkpfcomm
+from wkpfcomm import Communication
 import wkpf
 import pynvc
+
+rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
 def find(seq, f):
   """Return first item in sequence where f(item) == True."""
@@ -86,7 +89,7 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
     pass
   propertyInfo = PropertyInfo()
   propertyInfo.name = getComponentPropertyName(wuObject.getWuClassId(), propertyNumber, componentDefinitions)
-  wkpfcommData = wkpfcomm.getProperty(wuObject, propertyNumber)
+  wkpfcommData = comm.getProperty(wuObject, propertyNumber)
   propertyInfo.value = wkpfcommData[0]
   propertyInfo.datatype = wkpfcommData[1]
   propertyInfo.status = wkpfcommData[2]
@@ -94,7 +97,7 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
   return propertyInfo
 
 def readNodeInfo(nodeId, componentDefinitions):
-  wkpfcommNodeInfo = wkpfcomm.getNodeInfo(nodeId)
+  wkpfcommNodeInfo = comm.getNodeInfo(nodeId)
   if wkpfcommNodeInfo.isResponding:
     for wuClass in wkpfcommNodeInfo.wuClasses:
       wuClass.name = getComponentName(wuClass.wuClassId, componentDefinitions)
@@ -151,6 +154,34 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
           print propertyInfoString
         print ""
 
+class Inspector:
+  def __init__(self, mapping_results):
+    self.mapping_results = mapping_results
+    self.comm = Communication(0)
+    self.node_infos = comm.getNodeInfos([wuobject.getNodeId() for wuobject in self.mapping_results])
+
+  def readAllLog(self):
+    logs = []
+    for node_info in self.node_infos:
+      pass
+
+  def readLog(self, node_id):
+    logs = []
+    if node_id and node_id in [info.nodeId for info in self.node_infos]:
+      pass
+
+  def inspectAllProperties():
+    properties = []
+    for wuobject in self.mapping_results:
+      properties += wuobject.getProperties()
+
+    for property in properties:
+      for node_info in node_infos:
+        if node_info.isResponding:
+          node_info.wuObjects
+        else:
+          properties.append()
+
 if __name__ == "__main__":
   optionParser = OptionParser("usage: %prog [options]")
   optionParser.add_option("-c", "--component", action="store", type="string", dest="pathComponentXml", help="WuKong Component XML file path (default NVMROOT/ComponentDefinitions/WuKongStandardLibrary.xml)")
@@ -158,7 +189,6 @@ if __name__ == "__main__":
   optionParser.add_option("-f", "--flow", action="store", type="string", dest="pathFlowXml", help="WuKong Flow XML file path (default NVMROOT/vm/build/avr_mega2560/currentFlow.xml)")
   (options, args) = optionParser.parse_args()
   
-  rootpath = os.path.dirname(os.path.abspath(__file__)) + "/../.."
   if not options.pathComponentXml and os.path.exists(rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"):
     options.pathComponentXml = rootpath + "/ComponentDefinitions/WuKongStandardLibrary.xml"
   if not options.pathMappingXml and os.path.exists(rootpath + "/vm/build/avr_mega2560/currentMapping.xml"):
@@ -167,11 +197,13 @@ if __name__ == "__main__":
     options.pathFlowXml = rootpath + "/vm/build/avr_mega2560/currentFlow.xml"
   if not options.pathComponentXml:
     optionParser.error("invalid component xml, please refer to -h for help")
-  pynvc.init(0)
+
+  comm = Communication(0)
+  #pynvc.init(0)
   componentDefinitions = getComponentDefinitions(options.pathComponentXml)
   mapping = getMapping(options.pathMappingXml) if options.pathMappingXml else None
   flowDefinition = getFlow(options.pathFlowXml) if options.pathFlowXml else None
-  nodeIds = wkpfcomm.getNodeIds();
+  nodeIds = comm.getNodeIds();
   nodeInfos = [readNodeInfo(nodeId, componentDefinitions) for nodeId in nodeIds]
   
   print "============================="

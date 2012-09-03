@@ -36,6 +36,7 @@ class Convert:
     def to_constant(raw):
         return Convert.to_c(raw).upper()
 
+
 class WuClassDefList:
     def __init__(self):
         self.wuclasses = []
@@ -98,7 +99,7 @@ class WuClassDef:
     def getWuClassName(self):
         return self.name
     def getProperties(self):
-        return tuple(self.properties)
+        return self.properties
     def getId(self):
         return self.id
     def isVirtual(self):
@@ -171,17 +172,21 @@ class WuType:
             defs[value] = self.getValueInJavaConstByValue(value)
         return defs
 
-class WuClassXMLParser:
-    def __init__(self, path):
+class WuXMLParser:
+    def __init__(self, path=None, xml=None):
         self.__wuClasses = WuClassDefList()
         self.__wuTypes = [WuType(i,i,None) for i in basicDataTypes]
         self.__path = path
+        self.xml = xml
 
     def __repr__(self):
         return "//// wuTypes\n%s\n//// wuClasses\n%s" % (str(self.__wuTypes), str(self.__wuClasses))
     
     def parse(self):
-        dom = xml.dom.minidom.parse(self.__path)
+        if xml:
+            dom = xml.dom.minidom.parseString(self.xml)
+        else:
+            dom = xml.dom.minidom.parse(self.__path)
 
         """self.__wuTypes.update({
             wt.getAttribute('name'): WuType( wt.getAttribute('name'),wt.getAttribute('type'),tuple([e.getAttribute('value') for e in wt.getElementsByTagName('enum')]) ) for wt in dom.getElementsByTagName('WuTypedef') if wt.getAttribute('type') == u'enum'

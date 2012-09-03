@@ -9,7 +9,8 @@ To run the server the following must be present in your system:
 Python modules:
 
 * lxml					- a fast xml parser
-* tornado            - a scalable, non-blocking web server
+* tornado				- a scalable, non-blocking web server
+* pyzwave			- a python module to communicate with zwave devices through a basestation
 
 Install using [easy_install](http://pypi.python.org/pypi/setuptools) run:
 
@@ -18,6 +19,11 @@ Install using [easy_install](http://pypi.python.org/pypi/setuptools) run:
 Or using [pip](http://pypi.python.org/pypi/pip/)(You can install pip by `sudo easy_install pip`) run:
 
     sudo pip install lxml tornado
+
+Pyzwave is custom built, so it cannot be obtained from public repository.
+
+	cd {NanoKong}/tools/python/pyzwave
+	sudo python setup.py install
 
 # Running
 
@@ -39,31 +45,9 @@ As the time of writing, we are planning for Tornado to be a user interface to Wu
 
 Tornado server look a lot like Google's webapp structure. All the routes are specified in application constructor in tuple (r"/route/for/something", function_name) inside an array.
 
-There are 13 routes so far:
-
-* (r"/", main)
-* (r"/main", main)
-* (r"/testrtt/exclude", ex_testrtt)
-* (r"/testrtt/include", in_testrtt)¬
-* (r"/testrtt", testrtt)
-* (r"/application/json", list_applications)
-* (r"/application/new", new_application)
-* (r"/application/([a-fA-F\d]{32})", application)
-* (r"/application/([a-fA-F\d]{32})/deploy", deploy_application)
-* (r"/application/([a-fA-F\d]{32})/deploy/poll", poll_deployer)
-* (r"/application/([a-fA-F\d]{32})/fbp/save", save_fbp)¬
-* (r"/application/([a-fA-F\d]{32})/fbp/load", load_fbp)¬
-* (r"/application/([a-fA-F\d]{32})/fbp/poll", poll_fbp)¬
-
 ## Main window
 
 ![main](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/main.png)
-
-Operations corresponding to the routes:
-
-* Add application: /application/new [POST]
-* Show application: /application/[1-fA-F\d]{32} [POST]
-* Delete application: /application/[1-fA-F\d]{32} [DELETE]
 
 ### Structure
 
@@ -89,13 +73,19 @@ In our initial design, we have made application configuration form takes a diffe
 
 ### FBP.js (Flow Based Programming)
 
+Flow based programming is a popular programming paradigm for people who don't have knowledge of how programming works with general purpose languages like c/c++, java, python, etc. It works by dragging and dropping to create components that could connect with other components. If the users need a Temperature component, all he/she needs is to select the right component from the dropdown menu and hit create button. To connect two components together a user selects a component and hit connect and select another component, and then a dialog will appear to select the properties to connect with the component with.
 
+User can save his/her creation by hitting the save button
 
 ## Deploy window
 
 ![deploy](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/deploy.png)
 
 ![deploy-logic](https://raw.github.com/wukong-m2m/NanoKong/gh-pages/images/deploy-logic.png)
+
+After a valid fbp application has been drawn, a user can deploy this application logic to any physical Wukong devices in this screen. At first there is only the xml manifestation of the fbp application, we need to "map" appropriate components to appropriate devices. This mapping process is been done in our Wukong Mapper which is located in translator.py under `{NanoKong}/tools/python`
+
+Once the mapping algorithm has produced the mapping results, the user can now "deploy" the application along with the mapping results in application code form onto the Wukong devices. This works under the hood by calling the rule to translator application xml to working code in whatever language we supported at the moment (right now only java), and we will convert it into a bytecode format contained in file named nvmdefault.h which will be transmitted to the devices to start the reprogramming process.
 
 ## Monitor window
 

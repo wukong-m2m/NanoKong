@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: ts=2 sw=2
 
 # Translator convert the flow of WuKong components and their definitions into one application Java file
 #
@@ -10,12 +11,13 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from wkpf import NodeInfo, WuClass, WuObject
 import pickle
-from xml.dom.minidom import parse 
+from xml.dom.minidom import parse, parseString
 from locationTree import LocationTree, SensorNode
+from wkapplication import *
 
 #from inspector import readNodeInfo
 
-import wkpfcomm
+from wkpfcomm import Communication
 from inspector import *
 from optparse import OptionParser
 
@@ -46,9 +48,8 @@ def getNodeList():
     exit(1)
 
   if options.do_discovery:
-    import wkpfcomm
-    wkpfcomm.init(0)
-    node_list = wkpfcomm.getNodeInfos();
+    comm = Communication(0)
+    node_list = comm.getNodeInfos();
   elif options.use_hardcoded_discovery:
     #generic, numeric_controller, light_sensor
     wuClasses=(WuClass(nodeId=4, wuClassId=0),
@@ -354,8 +355,20 @@ public class {{ CLASS_NAME }} {
     print>>out_fd, rendered_tpl
 
 
+class Mapper:
+    def __init__(self, node_infos, app_xml_string):
+        self.node_infos = node_infos
+        self.app_xml = parseString(app_xml_string)
 
-from wkapplication import *
+    # Mapper that takes a location tree and queries to map node id to wuobject generated from application xml
+    def map_with_location_tree(self, locTree, queries):
+        application = WuApplication(self.app_xml, componentDir=os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml'), rootDir=rootpath)
+        application.parseComponents()
+        application.scaffoldingWithComponents()
+        application.mappingWithNodeList(locTree, queries)
+        return application.wuObjectList
+
+
 if __name__ == "__main__":
 
   #Sen Zhou 12.8.14 Move arg parser from parser() to main() here
@@ -393,7 +406,7 @@ if __name__ == "__main__":
 #	loc1 = "Boli_Building/3F/East_Corridor/Room318"
 #	loc2 = "Boli_Building/3F/East_Corridor/Room318"
 #	loc3 = "Boli_Building/3F/East_Corridor/Room318"
-#	nodeIds = wkpfcomm.getNodeIds()
+#	nodeIds = comm.getNodeIds()
 #	nodeInfos = [readNodeInfo(nodeId, componentDefinitions) for nodeId in nodeIds]
   nodeInfos = getNodeList()
   loc_args = [[0,1,2],[0,5,3],[3,3,2],[2,1,2]]
