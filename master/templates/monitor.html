@@ -97,6 +97,9 @@
 
             $('#myModal').hide();
 
+            // polling log
+            poll(current_application, 0);
+
             $('#log a').click(function(e) {
                 e.preventDefault();
                 $(this).tab('show');
@@ -106,11 +109,6 @@
                 e.preventDefault();
                 $(this).tab('show');
             });
-
-            $('#deploy').click(function() {
-                poll(current_application, 0);
-            });
-
         });
     </script>
 </div>
