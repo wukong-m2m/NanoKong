@@ -238,12 +238,12 @@ class new_application(tornado.web.RequestHandler):
       app_name = 'application' + str(len(applications))
       app_id = hashlib.md5(app_name).hexdigest()
 
-      app = WuApplication(id=app_id, name=app_name, dir=os.path.join(APP_DIR, app_id))
-      applications.append(app)
-
       # copy base for the new application
       print 'setting up app directory from base...'
-      copyAnything(BASE_DIR, app.dir)
+      copyAnything(BASE_DIR, os.path.join(APP_DIR, app_id))
+
+      app = WuApplication(id=app_id, name=app_name, dir=os.path.join(APP_DIR, app_id))
+      applications.append(app)
 
       print app
 
