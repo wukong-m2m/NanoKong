@@ -114,7 +114,6 @@ class WuApplication:
     print 'updateConfig'
     self.xml = xml
     self.saveConfig()
-    self.clearLog()
     f = open(os.path.join(self.dir, self.id + '.xml'), 'w')
     f.write(xml)
     f.close()
