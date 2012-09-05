@@ -107,6 +107,7 @@ function application_fillList(r)
                             application_fill();
                         } else {
                             // injecting script to create application interface
+                            console.log(data.page);
                             content_scaffolding(topbar, data.page);
                             //deploy_show(data.page, id);
                         }

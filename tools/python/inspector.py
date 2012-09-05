@@ -98,7 +98,7 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
 
 def readNodeInfo(nodeId, componentDefinitions):
   wkpfcommNodeInfo = comm.getNodeInfo(nodeId)
-  if wkpfcommNodeInfo.isResponding:
+  if wkpfcommNodeInfo.isResponding():
     for wuClass in wkpfcommNodeInfo.wuClasses:
       wuClass.name = getComponentName(wuClass.wuClassId, componentDefinitions)
     for wuObject in wkpfcommNodeInfo.wuObjects:
@@ -158,7 +158,7 @@ class Inspector:
   def __init__(self, mapping_results):
     self.mapping_results = mapping_results
     self.comm = Communication(0)
-    self.node_infos = comm.getNodeInfos([wuobject.getNodeId() for wuobject in self.mapping_results])
+    self.node_infos = comm.getNodeInfos([wuobject.getNodeId() for wuobject in self.mapping_results.values()])
 
   def readAllLog(self):
     logs = []
@@ -172,7 +172,7 @@ class Inspector:
 
   def inspectAllProperties():
     properties = []
-    for wuobject in self.mapping_results:
+    for wuobject in self.mapping_results.values():
       properties += wuobject.getProperties()
 
     for property in properties:

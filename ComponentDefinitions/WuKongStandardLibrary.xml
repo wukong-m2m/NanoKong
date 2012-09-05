@@ -28,7 +28,7 @@
     </WuClass>
 
     <WuClass name="Threshold" id="1" virtual="true" type="soft">
-        <property name="operator" datatype="ThresholdOperator" access="readwrite" default="ThresholdOperator.gt" depends="ThresholdOperator" />
+        <property name="operator" datatype="ThresholdOperator" access="readwrite" default="gt" />
         <property name="threshold" datatype="short" access="readwrite" default="30" />
         <property name="value" datatype="short" access="readwrite" default="20" />
         <property name="output" datatype="boolean" access="readonly" default="false" />

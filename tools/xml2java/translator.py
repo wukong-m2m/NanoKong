@@ -9,7 +9,7 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
-from wkpf import NodeInfo, WuClass, WuObject
+from wkpf import *
 import pickle
 from xml.dom.minidom import parse, parseString
 from locationTree import LocationTree, SensorNode
@@ -358,15 +358,15 @@ public class {{ CLASS_NAME }} {
 class Mapper:
     def __init__(self, node_infos, app_xml_string):
         self.node_infos = node_infos
-        self.app_xml = parseString(app_xml_string)
+        self.app_dom = parseString(app_xml_string)
 
     # Mapper that takes a location tree and queries to map node id to wuobject generated from application xml
     def map_with_location_tree(self, locTree, queries):
-        application = WuApplication(self.app_xml, componentDir=os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml'), rootDir=rootpath)
+        application = WuApplication(self.app_dom, templateDir=os.path.join(rootpath, 'tools', 'xml2java'), componentXml=open(os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')).read())
         application.parseComponents()
-        application.scaffoldingWithComponents()
+        application.parseApplicationXML()
         application.mappingWithNodeList(locTree, queries)
-        return application.wuObjectList
+        return application.wuObjects
 
 
 if __name__ == "__main__":
@@ -414,18 +414,18 @@ if __name__ == "__main__":
   for i in range(len(nodeInfos)):
     if nodeInfos[i].isResponding == True:
       sensorNodes.append(SensorNode(locTree.parseLocation(loc), nodeInfos[i], *loc_args[i]))
-      locTree.addSensor(locTree.root, sensorNodes[-1])
+      locTree.addSensor(sensorNodes[-1])
 
 
-#  locTree.printTree(locTree.root, 0)
+#  locTree.printTree(0)
   queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
-      "Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
-      None,
-      None]
+              "Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
+              None,
+              None]
 
-  application = WuApplication(parse(options.pathf), options.out, options.pathc, rootpath)
+  application = WuApplication(parse(options.pathf), options.out, os.path.join(rootpath, 'tools', 'xml2java'), open(options.pathc).read())
   application.parseComponents()
-  application.scaffoldingWithComponents()
+  application.parseApplicationXML()
   application.mappingWithNodeList(locTree, queries)
   application.generateJava()
 

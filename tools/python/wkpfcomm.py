@@ -2,7 +2,6 @@
 import sys
 import pynvc
 from wkpf import *
-from wkxml import *
 
 class Communication:
     def __init__(self, option):
@@ -31,13 +30,7 @@ class Communication:
     def getNodeInfo(self, destination):
       wuClasses = getWuClassList(destination)
       wuObjects = getWuObjectList(destination)
-      if wuClasses == None:
-        return NodeInfo(nodeId = destination,
-                        wuClasses = None,
-                        wuObjects = None,
-                        isResponding = False)
-      else:
-        return NodeInfo(nodeId = destination,
+      return NodeInfo(nodeId = destination,
                         wuClasses = wuClasses,
                         wuObjects = wuObjects)
 

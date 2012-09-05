@@ -1,45 +1,4 @@
-<div>
-    <script>
-        var current_application = "{{ app.id }}";
-
-        $('#log a').click(function() {
-            e.preventDefault();
-            $(this).tab('show');
-        });
-        $('#nodes a').click(function() {
-            e.preventDefault();
-            $(this).tab('show');
-        });
-
-        $('#map').click(function() {
-            $.post('/applications/' + current_application + '/deploy/map', function(data) {
-                poll(current_application, data.version);
-            });
-        });
-
-        {% for node_info in node_infos %}
-        var {{ node_info.nodeId }}infos = "\
-        <h4>WuClasses:</h4>\
-        <ul>\
-            {% for wuClass in node_info.wuClasses %}
-            <li>Id: {{ wuClass.wuClassId }}</li>\
-            {% end %}
-        </ul>\
-
-        <h4>WuObjects:</h4>\
-        <ul>\
-            {% for wuObject in node_info.wuObjects %}
-            <li>Id: {{ wuObject.wuClass.wuClassId }} PortNumber: {{ wuObject.portNumber }}</li>\
-            {% end %}
-        </ul>\
-        ";
-        $('#{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: {{ node_info.nodeId }}infos, trigger: 'hover', placement: 'right'});
-        {% end %}
-
-        $('#deploy').click(function() {
-            poll(current_application, 0);
-        });
-    </script>
+<div id='wrapper'>
 
     <div class=row-fluid>
         <div class="span12">
@@ -56,7 +15,7 @@
                         <a href="#nodes" data-toggle="tab">Nodes</a>
                     </li>
                     <li>
-                        <a href="#results" data-toggle="tab">Map results</a>
+                        <a href="#mapping_results" data-toggle="tab">Map results</a>
                     </li>
                 </ul>
                 <div class=tab-content>
@@ -94,7 +53,7 @@
                             </thead>
                             <tbody>
                                 {% for node_info in node_infos %}
-                                <tr class=success>
+                                <tr class={{ 'success' if node_info.isResponding() else 'error' }}>
                                     <td>
                                         {{ node_info.nodeId }}
                                     </td>
@@ -105,7 +64,7 @@
                                         {{ len(node_info.wuClasses) }} WuClasses and {{ len(node_info.wuObjects) }} WuObjects
                                     </td>
                                     <td>
-                                        <a class=more>Node info (hover me for more info)</a>
+                                        <a id=node{{ node_info.nodeId }} class=more>Node info (hover me for more info)</a>
                                     </td>
                                 </tr>
                                 {% end %}
@@ -115,7 +74,7 @@
 
                         <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
                     </div>
-                    <div class="tab-pane" id="results">
+                    <div class="tab-pane" id="mapping_results">
                         <table class="table">
                             <thead>
                                 <tr>
@@ -126,13 +85,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for wuobject in results %}
+                                {% for wuobject in mapping_results.values() %}
                                 <tr class=success>
                                     <td>
                                         {{ wuobject.instanceId }}
                                     </td>
                                     <td>
-                                        {{ wuobject.getName() }}
+                                        {{ wuobject.getWuClassName() }}
                                     </td>
                                     <td>
                                         {{ wuobject.getNodeId() }}
@@ -155,4 +114,67 @@
 
     </div>
 
+    <script>
+        $(function() {
+
+            var current_application = "{{ app.id }}";
+
+            $('#log a').click(function() {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            $('#nodes a').click(function() {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            $('#map').click(function() {
+                $.post('/applications/' + current_application + '/deploy/map', function(data) {
+                    data = JSON.parse(data);
+                    if (data.status == 1) {
+                        alert(data.mesg);
+                    } else {
+                        var $table = $('#mapping_results table');
+                        $table.empty();
+
+                        console.log(data.mapping_results);
+
+                        _.each(data.mapping_results, function(result) {
+                            var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                            $table.append(compiled(result));
+                        });
+                    }
+                });
+                poll(current_application, data.version);
+            });
+
+            var infos = "";
+
+            {% for node_info in node_infos %}
+
+            infos = "\
+            {% if node_info.isResponding() %}<h4>WuClasses:</h4>\
+            <ul>\
+                {% for wuClass in node_info.wuClasses %}<li>Class Id: {{ wuClass.getId() }} Class Name: {{ wuClass.getName() }}</li>\{% end %}
+            </ul>\
+
+            <h4>WuObjects:</h4>\
+            <ul>\
+                {% for wuObject in node_info.wuObjects %}<li>Class Name: {{ wuObject.getWuClass().getName() }} Instance Id: {{ wuObject.getInstanceId() }} Port Number: {{ wuObject.getPortNumber() }}</li>\{% end %}
+            </ul>\{% else %}<h4>Not responding</h4>\{% end %}
+            ";
+
+            // Necessary to do this or jquery does not allow new lines in multiline strings
+
+            $('#node{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: infos, trigger: 'hover', placement: 'right'});
+
+            {% end %}
+
+            $('#deploy').click(function() {
+                poll(current_application, 0);
+            });
+
+        });
+    </script>
 </div>

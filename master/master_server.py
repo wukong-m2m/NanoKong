@@ -15,8 +15,10 @@ import shutil, errno
 from subprocess import Popen, PIPE, STDOUT
 
 sys.path.append(os.path.abspath("../tools/python"))
+from wkpf import *
 from wkpfcomm import Communication
 from inspector import Inspector
+import fakedata
 sys.path.append(os.path.abspath("../tools/xml2java"))
 from translator import Mapper
 
@@ -84,8 +86,11 @@ def update_applications():
   application_basenames = [os.path.basename(app.dir) for app in applications]
 
   for dirname in os.listdir(APP_DIR):
-    if dirname.lower() == 'base': continue
     app_dir = os.path.join(APP_DIR, dirname)
+    print app_dir
+    if dirname.lower() == 'base': continue
+    if not os.path.isdir(app_dir): continue
+
     if dirname not in application_basenames:
       print 'not found'
       print repr(dirname)
@@ -189,7 +194,7 @@ class Application:
     self.version = 0
     self.returnCode = NOTOK
     self.status = "Idle"
-    self.mapping_results = []
+    self.mapping_results = {}
     self.inspector = None
 
   def appendCompileLog(self, line, tag):
@@ -413,14 +418,14 @@ class deploy_application(tornado.web.RequestHandler):
       #node_infos = comm.getNodeInfos()
 
       # debug purpose
-      node_infos = []
+      node_infos = fakedata.node_infos
 
       app_ind = getAppIndex(app_id)
       if app_ind == None:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_infos=node_infos, results=[])
+        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_infos=node_infos, mapping_results={})
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
 
@@ -437,7 +442,7 @@ class deploy_application(tornado.web.RequestHandler):
     #node_infos = comm.getNodeInfos()
 
     # debug purpose
-    node_infos = []
+    node_infos = fakedata.node_infos
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:
@@ -467,7 +472,7 @@ class map_application(tornado.web.RequestHandler):
     #node_infos = comm.getNodeInfos()
 
     # debug purpose
-    node_infos = []
+    node_infos = fakedata.node_infos
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:
@@ -479,11 +484,15 @@ class map_application(tornado.web.RequestHandler):
 
       # TODO: rewrite translator.py to have a class that produces mapping results with node infos and Application xml to replace compiler (should be part of deploy)
       mapper = Mapper(node_infos, applications[app_ind].xml)
-      #applications[app_ind].mapping_results = mapper.map_with_location_tree(locationTree, queries)
-      applications[app_ind].mapping_results = []
+      applications[app_ind].mapping_results = mapper.map_with_location_tree(fakedata.locTree, fakedata.queries)
+
+      ret = []
+      for key, value in applications[app_ind].mapping_results.items():
+        ret.append({'instanceId': value.getInstanceId(), 'name': value.getWuClassName(), 'nodeId': value.getNodeId(), 'portNumber': value.getPortNumber()})
+
 
       self.content_type = 'application/json'
-      self.write({'status':0, 'results': results})
+      self.write({'status':0, 'mapping_results': ret})
 
 class monitor_application(tornado.web.RequestHandler):
   def post(self, app_id):
