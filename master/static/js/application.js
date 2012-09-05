@@ -89,7 +89,27 @@ function application_fillList(r)
         var remove = $('<button class=appdel id=appdel'+i+'></button>');
 
         monitor.click(function() {
-            alert("not implemented yet");
+            $('#content').empty();
+            var topbar;
+
+            $.get('/applications/' + id, function(data) {
+                if (data.status == 1) {
+                    alert(data.mesg);
+                } else {
+                    topbar = data.topbar;
+                    $.get('/applications/' + id + '/monitor', function(data) {
+                        if (data.status == 1) {
+                            alert(data.mesg);
+                            application_fill();
+                        } else {
+                            // injecting script to create application interface
+                            page = $(data.page);
+                            console.log(page);
+                            content_scaffolding(topbar, page);
+                        }
+                    });
+                }
+            });
         });
 
         deploy.click(function() {

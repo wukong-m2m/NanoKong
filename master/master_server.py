@@ -403,18 +403,18 @@ class map_application(tornado.web.RequestHandler):
       self.write({'status':0, 'mapping_results': ret, 'version': applications[app_ind].version})
 
 class monitor_application(tornado.web.RequestHandler):
-  def post(self, app_id):
+  def get(self, app_id):
     global applications
-
     app_ind = getAppIndex(app_id)
     if app_ind == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
-
+      #applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
+      monitor = template.Loader(os.getcwd()).load('templates/monitor.html').generate(app=applications[app_ind], mapping_results={})
       self.content_type = 'application/json'
-      self.write({'status':0})
+      self.write({'status':0, 'page': monitor})
+
 
 # Never let go
 class poll(tornado.web.RequestHandler):

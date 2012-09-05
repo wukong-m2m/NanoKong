@@ -1,0 +1,116 @@
+<div id='wrapper'>
+
+    <div class=row-fluid>
+        <div class="span12">
+
+            <div class=tabbable>
+                <ul class="nav nav-pills">
+                    <li class="active">
+                        <a href="#log" data-toggle="tab">Log</a>
+                    </li>
+                    <li>
+                        <a href="#properties" data-toggle="tab">Properties</a>
+                    </li>
+                    <li>
+                        <a href="#mapping_results" data-toggle="tab">Map results</a>
+                    </li>
+                </ul>
+                <div class=tab-content>
+                    <div class="tab-pane active" id="log">
+                    </div>
+                    <div class="tab-pane" id="properties">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>WuClass</th>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane" id="mapping_results">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>WuObject Name</th>
+                                    <th>Node Id</th>
+                                    <th>Port Number</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for wuobject in mapping_results.values() %}
+                                <tr class=success>
+                                    <td>
+                                        {{ wuobject.instanceId }}
+                                    </td>
+                                    <td>
+                                        {{ wuobject.getWuClassName() }}
+                                    </td>
+                                    <td>
+                                        {{ wuobject.getNodeId() }}
+                                    </td>
+                                    <td>
+                                        {{ wuobject.portNumber }}
+                                    </td>
+                                </tr>
+                                {% end %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">Modal header</h3>
+            </div>
+            <div class="modal-body">
+                <p>One fine body…</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+        $(function() {
+
+            var current_application = "{{ app.id }}";
+
+            $('#myModal').hide();
+
+            $('#log a').click(function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            $('#properties a').click(function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            $('#deploy').click(function() {
+                poll(current_application, 0);
+            });
+
+        });
+    </script>
+</div>
