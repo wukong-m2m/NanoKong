@@ -20,26 +20,6 @@
                 </ul>
                 <div class=tab-content>
                     <div class="tab-pane active" id="log">
-                        <p>
-                            Logs from mapping:
-                        </p>
-                        <div class=tabbable>
-                            <ul class="nav nav-pills">
-                                <li class="active">
-                                    <a href="#normal" data-toggle="tab">Normal</a>
-                                </li>
-                                <li>
-                                    <a href="#critical" data-toggle="tab">Critical</a>
-                                </li>
-                            </ul>
-                            <div class=tab-content>
-                                <div class="tab-pane active" id="normal">
-                                </div>
-                                <div class="tab-pane" id="critical">
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                     <div class="tab-pane" id="nodes">
                         <table class="table">
@@ -64,7 +44,7 @@
                                         {{ len(node_info.wuClasses) }} WuClasses and {{ len(node_info.wuObjects) }} WuObjects
                                     </td>
                                     <td>
-                                        <a id=node{{ node_info.nodeId }} class=more>Node info (hover me for more info)</a>
+                                        <a role=button id=node{{ node_info.nodeId }} data-toggle=modal href='#myModal' class='btn more'>Node info (click me for more info)</button>
                                     </td>
                                 </tr>
                                 {% end %}
@@ -112,30 +92,47 @@
             </div>
         </div>
 
+        <div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">Modal header</h3>
+            </div>
+            <div class="modal-body">
+                <p>One fine body…</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            </div>
+        </div>
+
     </div>
+
 
     <script>
         $(function() {
 
             var current_application = "{{ app.id }}";
 
-            $('#log a').click(function() {
+            $('#myModal').hide();
+
+            $('#log a').click(function(e) {
                 e.preventDefault();
                 $(this).tab('show');
             });
 
-            $('#nodes a').click(function() {
+            $('#nodes a').click(function(e) {
                 e.preventDefault();
                 $(this).tab('show');
             });
 
             $('#map').click(function() {
                 $.post('/applications/' + current_application + '/deploy/map', function(data) {
-                    data = JSON.parse(data);
+                    // Already an object
+                    console.log(data)
                     if (data.status == 1) {
                         alert(data.mesg);
-                    } else {
-                        var $table = $('#mapping_results table');
+                        } else {
+                        var $table = $('#mapping_results table tbody');
                         $table.empty();
 
                         console.log(data.mapping_results);
@@ -144,9 +141,10 @@
                             var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
                             $table.append(compiled(result));
                         });
+
+                        poll(current_application, 0);
                     }
                 });
-                poll(current_application, data.version);
             });
 
             var infos = "";
@@ -156,18 +154,24 @@
             infos = "\
             {% if node_info.isResponding() %}<h4>WuClasses:</h4>\
             <ul>\
-                {% for wuClass in node_info.wuClasses %}<li>Class Id: {{ wuClass.getId() }} Class Name: {{ wuClass.getName() }}</li>\{% end %}
-            </ul>\
+                {% for wuClass in node_info.wuClasses %}<li>Class Id: {{ wuClass.getId() }} Class Name: {{ wuClass.getName() }}</li>\
+                {% end %}</ul>\
 
             <h4>WuObjects:</h4>\
             <ul>\
-                {% for wuObject in node_info.wuObjects %}<li>Class Name: {{ wuObject.getWuClass().getName() }} Instance Id: {{ wuObject.getInstanceId() }} Port Number: {{ wuObject.getPortNumber() }}</li>\{% end %}
-            </ul>\{% else %}<h4>Not responding</h4>\{% end %}
+                {% for wuObject in node_info.wuObjects %}<li>Class Name: {{ wuObject.getWuClass().getName() }} Instance Id: {{ wuObject.getInstanceId() }} Port Number: {{ wuObject.getPortNumber() }}</li>\{% end %}</ul>\{% else %}<h4>Not responding</h4>\{% end %}
             ";
 
             // Necessary to do this or jquery does not allow new lines in multiline strings
 
-            $('#node{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: infos, trigger: 'hover', placement: 'right'});
+            $('#node{{ node_info.nodeId }}').click(function(e) {
+                e.preventDefault();
+
+                console.log('click');
+                $('#myModal .modal-header').html('Node Info');
+                $('#myModal .modal-body').html(infos);
+            });
+            //$('#node{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
 
             {% end %}
 

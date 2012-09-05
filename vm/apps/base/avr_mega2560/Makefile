@@ -103,9 +103,9 @@ avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
 	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
-application:
-	$(MAKE) clean
-	$(MAKE) generate
+application: $(DEFAULT_CLASS)
+	#$(MAKE) clean
+	#$(MAKE) generate
 	$(MAKE) nvmdefault.h
 
 nvmcomm_reprogram: nvmdefault.h

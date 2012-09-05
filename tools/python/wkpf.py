@@ -109,6 +109,9 @@ class WuType:
     def getAllowedValues(self):
         return self._allowed_values
 
+    def getValueInCConstant(self, value):
+        return 'WKPF_' + '_'.join([Convert.to_constant(self._dataType), Convert.to_constant(self._name), Convert.to_constant(value)])
+
     def getValueInJavaConstByValue(self, value):
         if self.hasAllowedValues():
             return 'GENERATEDWKPF.' + Convert.to_constant(self._dataType) + "_" + Convert.to_constant(self._name) + "_" + Convert.to_constant(value)
@@ -147,6 +150,9 @@ class WuProperty:
     def getName(self):
         return self._name 
 
+    def getCConstName(self):
+        return "WKPF_" + self.getJavaConstName()
+
     def getJavaConstName(self):
         return "PROPERTY_" + self._class_name + "_" + Convert.to_constant(self._name)
 
@@ -168,6 +174,9 @@ class WuProperty:
 
     def getWuType(self):
         return self._wutype
+
+    def getDataType(self):
+        return self._wutype.getName()
 
     def getAccess(self):
         return self._access
@@ -191,20 +200,26 @@ class WuClass:
     def getPropertyByName(self, name):
         return self._properties[name]
 
-    def getJavaClassName(self):
-        if self._virtual:
-            return "Virtual" + Convert.to_java(self._name) + "WuObject"
-        else:
-            return ''
-
     def getJavaGenClassName(self):
-        return "GENERATED" + self.getJavaClassName()
+        return "GENERATEDVirtual" + Convert.to_java(self._name) + "WuObject"
 
-    def getCStructName(self):
-        return Convert.to_c(self._name)
+    def getCDefineName(self):
+        return Convert.to_constant(self.getCName())
+
+    def getCName(self):
+        return 'wuclass_' + Convert.to_c(self._name)
+
+    def getCFileName(self):
+        return 'GENERATED' + self.getCName()
 
     def getCUpdateName(self):
-        return Convert.to_c(self._name) + "_update"
+        return self.getCName() + "_update"
+
+    def getCPropertyName(self):
+        return self.getCName() + "_properties"
+
+    def getCConstName(self):
+        return "WKPF_" + self.getJavaConstName()
 
     def getJavaConstName(self):
         return "WUCLASS_" + Convert.to_constant(self._name)
@@ -293,7 +308,7 @@ class NodeInfo:
 
     # if both list have stuff
     def isResponding(self):
-        return self.wuClasses and self.wuObjects
+        return self.wuClasses or self.wuObjects
 
 
 # methods for wkpf

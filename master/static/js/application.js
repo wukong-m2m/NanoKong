@@ -107,9 +107,9 @@ function application_fillList(r)
                             application_fill();
                         } else {
                             // injecting script to create application interface
-                            console.log(data.page);
-                            content_scaffolding(topbar, data.page);
-                            //deploy_show(data.page, id);
+                            page = $(data.page);
+                            console.log(page);
+                            content_scaffolding(topbar, page);
                         }
                     });
                 }
@@ -268,13 +268,17 @@ function setup_testrtt()
     });
 }
 
+// might have to worry about multiple calls :P
 function poll(id, version)
 {
+    console.log('poll');
     $.post('/applications/'+id+'/poll', {version: version}, function(data) {
-        $('#log #normal').html('<strong>NORMAL</strong><pre>' + data.normal.join('\n') + '</pre>');
-        $('#log #critical_error').html('<strong>CRITICAL</strong><pre>' + data.error.critical.join('\n') + '</pre>');
-
-        if (data.return_code == null) {
+        console.log(data);
+        _.each(data.log, function(line) {
+            $('#log').append('<pre>' + data.log + '</pre>');
+        });
+        
+        if (data.returnCode < 0) {
             poll(id, data.version);
         }
     });

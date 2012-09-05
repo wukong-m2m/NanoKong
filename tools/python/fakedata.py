@@ -3,13 +3,12 @@ from wkpfcomm import Communication
 from inspector import Inspector
 from locationTree import LocationTree, SensorNode, parseLocation
 
-node_infos = [NodeInfo(nodeId=1, wuClasses=[], wuObjects=[]), NodeInfo(nodeId=3, 
-    wuClasses=[
-      WuClass('testClass', 0, {}, False, False, 3),
-      WuClass(name='secondClass', id=1, properties={'testProperty': WuProperty('secondClass', 'testProperty', 0, WuType('boolean', 'boolean'), 'readonly')}, virtual=False, soft=False, node_id=3)], 
-    wuObjects=[
-      WuObject(wuClass=WuClass('secondClass', 1, {'testProperty': WuProperty('secondClass', 'testProperty', 0, WuType('boolean', 'boolean'), 'readonly')}, False, False), 
-        instanceId='secondClass0', instanceIndex=1, nodeId=3, portNumber=12)])]
+rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
+
+node_infos = [NodeInfo(nodeId=3,
+                wuClasses=wuclasses,
+                wuObjects=[])]
 
 locTree = LocationTree("Boli_Building")
 locs = ["Boli_Building/3F/South_Corridor/Room336", "Boli_Building/3F/East_Corridor/Room318"]

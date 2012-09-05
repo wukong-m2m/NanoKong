@@ -14,6 +14,8 @@ import pickle
 from xml.dom.minidom import parse, parseString
 from locationTree import LocationTree, SensorNode
 from wkapplication import *
+from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
 
 #from inspector import readNodeInfo
 
@@ -356,17 +358,30 @@ public class {{ CLASS_NAME }} {
 
 
 class Mapper:
-    def __init__(self, node_infos, app_xml_string):
+    def __init__(self, app, node_infos, app_xml_string):
         self.node_infos = node_infos
         self.app_dom = parseString(app_xml_string)
+        self.application = app
 
     # Mapper that takes a location tree and queries to map node id to wuobject generated from application xml
     def map_with_location_tree(self, locTree, queries):
-        application = WuApplication(self.app_dom, templateDir=os.path.join(rootpath, 'tools', 'xml2java'), componentXml=open(os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')).read())
-        application.parseComponents()
-        application.parseApplicationXML()
-        application.mappingWithNodeList(locTree, queries)
-        return application.wuObjects
+        self.application.setFlowDom(self.app_dom)
+        self.application.setTemplateDir(os.path.join(rootpath, 'tools', 'xml2java'))
+        self.application.setComponentXml(open(os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')).read())
+
+        self.application.parseComponents()
+        self.application.parseApplicationXML()
+        self.application.mappingWithNodeList(locTree, queries)
+        return self.application.wuObjects
+
+    def generateJava(self):
+        print 'generate Java'
+        print self.wuObjects
+        jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
+        output = open(os.path.join(self.application.destinationDir, self.application.applicationName+".java"), 'w')
+        output.write(jinja2_env.get_template('application.java').render(applicationName=self.application.applicationName, wuObjects=self.application.wuObjects, wuLinks=self.application.wuLinks))
+        output.close()
+
 
 
 if __name__ == "__main__":
@@ -423,7 +438,7 @@ if __name__ == "__main__":
               None,
               None]
 
-  application = WuApplication(parse(options.pathf), options.out, os.path.join(rootpath, 'tools', 'xml2java'), open(options.pathc).read())
+  application = WuApplication(flowDom=parse(options.pathf), outputDir=options.out, templateDir=os.path.join(rootpath, 'tools', 'xml2java'), componentXml=open(options.pathc).read())
   application.parseComponents()
   application.parseApplicationXML()
   application.mappingWithNodeList(locTree, queries)

@@ -1,6 +1,9 @@
+body > table {
+    height: 2000px;
+}
 .menu {
 	background-color: rgb(207,226,243);
-	min-width:40
+	min-width:40px;
 }
 
 .content {
@@ -10,17 +13,17 @@
 
 .appadd {
 	background-image: url('/static/images/appadd.png');
-	width:32; height:32
+	width:32px; height:32px;
 }
 
 .activating {
 	background-image: url('/static/images/active.png');
-	width:32; height:32
+	width:32px; height:32px;
 }
 
 .zwave {
 	background-image: url('/static/images/door.png');
-	width:32; height:32
+	width:32px; height:32px;
 }
 
 .listitem:nth-child(even) {
@@ -37,21 +40,21 @@
 
 .appmonitor {
 	background-image: url('/static/images/monitor.png');
-	width:32; height:32
+	width:32px; height:32px;
 }
 .appdeploy {
 	background-image: url('/static/images/deploy.png');
-	width:32; height:32
+	width:32px; height:32px;
 }
 .appdel {
 	background-image: url('/static/images/del.png');
-	width:32;height:32
+	width:32px;height:32px;
 }
 
 .appname {
-	width:100%
+	width:100%;
 }
 
 .appact {
-	min-width:96
+	min-width:96px;
 }
