@@ -425,13 +425,13 @@ class poll(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      print 'before loop'
       print applications[app_ind].version, self.get_argument('version')
-      while int(applications[app_ind].version) <= int(self.get_argument('version')):
-        continue
-      print 'after loop'
-      self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'log': applications[app_ind].loggerHandler.retrieve()})
+      if int(applications[app_ind].version) <= int(self.get_argument('version')):
+        self.content_type = 'application/json'
+        self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'log': ''})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'log': applications[app_ind].loggerHandler.retrieve()})
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):

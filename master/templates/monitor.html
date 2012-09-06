@@ -98,7 +98,13 @@
             $('#myModal').hide();
 
             // polling log
-            poll(current_application, 0);
+            var repeat = {repeat: true};
+            poll(current_application, 0, repeat);
+
+            $('#back').click(function() {
+                // repeat is an object with one key 'repeat', or poll will be pass-by-value and therefore can't be stopped
+                repeat.repeat = false;
+            });
 
             $('#log a').click(function(e) {
                 e.preventDefault();

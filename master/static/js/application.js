@@ -289,8 +289,14 @@ function setup_testrtt()
 }
 
 // might have to worry about multiple calls :P
-function poll(id, version)
+function poll(id, version, repeat)
 {
+    var forceRepeat = false;
+    if (typeof repeat != 'undefined') {
+        // repeat is an object with one key 'repeat', or it will be pass-by-value and therefore can't be stopped
+        forceRepeat = repeat.repeat;
+    }
+
     console.log('poll');
     $.post('/applications/'+id+'/poll', {version: version}, function(data) {
         console.log(data);
@@ -298,8 +304,13 @@ function poll(id, version)
             $('#log').append('<pre>' + data.log + '</pre>');
         });
         
-        if (data.returnCode < 0) {
-            poll(id, data.version);
+        console.log('should ignore?');
+        console.log(forceRepeat);
+        if (forceRepeat || data.returnCode < 0) {
+            console.log("didn't ignore");
+            setTimeout(function() {
+                poll(id, data.version, repeat);
+            }, 1000);
         }
     });
 }
