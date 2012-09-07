@@ -7,5 +7,8 @@ extern int PyZwave_print_debug_info;
 int PyWave_send(unsigned id,unsigned char *in,int len);
 int PyZwave_init(char *host);
 int PyZwave_receive(int);
+extern char *PyZwave_status();
+extern void PyZwave_clearstatus();
+extern int PyZwave_zwavefd();
 
 #endif

@@ -129,7 +129,8 @@ def init(option, debug=False):
             pyzwave.init("10.3.36.231")
             #pyzwave.init("192.168.2.1")
             pymodule = pyzwave
-        except IOError:
+        except IOError as e:
+            print e
             return None
     elif option == 1:
         pyzigbee.init()
@@ -137,6 +138,26 @@ def init(option, debug=False):
     print 'pynvc debugging'
     pymodule.setdebug(debug)
     return True
+
+def add():
+    global pymodule
+    pymodule.add()
+    return 0
+
+def delete():
+    global pymodule
+    pymodule.delete()
+    return 0
+
+def stop():
+    global pymodule
+    pymodule.stop()
+    return 0
+
+def poll():
+    global pymodule
+    status = pymodule.poll()
+    return status
 
 #Sen 12.8.7
 #result structure (self_id, total_nodes(include self), node_1_id, node_2_id.....)

@@ -95,7 +95,7 @@ class WuType:
         self._allowed_values = values # a tuple of sequential unicode values of the specified type
 
     def __repr__(self):
-        return "WuType %s (type=%s) val:%s" % (self._name, self._dataType, str(self._values))
+        return "WuType %s (type=%s) val:%s" % (self._name, self._dataType, str(self._allowed_values))
 
     def getName(self):
         return self._name
@@ -111,6 +111,9 @@ class WuType:
 
     def getValueInCConstant(self, value):
         return 'WKPF_' + '_'.join([Convert.to_constant(self._dataType), Convert.to_constant(self._name), Convert.to_constant(value)])
+
+    def getValueInJavaConstant(self, value):
+        return '_'.join([Convert.to_constant(self._dataType), Convert.to_constant(self._name), Convert.to_constant(value)])
 
     def getValueInJavaConstByValue(self, value):
         if self.hasAllowedValues():
@@ -150,11 +153,14 @@ class WuProperty:
     def getName(self):
         return self._name 
 
+    def getJavaName(self):
+        return Convert.to_constant(self._name)
+
     def getCConstName(self):
         return "WKPF_" + self.getJavaConstName()
 
     def getJavaConstName(self):
-        return "PROPERTY_" + self._class_name + "_" + Convert.to_constant(self._name)
+        return "PROPERTY_" + Convert.to_constant(self._class_name) + "_" + Convert.to_constant(self._name)
 
     def hasDefault(self):
         return self._default != None
@@ -163,8 +169,8 @@ class WuProperty:
         return self._default
 
     def setDefault(self, default):
-        if self._wuType.hasAllowedValues():
-            if default in self._wuType.getAllowedValues():
+        if self._wutype.hasAllowedValues():
+            if default in self._wutype.getAllowedValues():
                 self._default = default
         else:
             self._default = default
@@ -283,7 +289,7 @@ class WuObject:
         return self._portNumber
     
     def setPortNumber(self, portNumber):
-        self.portNumber = portNumber
+        self._portNumber = portNumber
 
     def getPropertyByName(self, prop_name):
         return self._wuClass.getPropertyByName(prop_name)

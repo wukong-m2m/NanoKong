@@ -1,7 +1,5 @@
 from wkpf import *
-from wkpfcomm import Communication
-from inspector import Inspector
-from locationTree import LocationTree, SensorNode, parseLocation
+from locationTree import *
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()

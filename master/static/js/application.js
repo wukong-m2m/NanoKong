@@ -270,22 +270,46 @@ function setup_testrtt()
     $('#content #include').click(function() {
         console.log('include');
         $('#log').html('<p>The basestation is ready to include devices.</p>');
-        /*
         $.post('/testrtt/include', function(data) {
-            $('#log').html(data.log);
+            $('#log').append('<pre>' + data.log + '</pre>');
+            testrtt_poll();
         });
-        */
     });
 
     $('#content #exclude').click(function() {
         console.log('include');
         $('#log').html('<p>The basestation is ready to exclude devices.</p>');
-        /*
         $.post('/testrtt/exclude', function(data) {
-            $('#log').html(data.log);
+            $('#log').append('<pre>' + data.log + '</pre>');
+            testrtt_poll();
         });
-        */
     });
+
+    $('#content #stop').click(function() {
+        console.log('stop');
+        $('#log').html('<p>The basestation is stopped from adding/deleteing devices.</p>');
+        $.post('/testrtt/stop', function(data) {
+            $('#log').append('<pre>' + data.log + '</pre>');
+        });
+    });
+
+    function testrtt_poll()
+    {
+        $.post('/testrtt/poll', function(data) {
+            console.log(data);
+            if (data.logs.length > 0) {
+                _.each(data.logs, function(log) {
+                    if (log != '') {
+                        $('#log').append('<pre>' + log + '</pre>');
+                    }
+                });
+            }
+
+            setTimeout(function() {
+                testrtt_poll();
+            }, 1000);
+        });
+    }
 }
 
 // might have to worry about multiple calls :P
@@ -299,10 +323,12 @@ function poll(id, version, repeat)
 
     console.log('poll');
     $.post('/applications/'+id+'/poll', {version: version}, function(data) {
-        console.log(data);
-        _.each(data.log, function(line) {
-            $('#log').append('<pre>' + data.log + '</pre>');
+        _.each(data.logs, function(line) {
+            $('#log').append('<pre>' + line + '</pre>');
         });
+
+        // TODO:mapping_results too
+        // TODO:node infos too
         
         console.log('should ignore?');
         console.log(forceRepeat);

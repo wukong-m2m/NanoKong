@@ -20,6 +20,9 @@
                 </ul>
                 <div class=tab-content>
                     <div class="tab-pane active" id="log">
+                        {% for log in logs %}
+                        <pre>{{ log }}</pre>
+                        {% end %}
                     </div>
                     <div class="tab-pane" id="nodes">
                         <table class="table">
@@ -68,7 +71,7 @@
                                 {% for wuobject in mapping_results.values() %}
                                 <tr class=success>
                                     <td>
-                                        {{ wuobject.instanceId }}
+                                        {{ wuobject.getInstanceId() }}
                                     </td>
                                     <td>
                                         {{ wuobject.getWuClassName() }}
@@ -77,7 +80,7 @@
                                         {{ wuobject.getNodeId() }}
                                     </td>
                                     <td>
-                                        {{ wuobject.portNumber }}
+                                        {{ wuobject.getPortNumber() }}
                                     </td>
                                 </tr>
                                 {% end %}

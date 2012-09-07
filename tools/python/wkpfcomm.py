@@ -5,9 +5,10 @@ from wkpf import *
 
 class Communication:
     def __init__(self, option):
-        if not pynvc.init(option):
-            raise Exception
-        self.sequenceNumber = 0
+      if not pynvc.init(option):
+        raise Exception
+      self.sequenceNumber = 0
+      self.mode = 'stop'
 
     def getNextSequenceNumberAsList(self):
       self.sequenceNumber = (self.sequenceNumber + 1) % (2**16)
@@ -20,32 +21,57 @@ class Communication:
     def getNodeIds(self):
       return pynvc.discoverNodes()
 
-    def getNodeInfos(self, list_of_node_ids):
-      return [getNodeInfo(destination) for destination in list_of_node_ids]
-
     def getNodeInfos(self):
       nodeIds = self.getNodeIds()
-      return [getNodeInfo(destination) for destination in nodeIds]
+      print 'getNodeInfos', nodeIds
+      return [self.getNodeInfo(destination) for destination in nodeIds]
+
+    def onAddMode(self):
+      if self.mode != 'stop':
+        print 'need to get into stop mode first'
+        return -1
+      self.mode = 'add'
+      return pynvc.add()
+
+    def onDeleteMode(self):
+      if self.mode != 'stop':
+        print 'need to get into stop mode first'
+        return -1
+      self.mode = 'delete'
+      return pynvc.delete()
+
+    def onStopMode(self):
+      print 'stopped'
+      self.mode = 'stop'
+      return pynvc.stop()
+        
+    def currentStatus(self):
+      return pynvc.poll()
 
     def getNodeInfo(self, destination):
-      wuClasses = getWuClassList(destination)
-      wuObjects = getWuObjectList(destination)
+      print 'getNodeInfo'
+      print 'getWuClassList'
+      wuClasses = self.getWuClassList(destination)
+      print wuClasses
+      print 'getWuObjectList'
+      wuObjects = self.getWuObjectList(destination)
+      print wuObjects
       return NodeInfo(nodeId = destination,
                         wuClasses = wuClasses,
                         wuObjects = wuObjects)
 
     def getWuClassList(self, destination):
-      sn = getNextSequenceNumberAsList()
+      sn = self.getNextSequenceNumberAsList()
       src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
                                                         command=pynvc.WKPF_GET_WUCLASS_LIST,
                                                         payload=sn,
                                                         allowedReplies=[pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R],
-                                                        verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuclasses
+                                                        verify=self.verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuclasses
       if reply == None:
-        return None
+        return []
       if reply[0] == pynvc.WKPF_ERROR_R:
         print "WKPF RETURNED ERROR ", reply[3]
-        return None
+        return []
       wuclasses = []
       reply = reply[4:]
       while len(reply) > 1:
@@ -56,17 +82,17 @@ class Communication:
       return wuclasses
 
     def getWuObjectList(self, destination):
-      sn = getNextSequenceNumberAsList()
+      sn = self.getNextSequenceNumberAsList()
       src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
                                                         command=pynvc.WKPF_GET_WUOBJECT_LIST,
                                                         payload=sn,
                                                         allowedReplies=[pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R],
-                                                        verify=verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuobjects
+                                                        verify=self.verifyWKPFmsg(messageStart=sn, minAdditionalBytes=1)) # number of wuobjects
       if reply == None:
-        return None
+        return []
       if reply[0] == pynvc.WKPF_ERROR_R:
         print "WKPF RETURNED ERROR ", reply[3]
-        return None
+        return []
       wuobjects = []
       reply = reply[4:]
       while len(reply) > 1:
@@ -75,13 +101,13 @@ class Communication:
       return wuobjects
 
     def getProperty(self, wuobject, propertyNumber):
-      sn = getNextSequenceNumberAsList()
+      sn = self.getNextSequenceNumberAsList()
       payload=sn+[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber]
       src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.getNodeId(),
                                                         command=pynvc.WKPF_READ_PROPERTY,
                                                         payload=payload,
                                                         allowedReplies=[pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R],
-                                                        verify=verifyWKPFmsg(messageStart=payload, minAdditionalBytes=2)) # datatype + value
+                                                        verify=self.verifyWKPFmsg(messageStart=payload, minAdditionalBytes=2)) # datatype + value
       if reply == None:
         return None
       if reply[0] == pynvc.WKPF_ERROR_R:
@@ -98,7 +124,7 @@ class Communication:
       return (value, datatype, status)
 
     def setProperty(self, wuobject, propertyNumber, datatype, value):
-      sn = getNextSequenceNumberAsList()
+      sn = self.getNextSequenceNumberAsList()
       if datatype == DATATYPE_BOOLEAN:
         payload=sn+[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, 1 if value else 0]
       elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
@@ -107,7 +133,7 @@ class Communication:
                                                         command=pynvc.WKPF_WRITE_PROPERTY,
                                                         payload=payload,
                                                         allowedReplies=[pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R],
-                                                        verify=verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
+                                                        verify=self.verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
       if reply == None:
         return None
       if reply[0] == pynvc.WKPF_ERROR_R:

@@ -10,12 +10,12 @@ DEVICE = atmega2560
 
 ifdef FLOWXML
 DEFAULT_CLASS=$(FLOWXML)
+endif
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
-#DEFAULT_CLASS = TestWKPF
+DEFAULT_CLASS = TestWKPF
 #DEFAULT_CLASS = AdcDemo
 #DEFAULT_CLASS = HAScenario1
-endif
 
 PORT = /dev/tty.usbmodem411
 

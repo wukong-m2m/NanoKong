@@ -1,26 +1,26 @@
 # vim: ts=2 sw=2
 
 from wkpf import *
-from locationTree import LocationTree
+from locationTree import *
 from xml.dom.minidom import parse
 import simplejson as json
 import logging
 import logging.handlers
 import wukonghandler
-import fakedata
+import copy
 sys.path.append(os.path.abspath("../tools/xml2java"))
 from URLParser import *
-import copy
 
 OK = 0
 NOTOK = 1
 
-def firstCandidate(app, locTree, queries):
+def firstCandidate(app, wuObjects, locTree, queries):
     #input: nodes, WuObjects, WuLinks, WuClassDefs
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
-    print app.wuObjects
-    for i, wuObject in enumerate(app.wuObjects.values()):
+    print wuObjects
+
+    for i, wuObject in enumerate(wuObjects.values()):
         candidateSet = set()
 
         if queries[i] == None:
@@ -28,7 +28,11 @@ def firstCandidate(app, locTree, queries):
             candidateSet = locTree.root.getAllNodes()
         else:
             locURLHandler = LocationURL(queries[i], locTree)
-            locURLHandler.parseURL()
+            try:
+              locURLHandler.parseURL()
+            except Exception as e:
+              app.error(e)
+              return False
             
             tmpSet = locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
             if len(tmpSet) > 0:
@@ -47,7 +51,7 @@ def firstCandidate(app, locTree, queries):
             app.error('all port in node %s occupied, cannot assign new port' % (wuObject))
             return False
         wuObject.setPortNumber(portNo)
-            
+        
     return True
 
 class WuApplication:
@@ -99,6 +103,14 @@ class WuApplication:
 
   def setComponentXml(self, componentXml):
     self.componentXml = componentXml
+
+  def logs(self):
+    self.loggerHandler.retrieve()
+    logs = open(os.path.join(self.dir, 'compile.log')).readlines()
+    return logs
+
+  def retrieve(self):
+    return self.loggerHandler.retrieve()
 
   def info(self, line):
     print 'info log'
@@ -181,4 +193,4 @@ class WuApplication:
       #input: nodes, WuObjects, WuLinks, WuClassDefs
       #output: assign node id to WuObjects
       # TODO: mapping results for generating the appropriate instiantiation for different nodes
-      return mapFunc(self, locTree, queries)
+      return mapFunc(self, self.wuObjects, locTree, queries)

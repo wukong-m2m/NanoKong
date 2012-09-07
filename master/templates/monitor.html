@@ -11,9 +11,6 @@
                     <li>
                         <a href="#properties" data-toggle="tab">Properties</a>
                     </li>
-                    <li>
-                        <a href="#mapping_results" data-toggle="tab">Map results</a>
-                    </li>
                 </ul>
                 <div class=tab-content>
                     <div class="tab-pane active" id="log">
@@ -36,37 +33,6 @@
                                     <td>
                                     </td>
                                 </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="tab-pane" id="mapping_results">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>WuObject Name</th>
-                                    <th>Node Id</th>
-                                    <th>Port Number</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for wuobject in mapping_results.values() %}
-                                <tr class=success>
-                                    <td>
-                                        {{ wuobject.instanceId }}
-                                    </td>
-                                    <td>
-                                        {{ wuobject.getWuClassName() }}
-                                    </td>
-                                    <td>
-                                        {{ wuobject.getNodeId() }}
-                                    </td>
-                                    <td>
-                                        {{ wuobject.portNumber }}
-                                    </td>
-                                </tr>
-                                {% end %}
-
                             </tbody>
                         </table>
                     </div>

@@ -1,10 +1,22 @@
+// vim: ts=2 sw=2
 #include <Python.h>
 
 #include "pyzwave-testrtt.h"
 
+#define ADD_NODE_ANY		0x1
+#define ADD_NODE_CONTROLLER 	0x2
+#define ADD_NODE_SLAVE		0x3
+#define ADD_NODE_EXISTING	0x4
+#define ADD_NODE_STOP		0x5
+#define ADD_NODE_STOP_FAILED	0x6
+#define ADD_NODE_OPTION_HIGH_POWER	0x80
+
 int initialised = 0;
+
 extern char init_data_buf[256];
 extern unsigned int zwave_my_address;
+
+
 //#define DEBUGF(...)  printf(__VA_ARGS__)
 #define DEBUGF(...) 
 
@@ -117,6 +129,92 @@ static PyObject* pyzwave_setdebug(PyObject *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+static PyObject* pyzwave_poll(PyObject *self, PyObject *args) {
+
+  while (1) {
+
+    fd_set rs;
+    struct timeval to;
+    char c;
+    int n;
+    int interval = 500;
+    int zwavefd = PyZwave_zwavefd();
+
+    to.tv_sec = interval/1000;
+    to.tv_usec = (interval%1000)*1000;
+
+    FD_ZERO(&rs);
+    FD_SET(zwavefd, &rs);
+#ifdef _WIN32	
+    FD_SET(sfd_commu, &rs);
+#else //_WIN32	
+    FD_SET(STDIN_FILENO, &rs);
+#endif //_WIN32	
+
+    n = select(FD_SETSIZE,&rs,NULL,NULL, &to);
+    if (n < 0) {
+      printf("Z-Wave device file is closed !!!\n");
+      return Py_BuildValue("");
+    }
+    else if (n == 0) {	// timeout
+      printf("select timeout\n");
+      /*return Py_BuildValue("");*/
+      break;
+    }
+
+    if (FD_ISSET(zwavefd,&rs)) {
+      int len=read(zwavefd,&c,1);
+      if (len > 0) {
+        zwave_check_state(c);
+      }
+    }
+
+  }
+
+  char ret[1024];
+  strcpy(ret, PyZwave_status());
+  PyZwave_clearstatus();
+  return PyString_FromString(ret);
+}
+
+static PyObject* pyzwave_add(PyObject *self, PyObject *args) {
+  if (!initialised) {
+    PyErr_SetString(PyExc_IOError, "Call pyzwave.init first.");
+    return NULL;
+  }
+
+  if (ZW_AddNodeToNetwork(ADD_NODE_ANY|ADD_NODE_OPTION_HIGH_POWER) < 0) {
+    return NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
+static PyObject* pyzwave_delete(PyObject *self, PyObject *args) {
+  if (!initialised) {
+    PyErr_SetString(PyExc_IOError, "Call pyzwave.init first.");
+    return NULL;
+  }
+  if (ZW_RemoveNodeFromNetwork(ADD_NODE_ANY|ADD_NODE_OPTION_HIGH_POWER) < 0) {
+    return NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
+static PyObject* pyzwave_stop(PyObject *self, PyObject *args) {
+  if (!initialised) {
+    PyErr_SetString(PyExc_IOError, "Call pyzwave.init first.");
+    return NULL;
+  }
+
+  if (ZW_AddNodeToNetwork(ADD_NODE_STOP) < 0) {
+    return NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
 static PyObject* pyzwave_discover(PyObject *self, PyObject *args) {
 	int i;
 	PyObject* message_list;
@@ -136,6 +234,11 @@ static PyObject* pyzwave_discover(PyObject *self, PyObject *args) {
 
 PyMethodDef methods[] = {
   {"init", pyzwave_init, METH_VARARGS, "Sets the IP address to connect to"},
+  {"send", pyzwave_send, METH_VARARGS, "Sends a list of bytes to a node"},
+  {"add", pyzwave_add, METH_VARARGS, "Goes into add mode"},
+  {"delete", pyzwave_delete, METH_VARARGS, "Goes into delete mode"},
+  {"stop", pyzwave_stop, METH_VARARGS, "Stop adding/deleting nodes"},
+  {"poll", pyzwave_poll, METH_VARARGS, "Polling current status"},
   {"send", pyzwave_send, METH_VARARGS, "Sends a list of bytes to a node"},
   {"receive", pyzwave_receive, METH_VARARGS, "Receive data"},
   {"setdebug", pyzwave_setdebug, METH_VARARGS, "Turn debug info on or off"},

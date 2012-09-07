@@ -20,12 +20,24 @@ class SensorNode(object):
 
     def reserveNextPort(self):
         portSet = False
+        print 'reserveNextPort', self.port_list
         for j in range(len(self.port_list)):
-            if (self.port_list[j]+1)%256 !=self.port_list[(j+1)%len(self.port_list)]:
+            originalPort = (self.port_list[j]+1)%256
+            if len(self.port_list) > j+1:
+                nextPort = self.port_list[(j+1)%len(self.port_list)]
+            else:
+                self.port_list.append((self.port_list[j]+1)%256)
+                return (self.port_list[j]+1)%256
+
+            print self.port_list[j], self.port_list[j+1]
+            if (self.port_list[j]+1)%256 != self.port_list[(j+1)%len(self.port_list)]:
                 self.port_list.append((self.port_list[j]+1)%256)
                 self.port_list.sort()
-                portSet =True
+                portSet = True
                 return (self.port_list[j]+1)%256
+        if len(self.port_list) == 0:
+            self.port_list.append(0)
+            return self.port_list[0]
         return None
 
 class LocationTreeNode(object):
@@ -66,7 +78,7 @@ class LocationTreeNode(object):
 
 # Sorry, no multiple constructors in Python
 # http://stackoverflow.com/questions/682504/what-is-a-clean-pythonic-way-to-have-multiple-constructors-in-python
-class LocationTree(object):
+class LocationTree:
     def __init__(self, *args, **kwargs):
         if len(args) == 1:
             self.sensor_dict = {}
@@ -107,6 +119,26 @@ class LocationTree(object):
         self.sensor_dict[sensorNd.nodeInfo.nodeId] = sensorNd
         self.totalSensorCount = self.totalSensorCount +1
 
+    def findLocation(self, startPos, locationStr):
+        locationLst =  parseLocation(locationStr)
+        if startPos.name != locationLst[0]:
+            raise Exception("error! location: "+ str(sensorNd.locationLst[0])+ " is not a valid value")
+        curPos = startPos
+        if  curPos.childrenCnt==0:
+            raise Exception("error! location tree does not have children and does not find any matching locations")
+        else:
+            for i in range(1, len(locationLst)):
+                child_index = -1
+                for j in range(curPos.childrenCnt):
+                    if curPos.children[j].name == locationLst[i]:
+                        child_index = j
+                if (child_index >= 0):
+                    curPos = curPos.children[child_index]
+                else:
+                    curPos = curPos.children[-1]
+        return curPos
+
+
     '''
     #insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
     def addSensor(self, startPos, sensorNd):
@@ -134,26 +166,6 @@ class LocationTree(object):
         self.sensor_dict[sensorNd.nodeInfo.nodeId] = sensorNd
         self.totalSensorCount = self.totalSensorCount +1
     '''
-
-    def findLocation(self, startPos, locationStr):
-        locationLst =  parseLocation(locationStr)
-        if startPos.name != locationLst[0]:
-            print("error! location: "+ str(sensorNd.locationLst[0])+ " is not a valid value")
-            return None
-        curPos = startPos
-        for i in range(1, len(locationLst)):
-            if  curPos.childrenCnt==0:
-                return None
-            else:
-                child_index = -1
-                for j in range(curPos.childrenCnt):
-                    if curPos.children[j].name == locationLst[i]:
-                        child_index = j
-                if (child_index >= 0):
-                    curPos = curPos.children[child_index]
-                else:
-                    curPos = curPos.children[-1]
-        return curPos
 
     def printTree(self, indent = 0):
         self.printTreeNode(self.root, indent)

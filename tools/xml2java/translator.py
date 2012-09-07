@@ -12,7 +12,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from wkpf import *
 import pickle
 from xml.dom.minidom import parse, parseString
-from locationTree import LocationTree, SensorNode
 from wkapplication import *
 from jinja2 import Template
 from jinja2 import Environment, FileSystemLoader
@@ -54,20 +53,28 @@ def getNodeList():
     node_list = comm.getNodeInfos();
   elif options.use_hardcoded_discovery:
     #generic, numeric_controller, light_sensor
-    wuClasses=(WuClass(nodeId=4, wuClassId=0),
-               WuClass(nodeId=4, wuClassId=3),
-               WuClass(nodeId=4, wuClassId=5))
-    wuObjects=[WuObject(portNumber=0, wuClass=wuClasses[0]),
-               WuObject(portNumber=1, wuClass=wuClasses[1]),
-               WuObject(portNumber=2, wuClass=wuClasses[2])]   
+    wuClasses=(WuClass(name='', id=0, properties={}, virtual=False, soft=True, node_id=4),
+               WuClass(name='', id=3, properties={}, virtual=False, soft=True, node_id=4),
+               WuClass(name='', id=5, properties={}, virtual=False, soft=True, node_id=4))
+    wuObjects=[WuObject(portNumber=0, wuClass=wuClasses[0], instanceId='', instanceIndex=0, nodeId=4),
+               WuObject(portNumber=1, wuClass=wuClasses[1], instanceId='', instanceIndex=1, nodeId=4),
+               WuObject(portNumber=2, wuClass=wuClasses[2], instanceId='', instanceIndex=2, nodeId=4)]   
     node1 = NodeInfo(4, wuClasses, wuObjects) # numeric_controller at port 1, light sensor at port 2
-    node3 = NodeInfo(nodeId=6,
-              wuClasses=(WuClass(nodeId=6, wuClassId=0),
-              WuClass(nodeId=6, wuClassId=1),
-              WuClass(nodeId=6, wuClassId=4)), # generic, threshold, light
-              wuObjects=(WuObject(portNumber=0, wuClass=wuClasses[0]),
-              WuObject(portNumber=4, wuClass=wuClasses[2]))) # light at port 4
+    node3 = NodeInfo(6,
+              wuClasses=(WuClass(name='', id=0, properties={}, virtual=False, soft=True, node_id=6),
+              WuClass(name='', id=1, properties={}, virtual=False, soft=True, node_id=6),
+              WuClass(name='', id=4, properties={}, virtual=False, soft=True, node_id=6)), # generic, threshold, light
+              wuObjects=(WuObject(portNumber=0, wuClass=wuClasses[0], instanceId='', instanceIndex=0, nodeId=6),
+              WuObject(portNumber=4, wuClass=wuClasses[2], instanceId='', instanceIndex=1, nodeId=6))) # light at port 4
     node_list = (node1, node3)
+
+    #wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
+
+    #node_infos = [NodeInfo(nodeId=3,
+                    #wuClasses=wuclasses,
+                    #wuObjects=[])]
+
+    #node_list = node_infos
   else:
     node_list = loadNodeList(options.discovery_file)
 
@@ -402,6 +409,7 @@ if __name__ == "__main__":
   parser.add_option("-H", "--use-hardcoded-discovery", 
       action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
   (options, args) = parser.parse_args()
+
   if not options.pathc and \
       os.path.exists(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")):
       print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
@@ -442,7 +450,6 @@ if __name__ == "__main__":
   application.parseComponents()
   application.parseApplicationXML()
   application.mappingWithNodeList(locTree, queries)
-  application.generateJava()
 
 
   #old stuff below

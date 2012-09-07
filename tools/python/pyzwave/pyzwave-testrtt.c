@@ -73,6 +73,8 @@ int repeat_cmd;
 int repeat_nodeid;
 int repeat_value;
 
+char current_status[1024] = "stop";
+
 void zwave_check_state(unsigned char c);
 #define ZW_ACK 0x06
 #define ZW_NAK 0x15
@@ -845,7 +847,6 @@ int SerialAPI_request(unsigned char *buf, int len)
     int retry = 5;
 
 
-    //if (1) {
     while (1) {
         // read out pending request from Z-Wave
         while(1) {
@@ -2678,18 +2679,11 @@ int zwave_init()
 #endif //_WIN32
     struct sockaddr_in server_addr;
     struct hostent *host;
-    int rv;
     if (g_host) {
         printf("g_host\n");
         if((zwavefd=socket(AF_INET,SOCK_STREAM,0)) == -1) {
             perror("socket\n");
             return -1;
-        } else {
-            rv = fcntl(zwavefd, F_SETFL, O_NONBLOCK);
-            if (rv < 0) {
-                perror("O_NONBLOCK\n");
-                return -1;
-            }
         }
         if((host=gethostbyname(g_host)) == NULL) {
             perror("gethostbyname\n");
@@ -3142,6 +3136,7 @@ void zwave_check_state(unsigned char c)
     if (verbose) printf("cur state %d token %x\n", zstate,c);
     //	printf("======TMPNR======cur state %d token %x\n", zstate,c);
 
+    fflush(stdout);
     switch(zstate) {
         case WAIT_ACK:
             if (c == ZW_ACK) {
@@ -3336,10 +3331,17 @@ void zwave_check_state(unsigned char c)
                        }
                        printf("]\n");
                        */
+                    char tmp[256];
                     if (zdata[1] == 1) {
                         printf("%s: learn ready\n", type);
+                        sprintf(tmp, "%s: learn ready", type);
+                        strcat(current_status, "\n");
+                        strcat(current_status, tmp);
                     } else if (zdata[1] == 2) {
                         printf("%s: node found\n", type);
+                        sprintf(tmp, "%s: node found\n", type);
+                        strcat(current_status, "\n");
+                        strcat(current_status, tmp);
                     } else if (zdata[1] == 3) {
                         printf("%sing slave node.....\n", type);
                     } else if (zdata[1] == 4) {
@@ -3348,13 +3350,22 @@ void zwave_check_state(unsigned char c)
                         printf("%s: protocol done. Wait for replication\n", type);
                     } else if (zdata[1] == 6) {
                         printf("%s: done.\n", type);
+                        sprintf(tmp, "%s: done.", type);
+                        strcat(current_status, "\n");
+                        strcat(current_status, tmp);
                     } else if (zdata[1] == 7) {
                         printf("%s: failed.\n", type);
+                        sprintf(tmp, "%s: failed.", type);
+                        strcat(current_status, "\n");
+                        strcat(current_status, tmp);
                     } else {
                         printf("%s: Unknown retval = %d\n", type, zdata[1]);
                     }
                     if (zdata[2])
                         printf("  node_id: %d\n", zdata[2]);
+                        sprintf(tmp, "  node_id: %d", zdata[2]);
+                        strcat(current_status, "\n");
+                        strcat(current_status, tmp);
                     if (zdata[3])
                         dump_node_info(zdata+4, zdata[3]);
                 } else if (curcmd == FUNC_ID_ZW_CONTROLLER_CHANGE) {
@@ -3381,6 +3392,7 @@ void zwave_check_state(unsigned char c)
         default:
             printf("Unknown state %d\n", zstate);
     }
+    fflush(stdout);
 }
 
 
@@ -4413,7 +4425,7 @@ void PyZwave_discover_ack_cb(void * data, int txStatus) //TODO: this function is
 void PyZwave_discover(){
     PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
     register_discover_callback(PyZwave_discover_ack_cb, NULL);
-    printf("calling GetInitData!");
+    printf("calling GetInitData!\n");
     ZW_GetInitData();
     while (1) {
         if (!PyZwave_receiveByte(1000)) {
@@ -4433,4 +4445,16 @@ void PyZwave_discover(){
     }
     zwave_my_address = zdata[4];
     printf("my zwave address: %d\n", zdata[4]);
+}
+
+int PyZwave_zwavefd() {
+    return zwavefd;
+}
+
+char *PyZwave_status() {
+    return current_status;
+}
+
+void PyZwave_clearstatus() {
+    memset(current_status, '\0', sizeof(current_status));
 }

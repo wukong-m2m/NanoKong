@@ -35,6 +35,14 @@ BASE_DIR = os.path.join(APP_DIR, 'base')
 MASTER_IP = '10.3.36.231'
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
+
+communication = None
+def getComm():
+  global communication
+  if not communication:
+    communication = Communication(0)
+  return communication
+
 applications = []
 
 # Helper functions
@@ -324,7 +332,7 @@ class deploy_application(tornado.web.RequestHandler):
     try:
       # Discovery results
       # TODO: persistent store
-      #comm = Communication(0)
+      #comm = getComm()
       #node_infos = comm.getNodeInfos()
 
       # debug purpose
@@ -335,7 +343,7 @@ class deploy_application(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_infos=node_infos, mapping_results={})
+        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results)
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
 
@@ -348,7 +356,7 @@ class deploy_application(tornado.web.RequestHandler):
     global applications
     # Discovery results
     # TODO: persistent store
-    #comm = Communication(0)
+    #comm = getComm()
     #node_infos = comm.getNodeInfos()
 
     # debug purpose
@@ -376,7 +384,7 @@ class map_application(tornado.web.RequestHandler):
     global applications
     # Discovery results
     # TODO: persistent store
-    #comm = Communication(0)
+    #comm = getComm()
     #node_infos = comm.getNodeInfos()
 
     # debug purpose
@@ -425,13 +433,13 @@ class poll(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      print applications[app_ind].version, self.get_argument('version')
-      if int(applications[app_ind].version) <= int(self.get_argument('version')):
-        self.content_type = 'application/json'
-        self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'log': ''})
-      else:
-        self.content_type = 'application/json'
-        self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'log': applications[app_ind].loggerHandler.retrieve()})
+      #print applications[app_ind].version, self.get_argument('version')
+      #if int(applications[app_ind].version) <= int(self.get_argument('version')):
+        #self.content_type = 'application/json'
+        #self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'logs': applications[app_ind].retrieve()})
+      #else:
+      self.content_type = 'application/json'
+      self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'logs': applications[app_ind].retrieve()})
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
@@ -463,62 +471,58 @@ class load_fbp(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':0, 'xml': applications[app_ind].xml})
 
-class ex_testrtt(tornado.web.RequestHandler):
+class poll_testrtt(tornado.web.RequestHandler):
   def post(self):
     global applications
-    #nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
-    log = []
-    print 'ex_testrtt'
-    print 'cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP)
-    pp = Popen('cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    while pp.poll() == None:
-      print 'polling from popen...'
-      line = pp.stdout.readline()
-      print line
-      if line.find('HomeID: ') > -1:
-        print 'HomeID'
-        pp.stdin.write('network delete\n')
-        print pp.communicate()
-      if line.find('Remove: done.') > -1 or line.find('Remove: failed.') > -1:
-        pp.communicate(input='network stop')
-      if line != '':
-        log.append(line)
-    log.append(str(pp.returncode))
-    log = '\n'.join(log)
 
-    self.content_type = 'application/json'
-    self.write({'status':0, 'log':log})
+    comm = getComm()
+    status = comm.currentStatus()
+    if status != None:
+      self.content_type = 'application/json'
+      self.write({'status':0, 'logs': status.split('\n')})
+    else:
+      self.content_type = 'application/json'
+      self.write({'status':0, 'logs': []})
 
-class in_testrtt(tornado.web.RequestHandler):
+class stop_testrtt(tornado.web.RequestHandler):
   def post(self):
     global applications
-    #nodes = [int(id) for id in self.request.arguments.get('nodes[]')]
-    print 'in_testrtt'
-    log = []
-    print 'cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP)
-    pp = Popen('cd %s; ./testrtt host %s' % (TESTRTT_PATH, MASTER_IP), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    while pp.poll() == None:
-      print 'polling from popen...'
-      line = pp.stdout.readline()
-      print line
-      if line.find('HomeID: ') > -1:
-        print 'HomeID'
-        output = pp.communicate(input='network add\n')
-        print output
-      if line.find('Add: protocol done.') > -1 or line.find('Add: failed.') > -1:
-        pp.communicate(input='network stop')
-      if line != '':
-        log.append(line)
-    log.append(str(pp.returncode))
-    log = '\n'.join(log)
 
-    self.content_type = 'application/json'
-    self.write({'status':0, 'log':log})
+    comm = getComm()
+    if comm.onStopMode() == 0:
+      self.content_type = 'application/json'
+      self.write({'status':0})
+    else:
+      self.content_type = 'application/json'
+      self.write({'status':1})
+
+class exclude_testrtt(tornado.web.RequestHandler):
+  def post(self):
+    global applications
+
+    comm = getComm()
+    if comm.onDeleteMode() == 0:
+      self.content_type = 'application/json'
+      self.write({'status':0, 'log': 'Going into exclude mode'})
+    else:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'log': 'There is an error going into exclude mode'})
+
+class include_testrtt(tornado.web.RequestHandler):
+  def post(self):
+    global applications
+
+    comm = getComm()
+    print 'onAddMode'
+    if comm.onAddMode() == 0:
+      self.content_type = 'application/json'
+      self.write({'status':0, 'log': 'Going into include mode'})
+    else:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'log': 'There is an error going into include mode'})
 
 class testrtt(tornado.web.RequestHandler):
   def get(self):
-    #wkpfcomm.init(0, debug=True)
-    #node_ids = wkpfcomm.getNodeIds()
     testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the include or exclude button on the nodes.'])
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
@@ -531,8 +535,10 @@ settings = dict(
 app = tornado.web.Application([
   (r"/", main),
   (r"/main", main),
-  (r"/testrtt/exclude", ex_testrtt),
-  (r"/testrtt/include", in_testrtt),
+  (r"/testrtt/exclude", exclude_testrtt),
+  (r"/testrtt/include", include_testrtt),
+  (r"/testrtt/stop", stop_testrtt),
+  (r"/testrtt/poll", poll_testrtt),
   (r"/testrtt", testrtt),
   (r"/applications", list_applications),
   (r"/applications/new", new_application),

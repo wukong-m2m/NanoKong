@@ -147,12 +147,12 @@ class CodeGen:
 
       wutype = wuTypes[wutypedef.getAttribute('name')]
 
-      wutypedefs_hash.append(convert_constant(wutypedef.getAttribute("name")))
+      wutypedefs_hash.append(wutypedef.getAttribute("name"))
 
       # Generate global header typedef definition for VM
       for enumvalue, value in enumerate(wutype.getAllowedValues()):
         cline = "#define " + wutype.getValueInCConstant(value) + " %d\n" % (enumvalue)
-        jline = "public static final short " + wutype.getValueInCConstant(value) + " = %d;\n" % (enumvalue)
+        jline = "public static final short " + wutype.getValueInJavaConstant(value) + " = %d;\n" % (enumvalue)
 
         self.global_vm_header_lines.append(cline)
         self.global_virtual_constants_lines.append(jline)
@@ -219,10 +219,12 @@ class CodeGen:
           datatype = property.getDataType()
           access = property.getAccess()
 
+          print 'datatype', datatype
+          print 'wutypedef_hash', wutypedefs_hash
           if datatype in wutypedefs_hash:
             datatype = "SHORT"
 
-          line = "WKPF.PROPERTY_TYPE_" + datatype + "|WKPF.PROPERTY_ACCESS_" + access
+          line = "WKPF.PROPERTY_TYPE_" + datatype.upper() + "|WKPF.PROPERTY_ACCESS_" + access.upper()
           if ind < len(wuClass.getProperties())-1:
             line += ","
 
@@ -234,7 +236,7 @@ class CodeGen:
         ''')
 
         for propind, property in enumerate(wuClass.getProperties().values()):
-          wuclass_virtual_super_lines.append("protected static final byte %s = %d;\n" % (property.getName(), propind))
+          wuclass_virtual_super_lines.append("protected static final byte %s = %d;\n" % (property.getJavaName(), propind))
 
         wuclass_virtual_super_lines.append('''
         }
@@ -280,7 +282,7 @@ class CodeGen:
         if datatype in wutypedefs_hash:
           datatype = "SHORT"
 
-        line = "WKPF_PROPERTY_TYPE_" + datatype + "+WKPF_PROPERTY_ACCESS_" + access
+        line = "WKPF_PROPERTY_TYPE_" + datatype.upper() + "+WKPF_PROPERTY_ACCESS_" + access.upper()
         if ind < len(wuClass.getProperties())-1:
           line += ","
 
