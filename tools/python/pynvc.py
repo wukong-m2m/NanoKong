@@ -60,13 +60,15 @@ def discoverNodes():
 def sendcmd(dest, cmd, payload=[], retries=3):
   global pymodule
   pymodule.receive(10) # Clear pending messages
+  print 'sending command', cmd, 'with payload', payload, 'to dest', dest
   while retries >= 0:
     try:
       if pymodule == pyzwave:
         pymodule.send(dest, [0x88, cmd] + payload)
       else:
         pymodule.send(dest, [cmd] + payload)
-    except:
+    except Exception as e:
+      print e
       print "=============IOError============ retries remaining:"
       print retries
       if retries <= 0:

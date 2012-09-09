@@ -2,10 +2,10 @@ from wkpf import *
 from locationTree import *
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
+all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
 
 node_infos = [NodeInfo(nodeId=3,
-                wuClasses=wuclasses,
+                wuClasses=all_wuclasses,
                 wuObjects=[])]
 
 locTree = LocationTree("Boli_Building")

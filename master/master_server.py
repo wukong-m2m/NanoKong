@@ -332,11 +332,11 @@ class deploy_application(tornado.web.RequestHandler):
     try:
       # Discovery results
       # TODO: persistent store
-      #comm = getComm()
-      #node_infos = comm.getNodeInfos()
+      comm = getComm()
+      node_infos = comm.getNodeInfos()
 
       # debug purpose
-      node_infos = fakedata.node_infos
+      #node_infos = fakedata.node_infos
 
       app_ind = getAppIndex(app_id)
       if app_ind == None:
@@ -356,11 +356,11 @@ class deploy_application(tornado.web.RequestHandler):
     global applications
     # Discovery results
     # TODO: persistent store
-    #comm = getComm()
-    #node_infos = comm.getNodeInfos()
+    comm = getComm()
+    node_infos = comm.getNodeInfos()
 
     # debug purpose
-    node_infos = fakedata.node_infos
+    #node_infos = fakedata.node_infos
 
     node_ids = [info.nodeId for info in node_infos]
 
@@ -384,11 +384,11 @@ class map_application(tornado.web.RequestHandler):
     global applications
     # Discovery results
     # TODO: persistent store
-    #comm = getComm()
-    #node_infos = comm.getNodeInfos()
+    comm = getComm()
+    node_infos = comm.getNodeInfos()
 
     # debug purpose
-    node_infos = fakedata.node_infos
+    #node_infos = fakedata.node_infos
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:

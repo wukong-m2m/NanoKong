@@ -2,6 +2,7 @@
 import sys
 import pynvc
 from wkpf import *
+import fakedata
 
 class Communication:
     def __init__(self, option):
@@ -77,7 +78,11 @@ class Communication:
       while len(reply) > 1:
         wuClassId = (reply[0] <<8) + reply[1]
         isVirtual = True if reply[2] == 1 else False
-        wuclasses.append(WuClass(destination, wuClassId, isVirtual))
+        for wuclass in fakedata.all_wuclasses:
+            if wuclass.getId() == wuClassId:
+                wuclass.setNodeId(destination)
+                wuclasses.append(wuclass)
+        #wuclasses.append(WuClass(destination, wuClassId, isVirtual))
         reply = reply[3:]
       return wuclasses
 
@@ -96,13 +101,17 @@ class Communication:
       wuobjects = []
       reply = reply[4:]
       while len(reply) > 1:
-        wuobjects.append(WuObject(destination, reply[0], (reply[1] <<8) + reply[2]))
+        wuClassId = (reply[1] <<8) + reply[2]
+        for wuclass in fakedata.all_wuclasses:
+          if wuclass.getId() == wuClassId:
+            wuobjects.append(WuObject(wuclass, 'testId', 1, nodeId=destination, portNumber=reply[0]))
+        #wuobjects.append(WuObject(destination, reply[0], (reply[1] <<8) + reply[2]))
         reply = reply[3:]
       return wuobjects
 
     def getProperty(self, wuobject, propertyNumber):
       sn = self.getNextSequenceNumberAsList()
-      payload=sn+[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber]
+      payload=sn+[wuobject.getPortNumber(), wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber]
       src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=wuobject.getNodeId(),
                                                         command=pynvc.WKPF_READ_PROPERTY,
                                                         payload=payload,

@@ -17,7 +17,7 @@ extern char init_data_buf[256];
 extern unsigned int zwave_my_address;
 
 
-//#define DEBUGF(...)  printf(__VA_ARGS__)
+//#define DEBUGF(...)  fprintf(stderr, __VA_ARGS__)
 #define DEBUGF(...) 
 
 
@@ -239,7 +239,6 @@ PyMethodDef methods[] = {
   {"delete", pyzwave_delete, METH_VARARGS, "Goes into delete mode"},
   {"stop", pyzwave_stop, METH_VARARGS, "Stop adding/deleting nodes"},
   {"poll", pyzwave_poll, METH_VARARGS, "Polling current status"},
-  {"send", pyzwave_send, METH_VARARGS, "Sends a list of bytes to a node"},
   {"receive", pyzwave_receive, METH_VARARGS, "Receive data"},
   {"setdebug", pyzwave_setdebug, METH_VARARGS, "Turn debug info on or off"},
   {"discover", pyzwave_discover, METH_VARARGS, "discover nodes"},
