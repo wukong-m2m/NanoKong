@@ -1,0 +1,69 @@
+<div class="tab-pane" id="nodes">
+    <button id="refresh">Refresh</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>More</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for node_info in node_infos %}
+            <tr class={{ 'success' if node_info.isResponding() else 'error' }}>
+                <td id="nodeId">
+                    {{ node_info.nodeId }}
+                </td>
+                <td>
+                    <div class="input-append">
+                        <input class="span2" type="text" value="{{ node_info.location }}"> <button type="button" class="btn set-location">Set Location</button>
+                    </div>
+                </td>
+                <td>
+                    {{ len(node_info.wuClasses) }} WuClasses and {{ len(node_info.wuObjects) }} WuObjects
+                </td>
+                <td>
+                    <a role=button id=node{{ node_info.nodeId }} data-toggle=modal href='#myModal' class='btn more'>Node info (click me for more info)</button>
+                </td>
+            </tr>
+            {% end %}
+        </tbody>
+    </table>
+
+
+    <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
+    <script>
+        $(function() {
+            $('#refresh').click(function() {
+                console.log('refresh nodes');
+                $('#nodes').block({ 
+                    message: '<h1>Processing</h1>',
+                    css: { border: '3px solid #a00' } 
+                }); 
+                $.post('/nodes/refresh', function(data) {
+                    $('#nodes').unblock();
+                    $('#nodes').html(data.nodes);
+                });
+            });
+
+            $('.set-location').click(function() {
+                var nodeId = $.trim($(this).closest('tr').find('#nodeId').text());
+                console.log(nodeId);
+                console.log($(this).prev().val());
+                $.ajax('/nodes/' + nodeId, {
+                    type: 'PUT',
+                    dataType: 'json',
+                    data: {location: $.trim($(this).prev().val())}, 
+                    success: function(data) {
+                        //data = JSON.parse(data);
+                        if (data.status == 1) {
+                            alert(data.mesg);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</div>
+

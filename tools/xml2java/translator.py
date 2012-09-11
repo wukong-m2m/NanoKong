@@ -50,7 +50,7 @@ def getNodeList():
 
   if options.do_discovery:
     comm = Communication(0)
-    node_list = comm.getNodeInfos();
+    node_list = comm.getAllNodeInfos();
   elif options.use_hardcoded_discovery:
     #generic, numeric_controller, light_sensor
     wuClasses=(WuClass(name='', id=0, properties={}, virtual=False, soft=True, node_id=4),
@@ -365,25 +365,26 @@ public class {{ CLASS_NAME }} {
 
 
 class Mapper:
-    def __init__(self, app, node_infos, app_xml_string):
+    def __init__(self, app, node_infos, app_xml_string, locTree=LocationTree('Default_tree')):
         self.node_infos = node_infos
         self.app_dom = parseString(app_xml_string)
         self.application = app
+        self.locTree = locTree
 
-    # Mapper that takes a location tree and queries to map node id to wuobject generated from application xml
-    def map_with_location_tree(self, locTree, queries):
+    # Mapper that takes a location tree to map node id to wuobject generated from application xml
+    def map(self):
         self.application.setFlowDom(self.app_dom)
         self.application.setTemplateDir(os.path.join(rootpath, 'tools', 'xml2java'))
         self.application.setComponentXml(open(os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')).read())
 
         self.application.parseComponents()
         self.application.parseApplicationXML()
-        self.application.mappingWithNodeList(locTree, queries)
+        self.application.mapping(self.locTree)
         return self.application.wuObjects
 
     def generateJava(self):
         print 'generate Java'
-        print self.wuObjects
+        self.application.setOutputDir(os.path.join(rootpath, 'java', 'examples'))
         jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
         output = open(os.path.join(self.application.destinationDir, self.application.applicationName+".java"), 'w')
         output.write(jinja2_env.get_template('application.java').render(applicationName=self.application.applicationName, wuObjects=self.application.wuObjects, wuLinks=self.application.wuLinks))
@@ -436,7 +437,7 @@ if __name__ == "__main__":
   sensorNodes = []
   for i in range(len(nodeInfos)):
     if nodeInfos[i].isResponding == True:
-      sensorNodes.append(SensorNode(locTree.parseLocation(loc), nodeInfos[i], *loc_args[i]))
+      sensorNodes.append(SensorNode(nodeInfos[i], *loc_args[i]))
       locTree.addSensor(sensorNodes[-1])
 
 

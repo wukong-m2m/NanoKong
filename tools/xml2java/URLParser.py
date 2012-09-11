@@ -113,13 +113,19 @@ class LocationURL(object):
             self._buildParseTree(treeNode.children[-1], connector_id)
 
 
-    def solveParseTree(self, treeNode):
-        if treeNode.function!=None:
-            return treeNode.function.runFunction()
-        if self.connector_dict[treeNode.operation][1] == 1:	#unary op
-            return self.connector_dict[treeNode.operation][0](self.locationTreeNode, self.solveParseTree(treeNode.children[0]))
-        elif self.connector_dict[treeNode.operation][1] == 2:	#binary op
-            return self.connector_dict[treeNode.operation][0](self.locationTreeNode,  self.solveParseTree(treeNode.children[0]), self.solveParseTree(treeNode.children[1]))
+    def solveParseTree(self):
+        if not self.parseTreeRoot:
+            return self.nodeIdSet
+
+        if self.parseTreeRoot.function!=None:
+            return self.parseTreeRoot.function.runFunction()
+
+        if self.connector_dict[self.parseTreeRoot.operation][1] == 1:	#unary op
+            return self.connector_dict[self.parseTreeRoot.operation][0](self.locationTreeNode, self.solveParseTree(self.parseTreeRoot.children[0]))
+
+        elif self.connector_dict[self.parseTreeRoot.operation][1] == 2:	#binary op
+            return self.connector_dict[self.parseTreeRoot.operation][0](self.locationTreeNode,  self.solveParseTree(self.parseTreeRoot.children[0]), self.solveParseTree(self.parseTreeRoot.children[1]))
+
         else:
             print "Error when parsing tree, no operations has more than 2 operands"
             return None
@@ -135,18 +141,22 @@ class LocationURL(object):
     def _createNodeIdSet(self):
         if self.locationTreeNode != None:
             self.nodeIdSet = self.locationTreeNode.idSet
+        else:
+            raise Exception('Error! No location tree')
 
     #be able to parse sth like near(0,1,2)
     def parseURL(self):
         tmpStrLst = self.urlStr.split('#')
-        if(len(tmpStrLst)>2):
+        if(len(tmpStrLst) > 2):
             print "Error while parsing url:" + self.urlStr +", more than one # found!"
             return False
 
-        if self.urlStr != None:
-            self.locationTreeNode = self.locationTree.findLocation(self.locationTree.root, tmpStrLst[0])
+        self.locationTreeNode = self.locationTree.findLocation(self.locationTree.root, tmpStrLst[0])
+        if not self.locationTreeNode:
+            raise Exception("Error! location cannot be found: "+ str(locationLst))
 
-        self._parse2Functions(tmpStrLst[1])
+        if len(tmpStrLst) > 1:
+            self._parse2Functions(tmpStrLst[1])
 
         self._createNodeIdSet()
 
@@ -169,10 +179,10 @@ if __name__ == "__main__":
     loc1 = "Boli_Building/3F/South_Corridor/Room318"
     loc2 = "Boli_Building/3F/South_Corridor/Room318"
     loc3 = "Boli_Building/3F/South_Corridor/Room318"
-    senNd0 = SensorNode(locTree.parseLocation(loc0), NodeInfo(0, [], []), 0, 1, 1)
-    senNd1 = SensorNode(locTree.parseLocation(loc1), NodeInfo(1, [], []), 0, 1, 3)
-    senNd2 = SensorNode(locTree.parseLocation(loc2), NodeInfo(2, [], []), 1, 1, 2)
-    senNd3 = SensorNode(locTree.parseLocation(loc3), NodeInfo(3, [], []), 4, 4, 2)
+    senNd0 = SensorNode(NodeInfo(0, [], [], location=loc0), 0, 1, 1)
+    senNd1 = SensorNode(NodeInfo(1, [], [], location=loc1), 0, 1, 3)
+    senNd2 = SensorNode(NodeInfo(2, [], [], location=loc2), 1, 1, 2)
+    senNd3 = SensorNode(NodeInfo(3, [], [], location=loc3), 4, 4, 2)
     locTree.addSensor(locTree.root, senNd0)
     locTree.addSensor(locTree.root, senNd1)
     locTree.addSensor(locTree.root, senNd2)
@@ -182,7 +192,7 @@ if __name__ == "__main__":
     locURLHandler = LocationURL(query, locTree)
     locURLHandler.parseURL()
 #	print locURLHandler.locationTreeNode.sensorLst
-    print locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
+    print locURLHandler.solveParseTree()
 
 
 

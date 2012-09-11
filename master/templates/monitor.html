@@ -13,29 +13,8 @@
                     </li>
                 </ul>
                 <div class=tab-content>
-                    <div class="tab-pane active" id="log">
-                    </div>
-                    <div class="tab-pane" id="properties">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>WuClass</th>
-                                    <th>Name</th>
-                                    <th>Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                    </td>
-                                    <td>
-                                    </td>
-                                    <td>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    {% include "monitor-log.html" %}
+                    {% include "monitor-properties.html" %}
                 </div>
             </div>
         </div>

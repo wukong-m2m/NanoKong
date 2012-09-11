@@ -1,3 +1,4 @@
+#include <string.h>
 #include "types.h"
 #include "nvmcomm.h"
 #include "wkpf.h"
@@ -6,6 +7,8 @@
 #include "vm.h"
 
 #define WKFPCOMM_SET_MESSAGE_HEADER_LEN 7
+
+char location[20]; // temporary place for storing location in memory
 
 uint8_t message_buffer[NVMCOMM_MESSAGE_SIZE];
 uint16_t next_sequence_number = 0;
@@ -87,6 +90,23 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
     return;
 
   switch (nvmcomm_command) {
+    case NVMCOMM_WKPF_GET_LOCATION:
+      payload[2] = strlen(location);
+      strcpy((char*)payload+3, location);
+      *response_size = sizeof(location) + 3;//payload size location + 2 byte overhead + 1 byte location size
+      *response_cmd = NVMCOMM_WKPF_GET_LOCATION_R;
+    break;
+    case NVMCOMM_WKPF_SET_LOCATION:
+      strncpy(location, (char*)payload+3, payload[2]);
+      *response_size = 6;
+      *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
+      retval = WKPF_OK;
+      if (retval != WKPF_OK) {
+        payload[2] = retval;
+        *response_size = 3;//payload size
+        *response_cmd = NVMCOMM_WKPF_ERROR_R;
+      }
+    break;
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
       number_of_wuclasses = wkpf_get_number_of_wuclasses();
       payload[2] = number_of_wuclasses;

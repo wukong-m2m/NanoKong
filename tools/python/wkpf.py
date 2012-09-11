@@ -5,6 +5,7 @@ import os
 import sys
 import re
 import xml.dom.minidom
+from struct import pack
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 
 DATATYPE_INT16 = 0
@@ -50,43 +51,19 @@ def datatypeToString(datatype):
     else:
         raise Error('Unknown datatype %d' % (datatype))
 
+def toByteString(i): 
+    return ['(byte)' + str(ord(b)) for b in pack("H", i)]
+
 class WuLink:
-    def __init__(self, fromWuObjectInstanceId, fromPropertyId, toWuObjectInstanceId, toPropertyId):
-        self.linkSrc = (fromWuObjectInstanceId, fromPropertyId)
-        self.linkDst = (toWuObjectInstanceId, toPropertyId)
+    def __init__(self, fromWuObject, fromPropertyId, toWuObject, toPropertyId):
+        self.linkSrc = (fromWuObject, fromPropertyId)
+        self.linkDst = (toWuObject, toPropertyId)
 
+    def toJava(self):
+        print 'wulink toJava'
+        return ', '.join(toByteString(int(self.linkSrc[0].getInstanceIndex())) + toByteString(int(self.linkSrc[1])) + toByteString(int(self.linkDst[0].getInstanceIndex())) + toByteString(int(self.linkDst[1])) + toByteString(int(self.linkDst[0].getWuClassId())))
+        
 
-#class WuObjectDefList:
-    #def __init__(self):
-        #self.wuobjects = []
-
-    #def __repr__(self):
-        #return self.wuobjects
-
-    #def __str__(self):
-        #return ', '.join(['Name:' + wuobjectgetXmlName() for wuobject in self.wuobjects])
-
-    #def __contains__(self, typeName):
-        #return typeName in [wuobject.getXmlName() for wuobject in self.wuobjects]
-##Sen 8.21 override len, [] operator
-    #def __len__(self):
-		#return len(self.wuobjects)
-
-    #def __getitem__(self, index):
-        #return self.wuobjects[index]
-
-    #def getByInstanceId(self, instanceId):
-        #for wuobject in self.wuobjects:
-            #if instanceId == wuobject.instanceId:
-                #return wuobject
-
-    #def getByTypeName(self, typeName):
-        #for wuobject in self.wuobjects:
-            #if typeName == wuobject.getXmlName():
-                #return wuobject
-
-    #def append(self, wuobject):
-        #self.wuobjects.append(wuobject)
 
 class WuType:
     def __init__(self, name, dataType, values=()):
@@ -96,6 +73,9 @@ class WuType:
 
     def __repr__(self):
         return "WuType %s (type=%s) val:%s" % (self._name, self._dataType, str(self._allowed_values))
+
+    def __contains__(self, value):
+        return value in self._allowed_values
 
     def getName(self):
         return self._name
@@ -139,19 +119,23 @@ class WuType:
 #		    return 'wuclass(node %d wuclass %d isvirtual %s)' % (self.nodeId, self.wuClassId, str(self.isVirtual))
 
 class WuProperty:
-    def __init__(self, class_name, name, id, wutype, access, default=None):
+    def __init__(self, class_name, name, id, wutype, access, default=None, value=None):
         self._class_name = class_name
         self._name = name  # an unicode for property's name
         self._id = id      # an integer for property's id
         self._wutype = wutype # a WuType object
         self._access = access
         self._default = default
+        self._current_value = value
 
     def __repr__(self):
-        return "WuProperty %s (id=%s, wutype=%s access=%s)" % (self._name, self._id, self._wutype, self._access)
+        return "WuProperty %s (id=%s, wutype=%s access=%s current_value=%s)" % (self._name, self._id, self._wutype, self._access, str(self._current_value))
 
     def getName(self):
         return self._name 
+
+    def getWuClassName(self):
+        return self._class_name
 
     def getJavaName(self):
         return Convert.to_constant(self._name)
@@ -178,6 +162,9 @@ class WuProperty:
     def getId(self):
         return self._id
 
+    def setId(self, id):
+        self._id = id
+
     def getWuType(self):
         return self._wutype
 
@@ -186,6 +173,16 @@ class WuProperty:
 
     def getAccess(self):
         return self._access
+
+    def getCurrentValue(self):
+        return self._current_value
+
+    def setCurrentValue(self, value):
+        if self._wutype.hasAllowedValues():
+            if value in self._wutype:
+                self._current_value = value
+        else:
+            self._current_value = value
 
 # Now both WuClass and WuObject have node id attribute, because each could represent at different stages of mapping process
 class WuClass:
@@ -206,8 +203,14 @@ class WuClass:
     def getPropertyByName(self, name):
         return self._properties[name]
 
+    def setPropertyByName(self, name, property):
+        self._properties[name] = property
+
     def getJavaGenClassName(self):
         return "GENERATEDVirtual" + Convert.to_java(self._name) + "WuObject"
+
+    def getJavaClassName(self):
+        return "Virtual" + Convert.to_java(self._name) + "WuObject"
 
     def getCDefineName(self):
         return Convert.to_constant(self.getCName())
@@ -254,15 +257,43 @@ class WuClass:
 # Now both WuClass and WuObject have node id attribute, because each could represent at different stages of mapping process
 # The wuClass in WuObject is just for reference only, the node_id shouldn't be used
 class WuObject:
-    def __init__(self, wuClass, instanceId, instanceIndex, nodeId=None, portNumber=None):
+    def __init__(self, wuClass, instanceId, instanceIndex, nodeId=None, portNumber=None, locationQueries=[]):
         self._wuClass = wuClass
         self._instanceId = instanceId
         self._instanceIndex = instanceIndex
         self._nodeId = nodeId
         self._portNumber = portNumber
+        self._locationQueries = locationQueries
 
     def __repr__(self):
         return 'wuobject(node:'+ str(self._nodeId)+' port:'+ str(self._portNumber)+ ' wuclass id: '+ str(self.getWuClassId())+')'
+
+    def __contains__(self, propertyName):
+        return propertyName in self._wuClass.getProperties()
+
+    def __iter__(self):
+        for property in self.getProperties().values():
+            yield property
+
+    def addLocationQueries(self, queries):
+        for query in queries:
+            self.addLocationQuery(query)
+
+    def removeLocationQuery(self, query):
+        self._locationQueries.remove(query)
+
+    def addLocationQuery(self, query):
+        self._locationQueries.append(query)
+
+    def getLocationQueries(self):
+        return self._locationQueries
+
+    def setLocationQueries(self, queries):
+        self._locationQueries = queries
+
+    def toJava(self):
+        print 'wuobject toJava'
+        return ', '.join([str(self.getNodeId()), str(self.getPortNumber())])
 
     def getWuClass(self):
         return self._wuClass
@@ -297,9 +328,13 @@ class WuObject:
     def getProperties(self):
         return self._wuClass.getProperties()
 
+    def setProperties(self, properties):
+        for proerty in properties:
+            self._wuClass.PropertyByName(property.getName(), property)
+
 
 class NodeInfo:
-    def __init__(self, nodeId, wuClasses=[], wuObjects=[]):
+    def __init__(self, nodeId, wuClasses=[], wuObjects=[], location=""):
         self.nodeId = nodeId
         self.wuClasses = wuClasses
         self.wuObjects = wuObjects
@@ -308,17 +343,18 @@ class NodeInfo:
 # Technically this is not 100% correct since we could make a virtual wuObject even if the native class is present, but this will work for now
         self.nativeWuObjects = [wuobject for wuobject in self.wuObjects if wuobject.getWuClassId() in self.nativeWuClasses]
         self.virtualWuObjects = [wuobject for wuobject in self.wuObjects if wuobject.getWuClassId() in self.virtualWuClasses]
+        self.location = location
 
     def __repr__(self):
-        return '(nodeinfo node %d\nwuclasses %s\nnative wuclasses %s\nvirtual wuclasses %s\nwuobjects %s)\n' % (self.nodeId, str(self.wuClasses), str(self.nativeWuClasses), str(self.virtualWuClasses), str(self.wuObjects))
+        return '(nodeinfo node %d\n\twuclasses %s\n\tnative wuclasses %s\n\tvirtual wuclasses %s\n\twuobjects %s)\n\tlocation %s' % (self.nodeId, str(self.wuClasses), str(self.nativeWuClasses), str(self.virtualWuClasses), str(self.wuObjects), self.location)
 
     # if both list have stuff
     def isResponding(self):
-        return self.wuClasses or self.wuObjects
+        return len(self.wuClasses) > 0 or len(self.wuObjects) > 0
 
 
 # methods for wkpf
-def parseXMLString(xml_string):
+def parseXMLString(xml_string, **kwargs):
     dom = xml.dom.minidom.parseString(xml_string)
 
     wuClasses = {}
@@ -347,7 +383,10 @@ def parseXMLString(xml_string):
 
         wuClasses[wuClassName] = WuClass(wuClassName, wuClassId, wuClassProperties, True if wuClass.getAttribute('virtual').lower() == 'true' else False, True if wuClass.getAttribute('type').lower() == 'soft' else False)
 
+    if 'type' in kwargs and kwargs['type'] == 'wutype':
+        return wuTypes
+
     return wuClasses
 
-def parseXML(xml_path):
-    return parseXMLString(open(xml_path).read())
+def parseXML(xml_path, **kwargs):
+    return parseXMLString(open(xml_path).read(), **kwargs)

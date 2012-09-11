@@ -27,6 +27,8 @@ CWD = os.getcwd()
 
 
 # ------------ Utility functions ------------ #
+# refer to wkpf.py
+'''
 def CamelCaseToUnderscore(name):
   s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
   return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
@@ -48,6 +50,7 @@ def convert_filename_to_java(raw):
 
 def convert_constant(raw):
   return convert_filename_to_c(raw).upper()
+'''
 
 def get_immediate_subdirectories(dir):
   return [name for name in os.listdir(dir)
@@ -120,7 +123,7 @@ class CodeGen:
     else:
       raise Exception('Argument required not present')
 
-  def generate(self):
+  def generate(self, app):
     # Parse ComponentLibrary XML
     dom = parseString(self.component_string)
 
@@ -128,7 +131,7 @@ class CodeGen:
     wutypedefs = dom.getElementsByTagName("WuTypedef")
     wutypedefs_hash = []
 
-    print "==================Begin TypeDefs====================="
+    app.info("==================Begin TypeDefs=====================")
     # Boilerplate for Java global constants file
     self.global_virtual_constants_lines.append('''
         package nanovm.wkpf;
@@ -140,6 +143,7 @@ class CodeGen:
     wuTypes = {'short': WuType('short', 'short'), 'boolean': WuType('boolean', 'boolean'), 'refresh_rate': WuType('refresh_rate', 'refresh_rate')}
 
     for wutypedef in wutypedefs:
+      app.info("Parsing wutype %s" % (wutypedef.getAttribute('name')))
       if wutypedef.getAttribute('type').lower() == 'enum':
         wuTypes[wutypedef.getAttribute('name')] = WuType(wutypedef.getAttribute('name'), wutypedef.getAttribute('type'), tuple([element.getAttribute('value') for element in wutypedef.getElementsByTagName('enum')]))
       else:
@@ -156,10 +160,11 @@ class CodeGen:
 
         self.global_vm_header_lines.append(cline)
         self.global_virtual_constants_lines.append(jline)
-    print "==================End of TypeDefs====================="
+    app.info("==================End of TypeDefs=====================")
 
-    print "==================Begin WuClasses====================="
+    app.info("==================Begin WuClasses=====================")
     for wuclass in wuclasses:
+      app.info("Parsing WuClass %s" % (wuclass.getAttribute('name')))
       wuclassName = wuclass.getAttribute('name')
       wuclassId = int(wuclass.getAttribute('id'),0)
       wuclassProperties = {}

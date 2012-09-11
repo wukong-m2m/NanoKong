@@ -51,8 +51,10 @@ void nvmcomm_poll(void) {
 }
 
 int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length) {
-  if (length > NVMCOMM_MESSAGE_SIZE)
+  if (length > NVMCOMM_MESSAGE_SIZE) {
+    DEBUGF_COMM("message oversized\n");
     return -2; // Message too large
+  }
   int retval = -1;
   DEBUGF_COMM("nvmcomm_send\n");
 #ifdef NVM_USE_COMMZWAVE
@@ -191,6 +193,8 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[0];
     break;
+    case NVMCOMM_WKPF_GET_LOCATION:
+    case NVMCOMM_WKPF_SET_LOCATION:
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
     case NVMCOMM_WKPF_GET_WUOBJECT_LIST:
     case NVMCOMM_WKPF_READ_PROPERTY:
@@ -200,6 +204,9 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     break;
   }
   if (response_cmd > 0) {
+#ifdef DEBUG
+    DEBUGF_COMM("response_size: "DBG8"\n", response_size);
+#endif
     nvmcomm_send(src, response_cmd, payload, response_size);
   }
 }

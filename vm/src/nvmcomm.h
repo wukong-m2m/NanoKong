@@ -29,17 +29,21 @@
 #define NVMCOMM_APPMSG_ACK                       0x01
 #define NVMCOMM_APPMSG_BUSY                      0x02
 
-#define NVMCOMM_WKPF_GET_WUCLASS_LIST		         0x90
-#define NVMCOMM_WKPF_GET_WUCLASS_LIST_R		       0x91
-#define NVMCOMM_WKPF_GET_WUOBJECT_LIST		       0x92
-#define NVMCOMM_WKPF_GET_WUOBJECT_LIST_R		     0x93
-#define NVMCOMM_WKPF_READ_PROPERTY	             0x94
-#define NVMCOMM_WKPF_READ_PROPERTY_R		         0x95
-#define NVMCOMM_WKPF_WRITE_PROPERTY		           0x96
-#define NVMCOMM_WKPF_WRITE_PROPERTY_R		         0x97
+#define NVMCOMM_WKPF_GET_WUCLASS_LIST            0x90
+#define NVMCOMM_WKPF_GET_WUCLASS_LIST_R          0x91
+#define NVMCOMM_WKPF_GET_WUOBJECT_LIST           0x92
+#define NVMCOMM_WKPF_GET_WUOBJECT_LIST_R         0x93
+#define NVMCOMM_WKPF_READ_PROPERTY               0x94
+#define NVMCOMM_WKPF_READ_PROPERTY_R             0x95
+#define NVMCOMM_WKPF_WRITE_PROPERTY              0x96
+#define NVMCOMM_WKPF_WRITE_PROPERTY_R            0x97
 #define NVMCOMM_WKPF_REQUEST_PROPERTY_INIT       0x98
 #define NVMCOMM_WKPF_REQUEST_PROPERTY_INIT_R     0x99
-#define NVMCOMM_WKPF_ERROR_R		                 0x9F
+#define NVMCOMM_WKPF_GET_LOCATION                0x9A
+#define NVMCOMM_WKPF_GET_LOCATION_R              0x9B
+#define NVMCOMM_WKPF_SET_LOCATION                0x9C
+#define NVMCOMM_WKPF_SET_LOCATION_R              0x9D
+#define NVMCOMM_WKPF_ERROR_R                     0x9F
 
 #define NVMCOMM_DEBUG_TRACE_PART                 0xA0
 #define NVMCOMM_DEBUG_TRACE_FINAL                0xA2

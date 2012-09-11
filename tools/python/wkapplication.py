@@ -14,7 +14,7 @@ from URLParser import *
 OK = 0
 NOTOK = 1
 
-def firstCandidate(app, wuObjects, locTree, queries):
+def firstCandidate(app, wuObjects, locTree):
     #input: nodes, WuObjects, WuLinks, WuClassDefs
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
@@ -22,24 +22,38 @@ def firstCandidate(app, wuObjects, locTree, queries):
 
     for i, wuObject in enumerate(wuObjects.values()):
         candidateSet = set()
+        queries = wuObject.getLocationQueries()
 
-        if queries[i] == None:
+        print queries
+        if queries == []:
             locURLHandler = LocationURL(None, locTree)
             candidateSet = locTree.root.getAllNodes()
         else:
-            locURLHandler = LocationURL(queries[i], locTree)
+            print 'LocationURL', queries[0], locTree
+            locURLHandler = LocationURL(queries[0], locTree) # get the first location query for a component, TODO:should consider other queries too later
+
+            '''
             try:
               locURLHandler.parseURL()
+              tmpSet = locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
+              if len(tmpSet) > 0:
+                  candidateSet = tmpSet
+              else:
+                  app.error('Conditions for component ', str(len(candidateSet)), '(start form 0) too strict, no available candidate found')
+                  return False
             except Exception as e:
               app.error(e)
               return False
-            
-            tmpSet = locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
+            '''
+
+            locURLHandler.parseURL()
+            tmpSet = locURLHandler.solveParseTree()
             if len(tmpSet) > 0:
                 candidateSet = tmpSet
             else:
-                app.error('Conditions for component ', str(len(candidateSet)), '(start form 0) too strict, no available candidate found')
+                app.error('Conditions for component %d (start form 0) too strict, no available candidate found' % (len(candidateSet)))
                 return False
+            
 
         print 'candidateSet', list(candidateSet)[0]
 
@@ -66,6 +80,7 @@ class WuApplication:
     self.version = 0
     self.returnCode = NOTOK
     self.status = "Idle"
+    self.deployed = False
     self.mapping_results = {}
     self.mapper = None
     self.inspector = None
@@ -174,8 +189,12 @@ class WuApplication:
               wuProperty = wuClass.getPropertyByName(propertyTag.getAttribute('name'))
               wuProperty.setDefault(propertyTag.getAttribute('default'))
 
+          queries = []
+          for locationQuery in componentTag.getElementsByTagName('location'):
+              queries.append(locationQuery.getAttribute('requirement'))
+
           # nodeId is not used here, portNumber is generated later
-          wuObj = WuObject(wuClass=wuClass, instanceId=componentTag.getAttribute('instanceId'), instanceIndex=index)
+          wuObj = WuObject(wuClass=wuClass, instanceId=componentTag.getAttribute('instanceId'), instanceIndex=index, locationQueries=queries)
 
           self.wuObjects[wuObj.getInstanceId()] = wuObj
 
@@ -187,10 +206,10 @@ class WuApplication:
           toWuObject = self.wuObjects[linkTag.getAttribute('toInstanceId')]
           toPropertyId = toWuObject.getPropertyByName(linkTag.getAttribute('toProperty')).getId()
 
-          self.wuLinks.append( WuLink(fromWuObject.getInstanceId(), fromPropertyId, toWuObject.getInstanceId(), toPropertyId) )
+          self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
 
-  def mappingWithNodeList(self, locTree, queries, mapFunc=firstCandidate):
+  def mapping(self, locTree, mapFunc=firstCandidate):
       #input: nodes, WuObjects, WuLinks, WuClassDefs
       #output: assign node id to WuObjects
       # TODO: mapping results for generating the appropriate instiantiation for different nodes
-      return mapFunc(self, self.wuObjects, locTree, queries)
+      return mapFunc(self, self.wuObjects, locTree)

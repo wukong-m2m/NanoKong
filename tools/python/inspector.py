@@ -6,6 +6,7 @@ import os
 from wkpfcomm import Communication
 import wkpf
 import pynvc
+import copy
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
@@ -85,25 +86,32 @@ def getNodeAndPortForComponent(componentName, mapping):
 
 ## Functions to read data from the nodes
 def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
-  class PropertyInfo:
-    pass
-  propertyInfo = PropertyInfo()
-  propertyInfo.name = getComponentPropertyName(wuObject.getWuClassId(), propertyNumber, componentDefinitions)
+  name = getComponentPropertyName(wuObject.getWuClassId(), propertyNumber, componentDefinitions)
   wkpfcommData = comm.getProperty(wuObject, propertyNumber)
+  for candidate in fakedata.all_wuclasses:
+    for property in candidate:
+      if property.getName() == name:
+        ret_prop = copy.deepcopy(property)
+        ret_prop.setCurrentValue(wkpfcommData[0])
+
+  '''
   propertyInfo.value = wkpfcommData[0]
   propertyInfo.datatype = wkpfcommData[1]
   propertyInfo.status = wkpfcommData[2]
   propertyInfo.propertyNumber = propertyNumber
-  return propertyInfo
+  '''
+  return ret_prop
 
 def readNodeInfo(nodeId, componentDefinitions):
   wkpfcommNodeInfo = comm.getNodeInfo(nodeId)
   if wkpfcommNodeInfo.isResponding():
+    '''
     for wuClass in wkpfcommNodeInfo.wuClasses:
       wuClass.name = getComponentName(wuClass.getId(), componentDefinitions)
+    '''
     for wuObject in wkpfcommNodeInfo.wuObjects:
-      wuObject.wuClassName = getComponentName(wuObject.getWuClassId(), componentDefinitions)
-      wuObject.properties = [readPropertyInfo(wuObject, i, componentDefinitions) for i in range(getComponentPropertyCount(wuObject.getWuClassId(), componentDefinitions))]
+      #wuObject.wuClassName = getComponentName(wuObject.getWuClassId(), componentDefinitions)
+      wuObject.setProperties([readPropertyInfo(wuObject, i, componentDefinitions) for i in range(getComponentPropertyCount(wuObject.getWuClassId(), componentDefinitions))])
   return wkpfcommNodeInfo
 
 ## Print functions
@@ -158,7 +166,7 @@ class Inspector:
   def __init__(self, mapping_results):
     self.mapping_results = mapping_results
     self.comm = Communication(0)
-    self.node_infos = comm.getNodeInfos([wuobject.getNodeId() for wuobject in self.mapping_results.values()])
+    self.node_infos = comm.getAllNodeInfos([wuobject.getNodeId() for wuobject in self.mapping_results.values()])
 
   def readAllLog(self):
     logs = []

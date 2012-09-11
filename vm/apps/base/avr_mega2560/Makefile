@@ -10,7 +10,7 @@ DEVICE = atmega2560
 ifdef FLOWXML
 DEFAULT_CLASS = $(FLOWXML)
 else
-DEFAULT_CLASS = HAScenario1
+DEFAULT_CLASS = TestWKPF
 endif
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D

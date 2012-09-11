@@ -5,8 +5,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from wkpf import NodeInfo, WuClass, WuObject
 
 class SensorNode(object):
-    def __init__(self, locationLst, nodeInfo, x_coord, y_coord, z_coord):
-        self.locationLst = locationLst
+    def __init__(self, nodeInfo, x_coord=0, y_coord=0, z_coord=0):
+        self.locationLst = parseLocation(nodeInfo.location)
         self.nodeInfo = nodeInfo
         self.coord = (x_coord,y_coord,z_coord)
         self.port_list = []
@@ -15,7 +15,7 @@ class SensorNode(object):
         if len(self.port_list)!=0 and forceInit == False:
             return
         for wuObj in self.nodeInfo.wuObjects:
-            self.port_list.append(wuObj.portNumber)
+            self.port_list.append(wuObj.getPortNumber())
         self.port_list.sort()
 
     def reserveNextPort(self):
@@ -120,23 +120,35 @@ class LocationTree:
         self.totalSensorCount = self.totalSensorCount +1
 
     def findLocation(self, startPos, locationStr):
-        locationLst =  parseLocation(locationStr)
-        if startPos.name != locationLst[0]:
-            raise Exception("error! location: "+ str(sensorNd.locationLst[0])+ " is not a valid value")
-        curPos = startPos
-        if  curPos.childrenCnt==0:
-            raise Exception("error! location tree does not have children and does not find any matching locations")
+        locationLst = parseLocation(locationStr)
+        if len(locationLst) == 0:
+            raise Exception("Error! location cannot be empty")
+
+        if startPos.name == locationLst[0]:
+            if len(locationLst[1:]) == 0:
+                return startPos
+            else:
+                for child in startPos.children:
+                    ret = findLocation(child, locationLst[1:])
+                    if ret:
+                        return ret
+                return None
         else:
-            for i in range(1, len(locationLst)):
-                child_index = -1
-                for j in range(curPos.childrenCnt):
-                    if curPos.children[j].name == locationLst[i]:
-                        child_index = j
-                if (child_index >= 0):
-                    curPos = curPos.children[child_index]
-                else:
-                    curPos = curPos.children[-1]
+            return None
+
+                    #raise Exception("error! location tree does not have children and does not find any matching locations")
+        '''
+        for i in range(1, len(locationLst)):
+            child_index = -1
+            for j in range(curPos.childrenCnt):
+                if curPos.children[j].name == locationLst[i]:
+                    child_index = j
+            if (child_index >= 0):
+                curPos = curPos.children[child_index]
+            else:
+                curPos = curPos.children[-1]
         return curPos
+        '''
 
 
     '''
@@ -167,8 +179,11 @@ class LocationTree:
         self.totalSensorCount = self.totalSensorCount +1
     '''
 
-    def printTree(self, indent = 0):
-        self.printTreeNode(self.root, indent)
+    def printTree(self, node=None, indent = 0):
+        print 'printTree'
+        if not node:
+            node = self.root
+        node.printTreeNode(indent)
         for child in self.root.children:
             self.printTree(child, indent+1)
 
@@ -184,10 +199,10 @@ if __name__ == "__main__":
     loc1 = "Boli_Building/3F/South_Corridor/Room318"
     loc2 = "Boli_Building/3F/East_Corridor/Room318"
     loc3 = "Boli_Building/3F/East_Corridor/Room318"
-    senNd0 = SensorNode(parseLocation(loc0), NodeInfo(0,[], []), 0, 1, 2)
-    senNd1 = SensorNode(parseLocation(loc1), NodeInfo(1, [], []), 0, 5, 3)
-    senNd2 = SensorNode(parseLocation(loc2), NodeInfo(2, [], []), 3, 3, 2)
-    senNd3 = SensorNode(parseLocation(loc3), NodeInfo(3, [], []), 2, 1, 2)
+    senNd0 = SensorNode(NodeInfo(0,[], [], location=loc0), 0, 1, 2)
+    senNd1 = SensorNode(NodeInfo(1, [], [], location=loc1), 0, 5, 3)
+    senNd2 = SensorNode(NodeInfo(2, [], [], location=loc2), 3, 3, 2)
+    senNd3 = SensorNode(NodeInfo(3, [], [], location=loc3), 2, 1, 2)
     locTree.addSensor(senNd0)
     locTree.addSensor(senNd1)
     locTree.addSensor(senNd2)

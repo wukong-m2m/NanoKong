@@ -92,6 +92,11 @@ function application_fillList(r)
             $('#content').empty();
             var topbar;
 
+            $('#content').block({ 
+                message: '<h1>Processing</h1>',
+                css: { border: '3px solid #a00' } 
+            }); 
+
             $.get('/applications/' + id, function(data) {
                 if (data.status == 1) {
                     alert(data.mesg);
@@ -106,6 +111,7 @@ function application_fillList(r)
                             page = $(data.page);
                             console.log(page);
                             content_scaffolding(topbar, page);
+                            $('#content').unblock();
                         }
                     });
                 }
@@ -115,6 +121,11 @@ function application_fillList(r)
         deploy.click(function() {
             $('#content').empty();
             var topbar;
+
+            $('#content').block({ 
+                message: '<h1>Processing</h1>',
+                css: { border: '3px solid #a00' } 
+            }); 
 
             $.get('/applications/' + id, function(data) {
                 if (data.status == 1) {
@@ -130,6 +141,7 @@ function application_fillList(r)
                             page = $(data.page);
                             console.log(page);
                             content_scaffolding(topbar, page);
+                            $('#content').unblock();
                         }
                     });
                 }

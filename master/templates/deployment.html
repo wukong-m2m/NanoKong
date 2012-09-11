@@ -4,93 +4,18 @@
         <div class="span12">
 
             <button id="map">Map</button>
-            <button disabled=disabled id="deploy">Deploy</button>
+            <button {% if not mapping_results %}disabled="disabled"{% end %} id="deploy">Deploy</button>
 
             <div class=tabbable>
                 <ul class="nav nav-pills">
-                    <li class="active">
-                        <a href="#log" data-toggle="tab">Log</a>
-                    </li>
-                    <li>
-                        <a href="#nodes" data-toggle="tab">Nodes</a>
-                    </li>
-                    <li>
-                        <a href="#mapping_results" data-toggle="tab">Map results</a>
-                    </li>
+                    <li class="active"><a href="#log" data-toggle="tab">Log</a></li>
+                    <li><a href="#nodes" data-toggle="tab">Nodes</a></li>
+                    <li><a href="#mapping_results" data-toggle="tab">Map results</a></li>
                 </ul>
                 <div class=tab-content>
-                    <div class="tab-pane active" id="log">
-                        {% for log in logs %}
-                        <pre>{{ log }}</pre>
-                        {% end %}
-                    </div>
-                    <div class="tab-pane" id="nodes">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Location</th>
-                                    <th>Status</th>
-                                    <th>More</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for node_info in node_infos %}
-                                <tr class={{ 'success' if node_info.isResponding() else 'error' }}>
-                                    <td>
-                                        {{ node_info.nodeId }}
-                                    </td>
-                                    <td>
-                                        Location
-                                    </td>
-                                    <td>
-                                        {{ len(node_info.wuClasses) }} WuClasses and {{ len(node_info.wuObjects) }} WuObjects
-                                    </td>
-                                    <td>
-                                        <a role=button id=node{{ node_info.nodeId }} data-toggle=modal href='#myModal' class='btn more'>Node info (click me for more info)</button>
-                                    </td>
-                                </tr>
-                                {% end %}
-                            </tbody>
-                        </table>
-
-
-                        <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
-                    </div>
-                    <div class="tab-pane" id="mapping_results">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>WuObject Name</th>
-                                    <th>Node Id</th>
-                                    <th>Port Number</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for wuobject in mapping_results.values() %}
-                                <tr class=success>
-                                    <td>
-                                        {{ wuobject.getInstanceId() }}
-                                    </td>
-                                    <td>
-                                        {{ wuobject.getWuClassName() }}
-                                    </td>
-                                    <td>
-                                        {{ wuobject.getNodeId() }}
-                                    </td>
-                                    <td>
-                                        {{ wuobject.getPortNumber() }}
-                                    </td>
-                                </tr>
-                                {% end %}
-
-                            </tbody>
-                        </table>
-
-
-                        <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
-                    </div>
+                    {% include "monitor-log.html" %}
+                    {% include "monitor-nodes.html" %}
+                    {% include "monitor-mapping-results.html" %}
                 </div>
             </div>
         </div>
@@ -115,6 +40,7 @@
         $(function() {
 
             var current_application = "{{ app.id }}";
+            var repeat = {repeat: true};
 
             $('#myModal').hide();
 
@@ -134,52 +60,56 @@
                     console.log(data)
                     if (data.status == 1) {
                         alert(data.mesg);
-                        } else {
+                    } else {
                         var $table = $('#mapping_results table tbody');
                         $table.empty();
 
                         console.log(data.mapping_results);
+                        if (data.mapping_results) {
+                            $('#deploy').removeAttr('disabled');
+                        }
+                        else {
+                            $('#deploy').attr('disabled', 'disabled');
+                        }
 
                         _.each(data.mapping_results, function(result) {
                             var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
                             $table.append(compiled(result));
                         });
 
-                        poll(current_application, 0);
+                        poll(current_application, 0, repeat);
                     }
                 });
             });
 
-            var infos = "";
-
             {% for node_info in node_infos %}
-
-            infos = "\
-            {% if node_info.isResponding() %}<h4>WuClasses:</h4>\
-            <ul>\
-                {% for wuClass in node_info.wuClasses %}<li>Class Id: {{ wuClass.getId() }} Class Name: {{ wuClass.getName() }}</li>\
-                {% end %}</ul>\
-
-            <h4>WuObjects:</h4>\
-            <ul>\
-                {% for wuObject in node_info.wuObjects %}<li>Class Name: {{ wuObject.getWuClass().getName() }} Instance Id: {{ wuObject.getInstanceId() }} Port Number: {{ wuObject.getPortNumber() }}</li>\{% end %}</ul>\{% else %}<h4>Not responding</h4>\{% end %}
-            ";
-
-            // Necessary to do this or jquery does not allow new lines in multiline strings
 
             $('#node{{ node_info.nodeId }}').click(function(e) {
                 e.preventDefault();
 
                 console.log('click');
                 $('#myModal .modal-header').html('Node Info');
-                $('#myModal .modal-body').html(infos);
+                $('#myModal .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
             });
             //$('#node{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
 
             {% end %}
 
             $('#deploy').click(function() {
-                poll(current_application, 0);
+                $.post('/applications/' + current_application + '/deploy', function(data) {
+                    // Already an object
+                    console.log(data)
+                    if (data.status == 1) {
+                        alert(data.mesg);
+                    } else {
+                        poll(current_application, 0, repeat);
+                    }
+                });
+            });
+
+            $('#back').click(function() {
+                // repeat is an object with one key 'repeat', or poll will be pass-by-value and therefore can't be stopped
+                repeat.repeat = false;
             });
 
         });

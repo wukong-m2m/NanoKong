@@ -1,5 +1,9 @@
+html, body {
+    height: 100%;
+}
+
 body > table {
-    height: 2000px;
+    height: 100%;
 }
 .menu {
 	background-color: rgb(207,226,243);

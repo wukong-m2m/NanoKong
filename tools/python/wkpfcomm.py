@@ -1,7 +1,9 @@
 #!/usr/bin/python
+# vim: ts=2 sw=2
 import sys
 import pynvc
 from wkpf import *
+from locationTree import *
 import fakedata
 
 class Communication:
@@ -10,6 +12,12 @@ class Communication:
         raise Exception
       self.sequenceNumber = 0
       self.mode = 'stop'
+      self.all_node_infos = []
+
+    def addActiveNodesToLocTree(self, locTree):
+      for node_info in self.getActiveNodeInfos():
+        print 'active node_info', node_info
+        locTree.addSensor(SensorNode(node_info))
 
     def getNextSequenceNumberAsList(self):
       self.sequenceNumber = (self.sequenceNumber + 1) % (2**16)
@@ -22,10 +30,22 @@ class Communication:
     def getNodeIds(self):
       return pynvc.discoverNodes()
 
-    def getNodeInfos(self):
-      nodeIds = self.getNodeIds()
-      print 'getNodeInfos', nodeIds
-      return [self.getNodeInfo(destination) for destination in nodeIds]
+    def getActiveNodeInfos(self):
+      print 'getActiveNodeInfos'
+      self.all_node_infos = self.getAllNodeInfos()
+      return filter(lambda item: item.isResponding(), self.all_node_infos)
+
+    def getNodeInfos(self, node_ids):
+      print 'getNodeInfos', node_ids
+      return [self.getNodeInfo(int(destination)) for destination in node_ids]
+
+    def getAllNodeInfos(self, force=False):
+      print 'getAllNodeInfos'
+      if force or self.all_node_infos == []:
+        nodeIds = self.getNodeIds()
+        print 'getAllNodeInfos', nodeIds
+        self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
+      return self.all_node_infos
 
     def onAddMode(self):
       if self.mode != 'stop':
@@ -54,12 +74,50 @@ class Communication:
       print 'getWuClassList'
       wuClasses = self.getWuClassList(destination)
       print wuClasses
+
       print 'getWuObjectList'
       wuObjects = self.getWuObjectList(destination)
       print wuObjects
+
+      print 'getLocation'
+      location = self.getLocation(destination)
+      print location
+
       return NodeInfo(nodeId = destination,
                         wuClasses = wuClasses,
-                        wuObjects = wuObjects)
+                        wuObjects = wuObjects,
+                        location = location)
+
+    def getLocation(self, destination):
+      sn = self.getNextSequenceNumberAsList()
+      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                        command=pynvc.WKPF_GET_LOCATION,
+                                                        payload=sn,
+                                                        allowedReplies=[pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R],
+                                                        verify=self.verifyWKPFmsg(messageStart=sn, minAdditionalBytes=0)) # number of wuclasses
+      if reply == None:
+        return ""
+      if reply[0] == pynvc.WKPF_ERROR_R:
+        print "WKPF RETURNED ERROR ", reply[3]
+        return []
+      print reply
+      location_size = reply[3]
+      return ''.join([chr(bit) for bit in reply[4:location_size+4]]) # shift overhead
+
+    def setLocation(self, destination, location):
+      sn = self.getNextSequenceNumberAsList()
+      sn += [len(location)] + [int(ord(char)) for char in location]
+      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                        command=pynvc.WKPF_SET_LOCATION,
+                                                        payload=sn,
+                                                        allowedReplies=[pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R],
+                                                        verify=self.verifyWKPFmsg(messageStart=sn[:6], minAdditionalBytes=0)) # number of wuclasses
+      if reply == None:
+        return -1
+      if reply[0] == pynvc.WKPF_ERROR_R:
+        print "WKPF RETURNED ERROR ", reply[3]
+        return -1
+      return 0
 
     def getWuClassList(self, destination):
       sn = self.getNextSequenceNumberAsList()
@@ -118,10 +176,11 @@ class Communication:
                                                         allowedReplies=[pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R],
                                                         verify=self.verifyWKPFmsg(messageStart=payload, minAdditionalBytes=2)) # datatype + value
       if reply == None:
-        return None
-      if reply[0] == pynvc.WKPF_ERROR_R:
+        return (None, None, None)
+      elif reply[0] == pynvc.WKPF_ERROR_R:
         print "WKPF RETURNED ERROR ", reply[3]
-        return None
+        return (None, None, None)
+
       datatype = reply[7]
       status = reply[8]
       if datatype == DATATYPE_BOOLEAN:
