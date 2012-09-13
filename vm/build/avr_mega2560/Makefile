@@ -11,14 +11,14 @@ DEVICE = atmega2560
 ifdef FLOWXML
 DEFAULT_CLASS=$(FLOWXML)
 else
-DEFAULT_CLASS = TestWKPF
-#DEFAULT_CLASS = AdcDemo
+#DEFAULT_CLASS = TestWKPF
+DEFAULT_CLASS = AdcDemo
 #DEFAULT_CLASS = HAScenario1
 endif
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
 
-PORT = /dev/tty.usbmodem411
+PORT = /dev/ttyACM0
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
@@ -71,7 +71,7 @@ endef
 %.elf: $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	#avr-size -C --mcu=atmega2560 $@
-	$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
+	#$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
 
 %.hex: %.elf
 	$(OBJCOPY) -j .text -j .lowtext -j .data -j .javabytecode -O ihex $< $@
@@ -94,6 +94,9 @@ nvmcomm_reprogram: nvmdefault.h
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+
+avrdude1280: NanoVM.hex NanoVM_eeprom.hex
+	avrdude -V -p atmega1280 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex

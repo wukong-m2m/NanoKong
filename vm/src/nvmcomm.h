@@ -2,6 +2,12 @@
 #define NVMCOMM_H
 
 #include "config.h"
+#ifdef NVM_USE_COMMZWAVE
+#include "nvmcomm_zwave.h"
+#endif
+#ifdef NVM_USE_COMMXBEE
+#include "nvmcomm_xbee.h"
+#endif
 
 #ifdef NVM_USE_COMM
 

@@ -231,6 +231,12 @@ void   vm_run(u16_t mref) {
 #ifdef NVM_USE_COMM
     // Check if there's any packet coming in that we need to handle before processing the next VM instruction.
     nvmcomm_poll();
+	#ifdef NVM_USE_COMMZWAVE
+	if(zwave_learn_mode==1)
+	{
+		nvmcomm_zwave_learn();
+	}
+	#endif	
 #endif
     // If we're not at runlevel VM, wait for nvmcomm to unpause or reset the VM.
     if (nvm_runlevel != NVM_RUNLVL_VM)

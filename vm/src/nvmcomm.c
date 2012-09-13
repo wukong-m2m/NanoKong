@@ -2,12 +2,6 @@
 #include "types.h"
 #include "debug.h"
 #include "vm.h"
-#ifdef NVM_USE_COMMZWAVE
-#include "nvmcomm_zwave.h"
-#endif
-#ifdef NVM_USE_COMMXBEE
-#include "nvmcomm_xbee.h"
-#endif
 #include "avr/avr_flash.h"
 #include "nvmcomm.h"
 #include "delay.h"
