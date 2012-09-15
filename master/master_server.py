@@ -402,9 +402,11 @@ class deploy_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
+      applications[app_ind].compiler = Worker().compiler
       if len(node_ids) > 0:
-        applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], node_ids, platforms,))
-        applications[app_ind].compiler.start()
+        applications[app_ind].compiler(applications[app_ind], node_ids, platforms)
+        #applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], node_ids, platforms,))
+        #applications[app_ind].compiler.start()
 
       self.content_type = 'application/json'
       self.write({'status':0, 'version': applications[app_ind].version})
@@ -608,6 +610,11 @@ class nodes(tornado.web.RequestHandler):
     if location:
       comm = getComm()
       if comm.setLocation(int(nodeId), location):
+        # update our knowledge too
+        for info in comm.all_node_infos:
+          if info.nodeId == int(nodeId):
+            info.location = location
+
         self.content_type = 'application/json'
         self.write({'status':0})
       else:

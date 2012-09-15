@@ -13,3 +13,4 @@ plugins/niagara
 .tmtags
 GENERATED*
 *.orig
+tools/python/pyzwave/testrtt

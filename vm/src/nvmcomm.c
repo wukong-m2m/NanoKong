@@ -108,84 +108,88 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       DEBUGF_COMM("Going to runlevel NVM_RUNLVL_CONF.\n");
       vm_set_runlevel(NVM_RUNLVL_CONF);
       response_cmd = NVMCOMM_CMD_REPRG_OPEN_R;
-      payload[0] = (uint8_t)(AVR_FLASH_PAGESIZE>>8);
-      payload[1] = (uint8_t)(AVR_FLASH_PAGESIZE);
-      response_size = 2;
+      payload[2] = (uint8_t)(AVR_FLASH_PAGESIZE>>8);
+      payload[3] = (uint8_t)(AVR_FLASH_PAGESIZE);
+      response_size = 4;
     break;
     case NVMCOMM_CMD_REPRG_WRITE:
-      pos_in_message = (((uint16_t)payload[0])<<8) + ((uint16_t)payload[1]);
+      pos_in_message = (((uint16_t)payload[2])<<8) + ((uint16_t)payload[3]);
       uint16_t expected_pos = nvc3_avr_reprogramming_pos;
       DEBUGF_COMM("Received program packet for address "DBG16", current position: "DBG16".\n", pos_in_message, nvc3_avr_reprogramming_pos);
-      u08_t codelength = length - 2;
-      u08_t *codepayload = payload + 2;
+      u08_t codelength = length - 4;
+      u08_t *codepayload = payload + 4;
       if (pos_in_message == expected_pos) {
         DEBUGF_COMM("Write "DBG8" bytes at position "DBG16".\n", codelength, nvc3_avr_reprogramming_pos);
-				avr_flash_write(codelength, codepayload);
+        avr_flash_write(codelength, codepayload);
         nvc3_avr_reprogramming_pos += codelength;
       }
       if (pos_in_message/(uint16_t)AVR_FLASH_PAGESIZE != (pos_in_message+(uint16_t)codelength)/(uint16_t)AVR_FLASH_PAGESIZE) {
         // Crossing page boundary, send a NVMCOMM_CMD_REPRG_WRITE_R_OK or NVMCOMM_CMD_REPRG_WRITE_R_RETRANSMIT
         if (pos_in_message == expected_pos) {
-          DEBUGF_COMM("Page boundary reached. Sending REPRG_WRITE_R_OK.");
+          DEBUGF_COMM("Page boundary reached. Sending REPRG_WRITE_R_OK.\n");
           response_cmd = NVMCOMM_CMD_REPRG_WRITE_R_OK;
+          response_size = 2; // now the sequence numbers are needed
         } else {
-          DEBUGF_COMM("Page boundary reached, positions don't match. Sending WRITE_RETRANSMIT request.");
+          DEBUGF_COMM("Page boundary reached, positions don't match. Sending WRITE_RETRANSMIT request.\n");
           response_cmd = NVMCOMM_CMD_REPRG_WRITE_R_RETRANSMIT;
-          payload[0] = (uint8_t)(nvc3_avr_reprogramming_pos>>8);
-          payload[1] = (uint8_t)(nvc3_avr_reprogramming_pos);
-          response_size = 2;
+          payload[2] = (uint8_t)(nvc3_avr_reprogramming_pos>>8);
+          payload[3] = (uint8_t)(nvc3_avr_reprogramming_pos);
+          response_size = 4;
         }
       }
     break;
     case NVMCOMM_CMD_REPRG_COMMIT:
-      pos_in_message = (((uint16_t)payload[0])<<8) + ((uint16_t)payload[1]);
+      pos_in_message = (((uint16_t)payload[2])<<8) + ((uint16_t)payload[3]);
       DEBUGF_COMM("Received commit request for code up to address "DBG16", current position: "DBG16".\n", pos_in_message, nvc3_avr_reprogramming_pos);
       if (pos_in_message != nvc3_avr_reprogramming_pos) {
         DEBUGF_COMM("Positions don't match. Sending COMMIT_RETRANSMIT request.");
         response_cmd = NVMCOMM_CMD_REPRG_COMMIT_R_RETRANSMIT;
-        payload[0] = (uint8_t)(nvc3_avr_reprogramming_pos>>8);
-        payload[1] = (uint8_t)(nvc3_avr_reprogramming_pos);
-        response_size = 2;
+        payload[2] = (uint8_t)(nvc3_avr_reprogramming_pos>>8);
+        payload[3] = (uint8_t)(nvc3_avr_reprogramming_pos);
+        response_size = 4;
       } else if (0==1) {
         // TODO: add checksum, send NVMCOMM_CMD_REPRG_COMMIT_R_FAILED if they don't match.
         response_cmd = NVMCOMM_CMD_REPRG_COMMIT_R_FAILED;
+        response_size = 2; // now the sequence numbers are needed
       } else {
         DEBUGF_COMM("Committing new code.\n");
         DEBUGF_COMM("Flushing pending writes to flash.\n");
         avr_flash_close();
         nvc3_avr_reprogramming = FALSE;
         response_cmd = NVMCOMM_CMD_REPRG_COMMIT_R_OK;
+        response_size = 2; // now the sequence numbers are needed
       }
     break;
     case NVMCOMM_CMD_GETRUNLVL: 
-      payload[0] = nvm_runlevel;
-      response_size = 1;
+      payload[2] = nvm_runlevel;
+      response_size = 3;
       response_cmd = NVMCOMM_CMD_GETRUNLVL_R;
     break;
     case NVMCOMM_CMD_SETRUNLVL:
-      DEBUGF_COMM("Goto runlevel "DBG8"\n", payload[0]);
-      nvmcomm_send(src, NVMCOMM_CMD_SETRUNLVL_R, payload, 0); // Send here instead of at the bottom because we might be resetting.
+      DEBUGF_COMM("Goto runlevel "DBG8"\n", payload[2]);
+      nvmcomm_send(src, NVMCOMM_CMD_SETRUNLVL_R, payload, 2); // Send here instead of at the bottom because we might be resetting. sequence numbers are needed
       response_cmd = 0;
-      vm_set_runlevel(payload[0]);
+      response_size = 2; // sequence numbers are needed
+      vm_set_runlevel(payload[2]);
     break;
     case NVMCOMM_CMD_APPMSG:
       if (nvc3_appmsg_size == 0) {
-        for (size8_t i=0; i<length; ++i) {
+        for (size8_t i=2; i<length; ++i) {
           nvc3_appmsg_buf[i] = payload[i];
         }
         nvc3_appmsg_size = length;
-        payload[0] = NVMCOMM_APPMSG_ACK;
+        payload[2] = NVMCOMM_APPMSG_ACK;
         DEBUGF_COMM("Received some data intended for Java: ACK\n");
       } else {
-        payload[0] = NVMCOMM_APPMSG_BUSY;
+        payload[2] = NVMCOMM_APPMSG_BUSY;
         DEBUGF_COMM("Received some data intended for Java: BUSY!\n");
       }
-      response_size = 1;
+      response_size = 3;
       response_cmd = NVMCOMM_CMD_APPMSG_R;
     break;
     case NVMCOMM_CMD_APPMSG_R:
       // TODO: expose this to Java. Make ACKs optional.
-      nvc3_appmsg_reply = payload[0];
+      nvc3_appmsg_reply = payload[2];
     break;
     case NVMCOMM_WKPF_GET_LOCATION:
     case NVMCOMM_WKPF_SET_LOCATION:

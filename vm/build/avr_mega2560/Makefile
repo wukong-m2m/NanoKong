@@ -11,14 +11,14 @@ DEVICE = atmega2560
 ifdef FLOWXML
 DEFAULT_CLASS=$(FLOWXML)
 else
-#DEFAULT_CLASS = TestWKPF
-DEFAULT_CLASS = AdcDemo
+DEFAULT_CLASS = TestWKPF
+#DEFAULT_CLASS = AdcDemo
 #DEFAULT_CLASS = HAScenario1
 endif
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
 
-PORT = /dev/ttyACM0
+PORT = /dev/tty.usbmodem411
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications

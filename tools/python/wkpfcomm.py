@@ -314,12 +314,13 @@ class Communication:
         payload_pos = [pos/256, pos%256]
         payload_data = bytecode[pos:pos+MESSAGESIZE]
         print "Uploading bytes", pos, "to", pos+MESSAGESIZE, "of", len(bytecode)
+        print pos/pagesize, (pos+len(payload_data))/pagesize, "of pagesize", pagesize
         if pos/pagesize == (pos+len(payload_data))/pagesize:
-          # TODO: don't know how to convert to our version yet
-          pynvc.sendcmd(destination, pynvc.REPRG_WRITE, payload_pos+payload_data)
+          #pynvc.sendcmd(destination, pynvc.REPRG_WRITE, payload_pos+payload_data)
+          self.zwave.send(destination, pynvc.REPRG_WRITE, payload_pos+payload_data, [])
           pos += len(payload_data)
         else:
-          # Send last packet of this page and wait for a REPRG_WRITE_R_RETRANSMIT after each full page
+          print "Send last packet of this page and wait for a REPRG_WRITE_R_RETRANSMIT after each full page"
           reply = self.zwave.send(destination, pynvc.REPRG_WRITE, payload_pos+payload_data, [pynvc.REPRG_WRITE_R_OK, pynvc.REPRG_WRITE_R_RETRANSMIT])
           '''
           src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
@@ -339,8 +340,8 @@ class Communication:
             print "No reply received. Code update failed. :-("
             return False
 
-        # Send REPRG_COMMIT after last packet
         if pos == len(bytecode):
+          print "Send REPRG_COMMIT after last packet"
           reply = self.zwave.send(destination, pynvc.REPRG_COMMIT, [pos/256, pos%256], [pynvc.REPRG_COMMIT_R_RETRANSMIT, pynvc.REPRG_COMMIT_R_FAILED, pynvc.REPRG_COMMIT_R_OK])
           '''
           src, reply = pynvc.sendWithRetryAndCheckedReceive(

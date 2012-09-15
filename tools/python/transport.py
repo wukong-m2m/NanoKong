@@ -37,9 +37,9 @@ class DeferredQueue:
                 logging.info('found defer')
                 return defer_id, defer
             else:
-                log = "One of " + str(defer.allowed_replies) + " expected, but got: " + str(message)
+                log = "Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(message)
                 logging.warning(log)
-        logging.info('nope')
+        logging.info('Cannot find defer')
         return False, False
 
     def add_defer(self, defer):
@@ -141,7 +141,9 @@ class ZwaveAgent(TransportAgent):
                 self.verify(allowed_replies), 
                 allowed_replies, 
                 new_message(destination, command, self.getNextSequenceNumberAsPrefixPayload() + payload))
+        logging.info(str(defer))
         tasks.put_nowait(defer)
+
 
         message = result.get() # blocking
         logging.info('get message from result.get()')
@@ -208,7 +210,7 @@ class ZwaveAgent(TransportAgent):
             except:
                 logging.exception('receive exception')
             logging.info('receive: going to sleep')
-            gevent.sleep(0.001)
+            gevent.sleep(0.01) # sleep for at least 10 msec
 
 
     # to be run in a thread, and others will use ioloop to monitor this thread
@@ -226,17 +228,19 @@ class ZwaveAgent(TransportAgent):
             while retries > 0:
                 try:
                     pyzwave.send(destination, [0x88, command] + payload)
+
+                    if len(defer.allowed_replies) > 0:
+                        Agent.init().append(defer)
+
                     break
                 except Exception as e:
                     log = "===========IOError========== retries remaining: " + str(retries)
                     logging.exception(log)
                 retries -= 1
 
-            if retries == 0:
-                # TODO: handle failues
+            if retries == 0 or len(defer.allowed_replies) == 0:
+                # returns immediately to handle failues, or no expected replies
                 defer.callback(None)
-            else:
-                Agent.init().append(defer)
 
             gevent.sleep(0)
 
@@ -280,9 +284,10 @@ class Agent:
                 # remove it
                 self._defer_queue.remove_defer(defer_id)
             else:
-                log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
+                #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
+                #logging.info(log)
+                log = "Dropped message: " + str(message)
                 logging.info(log)
-                logging.info("Dropped message")
             gevent.sleep(0)
 
 agent = Agent.init()
