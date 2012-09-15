@@ -37,7 +37,6 @@
 #include "stack.h"
 #include "uart.h"
 #include "nvmcomm.h"
-
 #include <avr/sleep.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -121,6 +120,7 @@ ISR(TIMER2_COMPA_vect)//for system absolute clock during sleep
 }
 ISR(INT0_vect)
 {
+    zwave_learn_mode=1;
     iflag_INT |= _BV(0);//set interrupt flag to let java know
 }
 ISR(INT1_vect)
@@ -151,7 +151,7 @@ ISR(PCINT0_vect)
     //ivalue_PCINTA=now_value;
     ivalue_PCINTA = now_value | ~PCMSK0;
     iflag_PCINTA |= change;
-}
+}/*
 ISR(PCINT1_vect)
 {
     u08_t now_value=(*pins[8]);//port J
@@ -168,7 +168,7 @@ ISR(PCINT2_vect)
     change = (now_value^ivalue_PCINTC) & PCMSK2; //different bit & mask
     ivalue_PCINTC = now_value | ~PCMSK2;
     iflag_PCINTC |= change;
-}
+}*/
 #endif
 
 #if defined(ATMEGA2560)
@@ -321,7 +321,9 @@ void native_init(void) {
     ivalue_PCINTC=0xff;
     //PCINT
     PCICR=_BV(PCIE0) | _BV(PCIE1) | _BV(PCIE2);	//enable interrupt PCINT0~7,PCINT16~23
-
+    EICRA |= (0 & 0x03);//GND interrupt mode
+    EIMSK |=_BV(0);//turn on INT0
+    zwave_learn_mode=0;	
 #else
     TCCR1B = _BV(CS11);           // clk/8
     OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default
@@ -592,7 +594,15 @@ void native_avr_timer_invoke(u08_t mref) {
         TIMSK1 |= _BV(OCIE1A);		//output compare interrupt enable
         ticks_1A = 0;
         while(ticks_1A < wait)
-          nvmcomm_poll();		//wait until time out, but still handle messages
+        {
+		nvmcomm_poll();		//wait until time out, but still handle messages
+		#ifdef NVM_USE_COMMZWAVE
+		if(zwave_learn_mode==1)
+		{
+			nvmcomm_zwave_learn();
+		}
+		#endif		
+	}
         TIMSK1 &= ~_BV(OCIE1A);		//output compare interrupt disable
     } else if(mref == NATIVE_METHOD_SETPRESCALER) {
         TCCR1B = stack_pop();
