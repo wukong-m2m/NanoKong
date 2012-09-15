@@ -40,7 +40,7 @@ DEBUG_TRACE_PART             = 0xA0
 DEBUG_TRACE_FINAL            = 0xA2
 
 
-WKPF_ERROR_R        	       = 0x9F
+WKPF_ERROR_R                 = 0x9F
 
 APPMSG_STATUS_WAIT_ACK       = 0x00
 APPMSG_STATUS_ACK            = 0x01
@@ -52,15 +52,7 @@ RUNLVL_RESET                 = 0x04
 
 pymodule = 0
 
-def discoverNodes():
-	node_lst = discover()
-	gateway_id = node_lst[0]
-	node_lst = node_lst[2:]
-	node_lst.remove(gateway_id)
-	print tuple(node_lst)
-	return tuple(node_lst)
-#  return (1, 3) # TODO: implement network discovery here
-
+# WARNING:obsolete, use transport.py instead
 def sendcmd(dest, cmd, payload=[], retries=3):
   global pymodule
   pymodule.receive(10) # Clear pending messages
@@ -89,6 +81,7 @@ def receive(waitmsec=1000):
   global pymodule
   return pymodule.receive(waitmsec)
 
+# WARNING:obsolete, use transport.py instead
 def checkedReceive(allowedReplies, waitmsec=1000, verify=None):
   global pymodule
   while True:
@@ -107,6 +100,7 @@ def checkedReceive(allowedReplies, waitmsec=1000, verify=None):
         print "Incorrect reply received. Message type correct, but didnt pass verification:", reply
         print "Dropped message"
 
+# WARNING:obsolete, use transport.py instead
 def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload=[], waitmsec=1000, retries=0, quitOnFailure=False, verify=None):
   while retries >= 0:
     try:
@@ -128,9 +122,10 @@ def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload
   else:
     return None, None
 
+# WARNING:obsolete, use transport.py instead
 def init(option, debug=False):
     global pymodule
-    if option == 0:
+    if option == 'zwave' or option == 0:
         try:
             pyzwave.init("10.3.36.231")
             #pyzwave.init("192.168.2.1")
@@ -138,28 +133,32 @@ def init(option, debug=False):
         except IOError as e:
             print e
             return None
-    elif option == 1:
+    elif option == 'zigbee' or option == 1:
         pyzigbee.init()
         pymodule = pyzigbee
     print 'pynvc debugging'
     pymodule.setdebug(debug)
     return True
 
+# WARNING:obsolete, use transport.py instead
 def add():
     global pymodule
     pymodule.add()
     return 0
 
+# WARNING:obsolete, use transport.py instead
 def delete():
     global pymodule
     pymodule.delete()
     return 0
 
+# WARNING:obsolete, use transport.py instead
 def stop():
     global pymodule
     pymodule.stop()
     return 0
 
+# WARNING:obsolete, use transport.py instead
 def poll():
     global pymodule
     status = pymodule.poll()
@@ -167,15 +166,17 @@ def poll():
 
 #Sen 12.8.7
 #result structure (self_id, total_nodes(include self), node_1_id, node_2_id.....)
-def discover():		
-	global pymodule
-	
-	result = pymodule.discover()
-	print "discover result:"
-	print "self id:"+ str(result[0])
-	print "node id:",
-	for i in range(2, result[1]+2):
-		if result[i]!=result[0]:
-			print(str(result[i])+ " "),
-	print "\n",
-	return result
+# WARNING:obsolete, use transport.py instead
+def discovery():
+    global pymodule
+    return pymodule.discover()
+
+# WARNING:obsolete, use transport.py instead
+def discoverNodes():
+	node_lst = discover()
+	gateway_id = node_lst[0]
+	node_lst = node_lst[2:]
+	node_lst.remove(gateway_id)
+	print tuple(node_lst)
+	return tuple(node_lst)
+#  return (1, 3) # TODO: implement network discovery here

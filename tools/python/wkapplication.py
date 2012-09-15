@@ -10,6 +10,7 @@ import wukonghandler
 import copy
 sys.path.append(os.path.abspath("../tools/xml2java"))
 from URLParser import *
+from wkpfcomm import *
 
 OK = 0
 NOTOK = 1
@@ -24,6 +25,7 @@ def firstCandidate(app, wuObjects, locTree):
         candidateSet = set()
         queries = wuObject.getLocationQueries()
 
+        # filter by location query
         print queries
         if queries == []:
             locURLHandler = LocationURL(None, locTree)
@@ -51,18 +53,29 @@ def firstCandidate(app, wuObjects, locTree):
             if len(tmpSet) > 0:
                 candidateSet = tmpSet
             else:
-                app.error('Conditions for component %d (start form 0) too strict, no available candidate found' % (len(candidateSet)))
+                app.error('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
                 return False
-            
 
-        print 'candidateSet', list(candidateSet)[0]
+        # filter by available wuclasses for non-virtual components
+        comm = getComm()
+        node_infos = comm.getNodeInfos(list(candidateSet))
+        if not wuObject.getWuClass().isVirtual():
+          candidateSet = [node_info.nodeId for node_info in node_infos if wuObject.getWuClassId() in [wuClass.getId() for wuClass in node_info.wuClasses]]
+        else:
+          candidateSet = list(candidateSet)
 
-        wuObject.setNodeId(list(candidateSet)[0])    #select the first candidate who satisfies the condiditon
+        if len(candidateSet) == 0:
+          app.error('No nodes could be mapped for component %s' % (wuObject.getInstanceId()))
+          return False
+        
+        print 'will select the first in this candidateSet', candidateSet
+
+        wuObject.setNodeId(candidateSet[0])    #select the first candidate who satisfies the condiditon
         sensorNode = locTree.sensor_dict[list(candidateSet)[0]]
         sensorNode.initPortList(forceInit = False)
         portNo = sensorNode.reserveNextPort()
         if portNo == None:
-            app.error('all port in node %s occupied, cannot assign new port' % (wuObject))
+            app.error('All ports in node %s occupied, cannot assign new port' % (candidateSet[0]))
             return False
         wuObject.setPortNumber(portNo)
         

@@ -1,10 +1,12 @@
 # vim: ts=2 sw=2
 # author: Penn Su
+from gevent import monkey; monkey.patch_socket()
 import tornado.ioloop
 import tornado.web
 import tornado.template as template
 import os, sys, zipfile
 import simplejson as json
+import logging
 import hashlib
 from xml.dom.minidom import parse
 from threading import Thread
@@ -20,11 +22,16 @@ sys.path.append(os.path.abspath("../tools/python"))
 from wkapplication import WuApplication
 from codegen import *
 from wkpf import *
-from wkpfcomm import Communication
+from wkpfcomm import *
 from inspector import Inspector
 import fakedata
 sys.path.append(os.path.abspath("../tools/xml2java"))
 from translator import Mapper
+
+import tornado.options
+tornado.options.parse_command_line()
+tornado.options.enable_pretty_logging()
+logging.info('now you see me, you cannot unsee')
 
 #ALLOWED_EXTENSIONS = set(['bog'])
 #TARGET = 'HAScenario1'
@@ -37,13 +44,6 @@ BASE_DIR = os.path.join(APP_DIR, 'base')
 MASTER_IP = '10.3.36.231'
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
-
-communication = None
-def getComm():
-  global communication
-  if not communication:
-    communication = Communication(0)
-  return communication
 
 applications = []
 
@@ -138,6 +138,7 @@ class Worker:
   # target is the target application name (e.g. HAScenario1)
   # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
   def compiler(self, app, node_ids, platforms):
+    comm = getComm()
     app_path = app.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
@@ -187,7 +188,9 @@ class Worker:
       app.info('Deploying to nodes')
       for node_id in node_ids:
         app.info('Deploying to node id: %d' % (node_id))
-        print 'deploying to node: %d' % (node_id)
+        if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
+          app.error('Node not deployed successfully')
+        '''
         pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d FLOWXML=%s' % (platform_dir, node_id, app.id), shell=True, stdout=PIPE, stderr=PIPE)
         app.returnCode = None
         while pp.poll() == None:
@@ -201,8 +204,9 @@ class Worker:
             app.error(line)
           app.version += 1
         app.returnCode = pp.returncode
-    app.info('Deploying to nodes completed')
-    print 'compiler done'
+        '''
+        app.info('Deploying to node completed')
+    app.info('Deployment has completed')
 
   # Deprecated
   def factory(self, file, status):
@@ -603,7 +607,7 @@ class nodes(tornado.web.RequestHandler):
     location = self.get_argument('location')
     if location:
       comm = getComm()
-      if comm.setLocation(int(nodeId), location) == 0:
+      if comm.setLocation(int(nodeId), location):
         self.content_type = 'application/json'
         self.write({'status':0})
       else:
@@ -637,7 +641,8 @@ app = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
 ], IP, **settings)
 
+ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
   update_applications()
   app.listen(5000)
-  tornado.ioloop.IOLoop.instance().start()
+  ioloop.start()

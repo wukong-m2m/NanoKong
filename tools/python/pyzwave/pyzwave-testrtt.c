@@ -3134,7 +3134,7 @@ void zwave_check_state(unsigned char c)
     static unsigned char cksum;
 
     if (verbose) printf("cur state %d token %x\n", zstate,c);
-    //	printf("======TMPNR======cur state %d token %x\n", zstate,c);
+        /*printf("======TMPNR======cur state %d token %x\n", zstate,c);*/
 
     fflush(stdout);
     switch(zstate) {
