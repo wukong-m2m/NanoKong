@@ -22,7 +22,7 @@ CLASSES_PATH = $(ROOT_DIR)/java/classes
 EXAMPLES_PATH = $(ROOT_DIR)/java/examples
 NANOVM_PATH = $(ROOT_DIR)/java/nanovm
 WKPF_PATH = $(NANOVM_PATH)/wkpf
-JAVA_FILES += $(NANOVM_PATH)/*/*.java
+JAVA_FILES = $(NANOVM_PATH)/*/*.java
 
 JAR_FILE = NanoKong.jar
 
@@ -40,9 +40,11 @@ else
 endif
 
 $(DEFAULT_FILE):
-	#$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
-	#cp $(FLOWXML_DIR)/$(FLOWXML).xml $(CURDIR)/currentFlow.xml
-	#cp $(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml $(CURDIR)/currentMapping.xml
+ifeq ($(DEFAULT_CLASS), TestWKPF)
+	$(ROOT_DIR)/tools/xml2java/translator.py -c $(COMPONENTXML_PATH) -f $(FLOWXML_DIR)/$(FLOWXML).xml -o $(ROOT_DIR)/java/examples $(DISCOVERY_FLAGS)
+	cp $(FLOWXML_DIR)/$(FLOWXML).xml $(CURDIR)/currentFlow.xml
+	cp $(ROOT_DIR)/java/examples/$(FLOWXML)Mapping.xml $(CURDIR)/currentMapping.xml
+endif
 
 $(DEFAULT_CLASS): $(JAVA_FILES) $(DEFAULT_FILE)
 	-mkdir -p $(CLASSES_PATH)

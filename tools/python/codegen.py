@@ -15,6 +15,7 @@ import os
 import sys
 import re
 import distutils.dir_util
+import logging
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
 from jinja2 import Template
 from jinja2 import Environment, FileSystemLoader
@@ -411,4 +412,6 @@ if __name__ == "__main__":
 
   if os.path.exists(options.component_file) and options.project_dir:
     codegen = CodeGen(open(options.component_file).read(), options.project_dir)
-    codegen.generate()
+    codegen.generate(logging.getLogger())
+  else:
+    print "path don't exist", options.component_file, options.project_dir

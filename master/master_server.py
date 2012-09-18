@@ -1,6 +1,7 @@
+#!/usr/bin/python
 # vim: ts=2 sw=2
 # author: Penn Su
-from gevent import monkey; monkey.patch_socket()
+from gevent import monkey; monkey.patch_all()
 import tornado.ioloop
 import tornado.web
 import tornado.template as template
