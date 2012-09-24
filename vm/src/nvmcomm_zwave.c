@@ -47,6 +47,8 @@ u08_t payload_length;  // Length of the payload while reading a packet
 u08_t last_node = 0;
 u08_t seq;          // Sequence number which is used to match the callback function
 u08_t ack_got = 0;
+int zwsend_ack_got = 0;
+u08_t wait_CAN_NAK = 1;
 u08_t zwave_learn_on = 0;
 u08_t zwave_learn_block = 0;
 u32_t zwave_learn_startT;
@@ -91,17 +93,29 @@ void nvmcomm_zwave_receive(int processmessages) {
     if (state == ZWAVE_STATUS_WAIT_ACK) {
       if (c == ZWAVE_ACK) {
   			state = ZWAVE_STATUS_WAIT_SOF;
+		        wait_CAN_NAK = 1;
   			ack_got=1;
   		} else if (c == 0x15) {
         // send: no ACK from other side
-  			state = ZWAVE_STATUS_WAIT_SOF;
-  			ack_got=0;
+		if (wait_CAN_NAK != 128)
+				wait_CAN_NAK *= 2;
+		DEBUGF_COMM("[NAK] SerialAPI LRC checksum error!!! delay: %dms\n", wait_CAN_NAK);
+		delay(MILLISEC(wait_CAN_NAK));
+		state = ZWAVE_STATUS_WAIT_SOF;
+		ack_got=0;
       } else if (c == 0x18) {
         // send: chip busy
-  			state = ZWAVE_STATUS_WAIT_SOF;
-  			ack_got=0;
+		if (wait_CAN_NAK != 128)
+			wait_CAN_NAK *= 2;
+		DEBUGF_COMM("[CAN] SerialAPI frame is dropped by ZW!!! delay: %dms\n", wait_CAN_NAK);
+		delay(MILLISEC(wait_CAN_NAK));
+  		state = ZWAVE_STATUS_WAIT_SOF;
+  		ack_got=0;
+      } else if (c == 1) {
+		state = ZWAVE_STATUS_WAIT_LEN;
+		len = 0;  
       } else {
-        DEBUGF_COMM("Unexpected byte while waiting for ACK %x", c);
+        DEBUGF_COMM("Unexpected byte while waiting for ACK %x\n", c);
       }
     } else if (state == ZWAVE_STATUS_WAIT_SOF) {
       if (c == 0x01) {
@@ -130,6 +144,9 @@ void nvmcomm_zwave_receive(int processmessages) {
     } else if (state == ZWAVE_STATUS_WAIT_CRC) {
       uart_write_byte(ZWAVE_UART, 6);
       state = ZWAVE_STATUS_WAIT_SOF;
+      if (type == ZWAVE_TYPE_REQ && cmd == 0x13) {
+        zwsend_ack_got = payload[1];
+      }
       if (type == ZWAVE_TYPE_REQ && cmd == ZWAVE_CMD_APPLICATIONCOMMANDHANDLER)
       if (f!=NULL) {
         address_t nvmcomm_addr;
@@ -352,8 +369,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 		ack_got = 0;
 
 		// get SerialAPI ack
-		while(1) {
-      i = 0;
+		i = 0;
       while(!uart_available(ZWAVE_UART) && i++<100)
         delay(MILLISEC(1));
       if (uart_available(ZWAVE_UART)) {
@@ -363,11 +379,7 @@ int SerialAPI_request(unsigned char *buf, int len)
   			} else {
   				DEBUGF_COMM("Ack error!!! zstate="DBG8" ack_got="DBG8"\n", state, ack_got);
   			}
-		  } else {
-				DEBUGF_COMM("No ack!!! zstate="DBG8" ack_got="DBG8"\n", state, ack_got);
-        break;
-		  }
-		}
+		  } 
 		if (state == ZWAVE_STATUS_WAIT_ACK) {
       state = ZWAVE_STATUS_WAIT_SOF; // Give up and don't get stuck in the WAIT_ACK state
 			DEBUGF_COMM("Back to WAIT_SOF state.\n");
@@ -381,7 +393,7 @@ int SerialAPI_request(unsigned char *buf, int len)
 			DEBUGF_COMM("error!!!\n", __FUNCTION__);
 			return -1;
 		}
-		DEBUGF_COMM("SerialAPI_request retry......\n");
+		DEBUGF_COMM("SerialAPI_request retry (%d)......\n", retry);
 	}
 	return -1; // Never happens
 }
@@ -390,6 +402,8 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t tx
 {
 	unsigned char buf[NVMCOMM_MESSAGE_SIZE+8];
   int i;
+  int timeout = 1000;
+  zwsend_ack_got = -1;
   
 	buf[0] = ZWAVE_TYPE_REQ;
 	buf[1] = ZWAVE_REQ_SENDDATA;
@@ -401,7 +415,18 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t tx
     buf[i+6] = in[i];
 	buf[6+len] = txoptions;
   buf[7+len] = seq++;
-	return SerialAPI_request(buf, len + 8);
+	if (SerialAPI_request(buf, len + 8) != 0)
+		return -1;
+	while (zwsend_ack_got == -1 && timeout-->0) {
+		nvmcomm_poll();
+		delay(MILLISEC(1));
+	}
+	if (zwsend_ack_got == 0) // ACK 0 indicates success
+		return 0;
+	else {
+		DEBUGF_COMM("========================================ZW_sendDATA ack got: %x\n", zwsend_ack_got);
+		return -1;    
+	}
 }
 //===================================================================================================================
 // End: copied & modified from testrtt.c
@@ -559,4 +584,3 @@ int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t tx
 
 
 #endif
-
