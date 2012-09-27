@@ -159,7 +159,7 @@ class ZwaveAgent(TransportAgent):
          # remaining are the discovered nodes
         return nodes[2:]
 
-    def add():
+    def add(self):
         if self._mode != 'stop':
             logging.warning('need to stop first')
             return False
@@ -171,7 +171,7 @@ class ZwaveAgent(TransportAgent):
         except:
             return False
 
-    def delete():
+    def delete(self):
         if self._mode != 'stop':
             logging.warning('need to stop first')
             return False
@@ -183,7 +183,7 @@ class ZwaveAgent(TransportAgent):
         except:
             return False
 
-    def stop():
+    def stop(self):
         try:
             pyzwave.stop()
             self._mode = 'stop'
@@ -191,7 +191,7 @@ class ZwaveAgent(TransportAgent):
         except:
             return False
 
-    def poll():
+    def poll(self):
         try:
             pyzwave.poll()
             return True
@@ -230,7 +230,7 @@ class ZwaveAgent(TransportAgent):
                     pyzwave.send(destination, [0x88, command] + payload)
 
                     if len(defer.allowed_replies) > 0:
-                        Agent.init().append(defer)
+                        BrokerAgent.init().append(defer)
 
                     break
                 except Exception as e:
@@ -244,13 +244,13 @@ class ZwaveAgent(TransportAgent):
 
             gevent.sleep(0)
 
-class Agent:
+class BrokerAgent:
     agent = None
 
     @classmethod
     def init(cls):
         if not cls.agent:
-            cls.agent = Agent()
+            cls.agent = BrokerAgent()
         return cls.agent
 
     def __init__(self):
@@ -290,4 +290,4 @@ class Agent:
                 logging.info(log)
             gevent.sleep(0)
 
-agent = Agent.init()
+agent = BrokerAgent.init()

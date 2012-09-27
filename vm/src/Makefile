@@ -8,7 +8,7 @@ NVM_DIR = $(ROOT_DIR)/vm/src
 CFLAGS += -I$(NVM_DIR)
 NVM_OBJS = NanoVM.o nvmfile.o vm.o heap.o array.o \
 	error.o native_stdio.o stack.o \
-	uart.o debug.o native_lcd.o \
+	uart.o debug.o group.o native_lcd.o \
 	native_math.o native_formatter.o nvmstring.o \
 	nvmcomm.o nvmcomm_zwave.o native_nvmcomm.o nvmcomm_xbee.o \
 	wkpf.o wkpf_properties.o wkpf_wuobjects.o wkpf_wuclasses.o \

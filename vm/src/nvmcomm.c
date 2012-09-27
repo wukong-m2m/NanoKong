@@ -7,6 +7,7 @@
 #include "delay.h"
 #include "nvmfile.h"
 #include "wkpf_comm.h"
+#include "group.h"
 
 #ifdef NVM_USE_COMM
 
@@ -21,8 +22,25 @@ uint8_t nvc3_appmsg_reply = 0;
 uint8_t *nvmcomm_wait_commands;
 uint8_t nvmcomm_wait_number_of_commands;
 nvmcomm_message nvmcomm_wait_received_message;
+uint16_t next_sequence_number = 0;
 
 void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length);
+
+void set_message_sequence_number(u08_t* payload, u08_t* payload_length)
+{
+    if (payload != NULL) {
+        payload[0] = (uint8_t)(next_sequence_number >> 8);
+        payload[1] = (uint8_t)(next_sequence_number++);
+    }
+
+    if (payload_length != NULL)
+        *payload_length = 2;
+}
+
+bool_t check_sequence_number(u08_t* first_payload, u08_t* second_payload)
+{
+    return first_payload[0] == second_payload[0] && first_payload[1] == second_payload[1];
+}
 
 void nvmcomm_init(void) {
 #ifdef NVM_USE_COMMZWAVE
@@ -71,8 +89,37 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
 #endif
   return retval;
 }
-// Private
 
+int nvmcomm_broadcast(u08_t nvc3_command, u08_t *payload, u08_t length) {
+  if (length > NVMCOMM_MESSAGE_SIZE) {
+    DEBUGF_COMM("message oversized\n");
+    return -2; // Message too large
+  }
+  int retval = -1;
+  DEBUGF_COMM("nvmcomm_broadcast\n");
+#ifdef NVM_USE_COMMZWAVE
+  retval = nvmcomm_zwave_send((address_t)0xff, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
+  if (retval == 0) {
+    if (nvc3_command==NVMCOMM_CMD_APPMSG) {
+      nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
+      return retval;
+    }
+  }
+#endif
+#ifdef NVM_USE_COMMXBEE
+  // Not sure about the broadcast address
+  retval = nvmcomm_xbee_send(0xff, nvc3_command, payload, length, 0);
+  if (retval == 0) {
+    if (nvc3_command==NVMCOMM_CMD_APPMSG) {
+      nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
+      return retval;
+    }
+  }
+#endif
+  return retval;
+}
+
+// Private
 void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t length) {
   u08_t response_size = 0;
   u08_t response_cmd = 0;
@@ -92,6 +139,8 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     // if not, handle it as a normal message
     for (int i=0; i<nvmcomm_wait_number_of_commands; i++) {
       if (nvmcomm_command == nvmcomm_wait_commands[i]) {
+        nvmcomm_wait_received_message.from = src;
+        nvmcomm_wait_received_message.to = nvmcomm_get_node_id();
         nvmcomm_wait_received_message.command = nvmcomm_command;
         nvmcomm_wait_received_message.payload = payload;
         nvmcomm_wait_received_message.payload_length = length;
@@ -199,6 +248,12 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     case NVMCOMM_WKPF_WRITE_PROPERTY:
     case NVMCOMM_WKPF_REQUEST_PROPERTY_INIT:
       wkpf_comm_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
+    break;
+    case NVMCOMM_GROUP_PROPOSE:
+    case NVMCOMM_GROUP_COMMIT:
+    case NVMCOMM_GROUP_EVENT_JOIN:
+    case NVMCOMM_GROUP_EVENT_LEAVE:
+      group_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
     break;
   }
   if (response_cmd > 0) {

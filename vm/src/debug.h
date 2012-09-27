@@ -37,14 +37,15 @@
 // Turn off specific DEBUGF types by commenting "debugf(__VA_ARGS__)"
 #define DEBUGF_INSTR(...) // debugf(true, __VA_ARGS__)
 #define DEBUGF_HEAP(...) // debugf(true, __VA_ARGS__) // Heap operations
-#define DEBUGF_COMM(...)  debugf(false, __VA_ARGS__) // Nvmcomm
-#define DEBUGF_ZWAVETRACE(...) debugf(false, __VA_ARGS__) // Incoming zwave traffic per byte
+#define DEBUGF_COMM(...)  // debugf(false, __VA_ARGS__) // Nvmcomm
+#define DEBUGF_GROUP(...)  debugf(false, __VA_ARGS__) // Virtual Synchronous Group
+#define DEBUGF_ZWAVETRACE(...) // debugf(false, __VA_ARGS__) // Incoming zwave traffic per byte
 #define DEBUGF_FLASH(...) // debugf(true, __VA_ARGS__) // avr_flash.c
-#define DEBUGF_USART(...) debugf(true, __VA_ARGS__) 
+#define DEBUGF_USART(...) // debugf(true, __VA_ARGS__) 
 #define DEBUGF_XBEE(...) // debugf(false, __VA_ARGS__) 
 #define DEBUGF_READFLASH(...) // debugf(true, __VA_ARGS__) 
 #define DEBUGF_WKPF(...) debugf(true, __VA_ARGS__) 
-#define DEBUGF_WKPFUPDATE(...) debugf(true, __VA_ARGS__) 
+#define DEBUGF_WKPFUPDATE(...) // debugf(true, __VA_ARGS__) 
 #define DEBUGF_TEST(...) // debugf(true, __VA_ARGS__) 
 #define DEBUGF(...) // debugf(true, __VA_ARGS__) // All other debug info.
 #define DEBUG_HEXDUMP(a,b) // debug_hexdump(a,b)
@@ -54,6 +55,7 @@ void debug_hexdump(const void *data, u16_t size);
 #define DEBUGF_INSTR(...)
 #define DEBUGF_HEAP(...)
 #define DEBUGF_COMM(...)
+#define DEBUGF_GROUP(...)
 #define DEBUGF_ZWAVETRACE(...)
 #define DEBUGF_FLASH(...)
 #define DEBUGF_USART(...)

@@ -11,11 +11,9 @@
 char location[20]; // temporary place for storing location in memory
 
 uint8_t message_buffer[NVMCOMM_MESSAGE_SIZE];
-uint16_t next_sequence_number = 0;
 
 void set_message_header(uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, uint8_t datatype) {
-  message_buffer[0] = (uint8_t)(next_sequence_number >> 8);
-  message_buffer[1] = (uint8_t)(next_sequence_number++);
+  set_message_sequence_number(message_buffer, NULL);
   message_buffer[2] = port_number;
   message_buffer[3] = (uint8_t)(wuclass_id >> 8);
   message_buffer[4] = (uint8_t)(wuclass_id);
@@ -39,8 +37,7 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
   while(nvm_current_time < timeout) {
     nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){command+1 /* the reply to this command */, NVMCOMM_WKPF_ERROR_R}, 2);
     if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
-          && reply->payload[0] == message_buffer[0]
-          && reply->payload[1] == message_buffer[1]) {
+          && check_sequence_number(reply->payload, message_buffer)) {
       // This message a reply to our last sent message
       if(reply->command != NVMCOMM_WKPF_ERROR_R)
         return WKPF_OK;
