@@ -6,15 +6,13 @@
 #  Note that the [XML name] should be in the /Applications directory
 
 CONFIG = Mega8.config
-DEVICE = atmega2560
+include ../../../config/master.cfg
 ifdef FLOWXML
 DEFAULT_CLASS = $(FLOWXML)
-else
-DEFAULT_CLASS = TestWKPF
+#else
+#DEFAULT_CLASS = TestWKPF
 endif
-# Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
-DISCOVERY_FLAGS=-D
-PORT = /dev/tty.usbmodemfa1321
+
 
 ROOT_DIR = ../../../..
 VM_DIR = $(ROOT_DIR)/vm

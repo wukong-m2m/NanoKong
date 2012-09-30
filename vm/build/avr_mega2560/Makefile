@@ -6,20 +6,12 @@
 #  Note that the HAScenario2 should be in the /Applications directory
 
 CONFIG = Mega8.config
-DEVICE = atmega2560
-
+include ../../../config/master.cfg
 ifdef FLOWXML
 DEFAULT_CLASS=$(FLOWXML)
-else
-#DEFAULT_CLASS = TestWKPF
-DEFAULT_CLASS = DefaultWKPF
-#DEFAULT_CLASS = AdcDemo
-#DEFAULT_CLASS = HAScenario1
 endif
-# Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
-DISCOVERY_FLAGS=-D
 
-PORT = /dev/tty.usbmodem411
+
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
@@ -43,6 +35,7 @@ CLDFLAGS += -Wl,--gc-sections,-Tavr4_nanokong.x,--section-start=.reprogram_flash
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
+
 
 include ../../src/Makefile
 include ../../src/avr/Makefile
