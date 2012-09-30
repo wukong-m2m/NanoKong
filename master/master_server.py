@@ -19,6 +19,7 @@ import shutil, errno
 import datetime
 from subprocess import Popen, PIPE, STDOUT
 
+
 sys.path.append(os.path.abspath("../tools/python"))
 from wkapplication import WuApplication
 from codegen import *
@@ -28,6 +29,8 @@ from inspector import Inspector
 import fakedata
 sys.path.append(os.path.abspath("../tools/xml2java"))
 from translator import Mapper
+
+import configuration
 
 import tornado.options
 tornado.options.parse_command_line()
@@ -42,7 +45,7 @@ COMPONENTXML_PATH = os.path.join(ROOT_PATH, 'ComponentDefinitions', 'WuKongStand
 TESTRTT_PATH = os.path.join(ROOT_PATH, 'tools', 'python', 'pyzwave')
 APP_DIR = os.path.join(ROOT_PATH, 'vm', 'apps')
 BASE_DIR = os.path.join(APP_DIR, 'base')
-MASTER_IP = '10.3.36.231'
+
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
 
@@ -651,6 +654,7 @@ app = tornado.web.Application([
 
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
+  configuration.readConfig()
   update_applications()
   app.listen(5000)
   ioloop.start()

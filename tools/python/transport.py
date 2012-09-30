@@ -111,7 +111,7 @@ class ZwaveAgent(TransportAgent):
 
         # pyzwave
         try:
-            pyzwave.init("10.3.36.231")
+            pyzwave.init(ZWAVE_GATEWAY_IP)
         except IOError as e:
             return False
 

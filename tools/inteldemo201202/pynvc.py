@@ -1,5 +1,8 @@
 import pyzwave
-
+import sys
+import os
+sys.path.append(os.path.abspath("../../master"))
+from configuration import ZWAVE_GATEWAY_IP
 
 REPRG_OPEN                   = 0x10
 REPRG_OPEN_R                 = 0x11
@@ -105,4 +108,4 @@ def sendWithRetryAndCheckedReceiveAPPMSG(destination, command, allowedReplies, p
   else:
     return None
 def init():
-  pyzwave.init("10.3.36.231")
+  pyzwave.init(ZWAVE_GATEWAY_IP)

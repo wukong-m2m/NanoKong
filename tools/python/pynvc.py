@@ -1,6 +1,9 @@
 import pyzwave
 import pyzigbee
-
+import sys
+import os
+sys.path.append(os.path.abspath("../../master"))
+from configuration import ZWAVE_GATEWAY_IP
 
 REPRG_OPEN                   = 0x10
 REPRG_OPEN_R                 = 0x11
@@ -127,8 +130,7 @@ def init(option, debug=False):
     global pymodule
     if option == 'zwave' or option == 0:
         try:
-            pyzwave.init("10.3.36.231")
-            #pyzwave.init("192.168.2.1")
+            pyzwave.init(ZWAVE_GATEWAY_IP)
             pymodule = pyzwave
         except IOError as e:
             print e
