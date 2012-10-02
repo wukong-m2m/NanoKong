@@ -106,7 +106,6 @@ class ZwaveAgent(TransportAgent):
 
     def __init__(self):
         logging.info('ZwaveAgent constructor')
-        TransportAgent.__init__(self)
         self._mode = 'stop'
 
         # pyzwave
@@ -114,6 +113,8 @@ class ZwaveAgent(TransportAgent):
             pyzwave.init(ZWAVE_GATEWAY_IP)
         except IOError as e:
             return False
+
+        TransportAgent.__init__(self)
 
     # add a defer to queue
     def deferSend(self, destination, command, payload, allowed_replies, cb):
