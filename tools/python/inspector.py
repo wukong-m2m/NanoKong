@@ -3,7 +3,7 @@
 from optparse import OptionParser
 import xml.dom.minidom
 import os
-from wkpfcomm import Communication
+from wkpfcomm import *
 import wkpf
 import pynvc
 import copy
@@ -56,7 +56,8 @@ def getFlow(path):
 
 def getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions):
   componentInstanceName = getComponentInstanceName(wuObjectInfo.getNodeId(), wuObjectInfo.getPortNumber(), mapping)
-  propertyName = getComponentPropertyName(wuObjectInfo.getWuClassId(), propertyInfo.propertyNumber, componentDefinitions)
+  propertyName = propertyInfo.getName()
+  #propertyName = getComponentPropertyName(wuObjectInfo.getWuClassId(), propertyInfo.getId(), componentDefinitions)
   links = []
   for component in flowDefinition.getElementsByTagName('component'):
     for link in component.getElementsByTagName('link'):
@@ -124,22 +125,24 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
     else:
       print "WuClasses:"
       for wuClassInfo in sorted(nodeInfo.wuClasses, key=lambda x:x.getId()):
-        print "\tClass name %s %s" % (wuClassInfo.name, "VIRTUAL" if wuClassInfo.isVirtual else "NATIVE")
+        print "\tClass name %s %s" % (wuClassInfo.getName(), "VIRTUAL" if wuClassInfo.isVirtual() else "NATIVE")
       print "WuObjects:"
       for wuObjectInfo in sorted(nodeInfo.wuObjects, key=lambda x:x.getWuClassId()):
         if mapping:
           componentInstanceName = getComponentInstanceName(nodeInfo.nodeId, wuObjectInfo.getPortNumber(), mapping)
           if componentInstanceName:
             print "\tComponent instance name: %s" % (componentInstanceName)
-        print "\tClass name %s" % (wuObjectInfo.wuClassName)
+        print "\tClass name %s" % (wuObjectInfo.getWuClassName())
         print "\tPort number %d" % (wuObjectInfo.getPortNumber())
         print "\tPropNr  Datatype         Name      value (status) [(remote property value, status)]"
-        for propertyInfo in wuObjectInfo.properties:
-          propertyInfoString = "\t   %d %8s %15s %10s (%0#4x)" % (propertyInfo.propertyNumber,
-                                               wkpf.datatypeToString(propertyInfo.datatype),
-                                               propertyInfo.name,
-                                               stringRepresentationIfEnum(wuObjectInfo.getWuClassId(), propertyInfo.propertyNumber, componentDefinitions, propertyInfo.value),
-                                               propertyInfo.status)
+        for propertyInfo in wuObjectInfo:
+          propertyInfoString = "\t   %d %8s %15s %10s (%s)" % (propertyInfo.getId(),
+                                               #wkpf.datatypeToString(propertyInfo.getDataType()),
+                                               propertyInfo.getDataType(),
+                                               propertyInfo.getName(),
+                                               #stringRepresentationIfEnum(wuObjectInfo.getWuClassId(), propertyInfo.getId(), componentDefinitions, propertyInfo.getCurrentValue()),
+                                               propertyInfo.getCurrentValue(),
+                                               propertyInfo.getAccess())
           remoteLinkAndValue = ""
           if mapping and flowDefinition:
             remoteLinks = getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
@@ -153,9 +156,9 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
                   propertyInfoString += " NODE %d NOT RESPONDING" % (remoteNodeInfo.nodeId)                
                 else:
                   remoteWuObject = find(remoteNodeInfo.wuObjects, lambda x:x.getPortNumber() == remotePortNumber)
-                  remotePropertyInfo = find(remoteWuObject.properties, lambda x:x.name == remoteLink[2])
-                  propertyInfoString += "   (%s %s %s = %s, %0#4x)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.value, remotePropertyInfo.status)
-                  if propertyInfo.value != remotePropertyInfo.value:
+                  remotePropertyInfo = find(remoteWuObject.getProperties(), lambda x:x.getName() == remoteLink[2])
+                  propertyInfoString += "   (%s %s %s = %s, %0#4x)" % (remoteLink[0], remoteLink[1], remoteLink[2], remotePropertyInfo.getCurrentValue(), remotePropertyInfo.getAccess())
+                  if propertyInfo.getCurrentValue() != remotePropertyInfo.getCurrentValue():
                     propertyInfoString += " !!!!"
               except:
                 propertyInfoString += " REMOTE PROPERTY NOT FOUND!!!!"
@@ -206,7 +209,7 @@ if __name__ == "__main__":
   if not options.pathComponentXml:
     optionParser.error("invalid component xml, please refer to -h for help")
 
-  comm = Communication(0)
+  comm = getComm()
   componentDefinitions = getComponentDefinitions(options.pathComponentXml)
   mapping = getMapping(options.pathMappingXml) if options.pathMappingXml else None
   flowDefinition = getFlow(options.pathFlowXml) if options.pathFlowXml else None
