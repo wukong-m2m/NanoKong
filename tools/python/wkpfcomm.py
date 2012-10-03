@@ -207,7 +207,7 @@ class Communication:
     def getProperty(self, wuobject, propertyNumber):
       print 'getProperty'
 
-      reply = self.zwave.send(destination, pynvc.WKPF_READ_PROPERTY, [wuobject.getPortNumber(), wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber], [pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R])
+      reply = self.zwave.send(wuobject.getNodeId(), pynvc.WKPF_READ_PROPERTY, [wuobject.getPortNumber(), wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber], [pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R])
 
       '''
       sn = self.getNextSequenceNumberAsList()
@@ -248,7 +248,7 @@ class Communication:
       elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
         payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, value/256, value%256]
 
-      reply = self.zwave.send(destination, pynvc.WKPF_WRITE_PROPERTY, payload, [pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R])
+      reply = self.zwave.send(wuobject.getNodeId(), pynvc.WKPF_WRITE_PROPERTY, payload, [pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R])
 
       '''
       sn = self.getNextSequenceNumberAsList()

@@ -24,6 +24,9 @@ public class {{ applicationName }} {
         {% endfor %}
     };
 
+    //component node id and port number table
+    // each row corresponds to the component index mapped from component ID above
+    // each row has two items: node id, port number
     private final static byte[] componentInstanceToWuObjectAddrMap = {
         {% for wuobject in wuObjects.values() %}
         {{ wuobject.toJava() }}{{ ',' if not loop.last else '' }}
@@ -60,15 +63,15 @@ public class {{ applicationName }} {
             {% for property in object.getProperties().values() %}
                 {% if property.hasDefault() %}
                     {% if property.getDataType() == 'boolean' %}
-                    WKPF.setPropertyBoolean(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, {{ str(property.getDefault()).lower() }});
+                    WKPF.setPropertyBoolean(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, {{ property.getDefault().lower() }});
                     {% elif property.getDataType() == 'int' %}
                     WKPF.setPropertyShort(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
                     {% elif property.getDataType() == 'short' %}
                     WKPF.setPropertyShort(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
-                    {% elif property.getDatatype() == 'refresh_rate' %}
-                    WKPF.setPropertyRefreshRate(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ str(property.getDefault()) }});
+                    {% elif property.getDataType() == 'refresh_rate' %}
+                    WKPF.setPropertyRefreshRate(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
                     {% else %}
-                    WKPF.setPropertyShort(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, {{ property.getDefault() }});
+                    WKPF.setPropertyShort(wuclassInstance{{ object.getWuClassName() }}, WKPF.{{ property.getJavaConstName() }}, WKPF.{{ property.getWuType().getValueInJavaConstant(property.getDefault()) }});
                     {% endif %}
                 {% endif %}
             {% endfor %}
@@ -78,18 +81,18 @@ public class {{ applicationName }} {
             // Native WuClasses (C)
             WKPF.createWuObject((short)WKPF.{{ object.getWuClass().getJavaConstName() }}, WKPF.getPortNumberForComponent((short){{ object.getInstanceIndex() }}), null);
 
-            {% for property in object.getProperties().values() %}
+            {% for property in object %}
                 {% if property.hasDefault() %}
                     {% if property.getDataType() == 'boolean' %}
-                    WKPF.setPropertyBoolean((short)WKPF.{{ object.getWuClass().getJavaConstName() }}, WKPF.{{ property.getJavaConstName() }}, {{ str(property.getDefault()).lower() }});
+                    WKPF.setPropertyBoolean((short){{ object.getInstanceIndex() }}, WKPF.{{ property.getJavaConstName() }}, {{ property.getDefault().lower() }});
                     {% elif property.getDataType() == 'int' %}
-                    WKPF.setPropertyShort((short)WKPF.{{ object.getWuClass().getJavaConstName() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
+                    WKPF.setPropertyShort((short){{ object.getInstanceIndex() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
                     {% elif property.getDataType() == 'short' %}
-                    WKPF.setPropertyShort((short)WKPF.{{ object.getWuClass().getJavaConstName() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
-                    {% elif property.getDatatype() == 'refresh_rate' %}
-                    WKPF.setPropertyRefreshRate((short)WKPF.{{ object.getWuClass().getJavaConstName() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ str(property.getDefault()) }});
+                    WKPF.setPropertyShort((short){{ object.getInstanceIndex() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
+                    {% elif property.getDataType() == 'refresh_rate' %}
+                    WKPF.setPropertyRefreshRate((short){{ object.getInstanceIndex() }}, WKPF.{{ property.getJavaConstName() }}, (short){{ property.getDefault() }});
                     {% else %}
-                    WKPF.setPropertyShort((short)WKPF.{{ object.getWuClass().getJavaConstName() }}, WKPF.{{ property.getJavaConstName() }}, {{ property.getDefault() }});
+                    WKPF.setPropertyShort((short){{ object.getInstanceIndex() }}, WKPF.{{ property.getJavaConstName() }}, WKPF.{{ property.getWuType().getValueInJavaConstant(property.getDefault()) }});
                     {% endif %}
                 {% endif %}
             {% endfor %}

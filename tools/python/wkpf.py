@@ -49,10 +49,11 @@ def datatypeToString(datatype):
     elif datatype == DATATYPE_REFRESH_RATE:
         return "REFRESH"
     else:
-        raise Error('Unknown datatype %d' % (datatype))
+        return 'Unknown datatype %s' % (datatype)
 
-def toByteString(i): 
-    return ['(byte)' + str(ord(b)) for b in pack("H", i)]
+# i is the number to be transform into byte array, n is the number of bytes to use (little endian)
+def toByteString(i, n): 
+    return ['(byte)' + str(ord(b)) for b in pack("H", i)][:n]
 
 class WuLink:
     def __init__(self, fromWuObject, fromPropertyId, toWuObject, toPropertyId):
@@ -61,7 +62,7 @@ class WuLink:
 
     def toJava(self):
         print 'wulink toJava'
-        return ', '.join(toByteString(int(self.linkSrc[0].getInstanceIndex())) + toByteString(int(self.linkSrc[1])) + toByteString(int(self.linkDst[0].getInstanceIndex())) + toByteString(int(self.linkDst[1])) + toByteString(int(self.linkDst[0].getWuClassId())))
+        return ', '.join(toByteString(int(self.linkSrc[0].getInstanceIndex()), 2) + toByteString(int(self.linkSrc[1]), 1) + toByteString(int(self.linkDst[0].getInstanceIndex()), 2) + toByteString(int(self.linkDst[1]), 1) + toByteString(int(self.linkDst[0].getWuClassId()), 2))
         
 
 
@@ -193,6 +194,10 @@ class WuClass:
         self._virtual = virtual    # a boolean for virtual or native
         self._soft = soft  # a boolean for soft or hard
         self_node_id = node_id
+
+    def __iter__(self):
+        for property in self._properties.values():
+            yield property
 
     def __contains__(self, propertyName):
         return propertyName in self._properties
@@ -329,8 +334,8 @@ class WuObject:
         return self._wuClass.getProperties()
 
     def setProperties(self, properties):
-        for proerty in properties:
-            self._wuClass.PropertyByName(property.getName(), property)
+        for property in properties:
+            self._wuClass.setPropertyByName(property.getName(), property)
 
 
 class NodeInfo:
@@ -378,8 +383,12 @@ def parseXMLString(xml_string, **kwargs):
         for i, prop in enumerate(wuClass.getElementsByTagName('property')):
             propType = prop.getAttribute('datatype')
             propName = prop.getAttribute('name')
+            if prop.getAttribute('default'):
+                defaultValue = prop.getAttribute('default')
+            else:
+                defaultValue = None
 
-            wuClassProperties[propName] = WuProperty(wuClassName, propName, i, wuTypes[propType], prop.getAttribute('access')) 
+            wuClassProperties[propName] = WuProperty(wuClassName, propName, i, wuTypes[propType], prop.getAttribute('access'), default=defaultValue) 
 
         wuClasses[wuClassName] = WuClass(wuClassName, wuClassId, wuClassProperties, True if wuClass.getAttribute('virtual').lower() == 'true' else False, True if wuClass.getAttribute('type').lower() == 'soft' else False)
 

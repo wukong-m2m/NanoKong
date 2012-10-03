@@ -200,7 +200,8 @@ class WuApplication:
               assert propertyTag.getAttribute('name') in wuClass
 
               wuProperty = wuClass.getPropertyByName(propertyTag.getAttribute('name'))
-              wuProperty.setDefault(propertyTag.getAttribute('default'))
+              if propertyTag.getAttribute('default'):
+                  wuProperty.setDefault(propertyTag.getAttribute('default'))
 
           queries = []
           for locationQuery in componentTag.getElementsByTagName('location'):
