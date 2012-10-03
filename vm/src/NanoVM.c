@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
   wkpf_init();
 
-  DEBUGF("NanoVM\n");
+  DEBUGF("NanoVM node id is %x\n", nvmcomm_get_node_id());
 
   nvmfile_call_main();
 
