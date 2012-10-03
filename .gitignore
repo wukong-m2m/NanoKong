@@ -14,3 +14,4 @@ plugins/niagara
 GENERATED*
 *.orig
 tools/python/pyzwave/testrtt
+config/master.cfg

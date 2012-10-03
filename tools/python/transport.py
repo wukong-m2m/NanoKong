@@ -1,4 +1,4 @@
-import os, fcntl
+import sys, os, fcntl
 import pickle
 import tornado.ioloop
 import hashlib
@@ -7,6 +7,8 @@ from collections import namedtuple
 import gevent
 from gevent.event import AsyncResult
 from gevent.queue import Queue
+sys.path.append(os.path.abspath("../../master"))
+from configuration import *
 
 import pynvc # for message constants
 import pyzwave
@@ -194,10 +196,9 @@ class ZwaveAgent(TransportAgent):
 
     def poll(self):
         try:
-            pyzwave.poll()
-            return True
+            return pyzwave.poll()
         except:
-            return False
+            return "Not availble"
 
     def receive(self, timeout_msec=100):
         while 1:
