@@ -548,7 +548,7 @@ class stop_testrtt(tornado.web.RequestHandler):
     global applications
 
     comm = getComm()
-    if comm.onStopMode() == 0:
+    if comm.onStopMode():
       self.content_type = 'application/json'
       self.write({'status':0})
     else:
@@ -560,7 +560,7 @@ class exclude_testrtt(tornado.web.RequestHandler):
     global applications
 
     comm = getComm()
-    if comm.onDeleteMode() == 0:
+    if comm.onDeleteMode():
       self.content_type = 'application/json'
       self.write({'status':0, 'log': 'Going into exclude mode'})
     else:
@@ -573,7 +573,7 @@ class include_testrtt(tornado.web.RequestHandler):
 
     comm = getComm()
     print 'onAddMode'
-    if comm.onAddMode() == 0:
+    if comm.onAddMode():
       self.content_type = 'application/json'
       self.write({'status':0, 'log': 'Going into include mode'})
     else:

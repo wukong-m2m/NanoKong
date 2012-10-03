@@ -3,7 +3,7 @@ import pyzigbee
 import sys
 import os
 sys.path.append(os.path.abspath("../../master"))
-from configuration import ZWAVE_GATEWAY_IP
+from configuration import *
 
 REPRG_OPEN                   = 0x10
 REPRG_OPEN_R                 = 0x11

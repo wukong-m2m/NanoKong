@@ -77,7 +77,7 @@
                             $table.append(compiled(result));
                         });
 
-                        poll(current_application, 0, repeat);
+                        poll('/applications/' + current_application + '/poll', 0, repeat);
                     }
                 });
             });
@@ -102,7 +102,7 @@
                     if (data.status == 1) {
                         alert(data.mesg);
                     } else {
-                        poll(current_application, 0, repeat);
+                        poll('/applications/' + current_application + '/poll', 0, repeat);
                     }
                 });
             });
