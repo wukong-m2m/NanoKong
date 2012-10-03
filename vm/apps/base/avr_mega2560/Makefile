@@ -6,7 +6,7 @@
 #  Note that the [XML name] should be in the /Applications directory
 
 CONFIG = Mega8.config
-include ../../../config/master.cfg
+include ../../../../config/master.cfg
 ifdef FLOWXML
 DEFAULT_CLASS = $(FLOWXML)
 #else
