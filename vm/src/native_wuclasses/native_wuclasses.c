@@ -61,17 +61,20 @@ uint8_t wkpf_native_wuclasses_init() {
   DEBUGF_WKPF("Running wkpf native init for node id: %x\n", nvmcomm_get_node_id());
 
   // Light actuator
-  retval = wkpf_register_wuclass_and_create_wuobject(wuclass_light_actuator, 4);
+  retval = wkpf_register_wuclass(wuclass_light_actuator);
+  /*retval = wkpf_register_wuclass_and_create_wuobject(wuclass_light_actuator, 4);*/
   if (retval != WKPF_OK)
     return retval;
 
   // Light sensor
-  retval = wkpf_register_wuclass_and_create_wuobject(wuclass_light_sensor, 2);
+  retval = wkpf_register_wuclass(wuclass_light_sensor);
+  /*retval = wkpf_register_wuclass_and_create_wuobject(wuclass_light_sensor, 2);*/
   if (retval != WKPF_OK)
     return retval;
 
   // Numeric controller
-  retval = wkpf_register_wuclass_and_create_wuobject(wuclass_numeric_controller, 1);
+  retval = wkpf_register_wuclass(wuclass_numeric_controller);
+  /*retval = wkpf_register_wuclass_and_create_wuobject(wuclass_numeric_controller, 1);*/
   if (retval != WKPF_OK)
     return retval;
 
