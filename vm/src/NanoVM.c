@@ -87,7 +87,9 @@ int main(int argc, char **argv) {
   test_wkpf();
 #endif
 
+#ifdef NVM_USER_GROUP
   group_init(CANBEORACLE);
+#endif
 
   wkpf_init();
 
