@@ -52,11 +52,9 @@ uint8_t wkpf_init_node3() {
 uint8_t wkpf_native_wuclasses_init() {
   uint8_t retval;
 
-  /*
   retval = wkpf_register_wuclass_and_create_wuobject(wuclass_generic, 0); // Always create wuobject for generic wuclass at port 0
   if (retval != WKPF_OK)
     return retval;
-  */
   
   DEBUGF_WKPF("Running wkpf native init for node id: %x\n", nvmcomm_get_node_id());
 
