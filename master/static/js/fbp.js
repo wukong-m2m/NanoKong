@@ -88,12 +88,22 @@ function FBP_addBlock()
 
 function FBP_delBlock()
 {
-    for(i=0;i<g_nodes;i++) {
+	if (Block.current == null) return;
+    for(i=0;i<g_nodes.length;i++) {
         if (g_nodes[i].id == Block.current.id) {
-            g_nodes[i].splice(i,1);
+            g_nodes.splice(i,1);
             break;
         }
     }
+	var new_lines = [];
+    for(i=0;i<g_lines.length;i++) {
+		if ((g_lines[i].source.id != Block.current.id)&&
+		    (g_lines[i].dest.id != Block.current.id)) {
+			new_lines.push(g_lines[i]);
+		}
+	}
+	g_lines = new_lines;
+	FBP_refreshLines();
     Block.current.div.remove();
     Block.current = null;
 }
