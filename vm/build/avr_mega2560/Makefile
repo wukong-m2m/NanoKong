@@ -6,18 +6,12 @@
 #  Note that the HAScenario2 should be in the /Applications directory
 
 CONFIG = Mega8.config
-DEVICE = atmega2560
-
+include ../../../config/master.cfg
 ifdef FLOWXML
 DEFAULT_CLASS=$(FLOWXML)
-# Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
-DISCOVERY_FLAGS=-D
-#DEFAULT_CLASS = TestWKPF
-#DEFAULT_CLASS = AdcDemo
-#DEFAULT_CLASS = HAScenario1
 endif
 
-PORT = /dev/tty.usbmodem411
+
 
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
@@ -41,6 +35,7 @@ CLDFLAGS += -Wl,--gc-sections,-Tavr4_nanokong.x,--section-start=.reprogram_flash
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
+
 
 include ../../src/Makefile
 include ../../src/avr/Makefile
@@ -70,7 +65,7 @@ endef
 %.elf: $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	#avr-size -C --mcu=atmega2560 $@
-	$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
+	#$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
 
 %.hex: %.elf
 	$(OBJCOPY) -j .text -j .lowtext -j .data -j .javabytecode -O ihex $< $@
@@ -93,6 +88,9 @@ nvmcomm_reprogram: nvmdefault.h
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+
+avrdude1280: NanoVM.hex NanoVM_eeprom.hex
+	avrdude -V -p atmega1280 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex

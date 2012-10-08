@@ -5,11 +5,8 @@ $(document).ready(function() {
 
 function application_init()
 {
-    obj = $('#menu');
-    obj.empty();
-    obj.append('<button id=appadd class=appadd></button>')
-    obj.find('#appadd').click(function() {
-        $.post('/application/new', function(data) {
+    $('#menu #appadd').click(function() {
+        $.post('/applications/new', function(data) {
             if (data.status == '1') {
                 alert(data.mesg);
             }
@@ -19,8 +16,7 @@ function application_init()
         });
     });
 
-    obj.append('<button id=zwave class=zwave></button>')
-    obj.find('#zwave').click(function() {
+    $('#menu #zwave').click(function() {
         $.get('/testrtt', function(data) {
             if (data.status == '1') {
                 alert(data.mesg);
@@ -31,57 +27,14 @@ function application_init()
             }
         });
     });
+
     application_fill();
-    /*
-    application_fillList([
-    {
-    name:'application1'
-    },
-    {
-    name:'application2'
-    },
-    {
-    name:'application3'
-    },
-    {
-    name:'application4'
-    }
-    ]);
-    */
-}
-
-function setup_testrtt()
-{
-    // testrtt page
-    $('#content #back').click(function() {
-        application_fill();
-    });
-
-    $('#content #include').click(function() {
-        console.log('include');
-        $('#log').html('<p>The basestation is ready to include devices.</p>');
-        /*
-        $.post('/testrtt/include', function(data) {
-            $('#log').html(data.log);
-        });
-        */
-    });
-
-    $('#content #exclude').click(function() {
-        console.log('include');
-        $('#log').html('<p>The basestation is ready to exclude devices.</p>');
-        /*
-        $.post('/testrtt/exclude', function(data) {
-            $('#log').html(data.log);
-        });
-        */
-    });
 }
 
 function application_fill()
 {
     $.ajax({
-        url: '/application/json',
+        url: '/applications',
         type: 'POST',
         dataType: 'json',
         success: function(r) {
@@ -90,6 +43,11 @@ function application_fill()
     });
 }
 
+function content_scaffolding(topbar, editor)
+{
+    $('#content').append(topbar);
+    $('#content').append(editor);
+}
 
 function application_fillList(r)
 {
@@ -99,61 +57,133 @@ function application_fillList(r)
     var obj, act;
 
     m.empty();
-    m.html('<table id=applist></table>');
-    applist = $('#applist');
-    for(i=0;i<len;i++) {
-        if ((i % 2) == 0) {
-            applist.append('<tr class=listitem_even><td class=appname id=appname'+i+'></td><td class=appact id=appact'+i+'></td></tr>');
-        } else {
-            applist.append('<tr class=listitem_odd><td class=appname id=appname'+i+'></td><td class=appact id=appact'+i+'></td></tr>');
-        }
-        act = $('#appact'+i);
-        act.append('<button class=appmonitor id=appmonitor'+i+'></button>');
-        act.append('<button class=appdeploy id=appdeploy'+i+'></button>');
-        act.append('<button class=appdel id=appdel'+i+'></button>');
-        obj = $('#appname'+i);
-        obj.html('<a app_id="' + r[i].id + '" href="#">' + r[i].name + '</a>');
+    applist = $('<table id=applist></table>');
+    for(i=0; i<len; i++) {
+        var appentry = $('<tr class=listitem></tr>');
+
+        var name = $('<td class=appname id=appname'+i+'></td>');
+        name.html('<a app_id="' + r[i].id + '" href="#">' + r[i].name + '</a>');
+
         var index = i;
-        obj.click(function() {
+        name.click(function() {
             var app_id = $(this).find('a').attr('app_id')
-            application_setupLink(app_id);
+            $('#content').empty();
+            $.post('/applications/' + app_id, function(data) {
+                // injecting script to create application interface
+                content_scaffolding(data.topbar, $('<iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>'));
+
+                //$('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>');
+                //$('#topbar #back').click(function() {
+                    //application_fill();
+                //});
+            });
         });
-        application_setupButtons(i, r[i].id);
+
+        var act = $('<td class=appact id=appact'+i+'></td>');
+
+        // solution against lazy evaluation
+        var id = r[i].id;
+
+        var monitor = $('<button class=appmonitor id=appmonitor'+i+'></button>');
+        var deploy = $('<button class=appdeploy id=appdeploy'+i+'></button>');
+        var remove = $('<button class=appdel id=appdel'+i+'></button>');
+
+        monitor.click(function() {
+            $('#content').empty();
+            var topbar;
+
+            $('#content').block({ 
+                message: '<h1>Processing</h1>',
+                css: { border: '3px solid #a00' } 
+            }); 
+
+            $.get('/applications/' + id, function(data) {
+                if (data.status == 1) {
+                    alert(data.mesg);
+                } else {
+                    topbar = data.topbar;
+                    $.get('/applications/' + id + '/monitor', function(data) {
+                        if (data.status == 1) {
+                            alert(data.mesg);
+                            application_fill();
+                        } else {
+                            // injecting script to create application interface
+                            page = $(data.page);
+                            console.log(page);
+                            content_scaffolding(topbar, page);
+                            $('#content').unblock();
+                        }
+                    });
+                }
+            });
+        });
+
+        deploy.click(function() {
+            $('#content').empty();
+            var topbar;
+
+            $('#content').block({ 
+                message: '<h1>Processing</h1>',
+                css: { border: '3px solid #a00' } 
+            }); 
+
+            $.get('/applications/' + id, function(data) {
+                if (data.status == 1) {
+                    alert(data.mesg);
+                } else {
+                    topbar = data.topbar;
+                    $.get('/applications/' + id + '/deploy', function(data) {
+                        if (data.status == 1) {
+                            alert(data.mesg);
+                            application_fill();
+                        } else {
+                            // injecting script to create application interface
+                            page = $(data.page);
+                            console.log(page);
+                            content_scaffolding(topbar, page);
+                            $('#content').unblock();
+                        }
+                    });
+                }
+            });
+
+        });
+
+        remove.click(function() {
+            $.ajax({
+                type: 'delete',
+                url: '/applications/' + id, 
+                success: function(data) {
+                    if (data.status == 1) {
+                        alert(data.mesg);
+                    }
+
+                    application_fill();
+                }
+            });
+        });
+
+        act.append(monitor);
+        act.append(deploy);
+        act.append(remove);
+
+        appentry.append(name);
+        appentry.append(act);
+        applist.append(appentry);
+        //application_setupButtons(i, r[i].id);
     }
+
+    m.append(applist);
 }
 
-function application_setupLink(app_id)
-{
-    $.post('/application/' + app_id, function(data) {
-        // create application
-        $('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/application/' + app_id + '/fbp/load"></iframe>');
-        $('#topbar').append(data.topbar);
-        $('#topbar #back').click(function() {
-            application_fill();
-        });
-    });
-}
-
+/*
 function application_setupButtons(i, id)
 {
     $('#appmonitor'+i).click(function() {
         alert("not implemented yet");
     });
-    $('#appdel'+i).click(function() {
-        $.ajax({
-            type: 'delete',
-            url: '/application/' + id, 
-            success: function(data) {
-                if (data.status == 1) {
-                    alert(data.mesg);
-                } else {
-                    application_fill();
-                }
-            }
-        });
-    });
     $('#appdeploy'+i).click(function() {
-        $.get('/application/' + id + '/deploy', function(data) {
+        $.get('/applications/' + id + '/deploy', function(data) {
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
@@ -161,8 +191,37 @@ function application_setupButtons(i, id)
             }
         });
     });
-}
+    $('#appdel'+i).click(function() {
+        $.ajax({
+            type: 'delete',
+            url: '/applications/' + id, 
+            success: function(data) {
+                if (data.status == 1) {
+                    alert(data.mesg);
+                }
 
+                application_fill();
+            }
+        });
+    });
+}
+*/
+
+/*
+function application_setupLink(app_id)
+{
+    $.post('/applications/' + app_id, function(data) {
+        // create application
+        $('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>');
+        $('#topbar').append(data.topbar);
+        $('#topbar #back').click(function() {
+            application_fill();
+        });
+    });
+}
+*/
+
+/*
 function deploy_show(page, id)
 {
     // deployment page
@@ -184,16 +243,18 @@ function deploy_show(page, id)
 
             console.log(nodes);
 
-            $.post('/application/' + id + '/deploy', {selected_node_ids: nodes}, function(data) {
+            $.post('/applications/' + id + '/deploy', {selected_node_ids: nodes}, function(data) {
                 deploy_poll(id, data.version);
             });
         }
     });
 }
+*/
 
+/*
 function deploy_poll(id, version)
 {
-    $.post('/application/'+id+'/deploy/poll', {version: version}, function(data) {
+    $.post('/applications/'+id+'/deploy/poll', {version: version}, function(data) {
         $('#progress #compile_status').html('<p>' + data.deploy_status + '</p>');
         $('#progress #normal').html('<h2>NORMAL</h2><pre>' + data.normal.join('\n') + '</pre>');
         $('#progress #urgent_error').html('<h2>URGENT</h2><pre>' + data.error.urgent.join('\n') + '</pre>');
@@ -206,6 +267,86 @@ function deploy_poll(id, version)
             $('#progress').dialog({buttons: {Ok: function() {
                 $(this).dialog('close');
             }}})
+        }
+    });
+}
+*/
+
+function setup_testrtt()
+{
+    var options = {repeat: true};
+    // testrtt page
+    $('#content #back').click(function() {
+        application_fill();
+        options.repeat = false;
+    });
+
+
+    $('#content #include').click(function() {
+        console.log('include');
+        options.repeat = true;
+        $('#log').html('<h4>The basestation is ready to include devices.</h4>');
+        $.post('/testrtt/include', function(data) {
+            $('#log').append('<pre>' + data.log + '</pre>');
+        });
+    });
+
+    $('#content #exclude').click(function() {
+        console.log('exclude');
+        options.repeat = true;
+        $('#log').html('<h4>The basestation is ready to exclude devices.</h4>');
+        $.post('/testrtt/exclude', function(data) {
+            $('#log').append('<pre>' + data.log + '</pre>');
+        });
+    });
+
+    $('#content #stop').click(function() {
+        console.log('stop');
+        options.repeat = true;
+        $('#log').html('<h4>The basestation is stopped from adding/deleting devices.</h4>');
+        $.post('/testrtt/stop', function(data) {
+            $('#log').append('<pre>' + data.log + '</pre>');
+        });
+    });
+
+    function testrtt_poll()
+    {
+        poll('/testrtt/poll', 0, options);
+    }
+
+    testrtt_poll();
+}
+
+// might have to worry about multiple calls :P
+function poll(url, version, options)
+{
+    var forceRepeat = false;
+    if (typeof options != 'undefined') {
+        // repeat is an object with one key 'repeat', or it will be pass-by-value and therefore can't be stopped
+        forceRepeat = options.repeat;
+    }
+
+    console.log('poll');
+    $.post(url, {version: version}, function(data) {
+        _.each(data.logs, function(line) {
+            if (line != '') {
+                $('#log').append('<pre>' + line + '</pre>');
+            }
+        });
+
+        // TODO:mapping_results too
+        // TODO:node infos too
+        
+        if (forceRepeat) {
+            console.log('repeat');
+        } else {
+            console.log('no repeat');
+        }
+        if (forceRepeat || data.returnCode < 0) {
+            console.log("repeating");
+            setTimeout(function() {
+                poll(url, data.version, options);
+            }, 1000);
         }
     });
 }

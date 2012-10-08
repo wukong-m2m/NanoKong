@@ -6,15 +6,13 @@
 #  Note that the [XML name] should be in the /Applications directory
 
 CONFIG = Mega8.config
-DEVICE = atmega2560
+include ../../../../config/master.cfg
 ifdef FLOWXML
 DEFAULT_CLASS = $(FLOWXML)
-else
-DEFAULT_CLASS = HAScenario1
+#else
+#DEFAULT_CLASS = TestWKPF
 endif
-# Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
-DISCOVERY_FLAGS=-D
-PORT = /dev/tty.usbmodemfa1321
+
 
 ROOT_DIR = ../../../..
 VM_DIR = $(ROOT_DIR)/vm
@@ -103,9 +101,9 @@ avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
 	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
-application:
-	$(MAKE) clean
-	$(MAKE) generate
+application: $(DEFAULT_CLASS)
+	#$(MAKE) clean
+	#$(MAKE) generate
 	$(MAKE) nvmdefault.h
 
 nvmcomm_reprogram: nvmdefault.h

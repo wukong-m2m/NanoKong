@@ -1,33 +1,117 @@
-<script>
-  var current_application = "{{ app.id }}";
-</script>
+<div id='wrapper'>
 
-<button id="back">Back</button>
+    <div class=row-fluid>
+        <div class="span12">
 
-<p>
-  <h1>
-    <label>Name</label>
-    {{ app.name }}
-    ({{ app.id}})
-  </h1>
+            <button id="map">Map</button>
+            <button {% if not mapping_results %}disabled="disabled"{% end %} id="deploy">Deploy</button>
 
-  <p>
-    {% for node_id in node_ids %}
-    <p>
-      <label>Node id: {{ node_id }}</label>
-      <input type="checkbox" id="{{ node_id }}" name="target_group" value="{{ node_id }}" />
-    </p>
-    {% end %}
-    {% if len(node_ids) == 0 %}
-    <p>
-      <h2>No nodes have been detected, please move them closer to places which the basestation has line of sight of the nodes and try again.</h2>
-    </p>
-    {% end %}
-  </p>
+            <div class=tabbable>
+                <ul class="nav nav-pills">
+                    <li class="active"><a href="#log" data-toggle="tab">Log</a></li>
+                    <li><a href="#nodes" data-toggle="tab">Nodes</a></li>
+                    <li><a href="#mapping_results" data-toggle="tab">Map results</a></li>
+                </ul>
+                <div class=tab-content>
+                    {% include "monitor-log.html" %}
+                    {% include "monitor-nodes.html" %}
+                    {% include "monitor-mapping-results.html" %}
+                </div>
+            </div>
+        </div>
 
-  <p>
-    <button id="deploy">Deploy</button>
-  </p>
+        <div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">Modal header</h3>
+            </div>
+            <div class="modal-body">
+                <p>One fine body…</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            </div>
+        </div>
 
-  <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
-</p>
+    </div>
+
+
+    <script>
+        $(function() {
+
+            var current_application = "{{ app.id }}";
+            var repeat = {repeat: true};
+
+            $('#myModal').hide();
+
+            $('#log a').click(function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            $('#nodes a').click(function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            $('#map').click(function() {
+                $.post('/applications/' + current_application + '/deploy/map', function(data) {
+                    // Already an object
+                    console.log(data)
+                    if (data.status == 1) {
+                        alert(data.mesg);
+                    } else {
+                        var $table = $('#mapping_results table tbody');
+                        $table.empty();
+
+                        console.log(data.mapping_results);
+                        if (data.mapping_results) {
+                            $('#deploy').removeAttr('disabled');
+                        }
+                        else {
+                            $('#deploy').attr('disabled', 'disabled');
+                        }
+
+                        _.each(data.mapping_results, function(result) {
+                            var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                            $table.append(compiled(result));
+                        });
+
+                        poll('/applications/' + current_application + '/poll', 0, repeat);
+                    }
+                });
+            });
+
+            {% for node_info in node_infos %}
+
+            $('#node{{ node_info.nodeId }}').click(function(e) {
+                e.preventDefault();
+
+                console.log('click');
+                $('#myModal .modal-header').html('Node Info');
+                $('#myModal .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
+            });
+            //$('#node{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
+
+            {% end %}
+
+            $('#deploy').click(function() {
+                $.post('/applications/' + current_application + '/deploy', function(data) {
+                    // Already an object
+                    console.log(data)
+                    if (data.status == 1) {
+                        alert(data.mesg);
+                    } else {
+                        poll('/applications/' + current_application + '/poll', 0, repeat);
+                    }
+                });
+            });
+
+            $('#back').click(function() {
+                // repeat is an object with one key 'repeat', or poll will be pass-by-value and therefore can't be stopped
+                repeat.repeat = false;
+            });
+
+        });
+    </script>
+</div>

@@ -255,5 +255,6 @@ public class TestWKPF {
     assertEqualBoolean(WKPF.getPropertyBoolean(wuclassInstanceLogical, WKPF.PROPERTY_LOGICAL_OUTPUT), false, "output should be false.");*/
 
     System.out.println("WuKong WuClass Framework test - done. Passed:" + passedCount + " Failed:" + failedCount);
+    while (true) {} // Need loop to prevent it from exiting the program
   }
 }

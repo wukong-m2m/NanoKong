@@ -1,3 +1,4 @@
+#include <string.h>
 #include "types.h"
 #include "nvmcomm.h"
 #include "wkpf.h"
@@ -7,12 +8,12 @@
 
 #define WKFPCOMM_SET_MESSAGE_HEADER_LEN 7
 
+char location[20]; // temporary place for storing location in memory
+
 uint8_t message_buffer[NVMCOMM_MESSAGE_SIZE];
-uint16_t next_sequence_number = 0;
 
 void set_message_header(uint8_t port_number, uint8_t property_number, uint16_t wuclass_id, uint8_t datatype) {
-  message_buffer[0] = (uint8_t)(next_sequence_number >> 8);
-  message_buffer[1] = (uint8_t)(next_sequence_number++);
+  set_message_sequence_number(message_buffer, NULL);
   message_buffer[2] = port_number;
   message_buffer[3] = (uint8_t)(wuclass_id >> 8);
   message_buffer[4] = (uint8_t)(wuclass_id);
@@ -36,8 +37,7 @@ uint8_t send_message(address_t dest_node_id, uint8_t command, uint8_t length) {
   while(nvm_current_time < timeout) {
     nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){command+1 /* the reply to this command */, NVMCOMM_WKPF_ERROR_R}, 2);
     if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
-          && reply->payload[0] == message_buffer[0]
-          && reply->payload[1] == message_buffer[1]) {
+          && check_sequence_number(reply->payload, message_buffer)) {
       // This message a reply to our last sent message
       if(reply->command != NVMCOMM_WKPF_ERROR_R)
         return WKPF_OK;
@@ -87,6 +87,23 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
     return;
 
   switch (nvmcomm_command) {
+    case NVMCOMM_WKPF_GET_LOCATION:
+      payload[2] = strlen(location);
+      strcpy((char*)payload+3, location);
+      *response_size = sizeof(location) + 3;//payload size location + 2 byte overhead + 1 byte location size
+      *response_cmd = NVMCOMM_WKPF_GET_LOCATION_R;
+    break;
+    case NVMCOMM_WKPF_SET_LOCATION:
+      strncpy(location, (char*)payload+3, payload[2]);
+      *response_size = 6;
+      *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
+      retval = WKPF_OK;
+      if (retval != WKPF_OK) {
+        payload[2] = retval;
+        *response_size = 3;//payload size
+        *response_cmd = NVMCOMM_WKPF_ERROR_R;
+      }
+    break;
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
       number_of_wuclasses = wkpf_get_number_of_wuclasses();
       payload[2] = number_of_wuclasses;

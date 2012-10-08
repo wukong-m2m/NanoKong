@@ -1,9 +1,9 @@
-try:
-    import pyzwave
-except ImportError:
-    pyzwave = 0
+import pyzwave
 import pyzigbee
-
+import sys
+import os
+sys.path.append(os.path.abspath("../../master"))
+from configuration import *
 
 REPRG_OPEN                   = 0x10
 REPRG_OPEN_R                 = 0x11
@@ -24,22 +24,26 @@ APPMSG                       = 0x80
 APPMSG_R                     = 0x81
 
 #WKPF message types here
-WKPF_GET_WUCLASS_LIST	       = 0x90
-WKPF_GET_WUCLASS_LIST_R	     = 0x91
-WKPF_GET_WUOBJECT_LIST	     = 0x92
-WKPF_GET_WUOBJECT_LIST_R	   = 0x93
+WKPF_GET_WUCLASS_LIST        = 0x90
+WKPF_GET_WUCLASS_LIST_R      = 0x91
+WKPF_GET_WUOBJECT_LIST       = 0x92
+WKPF_GET_WUOBJECT_LIST_R     = 0x93
 WKPF_READ_PROPERTY	         = 0x94
-WKPF_READ_PROPERTY_R    	   = 0x95
+WKPF_READ_PROPERTY_R         = 0x95
 WKPF_WRITE_PROPERTY	         = 0x96
-WKPF_WRITE_PROPERTY_R	       = 0x97
+WKPF_WRITE_PROPERTY_R	     = 0x97
 WKPF_REQUEST_PROPERTY_INIT   = 0x98
 WKPF_REQUEST_PROPERTY_INIT_R = 0x99
+WKPF_GET_LOCATION            = 0x9A
+WKPF_GET_LOCATION_R          = 0x9B
+WKPF_SET_LOCATION            = 0x9C
+WKPF_SET_LOCATION_R          = 0x9D
 
 DEBUG_TRACE_PART             = 0xA0
 DEBUG_TRACE_FINAL            = 0xA2
 
 
-WKPF_ERROR_R        	       = 0x9F
+WKPF_ERROR_R                 = 0x9F
 
 APPMSG_STATUS_WAIT_ACK       = 0x00
 APPMSG_STATUS_ACK            = 0x01
@@ -51,25 +55,19 @@ RUNLVL_RESET                 = 0x04
 
 pymodule = 0
 
-def discoverNodes():
-	node_lst = discover()
-	gateway_id = node_lst[0]
-	node_lst = node_lst[2:]
-	node_lst.remove(gateway_id)
-	print tuple(node_lst)
-	return tuple(node_lst)
-#  return (1, 3) # TODO: implement network discovery here
-
+# WARNING:obsolete, use transport.py instead
 def sendcmd(dest, cmd, payload=[], retries=3):
   global pymodule
   pymodule.receive(10) # Clear pending messages
+  print 'sending command', cmd, 'with payload', payload, 'to dest', dest
   while retries >= 0:
     try:
       if pymodule == pyzwave:
         pymodule.send(dest, [0x88, cmd] + payload)
       else:
         pymodule.send(dest, [cmd] + payload)
-    except:
+    except Exception as e:
+      print e
       print "=============IOError============ retries remaining:"
       print retries
       if retries <= 0:
@@ -86,6 +84,7 @@ def receive(waitmsec=1000):
   global pymodule
   return pymodule.receive(waitmsec)
 
+# WARNING:obsolete, use transport.py instead
 def checkedReceive(allowedReplies, waitmsec=1000, verify=None):
   global pymodule
   while True:
@@ -104,6 +103,7 @@ def checkedReceive(allowedReplies, waitmsec=1000, verify=None):
         print "Incorrect reply received. Message type correct, but didnt pass verification:", reply
         print "Dropped message"
 
+# WARNING:obsolete, use transport.py instead
 def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload=[], waitmsec=1000, retries=0, quitOnFailure=False, verify=None):
   while retries >= 0:
     try:
@@ -125,29 +125,60 @@ def sendWithRetryAndCheckedReceive(destination, command, allowedReplies, payload
   else:
     return None, None
 
+# WARNING:obsolete, use transport.py instead
 def init(option, debug=False):
     global pymodule
-    if option == 0:
-        pyzwave.init("10.3.36.231")
-  #      pyzwave.init("192.168.2.1")
-        pymodule = pyzwave
-    elif option == 1:
+    if option == 'zwave' or option == 0:
+        try:
+            pyzwave.init(ZWAVE_GATEWAY_IP)
+            pymodule = pyzwave
+        except IOError as e:
+            print e
+            return None
+    elif option == 'zigbee' or option == 1:
         pyzigbee.init()
         pymodule = pyzigbee
     print 'pynvc debugging'
     pymodule.setdebug(debug)
+    return True
+
+# WARNING:obsolete, use transport.py instead
+def add():
+    global pymodule
+    pymodule.add()
+    return 0
+
+# WARNING:obsolete, use transport.py instead
+def delete():
+    global pymodule
+    pymodule.delete()
+    return 0
+
+# WARNING:obsolete, use transport.py instead
+def stop():
+    global pymodule
+    pymodule.stop()
+    return 0
+
+# WARNING:obsolete, use transport.py instead
+def poll():
+    global pymodule
+    status = pymodule.poll()
+    return status
 
 #Sen 12.8.7
 #result structure (self_id, total_nodes(include self), node_1_id, node_2_id.....)
-def discover():		
-	global pymodule
-	
-	result = pyzwave.discover()
-	print "discover result:"
-	print "self id:"+ str(result[0])
-	print "node id:",
-	for i in range(2, result[1]+2):
-		if result[i]!=result[0]:
-			print(str(result[i])+ " "),
-	print "\n",
-	return result
+# WARNING:obsolete, use transport.py instead
+def discovery():
+    global pymodule
+    return pymodule.discover()
+
+# WARNING:obsolete, use transport.py instead
+def discoverNodes():
+	node_lst = discover()
+	gateway_id = node_lst[0]
+	node_lst = node_lst[2:]
+	node_lst.remove(gateway_id)
+	print tuple(node_lst)
+	return tuple(node_lst)
+#  return (1, 3) # TODO: implement network discovery here

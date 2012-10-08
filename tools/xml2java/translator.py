@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: ts=2 sw=2
 
 # Translator convert the flow of WuKong components and their definitions into one application Java file
 #
@@ -8,14 +9,16 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
-from wkpf import NodeInfo, WuClass, WuObject, WuApplication
+from wkpf import *
 import pickle
-from xml.dom.minidom import parse 
-from locationTree import LocationTree, SensorNode
+from xml.dom.minidom import parse, parseString
+from wkapplication import *
+from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
 
 #from inspector import readNodeInfo
 
-import wkpfcomm
+from wkpfcomm import Communication
 from inspector import *
 from optparse import OptionParser
 
@@ -46,25 +49,32 @@ def getNodeList():
     exit(1)
 
   if options.do_discovery:
-    import wkpfcomm
-    wkpfcomm.init(0)
-    node_list = wkpfcomm.getNodeInfos();
+    comm = Communication(0)
+    node_list = comm.getAllNodeInfos();
   elif options.use_hardcoded_discovery:
     #generic, numeric_controller, light_sensor
-    wuClasses=(WuClass(nodeId=4, wuClassId=0),
-               WuClass(nodeId=4, wuClassId=3),
-               WuClass(nodeId=4, wuClassId=5))
-    wuObjects=[WuObject(portNumber=0, wuClass=wuClasses[0]),
-               WuObject(portNumber=1, wuClass=wuClasses[1]),
-               WuObject(portNumber=2, wuClass=wuClasses[2])]   
+    wuClasses=(WuClass(name='', id=0, properties={}, virtual=False, soft=True, node_id=4),
+               WuClass(name='', id=3, properties={}, virtual=False, soft=True, node_id=4),
+               WuClass(name='', id=5, properties={}, virtual=False, soft=True, node_id=4))
+    wuObjects=[WuObject(portNumber=0, wuClass=wuClasses[0], instanceId='', instanceIndex=0, nodeId=4),
+               WuObject(portNumber=1, wuClass=wuClasses[1], instanceId='', instanceIndex=1, nodeId=4),
+               WuObject(portNumber=2, wuClass=wuClasses[2], instanceId='', instanceIndex=2, nodeId=4)]   
     node1 = NodeInfo(4, wuClasses, wuObjects) # numeric_controller at port 1, light sensor at port 2
-    node3 = NodeInfo(nodeId=6,
-              wuClasses=(WuClass(nodeId=6, wuClassId=0),
-              WuClass(nodeId=6, wuClassId=1),
-              WuClass(nodeId=6, wuClassId=4)), # generic, threshold, light
-              wuObjects=(WuObject(portNumber=0, wuClass=wuClasses[0]),
-              WuObject(portNumber=4, wuClass=wuClasses[2]))) # light at port 4
+    node3 = NodeInfo(6,
+              wuClasses=(WuClass(name='', id=0, properties={}, virtual=False, soft=True, node_id=6),
+              WuClass(name='', id=1, properties={}, virtual=False, soft=True, node_id=6),
+              WuClass(name='', id=4, properties={}, virtual=False, soft=True, node_id=6)), # generic, threshold, light
+              wuObjects=(WuObject(portNumber=0, wuClass=wuClasses[0], instanceId='', instanceIndex=0, nodeId=6),
+              WuObject(portNumber=4, wuClass=wuClasses[2], instanceId='', instanceIndex=1, nodeId=6))) # light at port 4
     node_list = (node1, node3)
+
+    #wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
+
+    #node_infos = [NodeInfo(nodeId=3,
+                    #wuClasses=wuclasses,
+                    #wuObjects=[])]
+
+    #node_list = node_infos
   else:
     node_list = loadNodeList(options.discovery_file)
 
@@ -354,6 +364,32 @@ public class {{ CLASS_NAME }} {
     print>>out_fd, rendered_tpl
 
 
+class Mapper:
+    def __init__(self, app, node_infos, app_xml_string, locTree=LocationTree('Default_tree')):
+        self.node_infos = node_infos
+        self.app_dom = parseString(app_xml_string)
+        self.application = app
+        self.locTree = locTree
+
+    # Mapper that takes a location tree to map node id to wuobject generated from application xml
+    def map(self):
+        self.application.setFlowDom(self.app_dom)
+        self.application.setTemplateDir(os.path.join(rootpath, 'tools', 'xml2java'))
+        self.application.setComponentXml(open(os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')).read())
+
+        self.application.parseComponents()
+        self.application.parseApplicationXML()
+        self.application.mapping(self.locTree)
+        return self.application.wuObjects
+
+    def generateJava(self):
+        print 'generate Java'
+        self.application.setOutputDir(os.path.join(rootpath, 'java', 'examples'))
+        jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
+        output = open(os.path.join(self.application.destinationDir, self.application.applicationName+".java"), 'w')
+        output.write(jinja2_env.get_template('application.java').render(applicationName=self.application.applicationName, wuObjects=self.application.wuObjects, wuLinks=self.application.wuLinks))
+        output.close()
+
 
 
 if __name__ == "__main__":
@@ -374,6 +410,7 @@ if __name__ == "__main__":
   parser.add_option("-H", "--use-hardcoded-discovery", 
       action="store_true", dest="use_hardcoded_discovery", help="Use hardcoded discovery result (DEBUG ONLY).")
   (options, args) = parser.parse_args()
+
   if not options.pathc and \
       os.path.exists(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")):
       print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
@@ -393,28 +430,27 @@ if __name__ == "__main__":
 #	loc1 = "Boli_Building/3F/East_Corridor/Room318"
 #	loc2 = "Boli_Building/3F/East_Corridor/Room318"
 #	loc3 = "Boli_Building/3F/East_Corridor/Room318"
-#	nodeIds = wkpfcomm.getNodeIds()
+#	nodeIds = comm.getNodeIds()
 #	nodeInfos = [readNodeInfo(nodeId, componentDefinitions) for nodeId in nodeIds]
   nodeInfos = getNodeList()
   loc_args = [[0,1,2],[0,5,3],[3,3,2],[2,1,2]]
   sensorNodes = []
   for i in range(len(nodeInfos)):
     if nodeInfos[i].isResponding == True:
-      sensorNodes.append(SensorNode(locTree.parseLocation(loc), nodeInfos[i], *loc_args[i]))
-      locTree.addSensor(locTree.root, sensorNodes[-1])
+      sensorNodes.append(SensorNode(nodeInfos[i], *loc_args[i]))
+      locTree.addSensor(sensorNodes[-1])
 
 
-#  locTree.printTree(locTree.root, 0)
+#  locTree.printTree(0)
   queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
-      "Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
-      None,
-      None]
+              "Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)",
+              None,
+              None]
 
-  application = WuApplication(parse(options.pathf), options.out, options.pathc, rootpath)
+  application = WuApplication(flowDom=parse(options.pathf), outputDir=options.out, templateDir=os.path.join(rootpath, 'tools', 'xml2java'), componentXml=open(options.pathc).read())
   application.parseComponents()
-  application.scaffoldingWithComponents()
+  application.parseApplicationXML()
   application.mappingWithNodeList(locTree, queries)
-  application.generateJava()
 
 
   #old stuff below

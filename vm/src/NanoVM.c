@@ -32,6 +32,7 @@
 #include "vm.h"
 #include "nvmcomm.h"
 #include "wkpf.h"
+#include "group.h"
 
 #include "avr/avr_flash.h"
 #include <avr/boot.h>
@@ -86,9 +87,13 @@ int main(int argc, char **argv) {
   test_wkpf();
 #endif
 
+#ifdef NVM_USER_GROUP
+  group_init(CANBEORACLE);
+#endif
+
   wkpf_init();
 
-  DEBUGF("NanoVM\n");
+  DEBUGF("NanoVM node id is %x\n", nvmcomm_get_node_id());
 
   nvmfile_call_main();
 

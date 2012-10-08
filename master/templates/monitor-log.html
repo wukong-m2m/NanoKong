@@ -1,0 +1,14 @@
+<div class="tab-pane active" id="log">
+    <button id="clear">Clear log (temporarily)</button>
+    {% for log in logs %}
+    <pre>{{ log }}</pre>
+    {% end %}
+    <script>
+        $(function() {
+            $('#clear').click(function() {
+                console.log('clear logs');
+                $('pre').remove();
+            });
+        });
+    </script>
+</div>
