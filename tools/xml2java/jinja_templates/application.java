@@ -28,7 +28,7 @@ public class {{ applicationName }} {
     // each row corresponds to the component index mapped from component ID above
     // each row has two items: node id, port number
     private final static byte[] componentInstanceToWuObjectAddrMap = {
-        {%- for wuobject in sorted(wuObjects, key=lambda object: object.getInstanceIndex()) %}
+        {%- for wuobject in wuObjects %}
         {{ wuobject.toJava() }}{{ ',' if not loop.last else '' }}
         {%- endfor %}
     };
