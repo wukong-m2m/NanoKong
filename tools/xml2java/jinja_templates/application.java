@@ -51,7 +51,7 @@ public class {{ applicationName }} {
     private static void initialiseLocalWuObjects() {
         {%- for object in wuObjects %}
 
-        if (WKPF.isLocalComponent({{ object.getInstanceIndex() }})) {
+        if (WKPF.isLocalComponent((short){{ object.getInstanceIndex() }})) {
 
         {%- if object.getWuClass().isVirtual() %}
 
