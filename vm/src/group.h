@@ -68,9 +68,6 @@ typedef struct view {
     // list of processes that departed this group since the last view was reported
     address_t leavers[MAX_VIEW_MEMBER_SIZE];
     int leaver_size;
-
-    address_t coordinator;
-    address_t next_group;
 } view;
 
 const view DEFAULT_VIEW;
@@ -92,8 +89,6 @@ typedef struct group {
     address_t group_addr;
     view views[MAX_VIEW_LIST_SIZE];
     int view_size;
-
-    bool_t is_primary;
 } group;
 
 //// View

@@ -45,7 +45,6 @@
 #define NVMCOMM_GROUP_EVENT_LEAVE_R              0x77
 #define NVMCOMM_GROUP_EVENT_ORACLE_FIND          0x78
 #define NVMCOMM_GROUP_EVENT_ORACLE_FIND_R        0x79
-#define NVMCOMM_GROUP_ERROR_R                    0x7A
 
 #define NVMCOMM_WKPF_GET_WUCLASS_LIST            0x90
 #define NVMCOMM_WKPF_GET_WUCLASS_LIST_R          0x91

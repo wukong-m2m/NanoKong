@@ -6,16 +6,12 @@
 #include "group.h"
 #include "vm.h"
 
-static bool_t group_loaded = false;
 static bool_t group_inited = false;
 static bool_t can_be_oracle = false;
 static address_t my_address = NVMCOMM_ADDRESS_NULL;
 static address_t found_oracle = NVMCOMM_ADDRESS_NULL; // For client
 static address_t client_of = NVMCOMM_ADDRESS_NULL; // Client of a oracle representative
-static u08_t prepared_proposal[NVMCOMM_MESSAGE_SIZE]; // Client of a oracle representative
 static group oracle; // GMS service
-
-void group_load();
 
 void initial_view(
         group* g, 
@@ -26,8 +22,7 @@ void update_view(
 void copy_view(view* destination, 
         view* source);
 view* current_view(group* g);
-int prepare_update(u08_t* payload, group* g);
-int commit_update(u08_t* payload, group* g);
+void commit_update(u08_t* payload, group* g);
 
 int setup_group(group* g);
 int add_to_group_list(group* g);
@@ -85,13 +80,9 @@ group_handle_message(u08_t nvmcomm_command,
 
             if (g != NULL) {
                 // Acknowledge
-                if (prepare_update(payload, g) == 0) {
-                    *response_cmd = nvmcomm_command+1;
-                    *response_size = 3;
-                } else {
-                    *response_cmd = NVMCOMM_GROUP_ERROR_R;
-                    *response_size = 3;
-                }
+                // TODONR: do something more here?
+                *response_cmd = nvmcomm_command+1;
+                *response_size = 3;
             } else {
                 *response_size = 0;
             }
@@ -104,15 +95,10 @@ group_handle_message(u08_t nvmcomm_command,
 
             if (g != NULL) {
                 // Commit update
-                if (commit_update(payload, g) == 0) {
-                    *response_cmd = nvmcomm_command+1;
-                    *response_size = 3;
-                } else {
-                    *response_cmd = NVMCOMM_GROUP_ERROR_R;
-                    *response_size = 3;
-                }
+                commit_update(payload, g);
+                *response_cmd = nvmcomm_command+1;
+                *response_size = 3;
             } else {
-                // No response
                 *response_size = 0;
             }
             break;
@@ -121,28 +107,18 @@ group_handle_message(u08_t nvmcomm_command,
         {
             u08_t gaddr = payload[2];
             group* g = find_group_from_gaddr(gaddr);
-
             nvmcomm_message message;
             construct_commit_message(&message, g);
 
             if (am_i_oracle()) {
                 if (am_i_leader(&oracle)) {
-                    if (two_phase_commit(g, &message) == 0) {
-                        *response_cmd = nvmcomm_command+1;
-                        *response_size = 3;
-                    }
-                    else {
-                        *response_cmd = NVMCOMM_GROUP_ERROR_R;
-                        *response_size = 3;
-                    }
+                    two_phase_commit(g, &message);
+                    *response_cmd = nvmcomm_command+1;
+                    *response_size = 3;
                 } else {
                     // Forward message?
-
-                    // Temporary
-                    *response_size = 0;
                 }
             } else {
-                // No response
                 *response_size = 0;
             }
             break;
@@ -275,60 +251,55 @@ group_init(u08_t flag)
         can_be_oracle = true;
     my_address = nvmcomm_get_node_id();
 
-    // Load from EEPROM
-    group_load();
-    
-    if (!group_loaded) {
-        // Join/Create oracle group
-        for (i=0; i<3 
-                && client_of == NVMCOMM_ADDRESS_NULL; 
-                ++i) {
-            join_oracle();
-            if (client_of != NVMCOMM_ADDRESS_NULL 
-                    || (oracle.view_size > 0 
-                    && get_rank_of(&oracle.views[0], 
-                        my_address) != -1)) {
-    #ifdef DEBUG
-                DEBUGF_GROUP("Joined ORACLE\n");
-    #endif
-                break;
-            }
-        }
 
-        if (!can_be_oracle) {
-            if (found_oracle != NVMCOMM_ADDRESS_NULL 
-                    && client_of == NVMCOMM_ADDRESS_NULL) {
-                for (i=0; i<20 
-                        && (oracle.view_size == 0 
-                            || get_rank_of(&oracle.views[0],
-                                my_address) == -1); 
-                        ++i) {
-    #ifdef DEBUG
-                    DEBUGF_GROUP("Found the ORACLE node %x \
-                            but still trying to connect \
-                            to it\n", found_oracle);
-    #endif
-                    if (client_of == 0)
-                        join_oracle();
-                    else
-                        break;
-                }
-
-                if (client_of == 0 
-                        && (oracle.view_size == 0 
-                            || get_rank_of(&oracle.views[0],
-                                my_address) == -1)) {
-    #ifdef DEBUG
-                    DEBUGF_GROUP("Found the ORACLE node %x \
-                            but can't connect to \
-                            it\n", found_oracle);
-    #endif
-                    return -1;
-                }
-            }
+    // Join/Create oracle group
+    for (i=0; i<3 
+            && client_of == NVMCOMM_ADDRESS_NULL; 
+            ++i) {
+        join_oracle();
+        if (client_of != NVMCOMM_ADDRESS_NULL 
+                || (oracle.view_size > 0 
+                && get_rank_of(&oracle.views[0], 
+                    my_address) != -1)) {
+#ifdef DEBUG
+            DEBUGF_GROUP("Joined ORACLE\n");
+#endif
+            break;
         }
     }
 
+    if (!can_be_oracle) {
+        if (found_oracle != NVMCOMM_ADDRESS_NULL 
+                && client_of == NVMCOMM_ADDRESS_NULL) {
+            for (i=0; i<20 
+                    && (oracle.view_size == 0 
+                        || get_rank_of(&oracle.views[0],
+                            my_address) == -1); 
+                    ++i) {
+#ifdef DEBUG
+                DEBUGF_GROUP("Found the ORACLE node %x \
+                        but still trying to connect \
+                        to it\n", found_oracle);
+#endif
+                if (client_of == 0)
+                    join_oracle();
+                else
+                    break;
+            }
+
+            if (client_of == 0 
+                    && (oracle.view_size == 0 
+                        || get_rank_of(&oracle.views[0],
+                            my_address) == -1)) {
+#ifdef DEBUG
+                DEBUGF_GROUP("Found the ORACLE node %x \
+                        but can't connect to \
+                        it\n", found_oracle);
+#endif
+                return -1;
+            }
+        }
+    }
 
     group_inited = true;
 #ifdef DEBUG
@@ -339,14 +310,6 @@ group_init(u08_t flag)
 }
 
 // Private
-
-void
-group_load()
-{
-    // load group, views
-    // load prepared_proposal
-    group_loaded = true;
-}
 
 int 
 setup_group(group* g)
@@ -609,9 +572,6 @@ phase_send(group* g, nvmcomm_message* message)
 
     // TODONR: would be much better 
     // if it is multicast
-
-    // Assuming every member is within 
-    // communication range
     if (nvmcomm_broadcast(
                 message->command, 
                 message->payload, 
@@ -637,7 +597,7 @@ phase_send(group* g, nvmcomm_message* message)
             && reply == NULL) {
         reply = nvmcomm_wait(
                 10, 
-                (u08_t[]){message->command+1, NVMCOMM_GROUP_ERROR_R}, 
+                (u08_t[]){message->command+1}, 
                 1);
 
         if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
@@ -650,7 +610,6 @@ phase_send(group* g, nvmcomm_message* message)
                         alive_count++;
                     }
                 }
-            } else if (reply->command == NVMCOMM_GROUP_ERROR_R) {
             } else {
                 // Could be other reasons (faults)
                 return -1;
@@ -662,7 +621,7 @@ phase_send(group* g, nvmcomm_message* message)
     note_failure(g, checklist);
 
     // Majority
-    if (alive_count == member_size) {
+    if (alive_count > member_size / 2) {
         return 0;
     } else if (alive_count > member_size / 4) {
         return 1;
@@ -746,7 +705,7 @@ group_send(group* g, nvmcomm_message* message)
             < timeout && reply == NULL) {
         reply = nvmcomm_wait(
                 10, 
-                (u08_t[]){message->command+1, NVMCOMM_GROUP_ERROR_R}, 
+                (u08_t[]){message->command+1}, 
                 1);
 
         // Pick the first reply
@@ -768,7 +727,6 @@ group_send(group* g, nvmcomm_message* message)
                         return 0;
                     break;
                 }
-            } else if (reply->command == NVMCOMM_GROUP_ERROR_R) {
             } else {
                 // Could be other reasons (faults)
                 return -1;
@@ -806,7 +764,7 @@ group_p2psend(group* g, nvmcomm_message* message)
             && reply == NULL) {
         reply = nvmcomm_wait(
                 10, 
-                (u08_t[]){message->command+1, NVMCOMM_GROUP_ERROR_R}, 
+                (u08_t[]){message->command+1}, 
                 1);
 
         if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
@@ -822,7 +780,6 @@ group_p2psend(group* g, nvmcomm_message* message)
                         return 0;
                     break;
                 }
-            } else if (reply->command == NVMCOMM_GROUP_ERROR_R) {
             } else {
                 // Could be other reasons (faults)
                 return -1;
@@ -833,34 +790,8 @@ group_p2psend(group* g, nvmcomm_message* message)
     return -1;
 }
 
-void prepare_update(u08_t* payload, group* g)
+void commit_update(u08_t* payload, group* g)
 {
-#ifdef DEBUG
-    DEBUGF_GROUP("prepare_update: for group %s\n", g->group_name);
-#endif
-    // store to prepared_proposal
-    strcpy(prepared_proposal, payload);
-
-    // store to EEPROM
-
-    if (memcmp(prepared_proposal, payload, sizeof(prepared_proposal)) == 0)
-        return 0;
-    return -1;
-}
-
-int commit_update(u08_t* payload, group* g)
-{
-    if (prepared_proposal == NULL) {
-#ifdef DEBUG
-        DEBUGF_GROUP("commit_update: can't find proposal\n");
-#endif
-        return -1;
-    } else if (memcmp(prepared_proposal, payload, sizeof(prepared_proposal)) != 0) {
-#ifdef DEBUG
-        DEBUGF_GROUP("commit_update: proposal are different\n");
-#endif
-        return -1;
-    }
 #ifdef DEBUG
     DEBUGF_GROUP("commit_update: for group %s\n", g->group_name);
 #endif
@@ -873,22 +804,17 @@ int commit_update(u08_t* payload, group* g)
         u08_t* data = payload + 4+offset+2;
         if (type == V_UPDATE_JOINER) {
             view* v = current_view(g);
-            if (v->member_size == MAX_VIEW_MEMBER_SIZE) {
-                // FULL
+            view new_view = DEFAULT_VIEW;
+            if (v != NULL) {
+                // Copy members
+                memcpy(new_view.members, v->members, v->member_size);
+                new_view.member_size += v->member_size;
             }
-            else {
-                view new_view = DEFAULT_VIEW;
-                if (v != NULL) {
-                    // Copy members
-                    memcpy(new_view.members, v->members, v->member_size);
-                    new_view.member_size += v->member_size;
-                }
-                memcpy(new_view.members+new_view.member_size, data, number_of);
-                new_view.member_size += number_of;
-                memcpy(new_view.joiners+new_view.joiner_size, data, number_of);
-                new_view.joiner_size += number_of;
-                update_view(g, &new_view);
-            }
+            memcpy(new_view.members+new_view.member_size, data, number_of);
+            new_view.member_size += number_of;
+            memcpy(new_view.joiners+new_view.joiner_size, data, number_of);
+            new_view.joiner_size += number_of;
+            update_view(g, &new_view);
         }
         else if (type == V_UPDATE_LEAVER) {
         }
@@ -897,6 +823,4 @@ int commit_update(u08_t* payload, group* g)
 
         offset += number_of + 2; // 0 count, and also 1 for number_of
     }
-
-    return 0;
 }
