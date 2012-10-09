@@ -51,6 +51,8 @@ public class {{ applicationName }} {
     private static void initialiseLocalWuObjects() {
         {%- for object in wuObjects.values() %}
 
+        if (WKPF.isLocalComponent({{ object.getInstanceId() }})) {
+
         {%- if object.getWuClass().isVirtual() %}
 
         // Virtual WuClasses (Java)
@@ -93,6 +95,9 @@ public class {{ applicationName }} {
             {%- endif %}
         {% endfor %}
         {%- endif -%}
+
+        }
+
         {%- endfor %}
     }
 }
