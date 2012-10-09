@@ -159,7 +159,6 @@ class ZwaveAgent(TransportAgent):
         nodes = pyzwave.discover()
         gateway_id = nodes[0]
         total_nodes = nodes[1]
-        nodes = nodes[2:].remove(gateway_id)
          # remaining are the discovered nodes
         return nodes[2:]
 
