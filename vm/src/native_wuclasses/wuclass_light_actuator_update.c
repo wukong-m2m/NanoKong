@@ -13,13 +13,13 @@ void wuclass_light_actuator_update(wkpf_local_wuobject *wuobject) {
   bool onOff;
   wkpf_internal_read_property_boolean(wuobject, WKPF_PROPERTY_LIGHT_ACTUATOR_ON_OFF, &onOff);
 
-  // Connect light to port L, bit 3 (Arduino digital pin 46)
+  // Connect light to port L, bit 4 (Arduino digital pin 45)
   // SETOUPUT
-  DDRL |= _BV(3);
+  DDRL |= _BV(4);
   if (onOff)
-    PORTL |= _BV(3);
+    PORTL |= _BV(4);
   else
-    PORTL &= ~_BV(3);
+    PORTL &= ~_BV(4);
   DEBUGF_WKPFUPDATE("WKPFUPDATE(Light): Setting light to: %x\n", onOff);
 }
 
