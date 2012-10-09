@@ -120,7 +120,7 @@ class WuType:
 #		    return 'wuclass(node %d wuclass %d isvirtual %s)' % (self.nodeId, self.wuClassId, str(self.isVirtual))
 
 class WuProperty:
-    def __init__(self, class_name, name, id, wutype, access, default=None, value=None):
+    def __init__(self, class_name, name, id, wutype, access, default=None, value=None, status=None):
         self._class_name = class_name
         self._name = name  # an unicode for property's name
         self._id = id      # an integer for property's id
@@ -128,6 +128,7 @@ class WuProperty:
         self._access = access
         self._default = default
         self._current_value = value
+        self._property_status = status
 
     def __repr__(self):
         return "WuProperty %s (id=%s, wutype=%s access=%s current_value=%s)" % (self._name, self._id, self._wutype, self._access, str(self._current_value))
@@ -146,6 +147,12 @@ class WuProperty:
 
     def getJavaConstName(self):
         return "PROPERTY_" + Convert.to_constant(self._class_name) + "_" + Convert.to_constant(self._name)
+
+    def getPropertyStatus(self):
+        return self._property_status
+
+    def setPropertyStatus(self, status):
+        self._property_status = status
 
     def hasDefault(self):
         return self._default != None
@@ -171,6 +178,13 @@ class WuProperty:
 
     def getDataType(self):
         return self._wutype.getName()
+
+    def setDataType(self, typeName):
+        print 'set datatype of name %s of property %s' % (typeName, self.getName())
+        if typeName != self._wutype.getName():
+            for wutype in fakedata.all_wutypes:
+                if wutype.getName() == typeName:
+                    self._wutype = copy.deepcopy(wutype)
 
     def getAccess(self):
         return self._access

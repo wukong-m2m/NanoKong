@@ -456,9 +456,9 @@ class monitor_application(tornado.web.RequestHandler):
     if app_ind == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
-    elif not applications[app_ind].mapping_results or not applications[app_ind].deployed:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
+    #elif not applications[app_ind].mapping_results:
+      #self.content_type = 'application/json'
+      #self.write({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
     else:
       #applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
 
