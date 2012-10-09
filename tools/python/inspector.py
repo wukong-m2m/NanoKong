@@ -94,6 +94,10 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
       if property.getName() == name:
         ret_prop = copy.deepcopy(property)
         ret_prop.setCurrentValue(wkpfcommData[0])
+        ret_prop.setDataType(wkpfcommData[1])
+        ret_prop.setPropertyStatus(wkpfcommData[2])
+        ret_prop.setId(propertyNumber)
+
 
   '''
   propertyInfo.value = wkpfcommData[0]
