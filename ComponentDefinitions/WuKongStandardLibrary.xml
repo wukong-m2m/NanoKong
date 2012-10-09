@@ -84,7 +84,7 @@
     </WuClass>
 
     <WuClass name="Numeric_Controller" id="3" virtual="false" type="hard">
-        <property name="output" datatype="short" access="readwrite" default="23" />
+        <property name="output" datatype="short" access="readwrite" default="200" />
     </WuClass>
 
     <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
