@@ -82,16 +82,67 @@ group_handle_message(u08_t nvmcomm_command,
         {
             /*int i;*/
             u08_t gaddr = payload[2];
+            nvmcomm_message message;
             group* g = find_group_from_gaddr(gaddr);
+            view* v = current_view(g);
 
             if (g != NULL) {
                 // Acknowledge
-                if (prepare_update(payload, g) == 0) {
-                    *response_cmd = nvmcomm_command+1;
-                    *response_size = 3;
+                if (am_i_leader(g)) {
+                    construct_commit_message(&message, g);
+                    message->command = NVMCOMM_GROUP_PROPOSE;
+                    phase = phase_send(g, message);
+
+                    if (v->next_group != NVMCOMM_ADDRESS_NULL) {
+                        if (phase < 0) {
+                            *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                            *response_size = 3;
+                        } else if (phase == 1) {
+                            *response_cmd = NVMCOMM_GROUP_FULL_R;
+                            *response_size = 3;
+                        } else {
+                            *response_cmd = nvmcomm_command+1;
+                            *response_size = 3;
+                        }
+                    } else {
+                        // Last component group
+                        if (v->member_size == MAX_VIEW_MEMBER_SIZE) {
+                            // Full membership
+                            // Special algorithm
+                            if (prepare_update(payload, g) == 0) {
+                                *response_cmd = NVMCOMM_GROUP_FULL_R;
+                                *response_size = 3;
+                            } else {
+                                *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                                *response_size = 3;
+                            }
+                        } else {
+                            if (phase < 0) {
+                                *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                                *response_size = 3;
+                            } else {
+                                if (prepare_update(payload, g) == 0) {
+                                    *response_cmd = nvmcomm_command+1;
+                                    *response_size = 3;
+                                } else {
+                                    *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                                    *response_size = 3;
+                                }
+                            }
+                        }
+                    }
                 } else {
-                    *response_cmd = NVMCOMM_GROUP_ERROR_R;
-                    *response_size = 3;
+                    // Non leader
+                    // Last component group
+                    if (v->next_group == NVMCOMM_ADDRESS_NULL) {
+                        if (prepare_update(payload, g) == 0) {
+                            *response_cmd = nvmcomm_command+1;
+                            *response_size = 3;
+                        } else {
+                            *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                            *response_size = 3;
+                        }
+                    }
                 }
             } else {
                 *response_size = 0;
@@ -101,19 +152,54 @@ group_handle_message(u08_t nvmcomm_command,
         case NVMCOMM_GROUP_COMMIT:
         {
             u08_t gaddr = payload[2];
+            nvmcomm_message message;
             group* g = find_group_from_gaddr(gaddr);
+            view* v = current_view(g);
 
             if (g != NULL) {
-                // Commit update
-                if (commit_update(payload, g) == 0) {
-                    *response_cmd = nvmcomm_command+1;
-                    *response_size = 3;
+                // Acknowledge
+                if (am_i_leader(g)) {
+                    construct_commit_message(&message, g);
+                    message->command = NVMCOMM_GROUP_COMMIT;
+                    phase = phase_send(g, message);
+
+                    if (v->next_group != NVMCOMM_ADDRESS_NULL) {
+                        if (phase < 0) {
+                            *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                            *response_size = 3;
+                        } else {
+                            *response_cmd = nvmcomm_command+1;
+                            *response_size = 3;
+                        }
+                    } else {
+                        // Last component group
+                        if (phase < 0) {
+                            *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                            *response_size = 3;
+                        } else {
+                            if (commit_update(payload, g) == 0) {
+                                *response_cmd = nvmcomm_command+1;
+                                *response_size = 3;
+                            } else {
+                                *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                                *response_size = 3;
+                            }
+                        }
+                    }
                 } else {
-                    *response_cmd = NVMCOMM_GROUP_ERROR_R;
-                    *response_size = 3;
+                    // Non leader
+                    // Last component group
+                    if (v->next_group == NVMCOMM_ADDRESS_NULL) {
+                        if (commit_update(payload, g) == 0) {
+                            *response_cmd = nvmcomm_command+1;
+                            *response_size = 3;
+                        } else {
+                            *response_cmd = NVMCOMM_GROUP_ERROR_R;
+                            *response_size = 3;
+                        }
+                    }
                 }
             } else {
-                // No response
                 *response_size = 0;
             }
             break;
@@ -127,9 +213,12 @@ group_handle_message(u08_t nvmcomm_command,
 
             if (am_i_oracle()) {
                 if (am_i_leader(&oracle)) {
-                    if (two_phase_commit(g, &message) == 0) {
+                    int ret = two_phase_commit(g, &message);
+                    if (ret == 0) {
                         *response_cmd = nvmcomm_command+1;
                         *response_size = 3;
+                    }
+                    else if (ret == 1) {
                     }
                     else {
                         *response_cmd = NVMCOMM_GROUP_ERROR_R;
@@ -276,7 +365,7 @@ group_init(u08_t flag)
     my_address = nvmcomm_get_node_id();
 
 
-    // Load from EEPROM
+    // Load saved group membership from EEPROM and prepared_proposal
     group_load();
     
     if (!group_loaded) {
@@ -296,36 +385,35 @@ group_init(u08_t flag)
             }
             
         }
-    }
-
-    if (!can_be_oracle) {
-        if (found_oracle != NVMCOMM_ADDRESS_NULL 
-                && client_of == NVMCOMM_ADDRESS_NULL) {
-            for (i=0; i<20 
-                    && (oracle.view_size == 0 
-                        || get_rank_of(&oracle.views[0],
-                            my_address) == -1); 
-                    ++i) {
+        if (!can_be_oracle) {
+            if (found_oracle != NVMCOMM_ADDRESS_NULL 
+                    && client_of == NVMCOMM_ADDRESS_NULL) {
+                for (i=0; i<20 
+                        && (oracle.view_size == 0 
+                            || get_rank_of(&oracle.views[0],
+                                my_address) == -1); 
+                        ++i) {
 #ifdef DEBUG
-                DEBUGF_GROUP("Found the ORACLE node %x \
-                        but still trying to connect \
-                        to it\n", found_oracle);
+                    DEBUGF_GROUP("Found the ORACLE node %x \
+                            but still trying to connect \
+                            to it\n", found_oracle);
 #endif
-                if (client_of == 0)
-                    join_oracle();
-                else
-                    break;
-            }
-            if (client_of == 0 
-                    && (oracle.view_size == 0 
-                        || get_rank_of(&oracle.views[0],
-                            my_address) == -1)) {
+                    if (client_of == 0)
+                        join_oracle();
+                    else
+                        break;
+                }
+                if (client_of == 0 
+                        && (oracle.view_size == 0 
+                            || get_rank_of(&oracle.views[0],
+                                my_address) == -1)) {
 #ifdef DEBUG
-                DEBUGF_GROUP("Found the ORACLE node %x \
-                        but can't connect to \
-                        it\n", found_oracle);
+                    DEBUGF_GROUP("Found the ORACLE node %x \
+                            but can't connect to \
+                            it\n", found_oracle);
 #endif
-                return -1;
+                    return -1;
+                }
             }
         }
     }
@@ -334,6 +422,11 @@ group_init(u08_t flag)
 #ifdef DEBUG
     DEBUGF_GROUP("Group initialized\n");
 #endif
+
+    // Proposal from last failure
+    if (prepared_proposal) {
+        // TODONR: continue from last state
+    }
 
     return 0;
 }
@@ -414,6 +507,8 @@ initial_view(group* g, address_t joiner_addr)
     new_view.joiners[0] = joiner_addr;
     new_view.joiner_size = 1;
     new_view.leaver_size = 0;
+    new_view.coordinator = NVMCOMM_ADDRESS_NULL;
+    new_view.next_group = NVMCOMM_ADDRESS_NULL;
 
     g->views[0] = new_view;
     g->view_size = 1;
@@ -587,10 +682,9 @@ construct_join_message(nvmcomm_message* message)
     message->payload_length += 1;
 }
 
-// Returns -1 for errors
-// 0 for more than majority replies
-// 1 for less than majority replies
-// 2 for minority replies
+// Returns -1 for missing replies or error
+// 0 for all replies
+// 1 for full membership
 int 
 phase_send(group* g, nvmcomm_message* message)
 {
@@ -607,28 +701,37 @@ phase_send(group* g, nvmcomm_message* message)
             %s\n", g->group_name);
 #endif
 
-    // TODONR: would be much better 
-    // if it is multicast
-
-    // Assuming every member is within 
-    // communication range
-    if (nvmcomm_broadcast(
-                message->command, 
-                message->payload, 
-                message->payload_length) != 0)
-        return -1;
-
     int i;
     view* the_view = current_view(g);
     address_t* members = the_view->members;
+    address_t next_group = current_view(g)->next_group;
     int member_size = the_view->member_size;
 
     int alive_count = 0;
     bool_t checklist[MAX_VIEW_MEMBER_SIZE];
-    int checklist_size = member_size;
+    int checklist_size;
 
-    for (i=0; i<checklist_size; ++i) {
-        checklist[i] = false;
+    if (next_group != NVMCOMM_ADDRESS_NULL) {
+        nvmcomm_send(
+                next_group,
+                message->command,
+                message->payload,
+                message->payload_length);
+    } else {
+        // Last component group
+        address_t members[10];
+        // Multicast to members
+        if (nvmcomm_multicast(
+                    members,
+                    message->command, 
+                    message->payload, 
+                    message->payload_length) != 0)
+            return -1;
+
+        checklist_size = member_size;
+        for (i=0; i<checklist_size; ++i) {
+            checklist[i] = false;
+        }
     }
 
     nvmcomm_message *reply = NULL;
@@ -637,19 +740,25 @@ phase_send(group* g, nvmcomm_message* message)
             && reply == NULL) {
         reply = nvmcomm_wait(
                 10, 
-                (u08_t[]){message->command+1, NVMCOMM_GROUP_ERROR_R}, 
+                (u08_t[]){message->command+1, NVMCOMM_GROUP_FULL_R, NVMCOMM_GROUP_ERROR_R}, 
                 1);
 
         if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
                   && check_sequence_number(reply->payload, message->payload)) {
             // This message a reply to our last sent message
             if(reply->command == message->command+1) {
-                for (i=0; i<member_size; ++i) {
-                    if (reply->from == members[i]) {
-                        checklist[i] = true;
-                        alive_count++;
+                if (next_group != NVMCOMM_ADDRESS_NULL) {
+                    return 0;
+                } else {
+                    for (i=0; i<member_size; ++i) {
+                        if (reply->from == members[i]) {
+                            checklist[i] = true;
+                            alive_count++;
+                        }
                     }
                 }
+            } else if (reply->command == NVMCOMM_GROUP_FULL_R) {
+                return 1;
             } else if (reply->command == NVMCOMM_GROUP_ERROR_R) {
             } else {
                 // Could be other reasons (faults)
@@ -661,13 +770,10 @@ phase_send(group* g, nvmcomm_message* message)
     // Note failure nodes
     note_failure(g, checklist);
 
-    // Majority
-    if (alive_count == member_size) {
+    if (alive_count == checklist_size) {
         return 0;
-    } else if (alive_count > member_size / 4) {
-        return 1;
     } else {
-        return 2;
+        return 1;
     }
 }
 
@@ -704,23 +810,19 @@ two_phase_commit(group* g, nvmcomm_message* message)
     message->command = NVMCOMM_GROUP_PROPOSE;
     phase = phase_send(g, message);
 
-    if (phase == 0) {
+    if (phase < 0) {
+#ifdef DEBUG
+        DEBUGF_GROUP("two_phase_commit: \
+                2pc protocol for group \
+                %s has failed\n", g->group_name);
+#endif
+        return -1;
+    } else {
         // Second phase
         message->command = NVMCOMM_GROUP_COMMIT;
         phase = phase_send(g, message);
-        if (phase == 0) {
-            return 0;
-        }
-    } else if (phase == 1) {
-    } else if (phase == 2) {
+        return phase;
     }
-
-#ifdef DEBUG
-    DEBUGF_GROUP("two_phase_commit: \
-            2pc protocol for group \
-            %s has failed\n", g->group_name);
-#endif
-    return -1;
 }
 
 // Assuming message has sequence number
@@ -841,7 +943,7 @@ int prepare_update(u08_t* payload, group* g)
     // store to prepared_proposal
     strcpy(prepared_proposal, payload);
 
-    // store to EEPROM
+    // TODONR:store to EEPROM
 
     if (memcmp(prepared_proposal, payload, sizeof(prepared_proposal)) == 0)
         return 0;
@@ -877,6 +979,7 @@ int commit_update(u08_t* payload, group* g)
             view* v = current_view(g);
             if (v->member_size == MAX_VIEW_MEMBER_SIZE) {
                 // FULL
+                v->next_group = data;
             }
             else {
                 view new_view = DEFAULT_VIEW;
@@ -899,6 +1002,8 @@ int commit_update(u08_t* payload, group* g)
 
         offset += number_of + 2; // 0 count, and also 1 for number_of
     }
+
+    // TODONR:store to EEPROM
 
     return 0;
 }

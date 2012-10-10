@@ -92,8 +92,6 @@ typedef struct group {
     address_t group_addr;
     view views[MAX_VIEW_LIST_SIZE];
     int view_size;
-
-    bool_t is_primary;
 } group;
 
 //// View
