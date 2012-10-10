@@ -8,20 +8,24 @@
     </script>
     <script type="text/javascript" src="/static/js/topbar.js"></script>
 
-    <button id="back">Back</button>
-    <button id="save">Save</button>
+    <button class="btn btn-info" id="back">Back</button>
+    <!--<button id="save">Save</button>-->
 
-    <div class=status>
-      <img class=activating>{{ application.getStatus() }}
-    </div>
+    <!--<div class=status>-->
+      <!--<img class=activating>{{ application.getStatus() }}-->
+    <!--</div>-->
 
     <p>
-      <form class=form-inline>
-        <label>Name</label>
-        <input id="name" value="{{ application.name }}" />
-        <label>Description</label>
-        <input id="desc" value="{{ application.desc }}" />
-      </form>
+      <h1>{{ title }}</h1>
+      <h2>{{ application.name }}</h2>
+      <small>{{ application.desc }}</small>
+      
+      <!--<form class=form-inline>-->
+        <!--<label>Name</label>-->
+        <!--<input id="name" value="{{ application.name }}" />-->
+        <!--<label>Description</label>-->
+        <!--<input id="desc" value="{{ application.desc }}" />-->
+      <!--</form>-->
       
       <!--<p>-->
         <!--<label>ID</label>-->
@@ -39,4 +43,3 @@
 
     </p>
 </div>
-<hr>

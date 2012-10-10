@@ -20,8 +20,8 @@ Block.prototype.init=function() {
 	this.div.css('cursor','pointer');
 	this.div.css('background-color','#00ff00');
 	this.div.attr('class','block');
-	this.setPosition(100,100);
-	this.setSize(50,50);
+	this.setPosition(Math.floor((Math.random()*200)+100),Math.floor((Math.random()*200)+100));
+	this.setSize(100,100);
 	this.location = '';
 	this.signals=[];
 	this.actions=[];
@@ -73,14 +73,15 @@ Block.prototype.draw=function() {
 	var pos = this.getPosition();
 	var size = this.getSize();
 	this.div.empty();
+    this.div.append('<span style="line-height: 1000%; font-size: 50%;">' + this.type + '</span>');
 	for(i=0;i<this.signals.length;i++) {
 		this.div.append('<div class=signal id=signal_'+this.id+'_'+i+'>');
-		$('#signal_'+this.id+'_'+i).css('position','absolute').css('width',30).css('height',15).css('left',size[0]).css('top',i*15);
+		$('#signal_'+this.id+'_'+i).css('position','absolute').css('width',60).css('height',30).css('left',size[0]).css('top',i*30);
 		$('#signal_'+this.id+'_'+i).html(this.signals[i].name);
 	}
 	for(i=0;i<this.actions.length;i++) {
 		this.div.append('<div class=signal id=action_'+this.id+'_'+i+'>');
-		$('#action_'+this.id+'_'+i).css('position','absolute').css('width',30).css('height',15).css('left',-30).css('top',i*15);
+		$('#action_'+this.id+'_'+i).css('position','absolute').css('width',60).css('height',30).css('left',-60).css('top',i*30);
 		$('#action_'+this.id+'_'+i).html(this.actions[i].name);
 	}
 }
