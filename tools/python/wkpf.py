@@ -182,7 +182,7 @@ class WuProperty:
     def setDataType(self, typeName):
         print 'set datatype of name %s of property %s' % (typeName, self.getName())
         if typeName != self._wutype.getName():
-            for wutype in fakedata.all_wutypes:
+            for wutype in all_wutypes:
                 if wutype.getName() == typeName:
                     self._wutype = copy.deepcopy(wutype)
 
