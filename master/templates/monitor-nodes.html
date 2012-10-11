@@ -64,6 +64,19 @@
                 });
             });
         });
+
+        {% for node_info in node_infos %}
+
+        $('#node{{ node_info.nodeId }}').click(function(e) {
+            e.preventDefault();
+
+            console.log('click');
+            $('#myModal .modal-header').html('Node Info');
+            $('#myModal .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
+        });
+        //$('#node{{ node_info.nodeId }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
+
+        {% end %}
     </script>
 </div>
 
