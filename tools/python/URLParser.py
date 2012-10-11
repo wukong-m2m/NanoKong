@@ -8,7 +8,7 @@ from wkpf import WuClass, WuObject, NodeInfo
 from locationTree import *
 
 
-class LocationParseTreeNode(object):
+class LocationParseTreeNode:
 	def __init__(self, contentStr):
 		self.function = None
 		self.childCnt = 0
@@ -16,7 +16,7 @@ class LocationParseTreeNode(object):
 		self.children = []
 		self.contentStr = contentStr
 		
-class LocationURL(object):
+class LocationURL:
 	locationTreeNode = None
 	def __init__(self, urlStr, locationTree):
 		self.urlStr = urlStr
@@ -145,7 +145,7 @@ class LocationURL(object):
 		self._createNodeIdSet()
 	
 	
-class URLFunction(object):
+class URLFunction:
 	def __init__(self, name, locationTreeNode):
 		self.name = name
 		self.func = None
@@ -160,13 +160,13 @@ class URLFunction(object):
 if __name__ == "__main__":
 	locTree = LocationTree("Boli_Building")
 	loc0 = "Boli_Building/3F/South_Corridor/Room318"
-	loc1 = "Boli_Building/3F/South_Corridor/Room318"
-	loc2 = "Boli_Building/3F/South_Corridor/Room318"
+	loc1 = "Boli_Building/3F/N_Corridor/Room318"
+	loc2 = "Boli_Building/2F/South_Corridor/Room318"
 	loc3 = "Boli_Building/3F/South_Corridor/Room318"
-	senNd0 = SensorNode(locTree.parseLocation(loc0), NodeInfo(0, [], []), 0, 1, 1)
-	senNd1 = SensorNode(locTree.parseLocation(loc1), NodeInfo(1, [], []), 0, 1, 3)
-	senNd2 = SensorNode(locTree.parseLocation(loc2), NodeInfo(2, [], []), 1, 1, 2)
-	senNd3 = SensorNode(locTree.parseLocation(loc3), NodeInfo(3, [], []), 4, 4, 2)
+	senNd0 = SensorNode(NodeInfo(0, [], [],loc0), 0, 1, 1)
+	senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 1, 3)
+	senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 1, 1, 2)
+	senNd3 = SensorNode(NodeInfo(3, [], [], loc3), 4, 4, 2)
 	locTree.addSensor(locTree.root, senNd0)
 	locTree.addSensor(locTree.root, senNd1)
 	locTree.addSensor(locTree.root, senNd2)
