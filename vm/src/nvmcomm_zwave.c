@@ -65,14 +65,14 @@ int SerialAPI_request(unsigned char *buf, int len);
 
 bool addr_nvmcomm_to_zwave(address_t nvmcomm_addr, uint8_t *zwave_addr) {
     // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
-    if (nvmcomm_addr>63)
+    if (nvmcomm_addr>=128)
         return false;
     *zwave_addr = nvmcomm_addr;
     return true;
 }
 
 bool addr_zwave_to_nvmcomm(address_t *nvmcomm_addr, uint8_t zwave_addr) {
-    if (zwave_addr>63)
+    if (zwave_addr>=128)
         return false;
     *nvmcomm_addr = zwave_addr;
     return true;
