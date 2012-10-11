@@ -18,6 +18,7 @@ FLOWXML_DIR = $(ROOT_DIR)/Applications
 COMPONENTXML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
 CODEGEN_PATH = $(ROOT_DIR)/tools/python/codegen.py
 NVMCOMM_REPROGRAM = $(ROOT_DIR)/tools/python/reprogram.py
+TEST_PATH = $(ROOT_DIR)/vm/tests
 
 # general GCC compiler flags
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
@@ -32,6 +33,8 @@ OBJDUMP = $(PREFIX)avr-objdump
 CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
 
 CLDFLAGS += -Wl,--gc-sections,-Tavr4_nanokong.x,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
+
+CHECK_OBJS = $(addprefix $(TEST_PATH)/,check_group.o)
 
 # build intel hex files
 all: NanoVM.hex NanoVM_eeprom.hex NanoVM_NRWWsection.hex
@@ -95,6 +98,12 @@ avrdude1280: NanoVM.hex NanoVM_eeprom.hex
 avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
 	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 	screen $(PORT) 115200
+
+$(TEST_PATH)/%.o: $(TEST_PATH)/%.c Makefile
+	$(COMPILE-CMD)
+
+check: $(CHECK_OBJS)
+	$(CC) $(CLDFLAGS) -o $@_nanokong $(OBJS)
 
 clean: deep_clean
 	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
