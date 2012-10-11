@@ -62,15 +62,17 @@ function application_fillList(r)
         var appentry = $('<tr class=listitem></tr>');
 
         var name = $('<td class=appname id=appname'+i+'></td>');
-        name.html('<a app_id="' + r[i].id + '" href="#">' + r[i].name + '</a>');
+        //name.html('<a app_id="' + r[i].id + '" href="#">' + r[i].name + '</a>');
+        name.html('<b app_id="' + r[i].id + '"><i>' + r[i].name + '</i></b>');
 
         var index = i;
         name.click(function() {
-            var app_id = $(this).find('a').attr('app_id')
+            //var app_id = $(this).find('a').attr('app_id');
+            var app_id = $(this).find('b').attr('app_id');
             $('#content').empty();
             $.post('/applications/' + app_id, function(data) {
                 // injecting script to create application interface
-                content_scaffolding(data.topbar, $('<iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>'));
+                content_scaffolding(data.topbar, $('<div class="img-rounded" style="height: 100%; padding: 10px;"><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe></div>'));
 
                 //$('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>');
                 //$('#topbar #back').click(function() {
@@ -97,7 +99,7 @@ function application_fillList(r)
                 css: { border: '3px solid #a00' } 
             }); 
 
-            $.get('/applications/' + id, function(data) {
+            $.get('/applications/' + id, {title: "Monitoring"}, function(data) {
                 if (data.status == 1) {
                     alert(data.mesg);
                 } else {
@@ -127,7 +129,7 @@ function application_fillList(r)
                 css: { border: '3px solid #a00' } 
             }); 
 
-            $.get('/applications/' + id, function(data) {
+            $.get('/applications/' + id, {title: "Deployment"}, function(data) {
                 if (data.status == 1) {
                     alert(data.mesg);
                 } else {

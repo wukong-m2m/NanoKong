@@ -305,8 +305,11 @@ class application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
+      title = ""
+      if self.get_argument('title'):
+        title = self.get_argument('title')
       app = applications[app_ind].config()
-      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind])
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind], title=title)
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
 
@@ -320,7 +323,7 @@ class application(tornado.web.RequestHandler):
     else:
       app = applications[app_ind].config()
       #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
-      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind])
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind], title="Flow Based Programming")
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
 
@@ -462,6 +465,7 @@ class monitor_application(tornado.web.RequestHandler):
     else:
       #applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
 
+      #properties_json = {}
       properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
       print properties_json
 
