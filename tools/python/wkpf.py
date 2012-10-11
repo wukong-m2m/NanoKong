@@ -414,3 +414,7 @@ def parseXMLString(xml_string, **kwargs):
 
 def parseXML(xml_path, **kwargs):
     return parseXMLString(open(xml_path).read(), **kwargs)
+
+rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
+all_wutypes = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml"), type='wutype').values()
