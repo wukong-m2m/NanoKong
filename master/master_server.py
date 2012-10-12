@@ -660,5 +660,5 @@ ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
   configuration.readConfig()
   update_applications()
-  app.listen(5000)
+  app.listen(MASTER_PORT)
   ioloop.start()
