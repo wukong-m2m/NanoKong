@@ -107,10 +107,12 @@ function application_fillList(r)
         // solution against lazy evaluation
         var id = r[i].id;
 
-        var monitor = $('<button class=appmonitor id=appmonitor'+i+'></button>');
-        var deploy = $('<button class=appdeploy id=appdeploy'+i+'></button>');
-        var remove = $('<button class=appdel id=appdel'+i+'></button>');
+        //var monitor = $('<button class=appmonitor id=appmonitor'+i+'></button>');
+        //var deploy = $('<button class=appdeploy id=appdeploy'+i+'></button>');
+        //var remove = $('<button class=appdel id=appdel'+i+'></button>');
+        var remove = $('<button class=close id=appdel'+i+'>&times;</button>');
 
+/*
         monitor.click(function() {
             $('#content').empty();
             var topbar;
@@ -169,8 +171,8 @@ function application_fillList(r)
                     });
                 }
             });
-
         });
+*/
 
         remove.click(function() {
             $.ajax({
@@ -186,8 +188,8 @@ function application_fillList(r)
             });
         });
 
-        act.append(monitor);
-        act.append(deploy);
+        //act.append(monitor);
+        //act.append(deploy);
         act.append(remove);
 
         appentry.append(name);
