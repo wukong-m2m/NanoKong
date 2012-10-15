@@ -368,11 +368,11 @@ class deploy_application(tornado.web.RequestHandler):
     try:
       # Discovery results
       # TODO: persistent store
-      #comm = getComm()
-      #node_infos = comm.getAllNodeInfos()
+      comm = getComm()
+      node_infos = comm.getAllNodeInfos()
 
       # debug purpose
-      node_infos = fakedata.node_infos
+      #node_infos = fakedata.node_infos
 
       app_ind = getAppIndex(app_id)
       if app_ind == None:
