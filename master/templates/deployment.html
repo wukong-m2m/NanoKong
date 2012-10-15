@@ -3,16 +3,17 @@
     <div class=row-fluid>
         <div class="span12">
 
-            <button id="map">Map</button>
-            <button {% if not mapping_results %}disabled="disabled"{% end %} id="deploy">Deploy</button>
-
             <div class=tabbable>
                 <ul class="nav nav-pills">
-                    <li class="active"><a href="#log" data-toggle="tab">Log</a></li>
+                    <li class="active"><a href="#fbp" data-toggle="tab">FBP</a></li>
+                    <li><a href="#log" data-toggle="tab">Log</a></li>
                     <li><a href="#nodes" data-toggle="tab">Nodes</a></li>
                     <li><a href="#mapping_results" data-toggle="tab">Map results</a></li>
                 </ul>
                 <div class=tab-content>
+                    <div class="tab-pane active" id="fbp">
+                        <div class="img-rounded" style="height: 100%; padding: 10px;"><iframe width="800" height="600" src="/applications/{{ app_id }}/fbp/load"></iframe></div>
+                    </div>
                     {% include "monitor-log.html" %}
                     {% include "monitor-nodes.html" %}
                     {% include "monitor-mapping-results.html" %}
