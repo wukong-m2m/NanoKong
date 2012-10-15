@@ -24,7 +24,7 @@
                     {{ len(node_info.wuClasses) }} WuClasses and {{ len(node_info.wuObjects) }} WuObjects
                 </td>
                 <td>
-                    <a role=button id=node{{ node_info.nodeId }} data-toggle=modal href='#myModal' class='btn more'>Node info (click me for more info)</button>
+                    <a role=button id=node{{ node_info.nodeId }} data-toggle=modal href='#myModal' class='btn more'>More info</button>
                 </td>
             </tr>
             {% end %}
@@ -37,10 +37,10 @@
         $(function() {
             $('#refresh').click(function() {
                 console.log('refresh nodes');
-                $('#nodes').block({ 
+                $('#nodes').block({
                     message: '<h1>Processing</h1>',
-                    css: { border: '3px solid #a00' } 
-                }); 
+                    css: { border: '3px solid #a00' }
+                });
                 $.post('/nodes/refresh', function(data) {
                     $('#nodes').unblock();
                     $('#nodes').html(data.nodes);
@@ -54,7 +54,7 @@
                 $.ajax('/nodes/' + nodeId, {
                     type: 'PUT',
                     dataType: 'json',
-                    data: {location: $.trim($(this).prev().val())}, 
+                    data: {location: $.trim($(this).prev().val())},
                     success: function(data) {
                         //data = JSON.parse(data);
                         if (data.status == 1) {
