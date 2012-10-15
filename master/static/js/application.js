@@ -67,17 +67,38 @@ function application_fillList(r)
 
         var index = i;
         name.click(function() {
-            //var app_id = $(this).find('a').attr('app_id');
+            var topbar;
             var app_id = $(this).find('b').attr('app_id');
-            $('#content').empty();
-            $.post('/applications/' + app_id, function(data) {
-                // injecting script to create application interface
-                content_scaffolding(data.topbar, $('<div class="img-rounded" style="height: 100%; padding: 10px;"><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe></div>'));
 
-                //$('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>');
-                //$('#topbar #back').click(function() {
-                    //application_fill();
-                //});
+            $('#content').empty();
+            $('#content').block({
+                message: '<h1>Processing</h1>',
+                css: { border: '3px solid #a00' }
+            });
+
+            $.post('/applications/' + app_id, function(data) {
+                if (data.status == 1) {
+                    alert(data.mesg);
+                    application_fill();
+                } else {
+                    // injecting script to create application interface
+                    //content_scaffolding(data.topbar, $('<div class="img-rounded" style="height: 100%; padding: 10px;"><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe></div>'));
+                    //$('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>');
+
+                    topbar = data.topbar;
+                    $.get('/applications/' + id + '/deploy', function(data) {
+                        if (data.status == 1) {
+                            alert(data.mesg);
+                            application_fill();
+                        } else {
+                            // injecting script to create application interface
+                            page = $(data.page);
+                            console.log(page);
+                            content_scaffolding(topbar, page);
+                            $('#content').unblock();
+                        }
+                    });
+                }
             });
         });
 
@@ -94,10 +115,10 @@ function application_fillList(r)
             $('#content').empty();
             var topbar;
 
-            $('#content').block({ 
+            $('#content').block({
                 message: '<h1>Processing</h1>',
-                css: { border: '3px solid #a00' } 
-            }); 
+                css: { border: '3px solid #a00' }
+            });
 
             $.get('/applications/' + id, {title: "Monitoring"}, function(data) {
                 if (data.status == 1) {
@@ -124,10 +145,10 @@ function application_fillList(r)
             $('#content').empty();
             var topbar;
 
-            $('#content').block({ 
+            $('#content').block({
                 message: '<h1>Processing</h1>',
-                css: { border: '3px solid #a00' } 
-            }); 
+                css: { border: '3px solid #a00' }
+            });
 
             $.get('/applications/' + id, {title: "Deployment"}, function(data) {
                 if (data.status == 1) {
@@ -154,7 +175,7 @@ function application_fillList(r)
         remove.click(function() {
             $.ajax({
                 type: 'delete',
-                url: '/applications/' + id, 
+                url: '/applications/' + id,
                 success: function(data) {
                     if (data.status == 1) {
                         alert(data.mesg);
@@ -196,7 +217,7 @@ function application_setupButtons(i, id)
     $('#appdel'+i).click(function() {
         $.ajax({
             type: 'delete',
-            url: '/applications/' + id, 
+            url: '/applications/' + id,
             success: function(data) {
                 if (data.status == 1) {
                     alert(data.mesg);
@@ -338,7 +359,7 @@ function poll(url, version, options)
 
         // TODO:mapping_results too
         // TODO:node infos too
-        
+
         if (forceRepeat) {
             console.log('repeat');
         } else {

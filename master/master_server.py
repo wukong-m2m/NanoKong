@@ -313,7 +313,6 @@ class application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
 
-  # Not used currently
   # Display a specific application
   def post(self, app_id):
     app_ind = getAppIndex(app_id)
@@ -369,18 +368,18 @@ class deploy_application(tornado.web.RequestHandler):
     try:
       # Discovery results
       # TODO: persistent store
-      comm = getComm()
-      node_infos = comm.getAllNodeInfos()
+      #comm = getComm()
+      #node_infos = comm.getAllNodeInfos()
 
       # debug purpose
-      #node_infos = fakedata.node_infos
+      node_infos = fakedata.node_infos
 
       app_ind = getAppIndex(app_id)
       if app_ind == None:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results)
+        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], app_id=app_id, node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results)
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
 
@@ -523,7 +522,7 @@ class save_fbp(tornado.web.RequestHandler):
 class load_fbp(tornado.web.RequestHandler):
   def get(self, app_id):
     self.render('templates/fbp.html')
-  
+
   def post(self, app_id):
     global applications
     app_ind = getAppIndex(app_id)

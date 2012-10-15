@@ -1,4 +1,6 @@
 <div class="tab-pane" id="mapping_results">
+    <button id="map">Map</button>
+    <button {% if not mapping_results %}disabled="disabled"{% end %} id="deploy">Deploy</button>
     <table class="table">
         <thead>
             <tr>
