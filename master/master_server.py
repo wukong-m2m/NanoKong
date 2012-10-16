@@ -368,18 +368,18 @@ class deploy_application(tornado.web.RequestHandler):
     try:
       # Discovery results
       # TODO: persistent store
-      comm = getComm()
-      node_infos = comm.getAllNodeInfos()
+      #comm = getComm()
+      #node_infos = comm.getAllNodeInfos()
 
       # debug purpose
-      #node_infos = fakedata.node_infos
+      node_infos = fakedata.node_infos
 
       app_ind = getAppIndex(app_id)
       if app_ind == None:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], app_id=app_id, node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results)
+        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], app_id=app_id, node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results, set_location=False)
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
 
@@ -585,7 +585,15 @@ class include_testrtt(tornado.web.RequestHandler):
 
 class testrtt(tornado.web.RequestHandler):
   def get(self):
-    testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the include or exclude button on the nodes.'])
+    # Discovery results
+    # TODO: persistent store
+    comm = getComm()
+    node_infos = comm.getAllNodeInfos()
+
+    # debug purpose
+    #node_infos = fakedata.node_infos
+
+    testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True)
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
 
@@ -596,7 +604,10 @@ class refresh_nodes(tornado.web.RequestHandler):
     print 'after getComm()'
     node_infos = comm.getAllNodeInfos(force=True)
 
-    nodes = template.Loader(os.getcwd()).load('templates/monitor-nodes.html').generate(node_infos=node_infos)
+    # default is false
+    set_location = self.get_argument('set_location', False)
+
+    nodes = template.Loader(os.getcwd()).load('templates/monitor-nodes.html').generate(node_infos=node_infos, set_location=set_location)
 
     self.content_type = 'application/json'
     self.write({'status':0, 'nodes': nodes})

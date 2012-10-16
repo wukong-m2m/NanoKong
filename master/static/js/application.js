@@ -5,25 +5,24 @@ $(document).ready(function() {
 
 function application_init()
 {
-    $('#menu #appadd').click(function() {
-        $.post('/applications/new', function(data) {
-            if (data.status == '1') {
-                alert(data.mesg);
-            }
-            else {
-                application_fill();
-            }
-        });
+    window.options = {repeat: false};
+    $('#application').click(function() {
+        $('#node-editor').parent().removeClass('active');
+        $('#application').parent().addClass('active');
+        window.options.repeat = false;
+        application_fill();
     });
 
-    $('#menu #zwave').click(function() {
+    $('#node-editor').click(function() {
+        $('#node-editor').parent().addClass('active');
+        $('#application').parent().removeClass('active');
+        window.options.repeat = false;
         $.get('/testrtt', function(data) {
             if (data.status == '1') {
                 alert(data.mesg);
             }
             else {
                 $('#content').html(data.testrtt);
-                setup_testrtt();
             }
         });
     });
@@ -33,6 +32,8 @@ function application_init()
 
 function application_fill()
 {
+    $('#content').empty();
+    $('#content').append($('<p><button id="appadd" class="btn btn-primary">Add new application</button></p>'));
     $.ajax({
         url: '/applications',
         type: 'POST',
@@ -41,12 +42,17 @@ function application_fill()
             application_fillList(r);
         }
     });
-}
 
-function content_scaffolding(topbar, editor)
-{
-    $('#content').append(topbar);
-    $('#content').append(editor);
+    $('#appadd').click(function() {
+        $.post('/applications/new', function(data) {
+            if (data.status == '1') {
+                alert(data.mesg);
+            }
+            else {
+                application_fill();
+            }
+        });
+    });
 }
 
 function application_fillList(r)
@@ -56,7 +62,6 @@ function application_fillList(r)
     var m = $('#content');
     var obj, act;
 
-    m.empty();
     applist = $('<table id=applist></table>');
     for(i=0; i<len; i++) {
         var appentry = $('<tr class=listitem></tr>');
@@ -201,6 +206,13 @@ function application_fillList(r)
     m.append(applist);
 }
 
+function content_scaffolding(topbar, editor)
+{
+    $('#content').append(topbar);
+    $('#content').append(editor);
+}
+
+
 /*
 function application_setupButtons(i, id)
 {
@@ -296,51 +308,6 @@ function deploy_poll(id, version)
     });
 }
 */
-
-function setup_testrtt()
-{
-    var options = {repeat: true};
-    // testrtt page
-    $('#content #back').click(function() {
-        application_fill();
-        options.repeat = false;
-    });
-
-
-    $('#content #include').click(function() {
-        console.log('include');
-        options.repeat = true;
-        $('#log').html('<h4>The basestation is ready to include devices.</h4>');
-        $.post('/testrtt/include', function(data) {
-            $('#log').append('<pre>' + data.log + '</pre>');
-        });
-    });
-
-    $('#content #exclude').click(function() {
-        console.log('exclude');
-        options.repeat = true;
-        $('#log').html('<h4>The basestation is ready to exclude devices.</h4>');
-        $.post('/testrtt/exclude', function(data) {
-            $('#log').append('<pre>' + data.log + '</pre>');
-        });
-    });
-
-    $('#content #stop').click(function() {
-        console.log('stop');
-        options.repeat = true;
-        $('#log').html('<h4>The basestation is stopped from adding/deleting devices.</h4>');
-        $.post('/testrtt/stop', function(data) {
-            $('#log').append('<pre>' + data.log + '</pre>');
-        });
-    });
-
-    function testrtt_poll()
-    {
-        poll('/testrtt/poll', 0, options);
-    }
-
-    testrtt_poll();
-}
 
 // might have to worry about multiple calls :P
 function poll(url, version, options)
