@@ -65,7 +65,6 @@
             });
         });
 
-        {% if set_location %}
         $('.set-location').click(function() {
             var nodeId = $.trim($(this).closest('tr').find('#nodeId').text());
             console.log(nodeId);
@@ -82,7 +81,6 @@
                 }
             });
         });
-        {% end %}
     });
 
     {% for node_info in node_infos %}
