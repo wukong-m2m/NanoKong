@@ -1,12 +1,30 @@
-<button id="back">Back</button>
-<button id="include">Include</button>
-<button id="exclude">Exclude</button>
-<button id="stop">Stop</button>
+<script type="text/javascript" src="/static/js/testrtt.js"></script>
 
-<pre id="log">
-{% for l in log %}
-{{ l }}
-{% end %}
-</pre>
+<div id='wrapper'>
+    <div class=row-fluid>
+        <div class="span12">
+            <div class=tabbable>
+                <ul class="nav nav-pills">
+                    <li class="active"><a href="#testrtt" data-toggle="tab">Adding/Removing Nodes</a></li>
+                    <li><a href="#nodes" data-toggle="tab">Node location</a></li>
+                </ul>
+                <div class=tab-content>
+                    <div class="tab-pane" id="nodes">
+                        {% include "monitor-nodes.html" %}
+                    </div>
+                    <div class="tab-pane active" id="testrtt">
+                        <button id="include">Add nodes</button>
+                        <button id="exclude">Remove nodes</button>
+                        <button id="stop">Stop to complete operation</button>
 
-</p>
+                        <pre id="log">
+                        {% for l in log %}
+                        {{ l }}
+                        {% end %}
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
