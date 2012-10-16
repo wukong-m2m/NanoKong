@@ -18,7 +18,7 @@ $(function() {
         });
     });
 
-    $('a#mapping_results-btn').click(function() {
+    $('a#mapping_results-btn').click(function(e) {
         $.post('/applications/' + current_application + '/deploy/map', function(data) {
             // Already an object
             console.log(data)
@@ -40,20 +40,19 @@ $(function() {
                     var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
                     $table.append(compiled(result));
                 });
-
-                poll('/applications/' + current_application + '/poll', 0, window.options);
             }
         });
     });
 
     // Actually deploy
-    $('a#log-btn').click(function() {
+    $('a#log-btn').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
 
         $.post('/applications/' + current_application + '/deploy', function(data) {
             // Already an object
-            console.log(data)
+            console.log('deploy');
+            console.log(data);
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
