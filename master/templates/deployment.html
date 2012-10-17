@@ -1,104 +1,47 @@
-<div id='wrapper'>
+<script>
+    var current_application = "{{ app.id }}";
+</script>
+<script type="text/javascript" src="/static/js/deployment.js"></script>
 
+<div id='wrapper'>
     <div class=row-fluid>
         <div class="span12">
-
-            <button id="map">Map</button>
-            <button {% if not mapping_results %}disabled="disabled"{% end %} id="deploy">Deploy</button>
-
             <div class=tabbable>
                 <ul class="nav nav-pills">
-                    <li class="active"><a href="#log" data-toggle="tab">Log</a></li>
-                    <li><a href="#nodes" data-toggle="tab">Nodes</a></li>
-                    <li><a href="#mapping_results" data-toggle="tab">Map results</a></li>
+                    <li class="active"><a href="#fbp" data-toggle="tab">FBP editor</a></li>
+                    <li class="disabled"><a href="#policy" data-toggle="tab">User policy editor</a></li>
+                    <li><a href="#deploy" data-toggle="tab">Deployment</a></li>
                 </ul>
                 <div class=tab-content>
-                    {% include "monitor-log.html" %}
-                    {% include "monitor-nodes.html" %}
-                    {% include "monitor-mapping-results.html" %}
+                    <div class="tab-pane active" id="fbp">
+                        <div class="img-rounded" style="height: 100%; padding: 10px;"><iframe width="800" height="600" src="/applications/{{ app_id }}/fbp/load"></iframe></div>
+                    </div>
+                    <div class="tab-pane" id="policy">
+                        <h1>Under construction</h1>
+                    </div>
+                    <div class="tab-pane" id="deploy">
+
+                        <div class=tabbable>
+                            <ul class="nav nav-pills">
+                                <li><a id="nodes-btn" class="btn btn-primary" href="#nodes" data-toggle="tab">Discover</a></li>
+                                <li><a id="mapping_results-btn" class="btn btn-primary" href="#mapping_results" data-toggle="tab">Map</a></li>
+                                <li><a id="log-btn" class="btn btn-primary" href="#log" data-toggle="tab">Deploy</a></li>
+                            </ul>
+                            <div class=tab-content>
+                                <div class="tab-pane" id="nodes">
+                                    {% include "monitor-nodes.html" %}
+                                </div>
+                                <div class="tab-pane" id="mapping_results">
+                                    {% include "monitor-mapping-results.html" %}
+                                </div>
+                                <div class="tab-pane" id="log">
+                                    {% include "monitor-log.html" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3 id="myModalLabel">Modal header</h3>
-            </div>
-            <div class="modal-body">
-                <p>One fine body…</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-            </div>
-        </div>
-
     </div>
-
-
-    <script>
-        $(function() {
-
-            var current_application = "{{ app.id }}";
-            var repeat = {repeat: true};
-
-            $('#myModal').hide();
-
-            $('#log a').click(function(e) {
-                e.preventDefault();
-                $(this).tab('show');
-            });
-
-            $('#nodes a').click(function(e) {
-                e.preventDefault();
-                $(this).tab('show');
-            });
-
-            $('#map').click(function() {
-                $.post('/applications/' + current_application + '/deploy/map', function(data) {
-                    // Already an object
-                    console.log(data)
-                    if (data.status == 1) {
-                        alert(data.mesg);
-                    } else {
-                        var $table = $('#mapping_results table tbody');
-                        $table.empty();
-
-                        console.log(data.mapping_results);
-                        if (data.mapping_results) {
-                            $('#deploy').removeAttr('disabled');
-                        }
-                        else {
-                            $('#deploy').attr('disabled', 'disabled');
-                        }
-
-                        _.each(data.mapping_results, function(result) {
-                            var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
-                            $table.append(compiled(result));
-                        });
-
-                        poll('/applications/' + current_application + '/poll', 0, repeat);
-                    }
-                });
-            });
-
-            $('#deploy').click(function() {
-                $.post('/applications/' + current_application + '/deploy', function(data) {
-                    // Already an object
-                    console.log(data)
-                    if (data.status == 1) {
-                        alert(data.mesg);
-                    } else {
-                        poll('/applications/' + current_application + '/poll', 0, repeat);
-                    }
-                });
-            });
-
-            $('#back').click(function() {
-                // repeat is an object with one key 'repeat', or poll will be pass-by-value and therefore can't be stopped
-                repeat.repeat = false;
-            });
-
-        });
-    </script>
 </div>

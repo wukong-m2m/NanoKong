@@ -55,6 +55,7 @@ body > table {
     display: inline;
 }
 
+/*
 .appmonitor {
 	background-image: url('/static/images/monitor.png');
 	width:36px; height:36px;
@@ -67,10 +68,12 @@ body > table {
 	background-image: url('/static/images/del.png');
 	width:36px; height:36px;
 }
+*/
 
 .appname {
     padding: 10px;
     width:100%;
+    cursor: pointer;
 }
 
 .appact {
