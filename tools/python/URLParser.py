@@ -55,8 +55,8 @@ class LocationURL:
 	
 	connector_lst=[ "|", "&", "~"]
 	connector_dict = {"|":[getUnion,2], "&":[getIntersect,2], "~":[negate,1]}  #for DNF(disjunctive norm form expression), function call and num of variables
-	funct_dict = {"near":near, "exact":exact}
-	
+	funct_dict = {"near":near, "exact":exact, "getAll":getAll}
+
 	
 		
 	def _isFuncParameter(self, numStr):
@@ -74,20 +74,19 @@ class LocationURL:
 	def _genFunction(self,functionStr):
 		tmpLst = functionStr.split('(')
 		func_name = tmpLst[0].strip()
-		foo = URLFunction(func_name, self.locationTreeNode)
 		if self._isFuncName(func_name) == False:
 			print "Error while parsing url:" + self.urlStr +", no function named "+ func_name+" found!"
-		try:
-			foo.func = self.funct_dict[func_name]
-		except KeyError:
-			print "No function named"+ func_name+" found"
 			return None
-		foo.args += tmpLst[1].strip(" ),").split(',')
+		foo = URLFunction(func_name, self.funct_dict[func_name], self.locationTreeNode)
+		argStr = tmpLst[1].strip(" ),")
+		if len(argStr)>0:
+			foo.args += argStr.split(',')
+		print foo.args
 		return foo
 	
-	#parameters: str --- string to be analysis, connector_id ---- seq. of connector in connector_lst
+	#parameters: str --- string to be analysis, connector_id ---- seq. of connector in connector_lst, treeNode --- parseTreeNode to start with
 	def _buildParseTree(self, treeNode, connector_id):
-		if connector_id >= len(self.connector_lst):		#parse to single functions
+		if connector_id >= len(self.connector_lst):		#has gone through all connectors, begin parse each part to single function
 			if len(treeNode.contentStr)>0:
 				funct = self._genFunction(treeNode.contentStr)
 				treeNode.function = funct
@@ -96,11 +95,11 @@ class LocationURL:
 				return -1
 
 		location = treeNode.contentStr.find(self.connector_lst[connector_id])
-		if location == -1:
+		if location == -1:		#cannot find desired connector, proceed to find the next connector
 			self._buildParseTree(treeNode, connector_id+1)
 		else:
 			treeNode.operation = self.connector_lst[connector_id]
-			if location != 0:
+			if location != 0:			#desired connector is in the middle of the string, go into the first and last half respectively
 				treeNode.children.append(LocationParseTreeNode(treeNode.contentStr[:location]))
 				print treeNode.contentStr[:location], connector_id
 				self._buildParseTree(treeNode.children[-1], connector_id+1)
@@ -109,8 +108,11 @@ class LocationURL:
 			self._buildParseTree(treeNode.children[-1], connector_id)
 		
 			
-	def solveParseTree(self, treeNode):
+	def solveParseTree(self, treeNode = None):
+		if treeNode == None:
+			treeNode = self.parseTreeRoot
 		if treeNode.function!=None:
+			print treeNode.function.toString()
 			return treeNode.function.runFunction()
 		if self.connector_dict[treeNode.operation][1] == 1:	#unary op
 			return self.connector_dict[treeNode.operation][0](self.locationTreeNode, self.solveParseTree(treeNode.children[0]))
@@ -134,26 +136,38 @@ class LocationURL:
 	
 	#be able to parse sth like near(0,1,2)
  	def parseURL(self):
+		if self.urlStr == None:
+			self.urlStr = self.locationTree.root.name + "#" + "getAll()"
 		tmpStrLst = self.urlStr.split('#')
 		if(len(tmpStrLst)>2):
 			print "Error while parsing url:" + self.urlStr +", more than one # found!"
 			return False
-		if self.urlStr != None:
-			self.locationTreeNode = self.locationTree.findLocation(self.locationTree.root, tmpStrLst[0])
+		if len(tmpStrLst)==1:
+			tmpStrLst.append("getAll()")
+		self.locationTreeNode = self.locationTree.findLocation(self.locationTree.root, tmpStrLst[0])
+		if self.locationTreeNode == None:
+			print "Error Location not right"
+			return False
 		self._parse2Functions(tmpStrLst[1])
-		
 		self._createNodeIdSet()
 	
 	
 class URLFunction:
-	def __init__(self, name, locationTreeNode):
+	def __init__(self, name, func, locationTreeNode):
 		self.name = name
-		self.func = None
+		self.func = func
 		self.args = [locationTreeNode]
 	def addParameter(self, para):
 		self.args += para
 	def runFunction(self):
 		return self.func(*self.args)
+	def toString(self):
+		stri = self.name+"("
+		for i in range(len(self.args)-1):
+			if len(self.args[i+1])>0:	#there are cases the parameter is an empty string which means no parameter at all
+				stri = stri + str(self.args[i+1])+","
+		stri = stri + ")"
+		return stri
 		
 
 
@@ -167,16 +181,16 @@ if __name__ == "__main__":
 	senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 1, 3)
 	senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 1, 1, 2)
 	senNd3 = SensorNode(NodeInfo(3, [], [], loc3), 4, 4, 2)
-	locTree.addSensor(locTree.root, senNd0)
-	locTree.addSensor(locTree.root, senNd1)
-	locTree.addSensor(locTree.root, senNd2)
-	locTree.addSensor(locTree.root, senNd3)
+	locTree.addSensor(senNd0)
+	locTree.addSensor(senNd1)
+	locTree.addSensor(senNd2)
+	locTree.addSensor(senNd3)
 	locTree.printTree(locTree.root, 0)
-	query = "Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)&~near(1,1,3,1)|exact(0)"
+	query = "Boli_Building/#getAll()"
 	locURLHandler = LocationURL(query, locTree)
 	locURLHandler.parseURL()
 #	print locURLHandler.locationTreeNode.sensorLst
-	print locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
+	print locURLHandler.solveParseTree()
 	
 	
 

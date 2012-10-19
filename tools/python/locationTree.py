@@ -1,5 +1,6 @@
 #the children of leaf nodes are sensor nodes, sensor nodes
 
+import logging
 from wkpf import NodeInfo, WuClass, WuObject
 
 class SensorNode:
@@ -72,6 +73,16 @@ class LocationTreeNode:
 		for child in self.children:
 			ret_val = ret_val | child.getAllNodes()
 		return ret_val
+	
+	def toString(self, indent = 0):
+		print_str = ""
+		for i in range(indent):
+			print_str  = print_str + "\t"
+		print_str = print_str + self.name + "#"
+		for i in range(len(self.sensorLst)):
+			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
+		return print_str
+		
 		
 class LocationTree:
 		
@@ -83,7 +94,7 @@ class LocationTree:
 	
 	def delSensor(self, sensorId):
 		if sensorId not in self.sensor_dict:
-			print("Node",sensorId," not in location tree, deletion ignored")
+			logging.info("Node",sensorId," not in location tree, deletion ignored")
 		sensorNode = self.sensor_dict[sensorId]
 		locTreeNode = sensorNode.locationTreeNode
 		
@@ -91,27 +102,27 @@ class LocationTree:
 		del self.sensor_dict[sensorId]
 		self.totalSensorCount = self.totalSensorCount - 1
 		#delete unnecessary branches in the tree (del branches with no sensor node)
-		print (locTreeNode.sensorCnt)
 		while locTreeNode.sensorCnt == 0:
 			pa = locTreeNode.parent
-			print(pa.name)
 			if pa != None:
 				pa.delChild(locTreeNode)
 			del locTreeNode
 			locTreeNode = pa
-			print(pa.name, pa.sensorCnt, pa.childrenCnt)
 
 
 	#insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
-	def addSensor(self, startPos, sensorNd):
+	def addSensor(self, sensorNd, startPos = None ):
+		#print startPos
+		if startPos == None:
+			startPos = self.root
 		if sensorNd.nodeInfo.nodeId in self.sensor_dict:
-			if  sensorNd.NodeInfo.location == sensor_dict[sensorNd.nodeInfo.nodeId].location:
-				print("Node",sensorNd.nodeInfo.nodeId," already inserted, insertion ignore")
+			if  sensorNd.nodeInfo.location == sensor_dict[sensorNd.nodeInfo.nodeId].location:
+				logging.info("Node",sensorNd.nodeInfo.nodeId," already inserted, insertion ignore")
 				return False
 			else: #sensor node location needs to be updated, delete the original inserted SensorNd first
 				self.delSensor(sensorNd.nodeInfo.nodeId)
 		if startPos.name != sensorNd.locationLst[0]:
-			raise Exception("error! location: "+ str(sensorNd.locationLst[0])+ " is not a valid value")
+			logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " does not match " + startPos.name)
 			return False
 		curPos = startPos
 		for i in range(1, len(sensorNd.locationLst)):
@@ -137,8 +148,9 @@ class LocationTree:
 	
 	def findLocation(self, startPos, locationStr):
 		locationLst =  self.parseLocation(locationStr)
+		print locationLst
 		if startPos.name != locationLst[0]:
-			print("error! location: "+ str(sensorNd.locationLst[0])+ " is not a valid value")
+			logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " is not a valid value")
 			return None
 		curPos = startPos
 		for i in range(1, len(locationLst)):
@@ -156,19 +168,21 @@ class LocationTree:
 		return curPos
 	@staticmethod
 	def parseLocation (locationStr):
-		return locationStr.split('/')
+		locationLst = locationStr.split('/')
+		for loc in locationLst:
+			if len(loc) == 0:
+				locationLst.remove(loc)
+				
+		return locationLst
 	
-	def printTreeNode(self, treeNd, indent):
-		print_str = ""
-		for i in range(indent):
-			print_str  = print_str + "\t"
-		print_str = print_str + treeNd.name + "#"
-		for i in range(len(treeNd.sensorLst)):
-			print_str = print_str + str(treeNd.sensorLst[i].nodeInfo.nodeId) +str(treeNd.sensorLst[i].coord)+", "
-		print(print_str)
+
 	
-	def printTree(self, treeNd, indent = 0):
-		self.printTreeNode(treeNd, indent)
+	def printTree(self, treeNd=None, indent = 0):
+		str = ""
+		if treeNd ==None:
+			treeNd = self.root
+		str += treeNd.toString(indent)
+		print (str)
 		for i in range(treeNd.childrenCnt):
 			self.printTree(treeNd.children[i], indent+1)
 
@@ -185,13 +199,14 @@ if __name__ == "__main__":
 	senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 5, 3)
 	senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 3, 3, 2)
 	senNd3 = SensorNode(NodeInfo(3, [], [], loc3), 2, 1, 2)
-	locTree.addSensor(locTree.root, senNd0)
-	locTree.addSensor(locTree.root, senNd1)
-	locTree.addSensor(locTree.root, senNd2)
-	locTree.addSensor(locTree.root, senNd3)
+	
+	print(locTree.addSensor(senNd0, locTree.root))
+	locTree.addSensor(senNd1)
+	locTree.addSensor(senNd2)
+	locTree.addSensor(senNd3)
 	locTree.printTree(locTree.root, 0)
 	locTree.delSensor(1)
-	locTree.printTree(locTree.root, 0)
+	locTree.printTree()
 	
 	
 			
