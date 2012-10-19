@@ -53,9 +53,9 @@ class LocationURL:
 	def getAll(locationTreeNode):
 	    return locationTreeNode.getAllNodes()
 	
-	connector_lst=[ "|", "&", "~"]
-	connector_dict = {"|":[getUnion,2], "&":[getIntersect,2], "~":[negate,1]}  #for DNF(disjunctive norm form expression), function call and num of variables
-	funct_dict = {"near":near, "exact":exact, "getAll":getAll}
+	connector_lst=[ u"|", u"&", u"~"]
+	connector_dict = {u"|":[getUnion,2], u"&":[getIntersect,2], u"~":[negate,1]}  #for DNF(disjunctive norm form expression), function call and num of variables
+	funct_dict = {u"near":near, u"exact":exact, u"getAll":getAll}
 
 	
 		
@@ -137,13 +137,13 @@ class LocationURL:
 	#be able to parse sth like near(0,1,2)
  	def parseURL(self):
 		if self.urlStr == None:
-			self.urlStr = self.locationTree.root.name + "#" + "getAll()"
-		tmpStrLst = self.urlStr.split('#')
+			self.urlStr = self.locationTree.root.name + u"#" + u"getAll()"
+		tmpStrLst = self.urlStr.split(u'#')
 		if(len(tmpStrLst)>2):
 			print "Error while parsing url:" + self.urlStr +", more than one # found!"
 			return False
 		if len(tmpStrLst)==1:
-			tmpStrLst.append("getAll()")
+			tmpStrLst.append(u"getAll()")
 		self.locationTreeNode = self.locationTree.findLocation(self.locationTree.root, tmpStrLst[0])
 		if self.locationTreeNode == None:
 			print "Error Location not right"
@@ -172,11 +172,11 @@ class URLFunction:
 
 
 if __name__ == "__main__":
-	locTree = LocationTree("Boli_Building")
-	loc0 = "Boli_Building/3F/South_Corridor/Room318"
-	loc1 = "Boli_Building/3F/N_Corridor/Room318"
-	loc2 = "Boli_Building/2F/South_Corridor/Room318"
-	loc3 = "Boli_Building/3F/South_Corridor/Room318"
+	locTree = LocationTree(u"Boli_Building")
+	loc0 = u"Boli_Building/3F/South_Corridor/Room318"
+	loc1 = u"Boli_Building/3F/N_Corridor/Room318"
+	loc2 = u"Boli_Building/2F/South_Corridor/Room318"
+	loc3 = u"Boli_Building/3F/South_Corridor/Room318"
 	senNd0 = SensorNode(NodeInfo(0, [], [],loc0), 0, 1, 1)
 	senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 1, 3)
 	senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 1, 1, 2)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 	locTree.addSensor(senNd2)
 	locTree.addSensor(senNd3)
 	locTree.printTree(locTree.root, 0)
-	query = "Boli_Building/#getAll()"
+	query = u"Boli_Building/#getAll()"
 	locURLHandler = LocationURL(query, locTree)
 	locURLHandler.parseURL()
 #	print locURLHandler.locationTreeNode.sensorLst

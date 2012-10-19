@@ -16,7 +16,7 @@ class SensorNode:
 		if len(self.port_list)!=0 and forceInit == False:
 			return
 		for wuObj in self.nodeInfo.wuObjects:
-			self.port_list.append(wuObj.portNumber)
+			self.port_list.append(wuObj.getPortNumber())
 		self.port_list.sort()
 	def reserveNextPort(self):
 		portSet = False
@@ -168,7 +168,7 @@ class LocationTree:
 		return curPos
 	@staticmethod
 	def parseLocation (locationStr):
-		locationLst = locationStr.split('/')
+		locationLst = locationStr.split(u'/')
 		for loc in locationLst:
 			if len(loc) == 0:
 				locationLst.remove(loc)
@@ -190,11 +190,11 @@ class LocationTree:
 	
 
 if __name__ == "__main__":
-	locTree = LocationTree("Boli_Building")
-	loc0 = "Boli_Building/3F/South_Corridor"
-	loc1 = "Boli_Building/2F/South_Corridor/Room318"
-	loc2 = "Boli_Building/3F/East_Corridor/Room318"
-	loc3 = "Boli_Building/3F/East_Corridor/Room318"
+	locTree = LocationTree(u"Boli_Building")
+	loc0 = u"Boli_Building/3F/South_Corridor"
+	loc1 = u"Boli_Building/2F/South_Corridor/Room318"
+	loc2 = u"Boli_Building/3F/East_Corridor/Room318"
+	loc3 = u"Boli_Building/3F/East_Corridor/Room318"
 	senNd0 = SensorNode(NodeInfo(0,[], [], loc0), 0, 1, 2)
 	senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 5, 3)
 	senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 3, 3, 2)
