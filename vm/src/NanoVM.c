@@ -45,6 +45,10 @@
 #include "tests/test_wkpf.h"
 #endif
 
+#ifdef TEST_GROUP
+#include "tests/test_group.h"
+#endif
+
 // hooks for init routines
 
 #include "native_impl.h"
@@ -85,6 +89,10 @@ int main(int argc, char **argv) {
 
 #ifdef TEST_WKPF
   test_wkpf();
+#endif
+
+#ifdef TEST_GROUP
+  test_group();
 #endif
 
 #ifdef NVM_USER_GROUP

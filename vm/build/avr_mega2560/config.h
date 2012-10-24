@@ -33,6 +33,8 @@
 //#define TEST_WKPF // General WKPF test support
 #endif
 
+//#define TEST_GROUP // Virtual Synchrony test support
+
 // vm setup
 #undef NVM_USE_STACK_CHECK      // enable check if method returns empty stack
 #define NVM_USE_ARRAY           // enable arrays
