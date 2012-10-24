@@ -90,6 +90,31 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
   return retval;
 }
 
+int nvmcomm_multicast(address_t* dests, u08_t dest_size, u08_t nvc3_command, u08_t *payload, u08_t length) {
+  if (length > NVMCOMM_MESSAGE_SIZE) {
+    DEBUGF_COMM("message oversized\n");
+    return -2; // Message too large
+  }
+  int retval = 0;
+  int i;
+  DEBUGF_COMM("nvmcomm_multicast\n");
+#ifdef NVM_USE_COMMZWAVE
+  for (i=0; i<dest_size; i++) {
+    int ret = nvmcomm_zwave_send(dests[i], nvc3_command, payload, length, TRANSMIT_OPTION_AUTO_ROUTE);
+    if (ret < 0)
+        retval = ret;
+  }
+#endif
+#ifdef NVM_USE_COMMXBEE
+  for (i=0; i<dest_size; i++) {
+    int ret = nvmcomm_xbee_send(dests[i], nvc3_command, payload, length, 0);
+    if (ret < 0)
+        retval = ret;
+  }
+#endif
+  return retval;
+}
+
 int nvmcomm_broadcast(u08_t nvc3_command, u08_t *payload, u08_t length) {
   if (length > NVMCOMM_MESSAGE_SIZE) {
     DEBUGF_COMM("message oversized\n");
