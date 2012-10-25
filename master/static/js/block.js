@@ -20,7 +20,7 @@ Block.prototype.init=function() {
 	this.div.css('cursor','pointer');
 	this.div.css('background-color','#00ff00');
 	this.div.attr('class','block');
-	this.setPosition(100,100);
+	this.setPosition(250,50);
 	this.setSize(50,50);
 	this.location = '';
 	this.signals=[];
@@ -116,7 +116,7 @@ Block.prototype.findActionPos=function(s) {
 Block.prototype.getActions=function() {
 	return this.actions;
 }
-
+//addできない
 Block.prototype.attach=function(parent) {
 	parent.append(this.div);
 	this.div.draggable();
@@ -150,6 +150,7 @@ Block.prototype.attach=function(parent) {
 	this.draw();
 }
 
+//linkが作れない
 Block.prototype.enableContextMenu=function(b) {
 	if (b) {
 		var self = this;
@@ -216,6 +217,7 @@ Block.getClass=function(name) {
 	return Block.classes[name];
 }
 
+//propertyが表示されない
 Block.getpx=function(v) {
 	var index = v.indexOf('px');
 	if (index >= 0) 
@@ -224,6 +226,7 @@ Block.getpx=function(v) {
 		return parseInt(v);
 }
 
+//linkのoutput先が得られない
 Block.prototype.getBounds=function() {
 	var pos = this.getPosition();
 	var size = this.getSize();
@@ -235,6 +238,7 @@ Block.prototype.getBounds=function() {
 	return bounds;
 }
 
+//linkのoutput先が得られない
 Block.hitTest=function(x,y) {
 	var i;
 
@@ -253,7 +257,7 @@ Block.hitTest=function(x,y) {
 	return null;
 }
 
-
+//locationの入力画面がmain画面に表示される
 $(document).ready(function() {
 	$('#propertyeditor').dialog({autoOpen:false});
 });

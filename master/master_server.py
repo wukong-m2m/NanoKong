@@ -51,6 +51,21 @@ IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
 applications = []
 
+#######################
+# KatsunoriSato added #
+#######################
+from make_js import make_main
+from make_fbp import fbp_main
+def import_wuXML():
+	test = make_main()
+	test.make()
+	
+def make_FBP():
+	test_1 = fbp_main()
+	test_1.make()	
+
+#######################
+
 # Helper functions
 def allowed_file(filename):
   return '.' in filename and \
@@ -96,17 +111,16 @@ def update_applications():
   application_basenames = [os.path.basename(app.dir) for app in applications]
 
   for dirname in os.listdir(APP_DIR):
-    app_dir = os.path.join(APP_DIR, dirname)
-    print app_dir
-    if dirname.lower() == 'base': continue
-    if not os.path.isdir(app_dir): continue
+		app_dir = os.path.join(APP_DIR, dirname)
+		print app_dir
+		if dirname.lower() == 'base': continue
+		if not os.path.isdir(app_dir): continue
 
-    if dirname not in application_basenames:
-      print 'not found'
-      print repr(dirname)
-      print repr(application_basenames)
-      applications.append(load_app_from_dir(app_dir))
-      application_basenames = [os.path.basename(app.dir) for app in applications]
+		if dirname not in application_basenames:
+			print repr(dirname)
+			print repr(application_basenames)
+			applications.append(load_app_from_dir(app_dir))
+			application_basenames = [os.path.basename(app.dir) for app in applications]
 
 def getPropertyValuesOfApp(mapping_results, property_names):
   print 'getPropertyValuesOfApp'
@@ -518,7 +532,7 @@ class save_fbp(tornado.web.RequestHandler):
 
 class load_fbp(tornado.web.RequestHandler):
   def get(self, app_id):
-    self.render('templates/fbp.html')
+		self.render('templates/fbp.html')
   
   def post(self, app_id):
     global applications
@@ -654,7 +668,9 @@ app = tornado.web.Application([
 
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
-  configuration.readConfig()
-  update_applications()
-  app.listen(5000)
-  ioloop.start()
+	configuration.readConfig()
+	update_applications()
+	app.listen(5000)
+#	import_wuXML()	#KatsunoriSato added
+#	make_FBP()
+	ioloop.start()

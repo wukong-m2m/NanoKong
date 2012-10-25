@@ -1,3 +1,4 @@
+
 <html>
 	<head>
 		<link type="text/css" href="/static/css/smoothness/jquery-ui-1.8.21.custom.css" rel="stylesheet" />
@@ -18,32 +19,43 @@
 		<script type="text/javascript" src="/static/js/lightactuator.js"></script>
 		<script type="text/javascript" src="/static/js/numericcontroller.js"></script>
 		<script type="text/javascript" src="/static/js/flowlist.js"></script>
+		<script type="text/javascript" src="/static/js/test/temperature_sensor.js"></script>
+		<script type="text/javascript" src="/static/js/test/light_actuator.js"></script>
+		<script type="text/javascript" src="/static/js/test/loop_delay_boolean.js~"></script>
+		<script type="text/javascript" src="/static/js/test/occupancy_sensor.js"></script>
+		<script type="text/javascript" src="/static/js/test/loop_delay_short.js~"></script>
+		<script type="text/javascript" src="/static/js/test/loop_delay_short.js"></script>
+		<script type="text/javascript" src="/static/js/test/lightsensor.js~"></script>
+		<script type="text/javascript" src="/static/js/test/Loop_delay_boolean.js~"></script>
+		<script type="text/javascript" src="/static/js/test/light_sensor.js"></script>
+
 	</head>
 	<body scrolling="no">
-		<canvas id=canvas style="position:absolute; left:0; top:50;" height=600 width=800></canvas>
+		<canvas id=canvas style="position:absolute; left:100; top:50;" height=600 width=800></canvas>
 		<div id=client></div>
 		<canvas id=canvastop style="position:absolute; left:0; top:50;" height=600 width=800></canvas>
 		<div id=connection>
-			<table>
-				<tr><td>From</td></tr>
-				<tr>
-					<td><select id=connection_src></select></td>
-				</tr>
-				<tr><td>To</td></tr>
-				<tr>
-					<td><select id=connection_act></select></td>
-
-				</tr>
-			</table>
+		<table>
+		<tr><td>From</td></tr>
+		<tr>
+		<td><select id=connection_src></select></td>
+		</tr>
+		<tr><td>To</td></tr>
+		<tr>
+		<td><select id=connection_act></select></td>
+		</tr>
+		</table>
 		</div>
 		<div id=msg style="position:absolute;background-color:#ffff00"></div>
 		<div id=fileloader>
-			<input type=text id=fileloader_file></input>
+		<input type=text id=fileloader_file></input>
 		</div>
 		<div id=propertyeditor>
-			<div> Location </div>
-			<input type=text id=propertyeditor_location></input>
+		<div> Location </div>
+		<input type=text id=propertyeditor_location></input>
 		</div>
-    <div id="progress"><div id="compile_status"></div><div id="normal"></div><div id="critical_error"></div><div id="urgent_error"></div></div>
+		<div id="progress"><div id="compile_status"></div>
+		<div id="normal"></div><div id="critical_error"></div>
+		<div id="urgent_error"></div></div>
 	</body>
 </html>
