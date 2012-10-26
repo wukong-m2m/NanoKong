@@ -111,16 +111,17 @@ def update_applications():
   application_basenames = [os.path.basename(app.dir) for app in applications]
 
   for dirname in os.listdir(APP_DIR):
-		app_dir = os.path.join(APP_DIR, dirname)
-		print app_dir
-		if dirname.lower() == 'base': continue
-		if not os.path.isdir(app_dir): continue
+    app_dir = os.path.join(APP_DIR, dirname)
+    print app_dir
+    if dirname.lower() == 'base': continue
+    if not os.path.isdir(app_dir): continue
 
-		if dirname not in application_basenames:
-			print repr(dirname)
-			print repr(application_basenames)
-			applications.append(load_app_from_dir(app_dir))
-			application_basenames = [os.path.basename(app.dir) for app in applications]
+    if dirname not in application_basenames:
+      print 'not found'
+      print repr(dirname)
+      print repr(application_basenames)
+      applications.append(load_app_from_dir(app_dir))
+      application_basenames = [os.path.basename(app.dir) for app in applications]
 
 def getPropertyValuesOfApp(mapping_results, property_names):
   print 'getPropertyValuesOfApp'
@@ -319,12 +320,14 @@ class application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
+      title = ""
+      if self.get_argument('title'):
+        title = self.get_argument('title')
       app = applications[app_ind].config()
-      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind])
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind], title=title)
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
 
-  # Not used currently
   # Display a specific application
   def post(self, app_id):
     app_ind = getAppIndex(app_id)
@@ -334,7 +337,7 @@ class application(tornado.web.RequestHandler):
     else:
       app = applications[app_ind].config()
       #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
-      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind])
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind], title="Flow Based Programming")
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app, 'topbar': topbar})
 
@@ -380,18 +383,18 @@ class deploy_application(tornado.web.RequestHandler):
     try:
       # Discovery results
       # TODO: persistent store
-      comm = getComm()
-      node_infos = comm.getAllNodeInfos()
+      #comm = getComm()
+      #node_infos = comm.getAllNodeInfos()
 
       # debug purpose
-      #node_infos = fakedata.node_infos
+      node_infos = fakedata.node_infos
 
       app_ind = getAppIndex(app_id)
       if app_ind == None:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results)
+        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], app_id=app_id, node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results, set_location=False)
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
 
@@ -470,12 +473,13 @@ class monitor_application(tornado.web.RequestHandler):
     if app_ind == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
-    elif not applications[app_ind].mapping_results or not applications[app_ind].deployed:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
+    #elif not applications[app_ind].mapping_results or not applications[app_ind].deployed:
+      #self.content_type = 'application/json'
+      #self.write({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
     else:
       #applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
 
+      #properties_json = {}
       properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
       print properties_json
 
@@ -532,8 +536,8 @@ class save_fbp(tornado.web.RequestHandler):
 
 class load_fbp(tornado.web.RequestHandler):
   def get(self, app_id):
-		self.render('templates/fbp.html')
-  
+    self.render('templates/fbp.html')
+
   def post(self, app_id):
     global applications
     app_ind = getAppIndex(app_id)
@@ -596,7 +600,15 @@ class include_testrtt(tornado.web.RequestHandler):
 
 class testrtt(tornado.web.RequestHandler):
   def get(self):
-    testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the include or exclude button on the nodes.'])
+    # Discovery results
+    # TODO: persistent store
+    comm = getComm()
+    node_infos = comm.getAllNodeInfos()
+
+    # debug purpose
+    #node_infos = fakedata.node_infos
+
+    testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True)
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
 
@@ -607,7 +619,10 @@ class refresh_nodes(tornado.web.RequestHandler):
     print 'after getComm()'
     node_infos = comm.getAllNodeInfos(force=True)
 
-    nodes = template.Loader(os.getcwd()).load('templates/monitor-nodes.html').generate(node_infos=node_infos)
+    # default is false
+    set_location = self.get_argument('set_location', False)
+
+    nodes = template.Loader(os.getcwd()).load('templates/monitor-nodes.html').generate(node_infos=node_infos, set_location=set_location)
 
     self.content_type = 'application/json'
     self.write({'status':0, 'nodes': nodes})
@@ -670,7 +685,7 @@ ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
 	configuration.readConfig()
 	update_applications()
-	app.listen(5000)
-#	import_wuXML()	#KatsunoriSato added
-#	make_FBP()
+	app.listen(MASTER_PORT)
+	import_wuXML()	#KatsunoriSato added
+	make_FBP()
 	ioloop.start()

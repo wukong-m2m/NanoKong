@@ -41,7 +41,7 @@ uint32_t addrTable[NUM_ADDR][2] = {
 #endif
 };
 uint8_t payload[NVMCOMM_MESSAGE_SIZE+1];
-#define BASE_ADDR 64
+#define BASE_ADDR 128
 
 void (*nvmcomm_xbee_callback)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 
@@ -948,7 +948,7 @@ XBeeResponse* getXBeeResponse(void* response, uint8_t apiId)
 
 bool addr_nvmcomm_to_xbee(address_t addr, uint32_t *msb, uint32_t *lsb)
 {
-    // Temporary: addresses <64 are ZWave, addresses >=64 are XBee
+    // Temporary: addresses <128 are ZWave, addresses >=128 are XBee
     if (addr<BASE_ADDR)
       return false;
     addr -= BASE_ADDR;

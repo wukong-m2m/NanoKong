@@ -387,7 +387,9 @@ class Mapper:
         self.application.setOutputDir(os.path.join(rootpath, 'java', 'examples'))
         jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
         output = open(os.path.join(self.application.destinationDir, self.application.applicationName+".java"), 'w')
-        output.write(jinja2_env.get_template('application.java').render(applicationName=self.application.applicationName, wuObjects=self.application.wuObjects, wuLinks=self.application.wuLinks))
+        wuObjects = sorted(self.application.wuObjects.values(), key=lambda obj: obj.getInstanceIndex())
+
+        output.write(jinja2_env.get_template('application.java').render(applicationName=self.application.applicationName, wuObjects=wuObjects, wuLinks=self.application.wuLinks))
         output.close()
 
 

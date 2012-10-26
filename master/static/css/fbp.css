@@ -6,11 +6,15 @@
 .signal {
 	background-color:#ffff00;
 	border: 1px solid #000000;
-	font-size: 6px
+    font-family:"Trebuchet MS", Helvetica, sans-serif !important; 
+    font-size: 10pt !important; 
+    word-wrap: break-word !important;
 
 }
 .action {
 	background-color:#ffff00;
 	border: 1px solid #000000;
-	font-size: 6px
+    font-family:"Trebuchet MS", Helvetica, sans-serif !important; 
+    font-size: 10pt !important; 
+    word-wrap: break-word !important;
 }

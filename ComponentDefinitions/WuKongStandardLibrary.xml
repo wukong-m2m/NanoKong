@@ -28,7 +28,7 @@
     </WuClass>
 
     <WuClass name="Threshold" id="1" virtual="true" type="soft">
-        <property name="operator" datatype="ThresholdOperator" access="readwrite" default="gt" />
+        <property name="operator" datatype="ThresholdOperator" access="readwrite" default="lt" />
         <property name="threshold" datatype="short" access="readwrite" default="30" />
         <property name="value" datatype="short" access="readwrite" default="20" />
         <property name="output" datatype="boolean" access="readonly" default="false" />
@@ -84,7 +84,7 @@
     </WuClass>
 
     <WuClass name="Numeric_Controller" id="3" virtual="false" type="hard">
-        <property name="output" datatype="short" access="readwrite" default="23" />
+        <property name="output" datatype="short" access="readwrite" default="200" />
     </WuClass>
 
     <WuClass name="Light_Sensor" id="5" virtual="false" type="hard">
@@ -103,7 +103,7 @@
     </WuClass>
 
     <WuClass name="Light_Actuator" id="4" virtual="false" type="hard">
-        <property name="on_off" datatype="boolean" access="readwrite" default="true" />
+        <property name="on_off" datatype="boolean" access="readwrite" default="false" />
     </WuClass>
 
     <WuClass name="Occupancy_Sensor" id="0x1005" virtual="true" type="soft">

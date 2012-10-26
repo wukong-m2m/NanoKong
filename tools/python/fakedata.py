@@ -5,9 +5,7 @@ rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
 all_wutypes = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml"), type='wutype').values()
 
-node_infos = [NodeInfo(nodeId=3,
-                wuClasses=all_wuclasses,
-                wuObjects=[])]
+node_infos = []
 
 locTree = LocationTree("Boli_Building")
 '''

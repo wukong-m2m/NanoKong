@@ -34,8 +34,7 @@ $(document).ready(function() {
     $('#toolbar_save').click(function() {
         FBP_save();
     });
-    
-    /* originally comment out
+    /*
     toolbar.append('<button id=toolbar_load>Load</button>');
     $('#toolbar_load').click(function() {
     FBP_load();
@@ -74,6 +73,7 @@ function FBP_fillBlockType(div)
 {
     var blocks = Block.getBlockTypes();
     var i;
+
     for(i=0;i<blocks.length;i++) {
 //       div.append('<option val='+blocks[i]+'>'+blocks[i]+'</option>');
        div.append('<option val='+blocks[i]+' onclick=FBP_addBlock()>'+blocks[i]+'</option>');
@@ -92,17 +92,24 @@ function FBP_addBlock()
 
 function FBP_delBlock()
 {
-    for(i=0;i<g_nodes;i++) {
+	if (Block.current == null) return;
+    for(i=0;i<g_nodes.length;i++) {
         if (g_nodes[i].id == Block.current.id) {
-            g_nodes[i].splice(i,1);
-            break;           
+            g_nodes.splice(i,1);
+            break;
         }
     }
-    //if the block has links, the links need to be deleted.
+	var new_lines = [];
+    for(i=0;i<g_lines.length;i++) {
+		if ((g_lines[i].source.id != Block.current.id)&&
+		    (g_lines[i].dest.id != Block.current.id)) {
+			new_lines.push(g_lines[i]);
+		}
+	}
+	g_lines = new_lines;
+	FBP_refreshLines();
     Block.current.div.remove();
     Block.current = null;
-    
-//    g_lines.splice(g_lines.length-1,1);
 }
 
 function FBP_refreshLines()

@@ -94,6 +94,10 @@ def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
       if property.getName() == name:
         ret_prop = copy.deepcopy(property)
         ret_prop.setCurrentValue(wkpfcommData[0])
+        ret_prop.setDataType(wkpfcommData[1])
+        ret_prop.setPropertyStatus(wkpfcommData[2])
+        ret_prop.setId(propertyNumber)
+
 
   '''
   propertyInfo.value = wkpfcommData[0]
@@ -142,7 +146,7 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
                                                propertyInfo.getName(),
                                                #stringRepresentationIfEnum(wuObjectInfo.getWuClassId(), propertyInfo.getId(), componentDefinitions, propertyInfo.getCurrentValue()),
                                                propertyInfo.getCurrentValue(),
-                                               propertyInfo.getAccess())
+                                               propertyInfo.getPropertyStatus())
           remoteLinkAndValue = ""
           if mapping and flowDefinition:
             remoteLinks = getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)
