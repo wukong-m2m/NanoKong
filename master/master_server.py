@@ -48,6 +48,7 @@ BASE_DIR = os.path.join(APP_DIR, 'base')
 
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
+locationTree= None
 
 applications = []
 
@@ -435,6 +436,7 @@ class deploy_application(tornado.web.RequestHandler):
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
+    global locationTree
     # Discovery results
     # TODO: persistent store
     comm = getComm()
@@ -451,11 +453,11 @@ class map_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-      comm.addActiveNodesToLocTree(fakedata.locTree)
-      print fakedata.locTree.printTree()
+#      comm.addActiveNodesToLocTree(fakedata.locTree)
+      locationTree.printTree(locationTree.root)
 
       # TODO: rewrite translator.py to have a class that produces mapping results with node infos and Application xml to replace compiler (should be part of deploy)
-      applications[app_ind].mapper = Mapper(applications[app_ind], node_infos, applications[app_ind].xml, locTree=fakedata.locTree)
+      applications[app_ind].mapper = Mapper(applications[app_ind], node_infos, applications[app_ind].xml, locTree=locationTree)
       applications[app_ind].mapping_results = applications[app_ind].mapper.map()
 
       ret = []
@@ -639,6 +641,7 @@ class nodes(tornado.web.RequestHandler):
     self.write({'status':0, 'node_info': info})
 
   def put(self, nodeId):
+    global locationTree
     location = self.get_argument('location')
     if location:
       comm = getComm()
@@ -647,7 +650,9 @@ class nodes(tornado.web.RequestHandler):
         for info in comm.all_node_infos:
           if info.nodeId == int(nodeId):
             info.location = location
-
+            senNd = SensorNode(info, 0, 0, 0)
+            locationTree.addSensor(senNd)
+        locationTree.printTree()
         self.content_type = 'application/json'
         self.write({'status':0})
       else:
@@ -686,6 +691,7 @@ if __name__ == "__main__":
 	configuration.readConfig()
 	update_applications()
 	app.listen(MASTER_PORT)
+	locationTree = LocationTree(LOCATION_ROOT)
 	import_wuXML()	#KatsunoriSato added
 	make_FBP()
 	ioloop.start()
