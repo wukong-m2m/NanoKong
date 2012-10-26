@@ -30,8 +30,6 @@ def addHead():
             )
 	g.close()
 
-
-
 def addMiddle(aList):
     for list in aList:
     	list = list.replace('./','/')
@@ -91,8 +89,10 @@ class fbp_main:
 		    os.remove("./templates/fbp.html")
 
 		addHead()
-		_list = glob.glob("./static/js/test/*.js*")
-		addMiddle(_list)
+		_jsList = glob.glob("./static/js/*.js*")
+		_testList = glob.glob("./static/js/test/*.js*")
+		addMiddle(_jsList)
+		addMiddle(_testList)
 		addEnd()
 
 		print "make_fbp_complete" 
