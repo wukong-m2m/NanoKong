@@ -16,12 +16,12 @@ $(document).ready(function() {
     var toolbar = $('#toolbar');
     toolbar.append('<select id=toolbar_type size=10></select>');
     FBP_fillBlockType($('#toolbar_type'));
-    
+
 /*    toolbar.append('<button id=toolbar_addBlock style="position: relative; left: 0px; top: -155px;">Add</button>');
     $('#toolbar_addBlock').click(function() {
         FBP_addBlock();
-    });*/
-    
+    });
+*/    
     toolbar.append('<button id=toolbar_delBlock style="position:relative; left: 0px; top: -155px;">Del</button>');
     $('#toolbar_delBlock').click(function() {
         FBP_delBlock();
