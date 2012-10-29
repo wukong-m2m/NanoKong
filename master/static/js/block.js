@@ -20,7 +20,8 @@ Block.prototype.init=function() {
 	this.div.css('cursor','pointer');
 	this.div.css('background-color','#00ff00');
 	this.div.attr('class','block');
-	this.setPosition(Math.floor((Math.random()*200)+100),Math.floor((Math.random()*200)+100));
+		this.setPosition(250,50);
+//	this.setPosition(Math.floor((Math.random()*200)+100),Math.floor((Math.random()*200)+100));
 	this.setSize(100,100);
 	this.location = '';
 	this.signals=[];
