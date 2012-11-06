@@ -546,7 +546,7 @@ group_load()
 int
 setup_group(const char* group_name, group* g)
 {
-    g->group_name = group_name;
+    strcpy(g->group_name, group_name);
     /*g->group_addr = ;*/
     return 0;
 }
