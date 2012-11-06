@@ -6,15 +6,13 @@ $(function() {
         $(this).tab('show');
 
         console.log('refresh nodes');
-        /*
         $('#nodes').block({
             message: '<h1>Processing</h1>',
             css: { border: '3px solid #a00' }
         });
-        */
         $.post('/nodes/refresh', function(data) {
-            //$('#nodes').unblock();
             $('#nodes').html(data.nodes);
+            $('#nodes').unblock();
         });
     });
 
