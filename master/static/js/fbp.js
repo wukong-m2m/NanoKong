@@ -292,7 +292,7 @@ function FBP_loadFromServer(id)
             g_lines = [];
             var hash={};
             for(i=0;i<meta.nodes.length;i++) {
-                n = Block.restore(meta.nodes[i]);
+                n = Block.restore(meta.nodes[i]);msg
                 // This should be replaced with the node type system latter
                 n.attach($('#content'));
                 hash[n.id] = n;
@@ -402,6 +402,28 @@ function FBP_toXML(gnodes,glines)
             if (gnodes[k].location && gnodes[k].location != '') {
                 xml = xml + '        <location requirement="'+gnodes[k].location+'" />\n';
             }
+//sato add start            
+            if(gnodes[k].actProper.length != 0){
+				var actlist = gnodes[k].getActions();
+				xml = xml + '        <actionProperty ';
+				var l;	var act;
+				for(l=0;l<gnodes[k].actProper.length;l++){
+					act = actlist[l];
+					xml = xml + act.name + '="'+gnodes[k].actProper[l]+'" ';
+				}
+			xml = xml + ' />\n';
+			if(gnodes[k].sigProper.length != 0){
+				var siglist = gnodes[k].getSignals();
+				xml = xml + '        <signalProperty ';
+				var l;	var sig;
+				for(l=0;l<gnodes[k].sigProper.length;l++){
+					sig = siglist[l];
+					xml = xml + sig.name + '="'+gnodes[k].sigProper[l]+'" ';
+				}
+			xml = xml + ' />\n';
+			}
+//sato add end
+			}
             xml = xml + '    </component>\n';
         }
     }
