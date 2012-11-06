@@ -17,5 +17,15 @@ DEFAULT_CLASS = AdcDemo
 # Default do discovery, unless overridden by a commandline parameter, in which case this gets ignored
 DISCOVERY_FLAGS=-D
 
-#port number for WuDevice
+# port number for Wukong Master
+MASTER_PORT = 5000
+
+# port number for WuDevice
 PORT = /dev/tty.usbmodemfa1311
+
+#[master]
+#nanovmtool executable
+ROOT = ../../
+NANOVMTOOL = %(ROOT)s/nanovmtool/
+
+#javac executable

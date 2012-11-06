@@ -53,7 +53,7 @@ def firstCandidate(app, wuObjects, locTree):
             if len(tmpSet) > 0:
                 candidateSet = tmpSet
             else:
-                app.error('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
+                logging.err('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
                 return False
 
         # filter by available wuclasses for non-virtual components
@@ -226,4 +226,5 @@ class WuApplication:
       #input: nodes, WuObjects, WuLinks, WuClassDefs
       #output: assign node id to WuObjects
       # TODO: mapping results for generating the appropriate instiantiation for different nodes
+      
       return mapFunc(self, self.wuObjects, locTree)

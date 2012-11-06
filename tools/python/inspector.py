@@ -146,7 +146,7 @@ def printNodeInfos(nodeInfos, componentDefinitions, flowDefinition, mapping):
                                                propertyInfo.getName(),
                                                #stringRepresentationIfEnum(wuObjectInfo.getWuClassId(), propertyInfo.getId(), componentDefinitions, propertyInfo.getCurrentValue()),
                                                propertyInfo.getCurrentValue(),
-                                               propertyInfo.getAccess())
+                                               propertyInfo.getPropertyStatus())
           remoteLinkAndValue = ""
           if mapping and flowDefinition:
             remoteLinks = getRemoteLinks(propertyInfo, wuObjectInfo, flowDefinition, mapping, componentDefinitions)

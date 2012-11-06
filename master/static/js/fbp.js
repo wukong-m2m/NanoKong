@@ -14,21 +14,23 @@ $(document).ready(function() {
     $('#client').append('<div id=toolbar></div>');
     $('#client').append('<div id=content></div>');
     var toolbar = $('#toolbar');
-    toolbar.append('<select id=toolbar_type></select>');
+    toolbar.append('<select id=toolbar_type size=10></select>');
     FBP_fillBlockType($('#toolbar_type'));
-    toolbar.append('<button id=toolbar_addBlock>Add</button>');
+
+/*    toolbar.append('<button id=toolbar_addBlock style="position: relative; left: 0px; top: -155px;">Add</button>');
     $('#toolbar_addBlock').click(function() {
         FBP_addBlock();
     });
-    toolbar.append('<button id=toolbar_delBlock>Del</button>');
+*/    
+    toolbar.append('<button id=toolbar_delBlock style="position:relative; left: 0px; top: -155px;">Del</button>');
     $('#toolbar_delBlock').click(function() {
         FBP_delBlock();
     });
-    toolbar.append('<button id=toolbar_link>Link</button>');
+    toolbar.append('<button id=toolbar_link style="position: relative; left: 0px; top: -155px;">Link</button>');
     $('#toolbar_link').click(function() {
         FBP_link();
     });
-    toolbar.append('<button id=toolbar_save>Save</button>');
+    toolbar.append('<button id=toolbar_save style="position: relative; left: 0px; top: -155px;">Save</button>');
     $('#toolbar_save').click(function() {
         FBP_save();
     });
@@ -73,7 +75,9 @@ function FBP_fillBlockType(div)
     var i;
 
     for(i=0;i<blocks.length;i++) {
-        div.append('<option val='+blocks[i]+'>'+blocks[i]+'</option>');
+//       div.append('<option val='+blocks[i]+'>'+blocks[i]+'</option>');
+       div.append('<option val='+blocks[i]+' onclick=FBP_addBlock()>'+blocks[i]+'</option>');
+//       div.append('<option val='+blocks[i]+' ondblclick=FBP_addBlock()>'+blocks[i]+'</option>');
     }
 }
 
