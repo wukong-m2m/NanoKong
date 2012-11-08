@@ -81,7 +81,7 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
   uint8_t property_number;
   uint8_t retval;
   wkpf_local_wuobject *wuobject;
-  
+
   if (nvm_runlevel != NVM_RUNLVL_VM)
     return;
 
@@ -92,6 +92,7 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         uint8_t* length_in_message_payload = (uint8_t *)&payload[2];
         wkpf_config_get_location_string(location_in_message_payload, length_in_message_payload);
         *response_cmd = NVMCOMM_WKPF_GET_LOCATION_R;
+        *response_size = 3 + *length_in_message_payload;
       }
     break;
     case NVMCOMM_WKPF_SET_LOCATION:
@@ -100,7 +101,7 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
         *response_size = 2;//payload size
       } else {
-        payload [2] = retval;
+        payload [2] = retval;       
         *response_cmd = NVMCOMM_WKPF_ERROR_R;
         *response_size = 3;//payload size
       }

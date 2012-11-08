@@ -1,8 +1,10 @@
 #include "config.h"
 #include "debug.h"
 #include "types.h"
+#include "vm.h"
 #include "wkpf.h"
 #include "wkpf_config.h"
+#include "wkpf_comm.h"
 #include "native_wuclasses/GENERATEDwuclass_threshold.h"
 #include "native_wuclasses/GENERATEDwuclass_math.h"
 #include "native_wuclasses/GENERATEDwuclass_logical.h"
@@ -602,21 +604,49 @@ void test_logical_wuclasss() {
 void test_wkpf_config() {
   char location[LOCATION_MAX_LENGTH];
   uint8_t location_length;
-
+  uint8_t retval;
+  
+  // Direct test of wkpf_config code
   wkpf_config_get_location_string(location, &location_length);
   DEBUGF_TEST("Current location: ");
-  DEBUGF_TEST(location);
+  for (int i=0; i<location_length; i++)
+    DEBUGF_TEST("%c", location[i]);
   DEBUGF_TEST("\n");
-  wkpf_config_set_location_string("Taipei", 6);
+  retval = wkpf_config_set_location_string("Taipei", 6);
+  assert_equal_uint(retval, WKPF_OK, "Set new location to Taipei");
   wkpf_config_get_location_string(location, &location_length);
   assert_equal_uint(location_length, 6, "Location length is 6");
   assert_equal_char(location[0], 'T', "Location character 1");
-  assert_equal_char(location[1], 'a', "Location character 2");
-  assert_equal_char(location[2], 'i', "Location character 3");
-  assert_equal_char(location[3], 'p', "Location character 4");
-  assert_equal_char(location[4], 'e', "Location character 5");
-  assert_equal_char(location[5], 'i', "Location character 6");
-  assert_equal_char(location[6],   0, "Location character 7");
+  assert_equal_char(location[1], 'a', "2");
+  assert_equal_char(location[2], 'i', "3");
+  assert_equal_char(location[3], 'p', "4");
+  assert_equal_char(location[4], 'e', "5");
+  assert_equal_char(location[5], 'i', "6");
+  
+  // Through wkpf_comm
+  uint8_t payload_for_set[] = {0, 0, 9, 'R', 'o', 't', 't', 'e', 'r', 'd', 'a', 'm'};
+  uint8_t payload_for_get[12];
+  uint8_t response_size;
+  uint8_t response_cmd;
+  
+  nvm_runlevel = NVM_RUNLVL_VM; // wkpf_comm_handle_message won't work unless we're in the right runlevel.
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_SET_LOCATION, payload_for_set, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_SET_LOCATION_R, "Set location to Rotterdam through wkpf_comm");
+  assert_equal_uint(response_size, 2, "Response size 2");
+  wkpf_comm_handle_message(NVMCOMM_WKPF_GET_LOCATION, payload_for_get, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_GET_LOCATION_R, "Get another location through wkpf_comm");
+  assert_equal_uint(response_size, 12, "Response size 12");
+  assert_equal_uint(payload_for_get[2], 9, "Location length is 9");
+  assert_equal_char(payload_for_get[3], 'R', "Location character 1");
+  assert_equal_char(payload_for_get[4], 'o', "2");
+  assert_equal_char(payload_for_get[5], 't', "3");
+  assert_equal_char(payload_for_get[6], 't', "4");
+  assert_equal_char(payload_for_get[7], 'e', "5");
+  assert_equal_char(payload_for_get[8], 'r', "6");
+  assert_equal_char(payload_for_get[9], 'd', "7");
+  assert_equal_char(payload_for_get[10], 'a', "8");
+  assert_equal_char(payload_for_get[11], 'm', "9");
 }
 #endif
 
