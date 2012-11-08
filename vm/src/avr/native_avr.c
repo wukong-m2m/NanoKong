@@ -120,7 +120,9 @@ ISR(TIMER2_COMPA_vect)//for system absolute clock during sleep
 }
 ISR(INT0_vect)
 {
+#ifdef NVM_USE_COMMZWAVE
     zwave_learn_mode=1;
+#endif // NVM_USE_COMMZWAVE
     iflag_INT |= _BV(0);//set interrupt flag to let java know
 }
 ISR(INT1_vect)
@@ -323,7 +325,9 @@ void native_init(void) {
     PCICR=_BV(PCIE0) | _BV(PCIE1) | _BV(PCIE2);	//enable interrupt PCINT0~7,PCINT16~23
     EICRA |= (0 & 0x03);//GND interrupt mode
     EIMSK |=_BV(0);//turn on INT0
+#ifdef NVM_USE_COMMZWAVE
     zwave_learn_mode=0;	
+#endif // NVM_USE_COMMZWAVE
 #else
     TCCR1B = _BV(CS11);           // clk/8
     OCR1A = (u16_t)(CLOCK/800u);  // 100 Hz is default

@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "types.h"
 #include "wkpf.h"
+#include "wkpf_config.h"
 #include "native_wuclasses/GENERATEDwuclass_threshold.h"
 #include "native_wuclasses/GENERATEDwuclass_math.h"
 #include "native_wuclasses/GENERATEDwuclass_logical.h"
@@ -14,6 +15,18 @@
 
 uint16_t passed_count=0;
 uint16_t failed_count=0;
+
+void assert_equal_char(char a, char b, char* desc) {
+  if (a==b) {
+    DEBUGF_TEST("OK: ");
+    passed_count++;
+  } else {
+    DEBUGF_TEST("----------->FAIL: ");
+    failed_count++;
+  }
+  DEBUGF_TEST(desc);
+  DEBUGF_TEST("\n");
+}
 
 void assert_equal_uint(uint16_t a, uint16_t b, char* desc) {
   if (a==b) {
@@ -71,6 +84,7 @@ wkpf_wuclass_definition wuclass_virtual = {
   wuclass_b_properties
 };
 
+#ifdef TEST_WKPF_WUCLASSES
 void test_wuclasses() {
   int8_t retval;
   wkpf_wuclass_definition *wuclass;
@@ -136,7 +150,9 @@ void test_wuclasses() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_WUOBJECTS
 void test_wuobjects() {
   int8_t retval;
   wkpf_local_wuobject *wuobject;
@@ -206,7 +222,9 @@ void test_wuobjects() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_PROPERTIES
 void test_properties() {
  /* int8_t retval;
   int16_t value_int16=42;
@@ -291,7 +309,9 @@ void test_properties() {
 
   print_test_summary();*/
 }
+#endif
 
+#ifdef TEST_WKPF_NATIVE_WUCLASSES
 void test_native_wuclasses() {
   int8_t retval;
   int16_t value_int16=0;
@@ -308,7 +328,9 @@ void test_native_wuclasses() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES
 void test_update_for_native_wuclasses() {
   int8_t retval;
   bool value_boolean;
@@ -344,8 +366,9 @@ void test_update_for_native_wuclasses() {
 
   print_test_summary();
 }
+#endif
 
-
+#ifdef TEST_WKPF_LOGICAL_WUCLASSES
 void test_logical_wuclasss() {
  /* int8_t retval;
   int16_t value_short;
@@ -573,7 +596,29 @@ void test_logical_wuclasss() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_CONFIGURATION
+void test_wkpf_config() {
+  char location[LOCATION_MAX_LENGTH];
+  uint8_t location_length;
+
+  wkpf_config_get_location_string(location, &location_length);
+  DEBUGF_TEST("Current location: ");
+  DEBUGF_TEST(location);
+  DEBUGF_TEST("\n");
+  wkpf_config_set_location_string("Taipei", 6);
+  wkpf_config_get_location_string(location, &location_length);
+  assert_equal_uint(location_length, 6, "Location length is 6");
+  assert_equal_char(location[0], 'T', "Location character 1");
+  assert_equal_char(location[1], 'a', "Location character 2");
+  assert_equal_char(location[2], 'i', "Location character 3");
+  assert_equal_char(location[3], 'p', "Location character 4");
+  assert_equal_char(location[4], 'e', "Location character 5");
+  assert_equal_char(location[5], 'i', "Location character 6");
+  assert_equal_char(location[6],   0, "Location character 7");
+}
+#endif
 
 void test_wkpf() {
 #ifdef TEST_WKPF_WUCLASSES
@@ -593,6 +638,9 @@ void test_wkpf() {
 #endif
 #ifdef TEST_WKPF_LOGICAL_WUCLASSES
   test_logical_wuclasss();
+#endif
+#ifdef TEST_WKPF_CONFIGURATION
+  test_wkpf_config();
 #endif
 
   while(1) { }

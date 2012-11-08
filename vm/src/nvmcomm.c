@@ -96,17 +96,16 @@ int nvmcomm_multicast(address_t* dests, u08_t dest_size, u08_t nvc3_command, u08
     return -2; // Message too large
   }
   int retval = 0;
-  int i;
   DEBUGF_COMM("nvmcomm_multicast\n");
 #ifdef NVM_USE_COMMZWAVE
-  for (i=0; i<dest_size; i++) {
+  for (int i=0; i<dest_size; i++) {
     int ret = nvmcomm_zwave_send(dests[i], nvc3_command, payload, length, TRANSMIT_OPTION_AUTO_ROUTE);
     if (ret < 0)
         retval = ret;
   }
 #endif
 #ifdef NVM_USE_COMMXBEE
-  for (i=0; i<dest_size; i++) {
+  for (int i=0; i<dest_size; i++) {
     int ret = nvmcomm_xbee_send(dests[i], nvc3_command, payload, length, 0);
     if (ret < 0)
         retval = ret;
@@ -274,12 +273,14 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     case NVMCOMM_WKPF_REQUEST_PROPERTY_INIT:
       wkpf_comm_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
     break;
+#ifdef NVM_USE_GROUP
     case NVMCOMM_GROUP_PROPOSE:
     case NVMCOMM_GROUP_COMMIT:
     case NVMCOMM_GROUP_EVENT_JOIN:
     case NVMCOMM_GROUP_EVENT_LEAVE:
       group_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
     break;
+#endif // NVM_USE_GROUP
   }
   if (response_cmd > 0) {
 #ifdef DEBUG
