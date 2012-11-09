@@ -61,10 +61,14 @@
 #define NVMCOMM_WKPF_GET_LOCATION_R              0x9B
 #define NVMCOMM_WKPF_SET_LOCATION                0x9C
 #define NVMCOMM_WKPF_SET_LOCATION_R              0x9D
-#define NVMCOMM_WKPF_ERROR_R                     0x9F
+#define NVMCOMM_WKPF_GET_FEATURES                0x9E
+#define NVMCOMM_WKPF_GET_FEATURES_R              0x9F
+#define NVMCOMM_WKPF_SET_FEATURE                 0xA0
+#define NVMCOMM_WKPF_SET_FEATURE_R               0xA1
+#define NVMCOMM_WKPF_ERROR_R                     0xAF
 
-#define NVMCOMM_DEBUG_TRACE_PART                 0xA0
-#define NVMCOMM_DEBUG_TRACE_FINAL                0xA2
+#define NVMCOMM_DEBUG_TRACE_PART                 0xB0
+#define NVMCOMM_DEBUG_TRACE_FINAL                0xB2
 
 //#define NVMCOMM_WKPF_...
 

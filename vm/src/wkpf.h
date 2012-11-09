@@ -37,6 +37,7 @@
 #define WKPF_ERR_REMOTE_PROPERTY_FROM_JAVASET_NOT_SUPPORTED  14
 #define WKPF_ERR_COMPONENT_NOT_FOUND                         15
 #define WKPF_ERR_LOCATION_TOO_LONG                           16
+#define WKPF_ERR_UNKNOWN_FEATURE                             17
 #define WKPF_ERR_SHOULDNT_HAPPEN                           0xFF
 
 extern void wkpf_init();

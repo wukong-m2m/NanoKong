@@ -87,6 +87,8 @@ int main(int argc, char **argv) {
 
   vm_init();
 
+  wkpf_init();
+
 #ifdef TEST_WKPF
   test_wkpf();
 #endif
@@ -98,8 +100,6 @@ int main(int argc, char **argv) {
 #ifdef NVM_USER_GROUP
   group_init(CANBEORACLE);
 #endif
-
-  wkpf_init();
 
   DEBUGF("NanoVM node id is %x\n", nvmcomm_get_node_id());
 

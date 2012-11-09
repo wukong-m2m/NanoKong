@@ -101,10 +101,34 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
         *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
         *response_size = 2;//payload size
       } else {
-        payload [2] = retval;       
+        payload[2] = retval;       
         *response_cmd = NVMCOMM_WKPF_ERROR_R;
         *response_size = 3;//payload size
       }
+    break;
+    case NVMCOMM_WKPF_GET_FEATURES:
+      {
+        int count = 0;
+        for (int i=0; i<=WKPF_MAX_FEATURE_NUMBER; i++) { // Needs to be changed if we have more features than fits in a single message, but for now it will work fine.
+          if (wkpf_config_get_feature_enabled(i)) {
+            payload[3+count++] = i;
+          }
+        }
+        payload[2] = count;
+        *response_cmd = NVMCOMM_WKPF_GET_FEATURES_R;
+        *response_size = 3+count;//payload size
+      }
+    break;
+    case NVMCOMM_WKPF_SET_FEATURE:
+      retval = wkpf_config_set_feature_enabled(payload[2], payload[3]);
+      if (retval == WKPF_OK) {
+          *response_cmd = NVMCOMM_WKPF_SET_FEATURE_R;
+          *response_size = 2;//payload size
+        } else {
+          payload[2] = retval;       
+          *response_cmd = NVMCOMM_WKPF_ERROR_R;
+          *response_size = 3;//payload size
+        }
     break;
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
       number_of_wuclasses = wkpf_get_number_of_wuclasses();

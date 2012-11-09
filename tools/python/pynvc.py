@@ -38,12 +38,14 @@ WKPF_GET_LOCATION            = 0x9A
 WKPF_GET_LOCATION_R          = 0x9B
 WKPF_SET_LOCATION            = 0x9C
 WKPF_SET_LOCATION_R          = 0x9D
+WKPF_GET_FEATURES            = 0x9E
+WKPF_GET_FEATURES_R          = 0x9F
+WKPF_SET_FEATURE             = 0xA0
+WKPF_SET_FEATURE_R           = 0xA1
+WKPF_ERROR_R                 = 0xAF
 
-DEBUG_TRACE_PART             = 0xA0
-DEBUG_TRACE_FINAL            = 0xA2
-
-
-WKPF_ERROR_R                 = 0x9F
+DEBUG_TRACE_PART             = 0xB0
+DEBUG_TRACE_FINAL            = 0xB2
 
 APPMSG_STATUS_WAIT_ACK       = 0x00
 APPMSG_STATUS_ACK            = 0x01

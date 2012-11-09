@@ -606,7 +606,7 @@ void test_wkpf_config() {
   uint8_t location_length;
   uint8_t retval;
   
-  // Direct test of wkpf_config code
+  // Location: direct test of wkpf_config code
   wkpf_config_get_location_string(location, &location_length);
   DEBUGF_TEST("Current location: ");
   for (int i=0; i<location_length; i++)
@@ -623,15 +623,15 @@ void test_wkpf_config() {
   assert_equal_char(location[4], 'e', "5");
   assert_equal_char(location[5], 'i', "6");
   
-  // Through wkpf_comm
-  uint8_t payload_for_set[] = {0, 0, 9, 'R', 'o', 't', 't', 'e', 'r', 'd', 'a', 'm'};
+  // Location: through wkpf_comm
   uint8_t payload_for_get[12];
+  uint8_t payload_for_set_location[] = {0, 0, 9, 'R', 'o', 't', 't', 'e', 'r', 'd', 'a', 'm'};
   uint8_t response_size;
   uint8_t response_cmd;
   
   nvm_runlevel = NVM_RUNLVL_VM; // wkpf_comm_handle_message won't work unless we're in the right runlevel.
 
-  wkpf_comm_handle_message(NVMCOMM_WKPF_SET_LOCATION, payload_for_set, &response_size, &response_cmd);
+  wkpf_comm_handle_message(NVMCOMM_WKPF_SET_LOCATION, payload_for_set_location, &response_size, &response_cmd);
   assert_equal_uint(response_cmd, NVMCOMM_WKPF_SET_LOCATION_R, "Set location to Rotterdam through wkpf_comm");
   assert_equal_uint(response_size, 2, "Response size 2");
   wkpf_comm_handle_message(NVMCOMM_WKPF_GET_LOCATION, payload_for_get, &response_size, &response_cmd);
@@ -647,6 +647,30 @@ void test_wkpf_config() {
   assert_equal_char(payload_for_get[9], 'd', "7");
   assert_equal_char(payload_for_get[10], 'a', "8");
   assert_equal_char(payload_for_get[11], 'm', "9");
+
+  // Features: through wkpf_comm
+  uint8_t payload_for_set_feature[] = {0, 0, WPKF_FEATURE_NATIVE_THRESHOLD, TRUE};
+  if (wkpf_config_get_feature_enabled(WPKF_FEATURE_NATIVE_THRESHOLD))
+    DEBUGF_TEST("Current status: Native threshold enabled\n");
+  else
+    DEBUGF_TEST("Current status: Native threshold disabled\n");
+
+  for (int i=0; i<=WKPF_MAX_FEATURE_NUMBER; i++) // Disable all features
+    wkpf_config_set_feature_enabled(i, FALSE);
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_GET_FEATURES, payload_for_get, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_GET_FEATURES_R, "Get features through wkpf_comm");
+  assert_equal_uint(response_size, 3, "Response size 3");
+  assert_equal_uint(payload_for_get[2], 0, "Number of features 0");
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_SET_FEATURE, payload_for_set_feature, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_SET_FEATURE_R, "Turn on native threshold through wkpf_comm");
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_GET_FEATURES, payload_for_get, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_GET_FEATURES_R, "Get features through wkpf_comm");
+  assert_equal_uint(response_size, 4, "Response size 4");
+  assert_equal_uint(payload_for_get[2], 1, "Number of features 1");
+  assert_equal_uint(payload_for_get[3], WPKF_FEATURE_NATIVE_THRESHOLD, "Feature is native threshold");
 }
 #endif
 
