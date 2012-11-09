@@ -264,13 +264,15 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[2];
     break;
-    case NVMCOMM_WKPF_GET_LOCATION:
-    case NVMCOMM_WKPF_SET_LOCATION:
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
     case NVMCOMM_WKPF_GET_WUOBJECT_LIST:
     case NVMCOMM_WKPF_READ_PROPERTY:
     case NVMCOMM_WKPF_WRITE_PROPERTY:
     case NVMCOMM_WKPF_REQUEST_PROPERTY_INIT:
+    case NVMCOMM_WKPF_GET_LOCATION:
+    case NVMCOMM_WKPF_SET_LOCATION:
+    case NVMCOMM_WKPF_GET_FEATURES:
+    case NVMCOMM_WKPF_SET_FEATURE:
       wkpf_comm_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
     break;
 #ifdef NVM_USE_GROUP
