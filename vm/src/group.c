@@ -7,6 +7,8 @@
 #include "group.h"
 #include "vm.h"
 
+#ifdef NVM_USE_GROUP
+
 static bool_t group_loaded = false;
 static bool_t group_inited = false;
 static address_t my_address = NVMCOMM_ADDRESS_NULL;
@@ -1252,3 +1254,5 @@ multicast_members(nvmcomm_message* message, group* g)
     }
     return 0;
 }
+
+#endif // NVM_USE_GROUP

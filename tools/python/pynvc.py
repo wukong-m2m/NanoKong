@@ -31,19 +31,21 @@ WKPF_GET_WUOBJECT_LIST_R     = 0x93
 WKPF_READ_PROPERTY	         = 0x94
 WKPF_READ_PROPERTY_R         = 0x95
 WKPF_WRITE_PROPERTY	         = 0x96
-WKPF_WRITE_PROPERTY_R	     = 0x97
+WKPF_WRITE_PROPERTY_R	       = 0x97
 WKPF_REQUEST_PROPERTY_INIT   = 0x98
 WKPF_REQUEST_PROPERTY_INIT_R = 0x99
 WKPF_GET_LOCATION            = 0x9A
 WKPF_GET_LOCATION_R          = 0x9B
 WKPF_SET_LOCATION            = 0x9C
 WKPF_SET_LOCATION_R          = 0x9D
+WKPF_GET_FEATURES            = 0x9E
+WKPF_GET_FEATURES_R          = 0x9F
+WKPF_SET_FEATURE             = 0xA0
+WKPF_SET_FEATURE_R           = 0xA1
+WKPF_ERROR_R                 = 0xAF
 
-DEBUG_TRACE_PART             = 0xA0
-DEBUG_TRACE_FINAL            = 0xA2
-
-
-WKPF_ERROR_R                 = 0x9F
+DEBUG_TRACE_PART             = 0xB0
+DEBUG_TRACE_FINAL            = 0xB2
 
 APPMSG_STATUS_WAIT_ACK       = 0x00
 APPMSG_STATUS_ACK            = 0x01
@@ -52,6 +54,12 @@ APPMSG_STATUS_BUSY           = 0x02
 RUNLVL_VM                    = 0x02
 RUNLVL_CONF                  = 0x03
 RUNLVL_RESET                 = 0x04
+
+# Keep this list in sync with wkpf_config.h
+WPKF_FEATURE_LIGHT_SENSOR         = 0
+WPKF_FEATURE_LIGHT_ACTUATOR       = 1
+WPKF_FEATURE_NUMERIC_CONTROLLER   = 2
+WPKF_FEATURE_NATIVE_THRESHOLD     = 3
 
 pymodule = 0
 
