@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
   test_group();
 #endif
 
-#ifdef NVM_USER_GROUP
+#ifdef NVM_USE_GROUP
   group_init(CANBEORACLE);
 #endif
 
