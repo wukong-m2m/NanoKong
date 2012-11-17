@@ -121,6 +121,9 @@ class LocationTree:
 				return False
 			else: #sensor node location needs to be updated, delete the original inserted SensorNd first
 				self.delSensor(sensorNd.nodeInfo.nodeId)
+		if len(sensorNd.locationLst) == 0:
+			logging.error("error! location for node "+ str(sensorNd.nodeInfo.nodeId)+ " is not set")
+			return False
 		if startPos.name != sensorNd.locationLst[0]:
 			logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " does not match " + startPos.name)
 			return False
