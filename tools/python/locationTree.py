@@ -112,7 +112,8 @@ class LocationTree:
 
 	#insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
 	def addSensor(self, sensorNd, startPos = None ):
-		#print startPos
+		print ("startPos!!!!!",startPos)
+		print self.root
 		if startPos == None:
 			startPos = self.root
 		if sensorNd.nodeInfo.nodeId in self.sensor_dict:
@@ -121,7 +122,7 @@ class LocationTree:
 				return False
 			else: #sensor node location needs to be updated, delete the original inserted SensorNd first
 				self.delSensor(sensorNd.nodeInfo.nodeId)
-		if len(sensorNd.locationLst) == 0:
+		if sensorNd.locationLst == None or len(sensorNd.locationLst) == 0:
 			logging.error("error! location for node "+ str(sensorNd.nodeInfo.nodeId)+ " is not set")
 			return False
 		if startPos.name != sensorNd.locationLst[0]:
