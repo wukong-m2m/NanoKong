@@ -38,13 +38,14 @@
 #define NVMCOMM_GROUP_PROPOSE                    0x70
 #define NVMCOMM_GROUP_PROPOSE_R                  0x71
 #define NVMCOMM_GROUP_COMMIT                     0x72
-#define NVMCOMM_GROUP_COMMIT_R                   0x73
 #define NVMCOMM_GROUP_EVENT_JOIN                 0x74
 #define NVMCOMM_GROUP_EVENT_JOIN_R               0x75
 #define NVMCOMM_GROUP_EVENT_LEAVE                0x76
 #define NVMCOMM_GROUP_EVENT_LEAVE_R              0x77
 #define NVMCOMM_GROUP_EVENT_ORACLE_FIND          0x78
 #define NVMCOMM_GROUP_EVENT_ORACLE_FIND_R        0x79
+#define NVMCOMM_GROUP_EVENT_FULL_R               0x7A
+#define NVMCOMM_GROUP_ERROR_R                    0x7F
 
 #define NVMCOMM_WKPF_GET_WUCLASS_LIST            0x90
 #define NVMCOMM_WKPF_GET_WUCLASS_LIST_R          0x91
@@ -60,10 +61,14 @@
 #define NVMCOMM_WKPF_GET_LOCATION_R              0x9B
 #define NVMCOMM_WKPF_SET_LOCATION                0x9C
 #define NVMCOMM_WKPF_SET_LOCATION_R              0x9D
-#define NVMCOMM_WKPF_ERROR_R                     0x9F
+#define NVMCOMM_WKPF_GET_FEATURES                0x9E
+#define NVMCOMM_WKPF_GET_FEATURES_R              0x9F
+#define NVMCOMM_WKPF_SET_FEATURE                 0xA0
+#define NVMCOMM_WKPF_SET_FEATURE_R               0xA1
+#define NVMCOMM_WKPF_ERROR_R                     0xAF
 
-#define NVMCOMM_DEBUG_TRACE_PART                 0xA0
-#define NVMCOMM_DEBUG_TRACE_FINAL                0xA2
+#define NVMCOMM_DEBUG_TRACE_PART                 0xB0
+#define NVMCOMM_DEBUG_TRACE_FINAL                0xB2
 
 //#define NVMCOMM_WKPF_...
 
@@ -88,6 +93,8 @@ typedef struct nvmcomm_message {
 extern void nvmcomm_init(void);
 // Send length bytes to dest
 extern int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t length);
+// Multicast length bytes to dests, no MAC acks
+extern int nvmcomm_multicast(address_t* dests, u08_t dest_size, u08_t nvc3_command, u08_t *payload, u08_t length);
 // Broadcast length bytes
 extern int nvmcomm_broadcast(u08_t nvc3_command, u08_t *payload, u08_t length);
 // Call this periodically to receive data

@@ -5,10 +5,9 @@
 #include "debug.h"
 #include "delay.h"
 #include "vm.h"
+#include "wkpf_config.h"
 
 #define WKFPCOMM_SET_MESSAGE_HEADER_LEN 7
-
-char location[20]; // temporary place for storing location in memory
 
 uint8_t message_buffer[NVMCOMM_MESSAGE_SIZE];
 
@@ -82,27 +81,54 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
   uint8_t property_number;
   uint8_t retval;
   wkpf_local_wuobject *wuobject;
-  
+
   if (nvm_runlevel != NVM_RUNLVL_VM)
     return;
 
   switch (nvmcomm_command) {
     case NVMCOMM_WKPF_GET_LOCATION:
-      payload[2] = strlen(location);
-      strcpy((char*)payload+3, location);
-      *response_size = sizeof(location) + 3;//payload size location + 2 byte overhead + 1 byte location size
-      *response_cmd = NVMCOMM_WKPF_GET_LOCATION_R;
+      {
+        char* location_in_message_payload = (char*)payload+3;
+        uint8_t* length_in_message_payload = (uint8_t *)&payload[2];
+        wkpf_config_get_location_string(location_in_message_payload, length_in_message_payload);
+        *response_cmd = NVMCOMM_WKPF_GET_LOCATION_R;
+        *response_size = 3 + *length_in_message_payload;
+      }
     break;
     case NVMCOMM_WKPF_SET_LOCATION:
-      strncpy(location, (char*)payload+3, payload[2]);
-      *response_size = 6;
-      *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
-      retval = WKPF_OK;
-      if (retval != WKPF_OK) {
-        payload[2] = retval;
-        *response_size = 3;//payload size
+      retval = wkpf_config_set_location_string((char*) payload+3, payload[2]);
+      if (retval == WKPF_OK) {
+        *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
+        *response_size = 2;//payload size
+      } else {
+        payload[2] = retval;       
         *response_cmd = NVMCOMM_WKPF_ERROR_R;
+        *response_size = 3;//payload size
       }
+    break;
+    case NVMCOMM_WKPF_GET_FEATURES:
+      {
+        int count = 0;
+        for (int i=0; i<=WKPF_MAX_FEATURE_NUMBER; i++) { // Needs to be changed if we have more features than fits in a single message, but for now it will work fine.
+          if (wkpf_config_get_feature_enabled(i)) {
+            payload[3+count++] = i;
+          }
+        }
+        payload[2] = count;
+        *response_cmd = NVMCOMM_WKPF_GET_FEATURES_R;
+        *response_size = 3+count;//payload size
+      }
+    break;
+    case NVMCOMM_WKPF_SET_FEATURE:
+      retval = wkpf_config_set_feature_enabled(payload[2], payload[3]);
+      if (retval == WKPF_OK) {
+          *response_cmd = NVMCOMM_WKPF_SET_FEATURE_R;
+          *response_size = 2;//payload size
+        } else {
+          payload[2] = retval;       
+          *response_cmd = NVMCOMM_WKPF_ERROR_R;
+          *response_size = 3;//payload size
+        }
     break;
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
       number_of_wuclasses = wkpf_get_number_of_wuclasses();

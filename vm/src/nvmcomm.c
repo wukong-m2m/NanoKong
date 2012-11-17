@@ -90,6 +90,30 @@ int nvmcomm_send(address_t dest, u08_t nvc3_command, u08_t *payload, u08_t lengt
   return retval;
 }
 
+int nvmcomm_multicast(address_t* dests, u08_t dest_size, u08_t nvc3_command, u08_t *payload, u08_t length) {
+  if (length > NVMCOMM_MESSAGE_SIZE) {
+    DEBUGF_COMM("message oversized\n");
+    return -2; // Message too large
+  }
+  int retval = 0;
+  DEBUGF_COMM("nvmcomm_multicast\n");
+#ifdef NVM_USE_COMMZWAVE
+  for (int i=0; i<dest_size; i++) {
+    int ret = nvmcomm_zwave_send(dests[i], nvc3_command, payload, length, TRANSMIT_OPTION_AUTO_ROUTE);
+    if (ret < 0)
+        retval = ret;
+  }
+#endif
+#ifdef NVM_USE_COMMXBEE
+  for (int i=0; i<dest_size; i++) {
+    int ret = nvmcomm_xbee_send(dests[i], nvc3_command, payload, length, 0);
+    if (ret < 0)
+        retval = ret;
+  }
+#endif
+  return retval;
+}
+
 int nvmcomm_broadcast(u08_t nvc3_command, u08_t *payload, u08_t length) {
   if (length > NVMCOMM_MESSAGE_SIZE) {
     DEBUGF_COMM("message oversized\n");
@@ -240,21 +264,25 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       // TODO: expose this to Java. Make ACKs optional.
       nvc3_appmsg_reply = payload[2];
     break;
-    case NVMCOMM_WKPF_GET_LOCATION:
-    case NVMCOMM_WKPF_SET_LOCATION:
     case NVMCOMM_WKPF_GET_WUCLASS_LIST:
     case NVMCOMM_WKPF_GET_WUOBJECT_LIST:
     case NVMCOMM_WKPF_READ_PROPERTY:
     case NVMCOMM_WKPF_WRITE_PROPERTY:
     case NVMCOMM_WKPF_REQUEST_PROPERTY_INIT:
+    case NVMCOMM_WKPF_GET_LOCATION:
+    case NVMCOMM_WKPF_SET_LOCATION:
+    case NVMCOMM_WKPF_GET_FEATURES:
+    case NVMCOMM_WKPF_SET_FEATURE:
       wkpf_comm_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
     break;
+#ifdef NVM_USE_GROUP
     case NVMCOMM_GROUP_PROPOSE:
     case NVMCOMM_GROUP_COMMIT:
     case NVMCOMM_GROUP_EVENT_JOIN:
     case NVMCOMM_GROUP_EVENT_LEAVE:
       group_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
     break;
+#endif // NVM_USE_GROUP
   }
   if (response_cmd > 0) {
 #ifdef DEBUG

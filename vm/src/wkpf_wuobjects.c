@@ -13,7 +13,7 @@ wkpf_local_wuobject wuobjects[MAX_NUMBER_OF_WUOBJECTS];
 
 uint8_t wkpf_create_wuobject(uint16_t wuclass_id, uint8_t port_number, heap_id_t virtual_wuclass_instance_heap_id) {
   uint8_t retval;
-  wkpf_wuclass_definition *wuclass;
+  wkpf_wuclass_definition *wuclass = NULL;
 
   if (number_of_wuobjects == MAX_NUMBER_OF_WUOBJECTS) {
     DEBUGF_WKPF("WKPF: Out of memory while creating wuobject for wuclass %x at port: FAILED\n", wuclass->wuclass_id, port_number);

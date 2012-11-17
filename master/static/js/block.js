@@ -20,12 +20,14 @@ Block.prototype.init=function() {
 	this.div.css('cursor','pointer');
 	this.div.css('background-color','#00ff00');
 	this.div.attr('class','block');
-		this.setPosition(250,50);
-//	this.setPosition(Math.floor((Math.random()*200)+100),Math.floor((Math.random()*200)+100));
+	this.setPosition(250,50);
+//	this.setPosition(Math.floor((Math.random()*100)),Math.floor((Math.random()*50)));
 	this.setSize(100,100);
 	this.location = '';
 	this.signals=[];
 	this.actions=[];
+	this.sigProper=[];
+	this.actProper=[];
 	Block_count++;
 	Block.widgets.push(this);
 }
@@ -137,10 +139,40 @@ Block.prototype.attach=function(parent) {
 	});
 	this.div.dblclick(function() {
 		$('#propertyeditor_location').val(self.location);
+//sato added from here
+		$("#propertyeditor_action").empty();
+		$("#propertyeditor_signal").empty();
+		var _actlist = Block.current.getActions();
+		for(i=0;i<_actlist.length;i++) {
+    		var act = _actlist[i];
+    		$('#propertyeditor_action').append(act.name);
+    		$('#propertyeditor_action').append('<input type=text id=a'+act.name+'></input>');
+    		$('#a'+act.name).val(self.actProper[i]);
+    		
+		}
+		var _siglist = Block.current.getSignals();
+		for(i=0;i<_siglist.length;i++) {
+    		var sig = _siglist[i];
+    		$('#propertyeditor_signal').append(sig.name);
+    		$('#propertyeditor_signal').append('<input type=text id=s'+sig.name+'></input>');
+    		$('#s'+sig.name).val(self.sigProper[i]);
+		}
+//sato added end
 		$('#propertyeditor').dialog({
 			buttons: {
 				'OK': function () {
 					self.location = $('#propertyeditor_location').val();
+					for(i=0;i<_siglist.length;i++){
+						sig = _siglist[i];
+						self.sigProper[i]=$('#s'+sig.name).val();
+					}
+					for(i=0;i<_actlist.length;i++){
+						act = _actlist[i];
+						self.actProper[i]=$('#a'+act.name).val();
+					}
+//					self.actProper = $('#propertyeditor_action').val();
+//					$('#test').append(self.sigProper[0]);
+//					self.sigProper = $('#propertyeditor_signal').val();
 					$('#propertyeditor').dialog("close");
 				},
 				'Cancel': function() {

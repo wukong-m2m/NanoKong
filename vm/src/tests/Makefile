@@ -4,7 +4,8 @@
 
 TESTS_DIR = $(ROOT_DIR)/vm/src/tests
 TESTS_OBJS = \
-  test_wkpf.o
+  test_wkpf.o \
+  test_group.o
 
 OBJS += $(TESTS_OBJS)
 

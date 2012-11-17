@@ -138,6 +138,54 @@ class Communication:
         return False
       return True
 
+    def getFeatures(self, destination):
+      print 'getFeatures'
+
+      reply = self.zwave.send(destination, pynvc.WKPF_GET_FEATURES, [], [pynvc.WKPF_GET_FEATURES_R, pynvc.WKPF_ERROR_R])
+
+      '''
+      sn = self.getNextSequenceNumberAsList()
+      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                        command=pynvc.WKPF_GET_FEATURES,
+                                                        payload=sn,
+                                                        allowedReplies=[pynvc.WKPF_GET_FEATURES_R, pynvc.WKPF_ERROR_R],
+                                                        verify=self.verifyWKPFmsg(messageStart=sn, minAdditionalBytes=0)) # number of wuclasses
+      '''
+
+      if reply == None:
+        return ""
+
+      if reply.command == pynvc.WKPF_ERROR_R:
+        print "WKPF RETURNED ERROR ", reply.command
+        return [] # graceful degradation
+
+      print reply
+      return reply[3:]
+
+    def setFeature(self, destination, feature, onOff):
+      print 'setLocation'
+
+      reply = self.zwave.send(destination, pynvc.WKPF_SET_FEATURE, [feature, onOff], [pynvc.WKPF_SET_FEATURE_R, pynvc.WKPF_ERROR_R])
+      print reply
+
+      '''
+      sn = self.getNextSequenceNumberAsList()
+      sn += [len(location)] + [int(ord(char)) for char in location]
+      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
+                                                        command=pynvc.WKPF_SET_LOCATION,
+                                                        payload=sn,
+                                                        allowedReplies=[pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R],
+                                                        verify=self.verifyWKPFmsg(messageStart=sn[:6], minAdditionalBytes=0)) # number of wuclasses
+      '''
+
+      if reply == None:
+        return -1
+
+      if reply.command == pynvc.WKPF_ERROR_R:
+        print "WKPF RETURNED ERROR ", reply.payload
+        return False
+      return True
+
     def getWuClassList(self, destination):
       print 'getWuClassList'
 

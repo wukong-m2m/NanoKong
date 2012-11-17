@@ -29,9 +29,12 @@
 //#define TEST_WKPF_NATIVE_WUCLASSES
 //#define TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES
 //#define TEST_WKPF_LOGICAL_WUCLASSES
-#if defined(TEST_WKPF_WUCLASSES) || defined(TEST_WKPF_WUOBJECTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_WUCLASSES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES) || defined(TEST_WKPF_LOGICAL_WUCLASSES)
-//#define TEST_WKPF // General WKPF test support
+//#define TEST_WKPF_CONFIGURATION
+#if defined(TEST_WKPF_WUCLASSES) || defined(TEST_WKPF_WUOBJECTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_WUCLASSES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES) || defined(TEST_WKPF_LOGICAL_WUCLASSES) || defined(TEST_WKPF_CONFIGURATION)
+#define TEST_WKPF // General WKPF test support
 #endif
+
+//#define TEST_GROUP // Virtual Synchrony test support
 
 // vm setup
 #undef NVM_USE_STACK_CHECK      // enable check if method returns empty stack
@@ -43,7 +46,7 @@
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_COMM
 #define NVM_USE_COMMZWAVE       // enable Z-wave support
-#define NVM_USE_GROUP           // enable virtually synchronous process group
+//#define NVM_USE_GROUP           // enable virtually synchronous process group
 //#define NVM_USE_COMMXBEE        // enable XBee support
 // bytecode location (choose one)
 #define NVM_USE_FLASH_PROGRAM	// execute directly from FLASH

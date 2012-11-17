@@ -45,6 +45,10 @@
 #include "tests/test_wkpf.h"
 #endif
 
+#ifdef TEST_GROUP
+#include "tests/test_group.h"
+#endif
+
 // hooks for init routines
 
 #include "native_impl.h"
@@ -83,15 +87,19 @@ int main(int argc, char **argv) {
 
   vm_init();
 
+  wkpf_init();
+
 #ifdef TEST_WKPF
   test_wkpf();
+#endif
+
+#ifdef TEST_GROUP
+  test_group();
 #endif
 
 #ifdef NVM_USER_GROUP
   group_init(CANBEORACLE);
 #endif
-
-  wkpf_init();
 
   DEBUGF("NanoVM node id is %x\n", nvmcomm_get_node_id());
 

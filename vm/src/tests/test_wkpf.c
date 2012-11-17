@@ -1,7 +1,10 @@
 #include "config.h"
 #include "debug.h"
 #include "types.h"
+#include "vm.h"
 #include "wkpf.h"
+#include "wkpf_config.h"
+#include "wkpf_comm.h"
 #include "native_wuclasses/GENERATEDwuclass_threshold.h"
 #include "native_wuclasses/GENERATEDwuclass_math.h"
 #include "native_wuclasses/GENERATEDwuclass_logical.h"
@@ -14,6 +17,18 @@
 
 uint16_t passed_count=0;
 uint16_t failed_count=0;
+
+void assert_equal_char(char a, char b, char* desc) {
+  if (a==b) {
+    DEBUGF_TEST("OK: ");
+    passed_count++;
+  } else {
+    DEBUGF_TEST("----------->FAIL: ");
+    failed_count++;
+  }
+  DEBUGF_TEST(desc);
+  DEBUGF_TEST("\n");
+}
 
 void assert_equal_uint(uint16_t a, uint16_t b, char* desc) {
   if (a==b) {
@@ -71,6 +86,7 @@ wkpf_wuclass_definition wuclass_virtual = {
   wuclass_b_properties
 };
 
+#ifdef TEST_WKPF_WUCLASSES
 void test_wuclasses() {
   int8_t retval;
   wkpf_wuclass_definition *wuclass;
@@ -136,7 +152,9 @@ void test_wuclasses() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_WUOBJECTS
 void test_wuobjects() {
   int8_t retval;
   wkpf_local_wuobject *wuobject;
@@ -206,7 +224,9 @@ void test_wuobjects() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_PROPERTIES
 void test_properties() {
  /* int8_t retval;
   int16_t value_int16=42;
@@ -291,7 +311,9 @@ void test_properties() {
 
   print_test_summary();*/
 }
+#endif
 
+#ifdef TEST_WKPF_NATIVE_WUCLASSES
 void test_native_wuclasses() {
   int8_t retval;
   int16_t value_int16=0;
@@ -308,7 +330,9 @@ void test_native_wuclasses() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES
 void test_update_for_native_wuclasses() {
   int8_t retval;
   bool value_boolean;
@@ -344,8 +368,9 @@ void test_update_for_native_wuclasses() {
 
   print_test_summary();
 }
+#endif
 
-
+#ifdef TEST_WKPF_LOGICAL_WUCLASSES
 void test_logical_wuclasss() {
  /* int8_t retval;
   int16_t value_short;
@@ -573,7 +598,81 @@ void test_logical_wuclasss() {
 
   print_test_summary();
 }
+#endif
 
+#ifdef TEST_WKPF_CONFIGURATION
+void test_wkpf_config() {
+  char location[LOCATION_MAX_LENGTH];
+  uint8_t location_length;
+  uint8_t retval;
+  
+  // Location: direct test of wkpf_config code
+  wkpf_config_get_location_string(location, &location_length);
+  DEBUGF_TEST("Current location: ");
+  for (int i=0; i<location_length; i++)
+    DEBUGF_TEST("%c", location[i]);
+  DEBUGF_TEST("\n");
+  retval = wkpf_config_set_location_string("Taipei", 6);
+  assert_equal_uint(retval, WKPF_OK, "Set new location to Taipei");
+  wkpf_config_get_location_string(location, &location_length);
+  assert_equal_uint(location_length, 6, "Location length is 6");
+  assert_equal_char(location[0], 'T', "Location character 1");
+  assert_equal_char(location[1], 'a', "2");
+  assert_equal_char(location[2], 'i', "3");
+  assert_equal_char(location[3], 'p', "4");
+  assert_equal_char(location[4], 'e', "5");
+  assert_equal_char(location[5], 'i', "6");
+  
+  // Location: through wkpf_comm
+  uint8_t payload_for_get[12];
+  uint8_t payload_for_set_location[] = {0, 0, 9, 'R', 'o', 't', 't', 'e', 'r', 'd', 'a', 'm'};
+  uint8_t response_size;
+  uint8_t response_cmd;
+  
+  nvm_runlevel = NVM_RUNLVL_VM; // wkpf_comm_handle_message won't work unless we're in the right runlevel.
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_SET_LOCATION, payload_for_set_location, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_SET_LOCATION_R, "Set location to Rotterdam through wkpf_comm");
+  assert_equal_uint(response_size, 2, "Response size 2");
+  wkpf_comm_handle_message(NVMCOMM_WKPF_GET_LOCATION, payload_for_get, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_GET_LOCATION_R, "Get another location through wkpf_comm");
+  assert_equal_uint(response_size, 12, "Response size 12");
+  assert_equal_uint(payload_for_get[2], 9, "Location length is 9");
+  assert_equal_char(payload_for_get[3], 'R', "Location character 1");
+  assert_equal_char(payload_for_get[4], 'o', "2");
+  assert_equal_char(payload_for_get[5], 't', "3");
+  assert_equal_char(payload_for_get[6], 't', "4");
+  assert_equal_char(payload_for_get[7], 'e', "5");
+  assert_equal_char(payload_for_get[8], 'r', "6");
+  assert_equal_char(payload_for_get[9], 'd', "7");
+  assert_equal_char(payload_for_get[10], 'a', "8");
+  assert_equal_char(payload_for_get[11], 'm', "9");
+
+  // Features: through wkpf_comm
+  uint8_t payload_for_set_feature[] = {0, 0, WPKF_FEATURE_NATIVE_THRESHOLD, TRUE};
+  if (wkpf_config_get_feature_enabled(WPKF_FEATURE_NATIVE_THRESHOLD))
+    DEBUGF_TEST("Current status: Native threshold enabled\n");
+  else
+    DEBUGF_TEST("Current status: Native threshold disabled\n");
+
+  for (int i=0; i<=WKPF_MAX_FEATURE_NUMBER; i++) // Disable all features
+    wkpf_config_set_feature_enabled(i, FALSE);
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_GET_FEATURES, payload_for_get, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_GET_FEATURES_R, "Get features through wkpf_comm");
+  assert_equal_uint(response_size, 3, "Response size 3");
+  assert_equal_uint(payload_for_get[2], 0, "Number of features 0");
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_SET_FEATURE, payload_for_set_feature, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_SET_FEATURE_R, "Turn on native threshold through wkpf_comm");
+
+  wkpf_comm_handle_message(NVMCOMM_WKPF_GET_FEATURES, payload_for_get, &response_size, &response_cmd);
+  assert_equal_uint(response_cmd, NVMCOMM_WKPF_GET_FEATURES_R, "Get features through wkpf_comm");
+  assert_equal_uint(response_size, 4, "Response size 4");
+  assert_equal_uint(payload_for_get[2], 1, "Number of features 1");
+  assert_equal_uint(payload_for_get[3], WPKF_FEATURE_NATIVE_THRESHOLD, "Feature is native threshold");
+}
+#endif
 
 void test_wkpf() {
 #ifdef TEST_WKPF_WUCLASSES
@@ -593,6 +692,9 @@ void test_wkpf() {
 #endif
 #ifdef TEST_WKPF_LOGICAL_WUCLASSES
   test_logical_wuclasss();
+#endif
+#ifdef TEST_WKPF_CONFIGURATION
+  test_wkpf_config();
 #endif
 
   while(1) { }

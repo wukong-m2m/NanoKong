@@ -37,7 +37,10 @@
 // View update types
 #define V_UPDATE_JOINER 0x06
 #define V_UPDATE_LEAVER 0x07
-#define V_UPDATE_HASFAILED 0x08
+
+// State transfer types
+#define T_JOIN_EXIST 0x08
+#define T_JOIN_NEW 0x09
 
 // Max
 #define MAX_GROUP_SIZE 8
@@ -58,9 +61,6 @@ typedef struct view {
     address_t members[MAX_VIEW_MEMBER_SIZE];
     int member_size;
 
-    bool_t has_failed[MAX_VIEW_MEMBER_SIZE];
-    int fail_size;
-
     // list of the processes that joined this group since the last view was reported
     address_t joiners[MAX_VIEW_MEMBER_SIZE];
     int joiner_size;
@@ -68,17 +68,10 @@ typedef struct view {
     // list of processes that departed this group since the last view was reported
     address_t leavers[MAX_VIEW_MEMBER_SIZE];
     int leaver_size;
+
+    address_t coordinator;
+    address_t next_group;
 } view;
-
-const view DEFAULT_VIEW;
-
-/*
-const view DEFAULT_VIEW = { 0, 
-    (address_t[]){ 0 }, 0, 
-    (bool_t[]){ false }, 0, 
-    (address_t[]){ 0 }, 0, 
-    (address_t[]){ 0 }, 0 };
-*/
 
 /// Group structure
 // group_name is the name/identifier of this group
