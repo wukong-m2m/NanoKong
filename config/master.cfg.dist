@@ -29,3 +29,6 @@ ROOT = ../../
 NANOVMTOOL = %(ROOT)s/nanovmtool/
 
 #javac executable
+
+#location tree root info
+LOCATION_ROOT = universal
