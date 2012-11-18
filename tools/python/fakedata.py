@@ -5,9 +5,31 @@ rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
 all_wutypes = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml"), type='wutype').values()
 
-node_infos = []
-
-locTree = LocationTree("Boli_Building")
+simNodeInfos = []
+locs = ["/universal/CS_Building/3F/South_Corridor/Room336", "/universal/CS_Building/3F/East_Corridor/Room318",
+"/universal/CS_Building/3F/South_Corridor/Room336", "/universal/CS_Building/3F/East_Corridor/Room318"]
+coords = [(0, 1, 2), (0, 5, 3), (0,1,3), (0, 6, 4)]
+def genFakeData():	
+	wuobjects = []
+	global simNodeInfos
+	simNodeInfos=[]
+	global locs
+	global coords
+	
+	count = 0
+	for id in range(4):
+		count = 0
+		wuobjects = []
+		for wuclass in all_wuclasses:
+			wuobjects.append(WuObject(wuclass, 'testId'+str(count), 1, nodeId = id, portNumber=count))
+			if count > 5:
+				break
+			count = count+1
+		simNodeInfos.append(NodeInfo(nodeId = id,
+			     wuClasses = all_wuclasses,
+			     wuObjects = wuobjects,
+			     location = locs[id]))
+			
 '''
 locs = ["Boli_Building/3F/South_Corridor/Room336", "Boli_Building/3F/East_Corridor/Room318"]
 coords = [(0, 1, 2), (0, 5, 3)]

@@ -1,8 +1,10 @@
 import os
+import fakedata
 from configobj import ConfigObj
 ZWAVE_GATEWAY_IP = None
 MASTER_PORT = 80
 LOCATION_ROOT = "universal"
+SIMULATION = 0
 CONFIG_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config', 'master.cfg')
 print CONFIG_PATH
 
@@ -17,4 +19,8 @@ def readConfig():
     
     global LOCATION_ROOT
     LOCATION_ROOT = config.get('LOCATION_ROOT')
+    global SIMULATION
+    SIMULATION = int(config.get('SIMULATION'))
 readConfig()
+if SIMULATION == 1:
+    fakedata.genFakeData()

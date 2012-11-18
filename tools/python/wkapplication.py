@@ -57,8 +57,7 @@ def firstCandidate(app, wuObjects, locTree):
                 return False
 
         # filter by available wuclasses for non-virtual components
-        comm = getComm()
-        node_infos = comm.getNodeInfos(list(candidateSet))
+        node_infos = [locTree.getNodeInfoById(nodeId) for nodeId in candidateSet]
         if not wuObject.getWuClass().isVirtual():
           candidateSet = [node_info.nodeId for node_info in node_infos if wuObject.getWuClassId() in [wuClass.getId() for wuClass in node_info.wuClasses]]
         else:
