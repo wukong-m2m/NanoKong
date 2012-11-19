@@ -1,7 +1,12 @@
 #the children of leaf nodes are sensor nodes, sensor nodes
 
 import logging
+import odict
 from wkpf import NodeInfo, WuClass, WuObject
+
+json_data = odict.odict()
+#json_data = []
+number = 0
 
 class SensorNode:
 	def __init__(self, nodeInfo, x_coord, y_coord, z_coord):
@@ -78,6 +83,13 @@ class LocationTreeNode:
 		print_str = ""
 		for i in range(indent):
 			print_str  = print_str + "\t"
+		print_str = print_str + self.name + "#"
+		for i in range(len(self.sensorLst)):
+			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
+		return print_str
+		
+	def _toString(self, indent = 0):
+		print_str = ""
 		print_str = print_str + self.name + "#"
 		for i in range(len(self.sensorLst)):
 			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
@@ -176,18 +188,48 @@ class LocationTree:
 		return locationLst
 	
 
-	
+
+
 	def printTree(self, treeNd=None, indent = 0):
+		global number
+		print treeNd
+		number += 1
 		str = ""
+		_str = ""
+		
 		if treeNd ==None:
 			treeNd = self.root
+		
 		str += treeNd.toString(indent)
+		_str += treeNd._toString(indent)
+		json_data[indent+number*10] = _str
+		
 		print (str)
-		for i in range(treeNd.childrenCnt):
+		
+		for i in range(treeNd.childrenCnt):			
 			self.printTree(treeNd.children[i], indent+1)
 
 	
+class execute:
+	def init(self):
+		pass
+	def printtree(self):
+		locTree = LocationTree(u"Boli_Building")
+		loc0 = u"Boli_Building/3F/South_Corridor"
+		loc1 = u"Boli_Building/2F/South_Corridor/Room318"
+		loc2 = u"Boli_Building/3F/East_Corridor/Room318"
+		loc3 = u"Boli_Building/3F/East_Corridor/Room318"
+		senNd0 = SensorNode(NodeInfo(0,[], [], loc0), 0, 1, 2)
+		senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 5, 3)
+		senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 3, 3, 2)
+		senNd3 = SensorNode(NodeInfo(3, [], [], loc3), 2, 1, 2)
 	
+		print(locTree.addSensor(senNd0, locTree.root))
+		locTree.addSensor(senNd1)
+		locTree.addSensor(senNd2)
+		locTree.addSensor(senNd3)
+		locTree.printTree(locTree.root, 0)
+		return json_data
 
 if __name__ == "__main__":
 	locTree = LocationTree(u"Boli_Building")
@@ -205,9 +247,10 @@ if __name__ == "__main__":
 	locTree.addSensor(senNd2)
 	locTree.addSensor(senNd3)
 	locTree.printTree(locTree.root, 0)
-	locTree.delSensor(1)
-	locTree.printTree()
-	
+#	locTree.delSensor(1)
+#	locTree.printTree()
+	print json_data
+
 	
 			
 		
