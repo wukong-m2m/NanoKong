@@ -51,7 +51,7 @@ IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 locationTree= None
 
 applications = []
-
+node_infos = []
 #######################
 # KatsunoriSato added #
 #######################
@@ -381,14 +381,14 @@ class application(tornado.web.RequestHandler):
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
     global applications
+    global node_infos
     try:
       # Discovery results
       # TODO: persistent store
       #comm = getComm()
       #node_infos = comm.getAllNodeInfos()
 
-      # debug purpose
-      node_infos = fakedata.node_infos
+      
 
       app_ind = getAppIndex(app_id)
       if app_ind == None:
@@ -406,44 +406,41 @@ class deploy_application(tornado.web.RequestHandler):
 
   def post(self, app_id):
     global applications
+    global node_infos
+    node_ids = [info.nodeId for info in node_infos]
+    app_ind = getAppIndex(app_id)
     # Discovery results
     # TODO: persistent store
-    comm = getComm()
-    node_infos = comm.getAllNodeInfos()
+    if SIMULATION == 0:
+      comm = getComm()
+      
+      
+      if app_ind == None:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Cannot find the application'})
+      else:
+        platforms = ['avr_mega2560']
+        # TODO: need platforms from fbp
 
-    # debug purpose
-    #node_infos = fakedata.node_infos
+        applications[app_ind].compiler = Worker().compiler
+        if len(node_ids) > 0:
+          applications[app_ind].compiler(applications[app_ind], node_ids, platforms)
+          #applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], node_ids, platforms,))
+          #applications[app_ind].compiler.start()
 
-    node_ids = [info.nodeId for info in node_infos]
-
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+        self.content_type = 'application/json'
+        self.write({'status':0, 'version': applications[app_ind].version})
+    else:   
+      #in simulation, we should also deploy the sensor nodes into the simulation nodes
+      #TO DO: implement the deployment part
       self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot find the application'})
-    else:
-      platforms = ['avr_mega2560']
-      # TODO: need platforms from fbp
-
-      applications[app_ind].compiler = Worker().compiler
-      if len(node_ids) > 0:
-        applications[app_ind].compiler(applications[app_ind], node_ids, platforms)
-        #applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], node_ids, platforms,))
-        #applications[app_ind].compiler.start()
-
-      self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version})
+      self.write({'status':1, 'version': applications[app_ind].version})
 
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
     global locationTree
-    # Discovery results
-    # TODO: persistent store
-    comm = getComm()
-    node_infos = comm.getAllNodeInfos()
-
-    # debug purpose
-    #node_infos = fakedata.node_infos
+    global node_infos
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:
@@ -477,7 +474,7 @@ class monitor_application(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     #elif not applications[app_ind].mapping_results or not applications[app_ind].deployed:
       #self.content_type = 'application/json'
-      #self.write({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
+      #self.wrtie({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
     else:
       #applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
 
@@ -529,6 +526,7 @@ class save_fbp(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       applications[app_ind].updateXML(self.get_argument('xml'))
+      applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
@@ -553,12 +551,15 @@ class load_fbp(tornado.web.RequestHandler):
 class poll_testrtt(tornado.web.RequestHandler):
   def post(self):
     global applications
-
-    comm = getComm()
-    status = comm.currentStatus()
-    if status != None:
-      self.content_type = 'application/json'
-      self.write({'status':0, 'logs': status.split('\n')})
+    if SIMULATION == 0:
+      comm = getComm()
+      status = comm.currentStatus()
+      if status != None:
+        self.content_type = 'application/json'
+        self.write({'status':0, 'logs': status.split('\n')})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':0, 'logs': []})
     else:
       self.content_type = 'application/json'
       self.write({'status':0, 'logs': []})
@@ -566,46 +567,60 @@ class poll_testrtt(tornado.web.RequestHandler):
 class stop_testrtt(tornado.web.RequestHandler):
   def post(self):
     global applications
-
-    comm = getComm()
-    if comm.onStopMode():
-      self.content_type = 'application/json'
-      self.write({'status':0})
+    if SIMULATION == 0:
+      comm = getComm()
+      if comm.onStopMode():
+        self.content_type = 'application/json'
+        self.write({'status':0})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':1})
     else:
       self.content_type = 'application/json'
-      self.write({'status':1})
+      self.write({'status':2})
 
 class exclude_testrtt(tornado.web.RequestHandler):
   def post(self):
     global applications
-
-    comm = getComm()
-    if comm.onDeleteMode():
+    if SIMULATION == 0:
+      comm = getComm()
+      if comm.onDeleteMode():
+        self.content_type = 'application/json'
+        self.write({'status':0, 'log': 'Going into exclude mode'})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'log': 'There is an error going into exclude mode'})
+    else:    
       self.content_type = 'application/json'
-      self.write({'status':0, 'log': 'Going into exclude mode'})
-    else:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'log': 'There is an error going into exclude mode'})
+      self.write({'status':2, 'log': 'Not available in simulation'})
 
 class include_testrtt(tornado.web.RequestHandler):
   def post(self):
     global applications
-
-    comm = getComm()
-    print 'onAddMode'
-    if comm.onAddMode():
-      self.content_type = 'application/json'
-      self.write({'status':0, 'log': 'Going into include mode'})
+    if SIMULATION == 0:
+      comm = getComm()
+      print 'onAddMode'
+      if comm.onAddMode():
+        self.content_type = 'application/json'
+        self.write({'status':0, 'log': 'Going into include mode'})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'log': 'There is an error going into include mode'})
     else:
       self.content_type = 'application/json'
-      self.write({'status':1, 'log': 'There is an error going into include mode'})
+      self.write({'status':2, 'log': 'Not available in simulation'})
 
 class testrtt(tornado.web.RequestHandler):
   def get(self):
-    # Discovery results
-    # TODO: persistent store
-    comm = getComm()
-    node_infos = comm.getAllNodeInfos()
+
+    global node_infos
+    if SIMULATION == 0:
+        comm = getComm()
+        node_infos = comm.getAllNodeInfos()
+    elif SIMULATION == 1:
+        node_infos = fakedata.simNodeInfos
+    else:
+        logging.info("SIMULATION set to invalid value")
 
     # debug purpose
     #node_infos = fakedata.node_infos
@@ -616,11 +631,21 @@ class testrtt(tornado.web.RequestHandler):
 
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
-    print 'refresh_nodes'
-    comm = getComm()
-    print 'after getComm()'
-    node_infos = comm.getAllNodeInfos(force=True)
-
+    global node_infos
+    if SIMULATION == 0:
+      print 'refresh_nodes'
+      comm = getComm()
+      print 'after getComm()'
+      node_infos = comm.getAllNodeInfos(force=True)
+    elif SIMULATION ==1:
+      print ('using simulation data 1')
+      node_infos = fakedata.simNodeInfos
+    else:
+      logging.info("SIMULATION set to invalid value"+ str(SIMULATION))
+    for info in node_infos:
+      senNd = SensorNode(info, 0, 0, 0)
+      locationTree.addSensor(senNd)
+    locationTree.printTree()
     # default is false
     set_location = self.get_argument('set_location', False)
 
@@ -634,30 +659,45 @@ class nodes(tornado.web.RequestHandler):
     pass
 
   def post(self, nodeId):
-    comm = getComm()
-    info = comm.getNodeInfo(nodeId)
+    info = None
+    if SIMULATION == 0:
+      comm = getComm()
+      info = comm.getNodeInfo(nodeId)
+    elif SIMULATION == 1:
+      for i in range(fakedata.simNodeInfos):
+          if fakedata.simNodeInfos[i].nodeId == nodeId:
+              info = fakedata.simNodeInfos[i]
+    else:
+        logging.info("SIMULATION set to invalid value")
+        exit()
+              
 
     self.content_type = 'application/json'
     self.write({'status':0, 'node_info': info})
 
   def put(self, nodeId):
     global locationTree
+    global node_infos
     location = self.get_argument('location')
     if location:
-      comm = getComm()
-      if comm.setLocation(int(nodeId), location):
-        # update our knowledge too
-        for info in comm.all_node_infos:
-          if info.nodeId == int(nodeId):
-            info.location = location
-            senNd = SensorNode(info, 0, 0, 0)
-            locationTree.addSensor(senNd)
-        locationTree.printTree()
-        self.content_type = 'application/json'
-        self.write({'status':0})
-      else:
-        self.content_type = 'application/json'
-        self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
+      if SIMULATION == 0:
+        comm = getComm()
+        if not comm.setLocation(int(nodeId), location):
+          self.content_type = 'application/json'
+          self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
+          return
+      elif SIMULATION == 1:
+        locs[nodeId] = location
+          # update our knowledge too
+      for info in node_infos:
+        if info.nodeId == int(nodeId):
+          info.location = location
+          senNd = SensorNode(info, 0, 0, 0)
+          locationTree.addSensor(senNd)
+      locationTree.printTree()
+      self.content_type = 'application/json'
+      self.write({'status':0})
+        
 
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),

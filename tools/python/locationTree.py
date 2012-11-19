@@ -36,7 +36,7 @@ class LocationTreeNode:
 		self.childrenCnt = 0
 		self.sensorLst = []
 		self.sensorCnt = 0
-		self.idSet = set([])
+		self.idSet = set([])			#all sensor ids contained in this Node and its children nodes
 	def addChild(self, name):
 		tmp = LocationTreeNode (name, self)
 		self.children.append(tmp)
@@ -55,6 +55,7 @@ class LocationTreeNode:
 		pa = self.parent
 		while pa != None:
 			pa.sensorCnt = pa.sensorCnt + 1
+			pa.idSet.add(sensorNode.nodeInfo.nodeId)
 			pa = pa.parent
 	
 	def delSensor(self, sensorNode):
@@ -66,14 +67,21 @@ class LocationTreeNode:
 		pa = self.parent
 		while pa != None:
 			pa.sensorCnt = pa.sensorCnt - 1
+			pa.idSet.remove(sensorNode.nodeInfo.nodeId)
 			pa = pa.parent
 		
 	def getAllNodes(self):
 		ret_val = self.idSet
-		for child in self.children:
-			ret_val = ret_val | child.getAllNodes()
 		return ret_val
 	
+	def getAllNodeInfos(self):
+		ret_val = []
+		for sensor in self.sensorLst:
+			ret_val.append(sensor.nodeInfo)
+		for child in self.children:
+			ret_val.append(child.getAllNodeInfos())
+		return ret_val
+		
 	def toString(self, indent = 0):
 		print_str = ""
 		for i in range(indent):
@@ -108,11 +116,15 @@ class LocationTree:
 				pa.delChild(locTreeNode)
 			del locTreeNode
 			locTreeNode = pa
+	
+	def getAllNodeInfos(self):
+		return self.root.getAllNodeInfos()
 
 
 	#insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
 	def addSensor(self, sensorNd, startPos = None ):
-		#print startPos
+		print ("startPos!!!!!",startPos)
+		print self.root
 		if startPos == None:
 			startPos = self.root
 		if sensorNd.nodeInfo.nodeId in self.sensor_dict:
@@ -121,6 +133,9 @@ class LocationTree:
 				return False
 			else: #sensor node location needs to be updated, delete the original inserted SensorNd first
 				self.delSensor(sensorNd.nodeInfo.nodeId)
+		if sensorNd.locationLst == None or len(sensorNd.locationLst) == 0:
+			logging.error("error! location for node "+ str(sensorNd.nodeInfo.nodeId)+ " is not set")
+			return False
 		if startPos.name != sensorNd.locationLst[0]:
 			logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " does not match " + startPos.name)
 			return False
@@ -146,6 +161,22 @@ class LocationTree:
 		self.totalSensorCount = self.totalSensorCount +1
 		return True
 	
+	def getNodeInfoById (self, Id):    			#return None on failure
+		curNode = self.root
+		while curNode != None and (Id in curNode.idSet):
+			found = False
+			for child in curNode.children:
+				if Id in child.idSet:
+					curNode = child
+					found = True
+					break
+			if found == False:		#sensor in curNode but not in its children
+				for senr in curNode.sensorLst:
+					if senr.nodeInfo.nodeId == Id:
+						return senr.nodeInfo
+				curNode = None
+		return None
+				
 	def findLocation(self, startPos, locationStr):
 		locationLst =  self.parseLocation(locationStr)
 		print locationLst
@@ -178,9 +209,11 @@ class LocationTree:
 
 	
 	def printTree(self, treeNd=None, indent = 0):
+		
 		str = ""
 		if treeNd ==None:
 			treeNd = self.root
+			print "Printing location tree!"
 		str += treeNd.toString(indent)
 		print (str)
 		for i in range(treeNd.childrenCnt):
