@@ -526,6 +526,7 @@ class save_fbp(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       applications[app_ind].updateXML(self.get_argument('xml'))
+      applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
@@ -637,7 +638,7 @@ class refresh_nodes(tornado.web.RequestHandler):
       print 'after getComm()'
       node_infos = comm.getAllNodeInfos(force=True)
     elif SIMULATION ==1:
-      print 'using simulation data 1'
+      print ('using simulation data 1')
       node_infos = fakedata.simNodeInfos
     else:
       logging.info("SIMULATION set to invalid value"+ str(SIMULATION))
