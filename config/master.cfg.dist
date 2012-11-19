@@ -29,3 +29,9 @@ ROOT = ../../
 NANOVMTOOL = %(ROOT)s/nanovmtool/
 
 #javac executable
+
+#location tree root info
+LOCATION_ROOT = universal
+
+#whether using fake data 0--- not use, 1 --- use fakedata1 for simulation
+SIMULATION = 1
