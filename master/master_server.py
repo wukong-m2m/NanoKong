@@ -55,6 +55,9 @@ applications = []
 #######################
 # KatsunoriSato added #
 #######################
+from locationTree import execute
+treedata = []
+
 from make_js import make_main
 from make_fbp import fbp_main
 def import_wuXML():
@@ -653,12 +656,26 @@ class nodes(tornado.web.RequestHandler):
             senNd = SensorNode(info, 0, 0, 0)
             locationTree.addSensor(senNd)
         locationTree.printTree()
+#        treedata = locationTree.json_tree(locationTree)
         self.content_type = 'application/json'
         self.write({'status':0})
+#        self.write(treedata)
       else:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
-
+        
+class tree(tornado.web.RequestHandler):	
+	def get(self):
+		pass
+		
+	def post(self):
+		global treedata
+		maketree = execute()
+		treedata = maketree.printtree()
+		self.content_type = 'application/json'
+		self.write(json.dumps(treedata))
+#		self.write(treedata)
+    
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
   debug=True
@@ -684,14 +701,17 @@ app = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/monitor", monitor_application),
   (r"/applications/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
+  (r"/test/tree", tree)
 ], IP, **settings)
 
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
 	configuration.readConfig()
 	update_applications()
-	app.listen(MASTER_PORT)
+	app.listen(5001)	
+#	app.listen(MASTER_PORT)
 	locationTree = LocationTree(LOCATION_ROOT)
 #	import_wuXML()	#KatsunoriSato added
 #	make_FBP()
 	ioloop.start()
+
