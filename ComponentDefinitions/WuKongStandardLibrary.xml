@@ -39,45 +39,45 @@
     </WuClass>
 
     <WuClass name="Logical" id="11" virtual="true" type="soft">
-        <property name="input1" datatype="boolean" access="readwrite" />
-        <property name="input2" datatype="boolean" access="readwrite" />
-        <property name="input3" datatype="boolean" access="readwrite" />
-        <property name="input4" datatype="boolean" access="readwrite" />
+        <property name="input1" datatype="boolean" access="writeonly" />
+        <property name="input2" datatype="boolean" access="writeonly" />
+        <property name="input3" datatype="boolean" access="writeonly" />
+        <property name="input4" datatype="boolean" access="writeonly" />
         <property name="operator" datatype="LogicalOperator" access="readwrite" default="LogicalOperator.and" depends="LogicalOperator" />
         <property name="output" datatype="boolean" access="readonly" />
     </WuClass>
 
     <WuClass name="Condition_selector_boolean" id="21" virtual="true" type="soft">
-        <property name="input" datatype="boolean" access="readwrite" />
+        <property name="input" datatype="boolean" access="writeonly" />
         <property name="control" datatype="boolean" access="readwrite" />
         <property name="output1" datatype="boolean" access="readonly" />
         <property name="output2" datatype="boolean" access="readonly" />
     </WuClass>
 
     <WuClass name="Condition_selector_short" id="22" virtual="true" type="soft">
-        <property name="input" datatype="short" access="readwrite" />
+        <property name="input" datatype="short" access="writeonly" />
         <property name="control" datatype="boolean" access="readwrite" />
         <property name="output1" datatype="short" access="readonly" />
         <property name="output2" datatype="short" access="readonly" />
     </WuClass>
 
     <WuClass name="Loop_delay_boolean" id="31" virtual="true" type="soft">
-        <property name="input" datatype="boolean" access="readwrite" />
+        <property name="input" datatype="boolean" access="writeonly" />
         <property name="delay" datatype="short" access="readwrite" />
         <property name="output" datatype="boolean" access="readonly" />
     </WuClass>
 
     <WuClass name="Loop_delay_short" id="32" virtual="true" type="soft">
-        <property name="input" datatype="short" access="readwrite" />
+        <property name="input" datatype="short" access="writeonly" />
         <property name="delay" datatype="short" access="readwrite" />
         <property name="output" datatype="short" access="readonly" />
     </WuClass>
 
     <WuClass name="Math" id="41" virtual="true" type="soft">
-        <property name="input1" datatype="short" access="readwrite" />
-        <property name="input2" datatype="short" access="readwrite" />
-        <property name="input3" datatype="short" access="readwrite" />
-        <property name="input4" datatype="short" access="readwrite" />
+        <property name="input1" datatype="short" access="writeonly" />
+        <property name="input2" datatype="short" access="writeonly" />
+        <property name="input3" datatype="short" access="writeonly" />
+        <property name="input4" datatype="short" access="writeonly" />
         <property name="operator" datatype="MathOperator" access="readwrite" default="MathOperator.max" depends="MathOperator" />
         <property name="output" datatype="short" access="readonly" />
         <property name="remainder" datatype="short" access="readonly" />
@@ -111,8 +111,8 @@
     </WuClass>
 
     <WuClass name="And_Gate" id="6" virtual="true" type="soft">
-        <property name="input1" datatype="boolean" access="readwrite" />
-        <property name="input2" datatype="boolean" access="readwrite" />
+        <property name="input1" datatype="boolean" access="writeonly" />
+        <property name="input2" datatype="boolean" access="writeonly" />
         <property name="output" datatype="boolean" access="readonly" />
     </WuClass>
 
