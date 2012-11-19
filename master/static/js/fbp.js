@@ -14,7 +14,7 @@ $(document).ready(function() {
     $('#client').append('<div id=toolbar></div>');
     $('#client').append('<div id=content></div>');
     var toolbar = $('#toolbar');
-//	toolbar.append('<table><tr>');
+	toolbar.append('<table><tr>');
     toolbar.append('<td><select id=toolbar_type size=10></select></td>');
     FBP_fillBlockType($('#toolbar_type'));
 
@@ -35,7 +35,7 @@ $(document).ready(function() {
     $('#toolbar_save').click(function() {
         FBP_save();
     });
-//    toolbar.append('</tr></table>');
+    toolbar.append('</tr></table>');
 
     /*
     toolbar.append('<button id=toolbar_load>Load</button>');
