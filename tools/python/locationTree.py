@@ -97,11 +97,22 @@ class LocationTreeNode:
 		return print_str
 		
 	def _toString(self, indent = 0):
+		global number
 		print_str = ""
 		print_str = print_str + self.name # + "#"
-		for i in range(len(self.sensorLst)):
-			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
+#		for i in range(len(self.sensorLst)):
+#			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
+		json_data[indent+number*10] = print_str
+		if not len(self.sensorLst) == 0:		
+			self._chldString(indent)
 		return print_str
+		
+	def _chldString(self, indent=0):
+		global number
+		for i in range(len(self.sensorLst)):
+			number += 1
+			json_data[indent+1+number*10] = str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)
+			
 		
 		
 class LocationTree:
@@ -217,11 +228,9 @@ class LocationTree:
 				locationLst.remove(loc)
 				
 		return locationLst
-	
 
 
-
-	def printTree(self, treeNd=None, indent = 0):
+	def __printTree(self, treeNd=None, indent = 0):
 		global number
 		number += 1
 
@@ -238,8 +247,24 @@ class LocationTree:
 		json_data[indent+number*10] = _str
 		
 		print (str)
-				
+		
 		for i in range(treeNd.childrenCnt):			
+			self.printTree(treeNd.children[i], indent+1)
+
+	def printTree(self, treeNd=None, indent = 0):
+		global number
+		number += 1
+
+		_str = ""
+		if treeNd ==None:
+			treeNd = self.root
+
+		_str += treeNd._toString(indent)
+#		json_data[indent+number*10] = _str
+
+		print (_str)
+
+		for i in range(treeNd.childrenCnt):
 			self.printTree(treeNd.children[i], indent+1)
 
 	def getJson(self):
