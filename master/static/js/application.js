@@ -26,9 +26,66 @@ function application_init()
             }
         });
     });
+    
+    $('#locationTree').click(function() {
+        $('#node-editor').parent().removeClass('active');
+        $('#application').parent().addClass('active');
+//      $('#locationTree').parent().remoceClass('active');
+        window.options.repeat = false;
+        location_tree();
+    });
 
     application_fill();
 }
+
+function location_tree()
+{
+	$('#content').empty();
+	$.ajax({
+		url: '/test/tree',
+		type: 'POST',
+		dataType: 'json',
+		success: function(r) {
+//    		DebugPrint(r);
+    		make_tree(r);
+		}
+	});
+
+}
+
+function make_tree(r)
+{
+    temp = 0
+    cont = 1
+    html_tree = ''
+    html_tree += '<ul>'
+    for( i in r){
+		l = i % (10*cont)
+		if(l == 0){
+				html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+		}else if(l == temp){
+				html_tree += '<li id="'+ r[i]+ '">'+r[i]+'</li>'
+		}else if(l > temp){
+				html_tree += '<ul><li id="'+ r[i] +'">'+r[i]+'</li>'
+		}else if(l < temp){
+				m = temp - l
+			for(var j=0; j<m ;j++){
+			        html_tree += '</ul>'
+			}
+			html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+		}
+		temp = l
+		cont+= 1
+		}
+
+		for(var j=0; j<temp+1; j++){
+			html_tree += '</ul>'
+		}
+		$('#content').append(r);
+		$('#content').append(html_tree);
+//		DebugPrint(html_tree);
+}
+
 
 function application_fill()
 {

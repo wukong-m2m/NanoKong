@@ -55,9 +55,6 @@ node_infos = []
 #######################
 # KatsunoriSato added #
 #######################
-from locationTree import execute
-treedata = []
-
 from make_js import make_main
 from make_fbp import fbp_main
 def import_wuXML():
@@ -705,31 +702,28 @@ class tree(tornado.web.RequestHandler):
 		pass
 		
 	def post(self):
-		global treedata
-		maketree = execute()
-		treedata = maketree.printtree()
+		global locationTree
+		global node_infos
+		
+		if SIMULATION == 0:
+			comm = getComm()
+			node_infos = comm.getAllNodeInfos()
+		elif SIMULATION == 1:
+			node_infos = fakedata.simNodeInfos
+		else:
+			logging.info("SIMULATION set to invalid value")
+
+		for info in node_infos:
+			senNd = SensorNode(info, 0, 0, 0)
+			locationTree.addSensor(senNd)
+
+		locationTree.printTree()
+		disploc = locationTree.getJson()
+		print "@@@getJson@@@@", disploc
 		self.content_type = 'application/json'
-		self.write(json.dumps(treedata))
-#		self.write(treedata)
-    
-      if SIMULATION == 0:
-        comm = getComm()
-        if not comm.setLocation(int(nodeId), location):
-          self.content_type = 'application/json'
-          self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
-          return
-      elif SIMULATION == 1:
-        locs[nodeId] = location
-          # update our knowledge too
-      for info in node_infos:
-        if info.nodeId == int(nodeId):
-          info.location = location
-          senNd = SensorNode(info, 0, 0, 0)
-          locationTree.addSensor(senNd)
-      locationTree.printTree()
-      self.content_type = 'application/json'
-      self.write({'status':0})
-        
+#		self.write({'status':0})
+		self.write(json.dumps(disploc))			
+       
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
   debug=True
