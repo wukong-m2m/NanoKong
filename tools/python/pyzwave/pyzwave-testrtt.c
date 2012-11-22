@@ -2702,14 +2702,17 @@ int zwave_init()
         }
     } else {
         printf("not g_host\n");
+        printf("%s\n", g_dev_name);
 #ifdef _WIN32		
         return 0;
 #else //_WIN32		
+        printf("opening ...\n");
         zwavefd = open(g_dev_name,O_RDWR);
         if (zwavefd < 0) {
             printf("open %s error\n", g_dev_name);
             return -1;
         }
+        printf("tcgetattr ...\n");
         if (tcgetattr(zwavefd, &newtio) < 0) {
             printf("errors:tcgetattr.\n");
             return -1;
@@ -2719,8 +2722,9 @@ int zwave_init()
         cfsetospeed(&newtio, B115200);
 
         tcflush(zwavefd, TCIFLUSH);
+        printf("tcsetattr ...\n");
         if (tcsetattr(zwavefd,TCSANOW,&newtio) < 0) {
-            printf("errors:tcgetattr.\n");
+            printf("errors:tcsetattr.\n");
             return -1;
         }
 #endif //_WIN32		
@@ -4327,6 +4331,17 @@ void PyZwave_proprietary_class_cb(int src, void * payload, int len) {
         for (i=0; i<len; i++)
         printf("[%x] ", PyZwave_messagebuffer[i]);
         printf("\n");*/
+}
+
+int PyZwave_init_usb(char *dev_name) {
+    printf("inside PyZwave_init\n");
+    strcpy(g_dev_name, dev_name);
+    printf("g_dev_name\n");
+    txoptions |= TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE;
+    printf("txoptions\n");
+    register_persistent_class_callback(COMMAND_CLASS_PROPRIETARY, PyZwave_proprietary_class_cb);
+    printf("register_persistent_class_callback\n");
+    return zwave_init();
 }
 
 int PyZwave_init(char *host) {

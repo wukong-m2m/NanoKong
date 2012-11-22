@@ -1,5 +1,7 @@
 #[network]
 #for NTU zwave gateway, 10.3.36.231; for UCI gatway, 192.168.2.1
+#you can also put path to the usb wudevice as a base station e.g. /dev/ttyACM0
+#with the latest testrtt
 ZWAVE_GATEWAY_IP=192.168.2.1
 
 
