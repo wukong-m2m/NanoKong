@@ -68,7 +68,7 @@ endef
 %.elf: $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
 	#avr-size -C --mcu=atmega2560 $@
-	#$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
+	$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
 
 %.hex: %.elf
 	$(OBJCOPY) -j .text -j .lowtext -j .data -j .javabytecode -O ihex $< $@
