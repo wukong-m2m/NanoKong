@@ -14,26 +14,29 @@ $(document).ready(function() {
     $('#client').append('<div id=toolbar></div>');
     $('#client').append('<div id=content></div>');
     var toolbar = $('#toolbar');
-    toolbar.append('<select id=toolbar_type size=10></select>');
+	toolbar.append('<table><tr>');
+    toolbar.append('<td><select id=toolbar_type size=10></select></td>');
     FBP_fillBlockType($('#toolbar_type'));
 
 /*    toolbar.append('<button id=toolbar_addBlock style="position: relative; left: 0px; top: -155px;">Add</button>');
     $('#toolbar_addBlock').click(function() {
         FBP_addBlock();
     });
-*/    
-    toolbar.append('<button id=toolbar_delBlock style="position:relative; left: 0px; top: -155px;">Del</button>');
+*/
+    toolbar.append('<td valign="top"><button id=toolbar_delBlock>Del</button></td>');
     $('#toolbar_delBlock').click(function() {
         FBP_delBlock();
     });
-    toolbar.append('<button id=toolbar_link style="position: relative; left: 0px; top: -155px;">Link</button>');
+    toolbar.append('<td valign="top"><button id=toolbar_link>Link</button></td>');
     $('#toolbar_link').click(function() {
         FBP_link();
     });
-    toolbar.append('<button id=toolbar_save style="position: relative; left: 0px; top: -155px;">Save</button>');
+    toolbar.append('<td valign="top"><button id=toolbar_save>Save</button></td>');
     $('#toolbar_save').click(function() {
         FBP_save();
     });
+    toolbar.append('</tr></table>');
+
     /*
     toolbar.append('<button id=toolbar_load>Load</button>');
     $('#toolbar_load').click(function() {
@@ -76,8 +79,7 @@ function FBP_fillBlockType(div)
 
     for(i=0;i<blocks.length;i++) {
 //       div.append('<option val='+blocks[i]+'>'+blocks[i]+'</option>');
-       div.append('<option val='+blocks[i]+' onclick=FBP_addBlock()>'+blocks[i]+'</option>');
-//       div.append('<option val='+blocks[i]+' ondblclick=FBP_addBlock()>'+blocks[i]+'</option>');
+       div.append('<option val='+blocks[i]+' ondblclick=FBP_addBlock()>'+blocks[i]+'</option>');
     }
 }
 
@@ -110,6 +112,7 @@ function FBP_delBlock()
 	FBP_refreshLines();
     Block.current.div.remove();
     Block.current = null;
+    
 }
 
 function FBP_refreshLines()

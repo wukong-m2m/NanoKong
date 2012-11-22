@@ -13,20 +13,14 @@ def addHead():
             '\t\t'+'<link type="text/css" href="/static/css/jquery.contextMenu.css" rel="stylesheet" />'+'\n'+
             '\t\t'+'<link type="text/css" href="/static/css/fbp.css" rel="stylesheet" />'+'\n'+
             '\t\t'+'<script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/jquery-ui-1.8.21.custom.min.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/jquery.contextMenu.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/jcanvas.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/json2.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/block.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/line.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/fbp.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/temperature.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/number.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/threshold.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/lightsensor.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/lightactuator.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/numericcontroller.js"></script>'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/flowlist.js"></script>'+'\n'
+			'\t\t'+'<script type="text/javascript" src="/static/js/jquery-ui-1.8.21.custom.min.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/jquery.contextMenu.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/jcanvas.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/json2.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/block.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/line.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/fbp.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/flowlist.js"></script>'+'\n'
             )
 	g.close()
 
@@ -89,9 +83,9 @@ class fbp_main:
 		    os.remove("./templates/fbp.html")
 
 		addHead()
-		_jsList = glob.glob("./static/js/*.js*")
-		_testList = glob.glob("./static/js/test/*.js*")
-		addMiddle(_jsList)
+#		_jsList = glob.glob("./static/js/*.js")
+		_testList = glob.glob("./static/js/test/*.js")
+#		addMiddle(_jsList)
 		addMiddle(_testList)
 		addEnd()
 

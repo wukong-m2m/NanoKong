@@ -680,25 +680,50 @@ class nodes(tornado.web.RequestHandler):
     global node_infos
     location = self.get_argument('location')
     if location:
-      if SIMULATION == 0:
-        comm = getComm()
-        if not comm.setLocation(int(nodeId), location):
-          self.content_type = 'application/json'
-          self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
-          return
-      elif SIMULATION == 1:
-        locs[nodeId] = location
-          # update our knowledge too
-      for info in node_infos:
-        if info.nodeId == int(nodeId):
-          info.location = location
-          senNd = SensorNode(info, 0, 0, 0)
-          locationTree.addSensor(senNd)
-      locationTree.printTree()
-      self.content_type = 'application/json'
-      self.write({'status':0})
+      comm = getComm()
+      if comm.setLocation(int(nodeId), location):
+        # update our knowledge too
+        for info in comm.all_node_infos:
+          if info.nodeId == int(nodeId):
+            info.location = location
+            senNd = SensorNode(info, 0, 0, 0)
+            locationTree.addSensor(senNd)
+        locationTree.printTree()
+#        treedata = locationTree.json_tree(locationTree)
+        self.content_type = 'application/json'
+        self.write({'status':0})
+#        self.write(treedata)
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
         
+class tree(tornado.web.RequestHandler):	
+	def get(self):
+		pass
+		
+	def post(self):
+		global locationTree
+		global node_infos
+		
+		if SIMULATION == 0:
+			comm = getComm()
+			node_infos = comm.getAllNodeInfos()
+		elif SIMULATION == 1:
+			node_infos = fakedata.simNodeInfos
+		else:
+			logging.info("SIMULATION set to invalid value")
 
+		for info in node_infos:
+			senNd = SensorNode(info, 0, 0, 0)
+			locationTree.addSensor(senNd)
+
+		locationTree.printTree()
+		disploc = locationTree.getJson()
+		print "@@@getJson@@@@", disploc
+		self.content_type = 'application/json'
+#		self.write({'status':0})
+		self.write(json.dumps(disploc))			
+       
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
   debug=True
@@ -724,14 +749,17 @@ app = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/monitor", monitor_application),
   (r"/applications/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
+  (r"/test/tree", tree)
 ], IP, **settings)
 
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
 	configuration.readConfig()
 	update_applications()
-	app.listen(MASTER_PORT)
+	app.listen(5001)	
+#	app.listen(MASTER_PORT)
 	locationTree = LocationTree(LOCATION_ROOT)
 #	import_wuXML()	#KatsunoriSato added
 #	make_FBP()
 	ioloop.start()
+
