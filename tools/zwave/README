@@ -1,0 +1,137 @@
+== How to make one WuDevice into a Z-Wave base station?
+
+= English instructions
+
+Burn Zwave_bridge.pde in pde folder to the board
+
+Could use Arduino.app or the official Arduino IDE
+
+Run the following command to connect to the base station board
+
+    ./testrtt -d PORT
+
+= 中文
+
+燒錄Zwave_bridge.pde到node(以node當base station)
+
+連接zwave node
+
+    ./testrtt -d "設備port"
+
+(ex設備port:/dev/ttyACM0)
+
+== How to remove entries from Z-Wave base station routing table? (controller initdata)
+
+= English instructions
+
+First use the command to verify if the node ID is responding
+
+    ack basic set ID 0
+
+if the command is successful, OK message will appear
+
+if the command failed, no ACK message will appear
+
+Then run this command to verify if the node actually failed
+
+    isfail ID
+
+If the return value could look something like this [0 98]
+
+The first value indicates whether the node is alive, 0 means alive, 1 means dead
+
+The second value is the checksum
+
+Doesn't matter if the node is actually alive, you can remove it now by running
+
+    removefail ID
+
+
+Reset the controller by running
+
+    controller reset
+
+= 中文
+
+檢查節點是否有通
+
+    ack basic set "節點ID" 0
+
+成功出現OK
+
+失敗出現no ACK
+
+檢查節點是否存活
+
+    ack basic get "節點ID"
+
+    isfail "節點ID"
+
+回傳值[0 98]
+
+第一碼0代表節點活著，1代表節點失效，
+
+第二碼98代表checksum
+
+移除失效節點
+
+    removefail "節點ID"
+
+重置base station
+
+    controller reset
+
+== How to add or remove a node from base station routing table
+
+= English instructions
+
+How to add a node to the network?
+
+Burn Zwave.pde in pde folder to the target node
+
+Go to Arduino Serial monitor and press l
+
+Then to add this node to the network, enter base station and run the commands
+
+    network add
+
+Once the sucess messages are seen on both side, go to Arduino Serial monitor and press L
+
+THen run the command at base station
+
+    network stop
+
+
+How to remove a node from the network?
+
+Burn Zwave.pde in pde folder to the target node
+
+Go to Arduino Serial monitor and press l
+
+Then to add this node to the network, enter base station and run the commands
+
+    network delete
+
+Once the sucess messages are seen on both side, go to Arduino Serial monitor and press L
+
+THen run the command at base station
+
+    network stop
+
+= 中文
+
+燒錄Zwave.pde到節點上
+
+新增節點到base station
+
+1.base station輸入指令network add
+
+2.節點進入learning mode(燒錄Zwave.pde後執行l進入學習模式，L停止學習)
+
+從base station移除節點
+
+1.base station輸入指令network delete
+
+2.節點進入learning mode(燒錄Zwave.pde後執行l進入學習模式，L停止學習)
+
+輸入r可以將節點reset(清除之前的學習資訊)
