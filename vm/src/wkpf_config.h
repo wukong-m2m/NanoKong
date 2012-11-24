@@ -22,4 +22,7 @@ extern void wkpf_config_get_location_string(char* dest, uint8_t* length);
 extern uint8_t wkpf_config_set_feature_enabled(uint8_t feature, bool enabled); // Needs reboot
 extern bool wkpf_config_get_feature_enabled(uint8_t feature);
 
+extern address_t wkpf_config_get_master_node_id();
+extern void wkpf_config_set_master_node_id(address_t node_id);
+
 #endif // WKPF_CONFIG_H

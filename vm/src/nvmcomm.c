@@ -7,6 +7,7 @@
 #include "delay.h"
 #include "nvmfile.h"
 #include "wkpf_comm.h"
+#include "wkpf_config.h"
 #include "group.h"
 
 #ifdef NVM_USE_COMM
@@ -175,6 +176,8 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
   switch (nvmcomm_command) {
     case NVMCOMM_CMD_REPRG_OPEN:
       DEBUGF_COMM("Initialise reprogramming.\n");
+      DEBUGF_COMM("Setting master address to %x", src);
+      wkpf_config_set_master_node_id(src);
       nvc3_avr_reprogramming = TRUE;
       nvc3_avr_reprogramming_pos = 0;
       avr_flash_open(bytecode_address);
