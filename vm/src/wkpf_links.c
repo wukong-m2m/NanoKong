@@ -146,8 +146,8 @@ uint8_t wkpf_pull_property(uint8_t port_number, uint8_t property_number) {
         return WKPF_ERR_SHOULDNT_HAPPEN;
       }
       uint8_t src_property_number = links[i].src_property_number;
-      uint8_t src_port_number = wkpf_leader_for_endpoint(src_component_id).port_number;
-      address_t src_node_id = wkpf_leader_for_endpoint(src_component_id).node_id;
+      uint8_t src_port_number = wkpf_leader_for_component(src_component_id).port_number;
+      address_t src_node_id = wkpf_leader_for_component(src_component_id).node_id;
       if (src_node_id != nvmcomm_get_node_id()) {
         // Properties with local sources will be initialised eventually, so we only need to send a message
         // to ask for initial values coming from remote nodes
@@ -178,8 +178,8 @@ uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, in
         return WKPF_ERR_SHOULDNT_HAPPEN;
       }
       uint8_t dest_property_number = links[i].dest_property_number;
-      uint8_t dest_port_number = wkpf_leader_for_endpoint(dest_component_id).port_number;
-      address_t dest_node_id = wkpf_leader_for_endpoint(dest_component_id).node_id;
+      uint8_t dest_port_number = wkpf_leader_for_component(dest_component_id).port_number;
+      address_t dest_node_id = wkpf_leader_for_component(dest_component_id).node_id;
       if (dest_node_id == nvmcomm_get_node_id()) {
         // Local
         wkpf_local_wuobject *dest_wuobject;
