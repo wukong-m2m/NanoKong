@@ -203,10 +203,13 @@ bool wkpf_get_next_dirty_property(uint8_t *port_number, uint8_t *property_number
   if (last_returned_dirty_property_index >= number_of_properties)
     last_returned_dirty_property_index = number_of_properties-1; // Could happen if wuobjects were removed
   int i = last_returned_dirty_property_index;
+  uint16_t component_id;
 
   do {
     i = (i+1) % number_of_properties;
-    if (wkpf_property_status_is_dirty(properties[i].property_status)) {
+    wkpf_get_component_id(properties[i].wuobject_port_number, &component_id);
+    if (wkpf_property_status_is_dirty(properties[i].property_status)
+        && wkpf_node_is_leader(component_id, nvmcomm_get_node_id())) {
       DEBUGF_WKPF("WKPF: wkpf_get_next_dirty_property DIRTY[%x]: port %x property %x status %x\n", i, properties[i].wuobject_port_number, properties[i].property_number, properties[i].property_status);
       last_returned_dirty_property_index = i;
       *port_number = properties[i].wuobject_port_number;
