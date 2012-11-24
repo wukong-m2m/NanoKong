@@ -121,6 +121,7 @@ extern int terminate_group_member(group* g, u08_t node_id); // Send poison pill 
 extern u08_t* query(group *g);
 extern u08_t* update_group_members(group* g);
 
+extern void group_heartbeat();
 extern void group_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd);
 extern void group_handle_heartbeat_message(address_t src);
 extern void group_add_node_to_watch(address_t node_id);
