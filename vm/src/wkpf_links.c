@@ -7,11 +7,7 @@
 #include "wkpf.h"
 #include "group.h"
 #include "wkpf_properties.h"
-
-typedef struct remote_endpoint_struct {
-  address_t node_id;
-  uint8_t port_number;  
-} remote_endpoint;
+#include "wkpf_links.h"
 
 typedef struct remote_endpoints_struct {
   uint16_t number_of_endpoints;
@@ -243,5 +239,14 @@ uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *n
   *node_id = wkpf_leader_for_component(component_id).node_id;
   *port_number = wkpf_leader_for_component(component_id).port_number;
   return WKPF_OK;
+}
+
+bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
+  return remote_endpoints[component_id].number_of_endpoints > 0
+    && remote_endpoints[component_id].endpoints[0].node_id == node_id;
+}
+
+remote_endpoint wkpf_leader_for_component(uint16_t component_id) {
+  return remote_endpoints[component_id].endpoints[0];
 }
 
