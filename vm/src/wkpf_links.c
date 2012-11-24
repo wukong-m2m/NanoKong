@@ -68,10 +68,10 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
         if (j == 0) {
           // Leader
           for (int k=1; k<number_of_nodes; k++) {
-            wkpf_add_node_to_watch(nodes[k].node_id);
+            group_add_node_to_watch(nodes[k].node_id);
           }
         } else {
-          wkpf_add_node_to_watch(nodes[0].node_id);
+          group_add_node_to_watch(nodes[0].node_id);
         }
       }
     }
