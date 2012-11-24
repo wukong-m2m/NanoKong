@@ -43,13 +43,13 @@
 #define T_JOIN_NEW 0x09
 
 // Max
-#define MAX_GROUP_SIZE 8
-#define MAX_GROUP_LIST_SIZE 8
+#define MAX_GROUP_SIZE 4
+#define MAX_GROUP_LIST_SIZE 4
 
-#define MAX_VIEW_SIZE 8
-#define MAX_VIEW_LIST_SIZE 8
+#define MAX_VIEW_SIZE 4
+#define MAX_VIEW_LIST_SIZE 4
 
-#define MAX_VIEW_MEMBER_SIZE 8
+#define MAX_VIEW_MEMBER_SIZE 4
 
 // View id type
 #define VIEW_UNINITIALIZED -1
