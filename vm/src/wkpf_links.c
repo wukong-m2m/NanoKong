@@ -12,6 +12,11 @@ typedef struct remote_endpoint_struct {
   uint8_t port_number;  
 } remote_endpoint;
 
+typedef struct remote_endpoints_struct {
+  uint16_t number_of_endpoints;
+  remote_endpoint* endpoints;
+} remote_endpoints;
+
 typedef struct link_entry_struct {
   uint16_t src_component_id;
   uint8_t src_property_number;
@@ -23,7 +28,7 @@ typedef struct link_entry_struct {
 
 #define MAX_NUMBER_OF_COMPONENTS 10
 uint8_t number_of_components;
-remote_endpoint component_to_wuobject_map[MAX_NUMBER_OF_COMPONENTS];
+remote_endpoints component_to_wuobject_map[MAX_NUMBER_OF_COMPONENTS];
 
 #define MAX_NUMBER_OF_LINKS 10
 uint8_t number_of_links;
@@ -32,16 +37,36 @@ link_entry links[MAX_NUMBER_OF_LINKS];
 
 bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
   for(int i=0; i<number_of_components; i++) {
-    if(component_to_wuobject_map[i].node_id == nvmcomm_get_node_id()
-        && component_to_wuobject_map[i].port_number == port_number) {
-      *component_id = i;
-      return true; // Found
+    uint16_t number_of_endpoints = component_to_wuobject_map[i].number_of_endpoints;
+    for(int j=0; j<number_of_endpoints; j++) {
+      if(component_to_wuobject_map[i].endpoints[j].node_id == nvmcomm_get_node_id()
+          && component_to_wuobject_map[i].endpoints[j].port_number == port_number) {
+        *component_id = i;
+        return true; // Found
+      }
     }
   }
   return false; // Not found. Could happen for wuobjects that aren't used in the application (unused sensors, actuators, etc).
 }
 
 uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
+  uint16_t number_of_entries = array_length(map_heap_id)/sizeof(heap_id_t);
+
+  DEBUGF_WKPF("WKPF: Registering %x components (%x bytes)\n\n", number_of_entries, array_length(map_heap_id));
+
+  if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
+    return WKPF_ERR_OUT_OF_MEMORY;
+
+  for(int i=0; i<number_of_entries; i++) {
+      heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(map_heap_id)+1+i);
+      uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(remote_endpoint);
+      remote_endpoint *nodes = (remote_endpoint *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
+
+      component_to_wuobject_map[i] = (remote_endpoints){number_of_nodes, nodes};
+      DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> at %x nodes\n", i, number_of_nodes);
+  }
+
+  /*
   uint16_t number_of_entries = array_length(map_heap_id)/sizeof(remote_endpoint);
   remote_endpoint *map = (remote_endpoint *)((uint8_t *)heap_get_addr(map_heap_id)+1); // +1 to skip type byte
 
@@ -53,6 +78,7 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
     component_to_wuobject_map[i] = map[i];
     DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> (node %x, port %x)\n", i, component_to_wuobject_map[i].node_id, component_to_wuobject_map[i].port_number);
   }
+  */
   number_of_components = number_of_entries;
   return WKPF_OK;
 }
@@ -83,10 +109,13 @@ bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t pr
   for(int i=0; i<number_of_links; i++) {
     if (links[i].dest_component_id == component_id
         && links[i].dest_property_number == property_number) {
-      if (component_to_wuobject_map[links[i].src_component_id].node_id != nvmcomm_get_node_id())
-        return true; // There is a link to this property, coming from another node. We need to ask it for the initial value
-      else
-        return false;
+      uint16_t number_of_endpoints = component_to_wuobject_map[links[i].src_component_id].number_of_endpoints;
+      for (int j=0; j<number_of_endpoints; j++) {
+        if (component_to_wuobject_map[links[i].src_component_id].endpoints[j].node_id == nvmcomm_get_node_id()) {
+          return false;
+        }
+      }
+      return true; // There is a link to this property, coming from another node. We need to ask it for the initial value
     } 
   }
   return false;
