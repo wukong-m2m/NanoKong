@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "group.h"
 #include "vm.h"
+#include "wkpf_config.h"
 
 #ifdef NVM_USE_GROUP
 
@@ -522,7 +523,7 @@ group_init(u08_t flag)
 
 //////////
 #define HEARTBEAT_INTERVAL 1000
-#define HEARTBEAT_TIMEOUT 2000
+#define HEARTBEAT_TIMEOUT 2500
 #define INITIALISATION_TIMEOUT 30000
 
 #define MAX_NUMBER_OF_WATCHED_NODES 10
@@ -545,9 +546,14 @@ void group_heartbeat() {
   }
   // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
   for(uint8_t i=0; i<watch_list_count; i++)
-    if (nvm_current_time > watch_list[i].expect_next_timestamp_before)
-    ;
-      //signal_node_failure(watch_list[i].node_id);
+    if (nvm_current_time > watch_list[i].expect_next_timestamp_before) {
+      // Tell the master we didn't receive the heartbeat in time
+      address_t master_node_id = wkpf_config_get_master_node_id();
+      // Do we need a reply here? Maybe not for now. If the message isn't received, it will be sent again after a second.
+      // For future versions we may want to stop sending when we know the master got the message, but since we're going
+      // to do a full reconfiguration anyway, it doesn't really matter for now.
+      nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, &watch_list[i].node_id, sizeof(address_t));
+    }
 }
 
 extern void group_handle_heartbeat_message(address_t src) {
