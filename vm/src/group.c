@@ -166,7 +166,7 @@ int multicast_members(
 
 // Reply Handler
 void
-group_handle_message(u08_t nvmcomm_command,
+group_handle_message(address_t src, u08_t nvmcomm_command,
         u08_t *payload,
         u08_t *response_size,
         u08_t *response_cmd)
@@ -518,6 +518,56 @@ group_init(u08_t flag)
 
     return 0;
 }
+
+
+//////////
+#define HEARTBEAT_INTERVAL 1000
+#define HEARTBEAT_TIMEOUT 2000
+#define INITIALISATION_TIMEOUT 30000
+
+#define MAX_NUMBER_OF_WATCHED_NODES 10
+
+typedef struct {
+  address_t node_id;
+  nvmtime_t expect_next_timestamp_before; // Initialise to currenttime + INITIALISATION_TIMEOUT
+} node_to_watch;
+
+node_to_watch watch_list[MAX_NUMBER_OF_WATCHED_NODES];
+uint8_t watch_list_count;
+nvmtime_t next_heartbeat_broadcast = 0; // Initialise to 0 to start sending heartbeats straight away.
+
+// To be called periodically (at least as often as HEARTBEAT_INTERVAL)
+void group_heartbeat() {
+  // Send a heartbeat if it is due.
+  if (nvm_current_time > next_heartbeat_broadcast) {
+    nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
+    next_heartbeat_broadcast += nvm_current_time + HEARTBEAT_INTERVAL;
+  }
+  // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
+  for(uint8_t i=0; i<watch_list_count; i++)
+    if (nvm_current_time > watch_list[i].expect_next_timestamp_before)
+    ;
+      //signal_node_failure(watch_list[i].node_id);
+}
+
+extern void group_handle_heartbeat_message(address_t src) {
+  for(uint8_t i=0; i<watch_list_count; i++)
+    if (watch_list[i].node_id == src)
+      watch_list[i].expect_next_timestamp_before = nvm_current_time + HEARTBEAT_TIMEOUT;
+}
+
+void group_add_node_to_watch(address_t node_id) {
+  if (watch_list_count < MAX_NUMBER_OF_WATCHED_NODES) {
+    for (uint8_t i=0; i<watch_list_count; i++) {
+      if (watch_list[i].node_id == node_id)
+        return;
+    }
+    watch_list[watch_list_count].node_id = node_id;
+    watch_list[watch_list_count].expect_next_timestamp_before = nvm_current_time + INITIALISATION_TIMEOUT;
+    watch_list_count++;
+  }
+}
+//////////
 
 // Private
 void
