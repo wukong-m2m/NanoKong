@@ -130,8 +130,9 @@ uint8_t wkpf_pull_property(uint8_t port_number, uint8_t property_number) {
         return WKPF_ERR_SHOULDNT_HAPPEN;
       }
       uint8_t src_property_number = links[i].src_property_number;
-      uint8_t src_port_number = component_to_wuobject_map[src_component_id].port_number;
-      address_t src_node_id = component_to_wuobject_map[src_component_id].node_id;
+      // Just use the leader for now
+      uint8_t src_port_number = component_to_wuobject_map[src_component_id].endpoints[0].port_number;
+      address_t src_node_id = component_to_wuobject_map[src_component_id].endpoints[0].node_id;
       if (src_node_id != nvmcomm_get_node_id()) {
         // Properties with local sources will be initialised eventually, so we only need to send a message
         // to ask for initial values coming from remote nodes
@@ -162,8 +163,9 @@ uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, in
         return WKPF_ERR_SHOULDNT_HAPPEN;
       }
       uint8_t dest_property_number = links[i].dest_property_number;
-      uint8_t dest_port_number = component_to_wuobject_map[dest_component_id].port_number;
-      address_t dest_node_id = component_to_wuobject_map[dest_component_id].node_id;
+      // Just use the leader for now
+      uint8_t dest_port_number = component_to_wuobject_map[dest_component_id].endpoints[0].port_number;
+      address_t dest_node_id = component_to_wuobject_map[dest_component_id].endpoints[0].node_id;
       if (dest_node_id == nvmcomm_get_node_id()) {
         // Local
         wkpf_local_wuobject *dest_wuobject;
@@ -220,17 +222,18 @@ uint8_t wkpf_propagate_dirty_properties() {
 uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *node_id, uint8_t *port_number) {
   if (component_id > number_of_components)
     return WKPF_ERR_COMPONENT_NOT_FOUND;
-  *node_id = component_to_wuobject_map[component_id].node_id;
-  *port_number = component_to_wuobject_map[component_id].port_number;
+  // Just use the leader for now
+  *node_id = component_to_wuobject_map[component_id].endpoints[0].node_id;
+  *port_number = component_to_wuobject_map[component_id].endpoints[0].port_number;
   return WKPF_OK;
 }
 
 bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
-  return remote_endpoints[component_id].number_of_endpoints > 0
-    && remote_endpoints[component_id].endpoints[0].node_id == node_id;
+  return component_to_wuobject_map[component_id].number_of_endpoints > 0
+    && component_to_wuobject_map[component_id].endpoints[0].node_id == node_id;
 }
 
 remote_endpoint wkpf_leader_for_component(uint16_t component_id) {
-  return remote_endpoints[component_id].endpoints[0];
+  return component_to_wuobject_map[component_id].endpoints[0];
 }
 
