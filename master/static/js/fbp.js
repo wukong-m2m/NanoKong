@@ -395,6 +395,9 @@ function FBP_toXML(gnodes,glines)
         if (source.location && source.location != '') {
             xml = xml + '        <location requirement="'+source.location+'" />\n';
         }
+        if (source.group_size && source.group_size != '') {
+            xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
+        }
         xml = xml + '    </component>\n';
     }
     for(var k in gnodes) {
@@ -405,6 +408,9 @@ function FBP_toXML(gnodes,glines)
             if (gnodes[k].location && gnodes[k].location != '') {
                 xml = xml + '        <location requirement="'+gnodes[k].location+'" />\n';
             }
+        	if (source.group_size && source.group_size != '') {
+            	xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
+	        }
 //sato add start            
             if(gnodes[k].actProper.length != 0){
 				var actlist = gnodes[k].getActions();
