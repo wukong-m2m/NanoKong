@@ -73,7 +73,7 @@
         <property name="output" datatype="short" access="readonly" />
     </WuClass>
 
-    <WuClass name="Math" id="41" virtual="true" type="soft">
+    <WuClass name="MathOp" id="41" virtual="true" type="soft">
         <property name="input1" datatype="short" access="writeonly" />
         <property name="input2" datatype="short" access="writeonly" />
         <property name="input3" datatype="short" access="writeonly" />
