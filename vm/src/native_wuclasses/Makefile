@@ -22,7 +22,7 @@ NATIVE_WUCLASSES_OBJS = \
     GENERATEDwuclass_light_actuator.o \
     GENERATEDwuclass_light_sensor.o \
     GENERATEDwuclass_logical.o \
-    GENERATEDwuclass_math.o \
+    GENERATEDwuclass_math_op.o \
     GENERATEDwuclass_loop_delay_boolean.o \
     GENERATEDwuclass_loop_delay_short.o \
     GENERATEDwuclass_condition_selector_boolean.o \

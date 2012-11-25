@@ -8,7 +8,7 @@
 
 #ifdef NVM_USE_COMMZWAVE
 
-#define ZWAVE_UART              1//for arduino
+#define ZWAVE_UART              2//for arduino
 //#define ZWAVE_UART              2//for wukong board
 
 #define ZWAVE_STATUS_WAIT_ACK        0

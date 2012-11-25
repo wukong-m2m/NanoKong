@@ -6,7 +6,7 @@
 #include "wkpf_config.h"
 #include "wkpf_comm.h"
 #include "native_wuclasses/GENERATEDwuclass_threshold.h"
-#include "native_wuclasses/GENERATEDwuclass_math.h"
+#include "native_wuclasses/GENERATEDwuclass_math_op.h"
 #include "native_wuclasses/GENERATEDwuclass_logical.h"
 #include "native_wuclasses/GENERATEDwuclass_condition_selector_boolean.h"
 #include "native_wuclasses/GENERATEDwuclass_condition_selector_short.h"
