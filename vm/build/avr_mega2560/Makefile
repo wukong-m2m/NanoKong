@@ -30,7 +30,7 @@ OBJCOPY = $(PREFIX)avr-objcopy
 OBJDUMP = $(PREFIX)avr-objdump
 
 # AVR compiler and linker flags
-CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\""
+CFLAGS += -Os -ffunction-sections -DAVR -I. -mmcu=$(DEVICE) -DVERSION="\"$(VERSION)\"" 
 
 CLDFLAGS += -Wl,--gc-sections,-Tavr4_nanokong.x,--section-start=.reprogram_flash_page=0x3F000 -mmcu=$(DEVICE) # Arduino bootloader without "monitor" ends around 0x3E900, place our code after the Arduino BL
 
@@ -67,8 +67,8 @@ endef
 # avr specific entries
 %.elf: $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
-	#avr-size -C --mcu=atmega2560 $@
-	$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
+	avr-size -C --mcu=atmega2560 $@
+	#$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
 
 %.hex: %.elf
 	$(OBJCOPY) -j .text -j .lowtext -j .data -j .javabytecode -O ihex $< $@
