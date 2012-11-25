@@ -110,9 +110,12 @@ class Communication:
         return [] # graceful degradation
 
       print reply
-      reply = reply.payload[2:] # without seq number
-      location_size = reply[0]
-      return ''.join([chr(bit) for bit in reply[1:location_size+1]]) # shift overhead
+      if len(reply.payload) > 2:
+        reply = reply.payload[2:] # without seq number
+        location_size = reply[0]
+        return ''.join([chr(bit) for bit in reply[1:location_size+1]]) # shift overhead
+      else:
+        return ''
 
     def setLocation(self, destination, location):
       print 'setLocation'
