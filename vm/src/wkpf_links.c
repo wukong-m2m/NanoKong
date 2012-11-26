@@ -14,14 +14,6 @@ typedef struct remote_endpoints_struct {
   remote_endpoint* endpoints;
 } remote_endpoints;
 
-typedef struct link_entry_struct {
-  uint16_t src_component_id;
-  uint8_t src_property_number;
-  uint16_t dest_component_id;  
-  uint8_t dest_property_number;
-  uint16_t dest_wuclass_id; // This is only here because there is an extra check on wuclass_id when remotely setting properties, but actually that's not strictly necessary. Not sure if it's worth the extra memory, but if we store this in flash it might be ok.
-} link_entry;
-
 
 #define MAX_NUMBER_OF_COMPONENTS 10
 uint8_t number_of_components;
@@ -46,6 +38,16 @@ bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
   return false; // Not found. Could happen for wuobjects that aren't used in the application (unused sensors, actuators, etc).
 }
 
+uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_number, uint16_t wuclass_id, link_entry *entry) {
+  for (int i=0; i<number_of_links; i++) {
+    if (links[i].dest_property_number == property_number && links[i].dest_wuclass_id == wuclass_id) {
+      *entry = links[i];
+      return WKPF_OK;
+    }
+  }
+  return WKPF_ERR_LINK_NOT_FOUND;
+}
+
 uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
   uint16_t number_of_entries = array_length(map_heap_id)/sizeof(heap_id_t);
 
@@ -67,8 +69,10 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
         // Watchlist
         if (j == 0) {
           // Leader
-          for (int k=1; k<number_of_nodes; k++) {
-            group_add_node_to_watch(nodes[k].node_id);
+          if (number_of_nodes > 1) {
+            for (int k=1; k<number_of_nodes; k++) {
+              group_add_node_to_watch(nodes[k].node_id);
+            }
           }
         } else {
           group_add_node_to_watch(nodes[0].node_id);
@@ -236,8 +240,11 @@ uint8_t wkpf_propagate_dirty_properties() {
 uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *node_id, uint8_t *port_number) {
   if (component_id > number_of_components)
     return WKPF_ERR_COMPONENT_NOT_FOUND;
-  *node_id = wkpf_leader_for_component(component_id).node_id;
-  *port_number = wkpf_leader_for_component(component_id).port_number;
+  remote_endpoint endpoint;
+  if (wkpf_local_endpoint_for_component(component_id, &endpoint) == WKPF_ERR_ENDPOINT_NOT_FOUND)
+    return WKPF_ERR_ENDPOINT_NOT_FOUND;
+  *node_id = endpoint.node_id;
+  *port_number = endpoint.port_number;
   return WKPF_OK;
 }
 
@@ -248,5 +255,15 @@ bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
 
 remote_endpoint wkpf_leader_for_component(uint16_t component_id) {
   return remote_endpoints[component_id].endpoints[0];
+}
+
+uint8_t wkpf_local_endpoint_for_component(uint16_t component_id, remote_endpoint* endpoint) {
+  for (int i=0; i<component_to_wuobject_map[component_id].number_of_endpoints; i++) {
+    if (component_to_wuobject_map[component_id].endpoints[i].node_id == nvmcomm_get_node_id())
+      *endpoint = component_to_wuobject_map[component_id].endpoints[i];
+      return WKPF_OK;
+  }
+
+  return WKPF_ERR_ENDPOINT_NOT_FOUND;
 }
 
