@@ -20,6 +20,8 @@ CODEGEN_PATH = $(ROOT_DIR)/tools/python/codegen.py
 NVMCOMM_REPROGRAM = $(ROOT_DIR)/tools/python/reprogram.py
 TEST_PATH = $(ROOT_DIR)/vm/tests
 
+AVRDUDE = $(ROOT_DIR)/tools/avrdude
+
 # general GCC compiler flags
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
 
@@ -90,13 +92,13 @@ nvmcomm_reprogram: nvmdefault.h
 	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	$(AVRDUDE) -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 avrdude1280: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -V -p atmega1280 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	$(AVRDUDE) -V -p atmega1280 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 avrdude_screen: NanoVM.hex NanoVM_eeprom.hex
-	avrdude -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	$(AVRDUDE) -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 	screen $(PORT) 115200
 
 $(TEST_PATH)/%.o: $(TEST_PATH)/%.c Makefile
@@ -112,18 +114,21 @@ deep_clean:
 	find $(ROOT_DIR) -name 'GENERATED*' -exec rm -rf {} \;
 
 upload_bootloader:
-	avrdude -p atmega2560 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section
-	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:../../../tools/arduino-stk500v2-bootloader/stk500boot_v2_mega2560.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
-	avrdude -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
-	avrdude -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
+	$(AVRDUDE) -p atmega2560 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section
+	$(AVRDUDE) -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:../../../tools/arduino-stk500v2-bootloader/stk500boot_v2_mega2560.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
+	$(AVRDUDE) -p atmega2560 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
+	$(AVRDUDE) -p atmega2560 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
 
 upload_bootloader1280:
-	-avrdude -p atmega1280 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section
-	avrdude -p atmega1280 -P usb -c usbtiny -D -V -U flash:w:../../../tools/arduino-stk500v2-bootloader/stk500boot_v2_mega1280.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
-	#avrdude -p atmega1280 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
-	avrdude -p atmega1280 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
+	-$(AVRDUDE) -p atmega1280 -P usb -c usbtiny -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section
+	$(AVRDUDE) -p atmega1280 -P usb -c usbtiny -D -V -U flash:w:../../../tools/arduino-stk500v2-bootloader/stk500boot_v2_mega1280.hex:i # Flash the Arduino bootloader. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
+	#$(AVRDUDE) -p atmega1280 -P usb -c usbtiny -D -V -U flash:w:NanoVM_NRWWsection.hex:i # Add our own code in the NRWW section. Don't erase. Don't verify until we figure out what's wrong with TINYusbISP reading flash memory, since it will fail anyway.
+	$(AVRDUDE) -p atmega1280 -P usb -c usbtiny       -U lock:w:0x0F:m -U hfuse:w:0xD0:m # Restore lock and hfuse to Arduino default setting
 
 generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
 	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
 #include $(OBJS:.o=.d)
+
+
+
