@@ -19,37 +19,28 @@ import shutil, errno
 import datetime
 from subprocess import Popen, PIPE, STDOUT
 
-
 sys.path.append(os.path.abspath("../tools/python"))
+import fakedata
+import wusignal
 from wkapplication import WuApplication
-from codegen import *
+sys.path.append(os.path.abspath("../tools/xml2java"))
 from wkpf import *
 from wkpfcomm import *
 from inspector import Inspector
-import fakedata
-sys.path.append(os.path.abspath("../tools/xml2java"))
-from translator import Mapper
+from translator import generateJava
 
-import configuration
+from configuration import *
 
 import tornado.options
 tornado.options.parse_command_line()
 tornado.options.enable_pretty_logging()
 logging.info('now you see me, you cannot unsee')
 
-#ALLOWED_EXTENSIONS = set(['bog'])
-#TARGET = 'HAScenario1'
-#XML_PATH = os.path.join(ROOT_PATH, 'Applications')
-ROOT_PATH = os.path.abspath('..')
-COMPONENTXML_PATH = os.path.join(ROOT_PATH, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')
-TESTRTT_PATH = os.path.join(ROOT_PATH, 'tools', 'python', 'pyzwave')
-APP_DIR = os.path.join(ROOT_PATH, 'vm', 'apps')
-BASE_DIR = os.path.join(APP_DIR, 'base')
-
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
 locationTree= None
 
+active_ind = 0
 applications = []
 node_infos = []
 #######################
@@ -71,6 +62,9 @@ def make_FBP():
 def allowed_file(filename):
   return '.' in filename and \
       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+def active_application():
+  return applications[active_ind]
 
 def copyAnything(src, dst):
   try:
@@ -139,112 +133,6 @@ def getPropertyValuesOfApp(mapping_results, property_names):
         properties_json.append({'name': name, 'value': value, 'wuclassname': wuproperty.getWuClassName()})
 
   return properties_json
-
-class Worker:
-  # Deprecated?
-  def bog_compiler(self, app_path, bog, target, platforms):
-    for platform in platforms:
-      platform_dir = os.path.join(app_path, platform)
-      os.chdir(platform_dir)
-      z = zipfile.ZipFile(bog)
-      z.extract('file.xml')
-      # compile to wukong xml and put it in app_path
-      os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', target, platform_dir))
-      os.system('rm file.xml')
-      # TODO: return error for comamnds
-      os.system('make application FLOWXML=%s DISCOVERY_FLAGS=-H' % (target))
-
-  # xml is the wukong xml string
-  # target is the target application name (e.g. HAScenario1)
-  # platforms is a list of platforms to compile on (e.g. ['avr_mega2560'])
-  def compiler(self, app, node_ids, platforms):
-    comm = getComm()
-    app_path = app.dir
-    for platform in platforms:
-      platform_dir = os.path.join(app_path, platform)
-
-      # CodeGen
-      app.info('Generating necessary files for wukong')
-      try:
-        codegen = CodeGen(open(COMPONENTXML_PATH).read(), ROOT_PATH)
-        codegen.generate(app)
-      except Exception as e:
-        traceback.print_last()
-        app.error(e)
-        return -1
-
-      # Mapper results, already did in map_application
-      # Generate java code
-      app.info('Generating application code in target language (Java)')
-      try:
-        app.mapper.generateJava()
-      except Exception as e:
-        traceback.print_last()
-        app.error(e)
-        return -1
-
-      # Generate nvmdefault.h
-      app.info('Compressing application code to bytecode format')
-      print 'changing to path: %s...' % platform_dir
-      pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, app.id), shell=True, stdout=PIPE, stderr=PIPE)
-      app.returnCode = None
-      while pp.poll() == None:
-        print 'polling from popen...'
-        line = pp.stdout.readline()
-        if line != '':
-          app.info(line)
-
-        line = pp.stderr.readline()
-        if line != '':
-          app.error(line)
-        app.version += 1
-      if pp.returncode != 0:
-        app.error('Error generating nvmdefault.h')
-        return
-      app.info('Finishing compression')
-
-      # Deploy nvmdefault.h to nodes
-      print 'changing to path: %s...' % platform_dir
-      app.info('Deploying to nodes')
-      for node_id in node_ids:
-        app.info('Deploying to node id: %d' % (node_id))
-        if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
-          app.error('Node not deployed successfully')
-        '''
-        pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d FLOWXML=%s' % (platform_dir, node_id, app.id), shell=True, stdout=PIPE, stderr=PIPE)
-        app.returnCode = None
-        while pp.poll() == None:
-          print 'polling from popen...'
-          line = pp.stdout.readline()
-          if line != '':
-            app.info(line)
-
-          line = pp.stderr.readline()
-          if line != '':
-            app.error(line)
-          app.version += 1
-        app.returnCode = pp.returncode
-        '''
-        app.info('Deploying to node completed')
-    app.info('Deployment has completed')
-
-  # Deprecated
-  def factory(self, file, status):
-    status.append(1)
-    print status
-    z = zipfile.ZipFile(file)
-    z.extract('file.xml')
-    status.append(2)
-    print status
-    os.system('python ../tools/xml2java/ni2wk.py -i %s -n %s -o %s' % ('file.xml', TARGET, XML_PATH))
-    status.append(3)
-    print status
-    os.chdir('../vm/build/avr_mega2560/')
-    os.system('make generate')
-    os.system('make FLOWXML=%s DISCOVERY_FLAGS=-H' % (TARGET))
-    os.system('make avrdude')
-    status.append(4)
-    print 'done'
 
 # List all uploaded applications
 class main(tornado.web.RequestHandler):
@@ -407,6 +295,7 @@ class deploy_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
     global node_infos
+    global active_ind
     node_ids = [info.nodeId for info in node_infos]
     app_ind = getAppIndex(app_id)
     # Discovery results
@@ -422,17 +311,16 @@ class deploy_application(tornado.web.RequestHandler):
         platforms = ['avr_mega2560']
         # TODO: need platforms from fbp
 
-        applications[app_ind].compiler = Worker().compiler
-        if len(node_ids) > 0:
-          applications[app_ind].compiler(applications[app_ind], node_ids, platforms)
-          #applications[app_ind].compiler = Thread(target=Worker().compiler, args=(applications[app_ind], node_ids, platforms,))
-          #applications[app_ind].compiler.start()
-
-        self.content_type = 'application/json'
-        self.write({'status':0, 'version': applications[app_ind].version})
+        if len(node_ids) > 0 and applications[app_ind].deploy(node_ids, platforms):
+          active_ind = app_ind
+          self.content_type = 'application/json'
+          self.write({'status':0, 'version': applications[app_ind].version})
+        else:
+          self.content_type = 'application/json'
+          self.write({'status':1, 'mesg': 'Deploy has failed'})
     else:   
       #in simulation, we should also deploy the sensor nodes into the simulation nodes
-      #TO DO: implement the deployment part
+      #TODO: implement the deployment part
       self.content_type = 'application/json'
       self.write({'status':1, 'version': applications[app_ind].version})
 
@@ -453,9 +341,8 @@ class map_application(tornado.web.RequestHandler):
 #      comm.addActiveNodesToLocTree(fakedata.locTree)
       locationTree.printTree(locationTree.root)
 
-      # TODO: rewrite translator.py to have a class that produces mapping results with node infos and Application xml to replace compiler (should be part of deploy)
-      applications[app_ind].mapper = Mapper(applications[app_ind], node_infos, applications[app_ind].xml, locTree=locationTree)
-      applications[app_ind].mapping_results = applications[app_ind].mapper.map()
+      # Map with location tree info (discovery), this will produce mapping_results
+      application[app_ind].map(locationTree)
 
       ret = []
       for key, value in applications[app_ind].mapping_results.items():
@@ -754,9 +641,8 @@ app = tornado.web.Application([
 
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
-  configuration.readConfig()
   update_applications()
-  #app.listen(5001)	
+  tornado.ioloop.PeriodicCallback(wusignal.signal_handler, 100, ioloop)
   app.listen(MASTER_PORT)
   locationTree = LocationTree(LOCATION_ROOT)
   #	import_wuXML()	#KatsunoriSato added

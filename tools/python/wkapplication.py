@@ -1,5 +1,8 @@
 # vim: ts=2 sw=2
 
+import sys, os
+sys.path.append(os.path.abspath("../xml2java"))
+sys.path.append(os.path.abspath("../../master"))
 from wkpf import *
 from locationTree import *
 from xml.dom.minidom import parse
@@ -8,9 +11,11 @@ import logging
 import logging.handlers
 import wukonghandler
 import copy
-sys.path.append(os.path.abspath("../tools/xml2java"))
 from URLParser import *
 from wkpfcomm import *
+from codegen import generateCode
+
+from configuration import *
 
 OK = 0
 NOTOK = 1
@@ -81,7 +86,7 @@ def firstCandidate(app, wuObjects, locTree):
     return True
 
 class WuApplication:
-  def __init__(self, id='', name='', desc='', file='', dir='', flowDom=None, outputDir=None, templateDir=None, componentXml=None):
+  def __init__(self, id='', name='', desc='', file='', dir='', outputDir="", templateDir=TEMPLATE_DIR, componentXml=open(COMPONENTXML_PATH).read()):
     self.id = id
     self.name = name
     self.desc = desc
@@ -103,16 +108,11 @@ class WuApplication:
     self.logger.addHandler(self.loggerHandler)
 
     # For Mapper
-    if flowDom:
-      self.applicationDom = flowDom;
-      self.applicationName = flowDom.getElementsByTagName('application')[0].getAttribute('name')
-
-    if outputDir:
-      self.destinationDir = outputDir
-    if templateDir:
-      self.templateDir = templateDir
-    if componentXml:
-      self.componentXml = componentXml
+    self.applicationDom = ""
+    self.applicationName = ""
+    self.destinationDir = outputDir
+    self.templateDir = templateDir
+    self.componentXml = componentXml
 
     self.wuClasses = {}
     self.wuObjects = {}
@@ -152,6 +152,7 @@ class WuApplication:
   def updateXML(self, xml):
     print 'updateConfig'
     self.xml = xml
+    self.setFlowDom(parseString(self.xml))
     self.saveConfig()
     f = open(os.path.join(self.dir, self.id + '.xml'), 'w')
     f.write(xml)
@@ -221,9 +222,92 @@ class WuApplication:
 
           self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
 
+  def map(self, location_tree):
+    self.parseComponents()
+    self.parseApplicationXML()
+    self.mapping(location_tree)
+    self.mapping_results = self.wuObjects
+
   def mapping(self, locTree, mapFunc=firstCandidate):
       #input: nodes, WuObjects, WuLinks, WuClassDefs
       #output: assign node id to WuObjects
       # TODO: mapping results for generating the appropriate instiantiation for different nodes
       
       return mapFunc(self, self.wuObjects, locTree)
+
+  def deploy(self, destination_ids, platforms):
+    comm = getComm()
+    app_path = self.dir
+    for platform in platforms:
+      platform_dir = os.path.join(app_path, platform)
+
+      # CodeGen
+      self.info('Generating necessary files for wukong')
+      try:
+        generateCode(self)
+      except Exception as e:
+        traceback.print_last()
+        self.error(e)
+        return False
+
+      # Mapper results, already did in map_application
+      # Generate java code
+      self.info('Generating application code in target language (Java)')
+      try:
+        generateJava(self)
+      except Exception as e:
+        traceback.print_last()
+        self.error(e)
+        return False
+
+      # Generate nvmdefault.h
+      self.info('Compressing application code to bytecode format')
+      print 'changing to path: %s...' % platform_dir
+      pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.id), shell=True, stdout=PIPE, stderr=PIPE)
+      self.returnCode = None
+      while pp.poll() == None:
+        print 'polling from popen...'
+        line = pp.stdout.readline()
+        if line != '':
+          self.info(line)
+
+        line = pp.stderr.readline()
+        if line != '':
+          self.error(line)
+        self.version += 1
+      if pp.returncode != 0:
+        self.error('Error generating nvmdefault.h')
+        return False
+      self.info('Finishing compression')
+
+      # Deploy nvmdefault.h to nodes
+      print 'changing to path: %s...' % platform_dir
+      self.info('Deploying to nodes')
+      for node_id in destination_ids:
+        self.info('Deploying to node id: %d' % (node_id))
+        if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
+          self.error('Node not deployed successfully')
+        '''
+        pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d FLOWXML=%s' % (platform_dir, node_id, app.id), shell=True, stdout=PIPE, stderr=PIPE)
+        app.returnCode = None
+        while pp.poll() == None:
+          print 'polling from popen...'
+          line = pp.stdout.readline()
+          if line != '':
+            app.info(line)
+
+          line = pp.stderr.readline()
+          if line != '':
+            app.error(line)
+          app.version += 1
+        app.returnCode = pp.returncode
+        '''
+        self.info('Deploying to node completed')
+    self.info('Deployment has completed')
+
+  def reconfiguration(self):
+    node_infos = getComm().getAllNodeInfos()
+    locationTree = LocationTree(LOCATION_ROOT)
+    locationTree.buildTree(node_infos)
+    self.map(locationTree)
+    self.deploy([info.nodeId for info in node_infos], DEPLOY_PLATFORMS)

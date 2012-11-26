@@ -1,5 +1,6 @@
 from wkpf import *
 from locationTree import *
+from configuration import *
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
@@ -9,6 +10,7 @@ simNodeInfos = []
 locs = ["/universal/CS_Building/3F/South_Corridor/Room336", "/universal/CS_Building/3F/East_Corridor/Room318",
 "/universal/CS_Building/3F/South_Corridor/Room336", "/universal/CS_Building/3F/East_Corridor/Room318"]
 coords = [(0, 1, 2), (0, 5, 3), (0,1,3), (0, 6, 4)]
+
 def genFakeData():	
 	wuobjects = []
 	global simNodeInfos
@@ -41,3 +43,6 @@ queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)"
           "Boli_Building/3F/South_Corridor/Room336#near(0,1,2,1)|near(1,1,3,1)",
           None, None]
 '''
+
+if SIMULATION == 1:
+    fakedata.genFakeData()
