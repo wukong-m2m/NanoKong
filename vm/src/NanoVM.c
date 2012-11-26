@@ -97,8 +97,7 @@ int main(int argc, char **argv) {
 #endif
 
 #ifdef NVM_USE_GROUP
-  DEBUGF("group_init\n");
-  group_init(CANBEORACLE);
+  DEBUGF("using group\n");
 #endif
 
 #ifdef TEST_GROUP
