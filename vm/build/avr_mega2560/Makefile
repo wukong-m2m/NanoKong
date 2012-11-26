@@ -20,7 +20,10 @@ CODEGEN_PATH = $(ROOT_DIR)/tools/python/codegen.py
 NVMCOMM_REPROGRAM = $(ROOT_DIR)/tools/python/reprogram.py
 TEST_PATH = $(ROOT_DIR)/vm/tests
 
+AVRDUDE = avrdude
+ifeq ($(UNAME), Darwin)
 AVRDUDE = $(ROOT_DIR)/tools/avrdude
+endif
 
 # general GCC compiler flags
 CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
