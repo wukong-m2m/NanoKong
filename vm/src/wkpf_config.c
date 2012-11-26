@@ -35,6 +35,14 @@ uint8_t wkpf_config_set_location_string(char* src, uint8_t length) {
 void wkpf_config_get_location_string(char* dest, uint8_t* length) {
   *length = load_location_length();
   load_location(dest, *length);
+  if (*length == 0xFF) {
+    // TODO: right now EEPROM data is not written by bootloader
+    // This is a cheap hack to give an initial value to location
+    save_location_length(0);
+    *length = load_location_length();
+    save_location("", *length);
+    load_location(dest, *length);
+  }
 }
 
 uint8_t wkpf_config_set_feature_enabled(uint8_t feature, bool enabled) {
