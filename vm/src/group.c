@@ -541,12 +541,21 @@ nvmtime_t next_heartbeat_broadcast = 0; // Initialise to 0 to start sending hear
 void group_heartbeat() {
   // Send a heartbeat if it is due.
   if (nvm_current_time > next_heartbeat_broadcast) {
-    nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
-    next_heartbeat_broadcast += nvm_current_time + HEARTBEAT_INTERVAL;
+#ifdef DEBUG
+    DEBUGF_GROUP("sending heartbeat\n");
+#endif
+    /*nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);*/
+    for(uint8_t i=0; i<watch_list_count; i++) {
+      nvmcomm_send(watch_list[i].node_id, NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
+    }
+    next_heartbeat_broadcast = nvm_current_time + HEARTBEAT_INTERVAL;
   }
   // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
-  for(uint8_t i=0; i<watch_list_count; i++)
+  for(uint8_t i=0; i<watch_list_count; i++) {
     if (nvm_current_time > watch_list[i].expect_next_timestamp_before) {
+#ifdef DEBUG
+      DEBUGF_GROUP("notify master of failure\n");
+#endif
       // Tell the master we didn't receive the heartbeat in time
       address_t master_node_id = wkpf_config_get_master_node_id();
       // Do we need a reply here? Maybe not for now. If the message isn't received, it will be sent again after a second.
@@ -554,16 +563,24 @@ void group_heartbeat() {
       // to do a full reconfiguration anyway, it doesn't really matter for now.
       nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, &watch_list[i].node_id, sizeof(address_t));
     }
+  }
 }
 
-extern void group_handle_heartbeat_message(address_t src) {
+void group_handle_heartbeat_message(address_t src) {
   for(uint8_t i=0; i<watch_list_count; i++)
-    if (watch_list[i].node_id == src)
+    if (watch_list[i].node_id == src) {
+#ifdef DEBUG
+      DEBUGF_GROUP("handling heartbeat message from node %x\n", src);
+#endif
       watch_list[i].expect_next_timestamp_before = nvm_current_time + HEARTBEAT_TIMEOUT;
+    }
 }
 
 void group_add_node_to_watch(address_t node_id) {
   if (watch_list_count < MAX_NUMBER_OF_WATCHED_NODES) {
+#ifdef DEBUG
+    DEBUGF_GROUP("adding node %x to watch\n", node_id);
+#endif
     for (uint8_t i=0; i<watch_list_count; i++) {
       if (watch_list[i].node_id == node_id)
         return;
