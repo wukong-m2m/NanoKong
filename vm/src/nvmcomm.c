@@ -7,6 +7,7 @@
 #include "delay.h"
 #include "nvmfile.h"
 #include "wkpf_comm.h"
+#include "wkpf_config.h"
 #include "group.h"
 
 #ifdef NVM_USE_COMM
@@ -122,7 +123,7 @@ int nvmcomm_broadcast(u08_t nvc3_command, u08_t *payload, u08_t length) {
   int retval = -1;
   DEBUGF_COMM("nvmcomm_broadcast\n");
 #ifdef NVM_USE_COMMZWAVE
-  retval = nvmcomm_zwave_send((address_t)0xff, nvc3_command, payload, length, TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE);
+  retval = nvmcomm_zwave_send((address_t)0xff, nvc3_command, payload, length, 0);
   if (retval == 0) {
     if (nvc3_command==NVMCOMM_CMD_APPMSG) {
       nvc3_appmsg_reply = NVMCOMM_APPMSG_WAIT_ACK;
@@ -175,6 +176,8 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
   switch (nvmcomm_command) {
     case NVMCOMM_CMD_REPRG_OPEN:
       DEBUGF_COMM("Initialise reprogramming.\n");
+      DEBUGF_COMM("Setting master address to %x", src);
+      wkpf_config_set_master_node_id(src);
       nvc3_avr_reprogramming = TRUE;
       nvc3_avr_reprogramming_pos = 0;
       avr_flash_open(bytecode_address);
@@ -273,14 +276,18 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
     case NVMCOMM_WKPF_SET_LOCATION:
     case NVMCOMM_WKPF_GET_FEATURES:
     case NVMCOMM_WKPF_SET_FEATURE:
-      wkpf_comm_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
+      wkpf_comm_handle_message(src, nvmcomm_command, payload, &response_size, &response_cmd);
     break;
 #ifdef NVM_USE_GROUP
     case NVMCOMM_GROUP_PROPOSE:
     case NVMCOMM_GROUP_COMMIT:
     case NVMCOMM_GROUP_EVENT_JOIN:
     case NVMCOMM_GROUP_EVENT_LEAVE:
-      group_handle_message(nvmcomm_command, payload, &response_size, &response_cmd);
+      group_handle_message(src, nvmcomm_command, payload, &response_size, &response_cmd);
+      break;
+    case NVMCOMM_GROUP_HEARTBEAT:
+      group_handle_heartbeat_message(src);
+      break;
     break;
 #endif // NVM_USE_GROUP
   }

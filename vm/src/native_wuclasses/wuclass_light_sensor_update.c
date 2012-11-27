@@ -16,9 +16,9 @@ void wuclass_light_sensor_update(wkpf_local_wuobject *wuobject) {
   // Adc.setReference(Adc.INTERNAL);
   ADMUX = (3 << 6) & 0xc0;              // set reference value
 
-  // light_sensor_reading = Adc.getByte(Adc.CHANNEL15);
+  // light_sensor_reading = Adc.getByte(Adc.CHANNEL0);
   // ADLAR = 1
-  u08_t channel  = 39;
+  u08_t channel  = 0; // NOTE: Adc.CHANNEL0 means a value of 0 for the channel variable, but other ADC channels don't map 1-1. For instance channel 15 is selected by setting the channel variable to 39. See Adc.Java for a list.
   ADMUX = (ADMUX & 0xc0) | _BV(ADLAR) | (channel & 0x0f);
   ADCSRB |= (channel & 0x20)>>2;
 

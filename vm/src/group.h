@@ -43,13 +43,13 @@
 #define T_JOIN_NEW 0x09
 
 // Max
-#define MAX_GROUP_SIZE 8
-#define MAX_GROUP_LIST_SIZE 8
+#define MAX_GROUP_SIZE 4
+#define MAX_GROUP_LIST_SIZE 4
 
-#define MAX_VIEW_SIZE 8
-#define MAX_VIEW_LIST_SIZE 8
+#define MAX_VIEW_SIZE 4
+#define MAX_VIEW_LIST_SIZE 4
 
-#define MAX_VIEW_MEMBER_SIZE 8
+#define MAX_VIEW_MEMBER_SIZE 4
 
 // View id type
 #define VIEW_UNINITIALIZED -1
@@ -121,6 +121,8 @@ extern int terminate_group_member(group* g, u08_t node_id); // Send poison pill 
 extern u08_t* query(group *g);
 extern u08_t* update_group_members(group* g);
 
-extern void group_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd);
-
+extern void group_heartbeat();
+extern void group_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd);
+extern void group_handle_heartbeat_message(address_t src);
+extern void group_add_node_to_watch(address_t node_id);
 #endif // GROUP_H

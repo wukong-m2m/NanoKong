@@ -2707,7 +2707,7 @@ int zwave_init()
         return 0;
 #else //_WIN32		
         printf("opening ...\n");
-        zwavefd = open(g_dev_name,O_RDWR);
+        zwavefd = open(g_dev_name, O_RDWR | O_NOCTTY);
         if (zwavefd < 0) {
             printf("open %s error\n", g_dev_name);
             return -1;
@@ -2729,10 +2729,12 @@ int zwave_init()
         }
 #endif //_WIN32		
     }
+    printf("print debug info...\n");
     int PyZwave_print_debug_info_old = PyZwave_print_debug_info;
     PyZwave_print_debug_info = 0;
     clear_serial_api_queue();
 
+    printf("cleared queue\n");
     zwave_ready = 0;
     //if (SerialAPI_soft_reset()) {
     if (ZW_MemoryGetID()) {

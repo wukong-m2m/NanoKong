@@ -7,6 +7,7 @@ from collections import namedtuple
 import gevent
 from gevent.event import AsyncResult
 from gevent.queue import Queue
+import wusignal
 sys.path.append(os.path.abspath("../../master"))
 from configuration import *
 
@@ -275,6 +276,11 @@ class BrokerAgent:
             message = messages.get()
             log = 'got message in run(): ' + str(message)
             logging.info(log)
+
+            # if it is special messages
+            if message.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
+                wusignal.reconfiguration_signal = True
+                continue
 
             # find out which defer it is for
             defer_id, defer = self._defer_queue.find_defer(message)

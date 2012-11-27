@@ -53,6 +53,7 @@ u08_t zwave_learn_block = 0;
 u32_t zwave_learn_startT;
 u08_t zwave_learn_mode;
 // u32_t expire;  // The expire time of the last command
+u32_t nvmcomm_zwaveLastByteTime;
 
 bool nvmcomm_zwave_my_address_loaded = FALSE;
 address_t nvmcomm_zwave_my_address;
@@ -202,6 +203,7 @@ void nvmcomm_zwave_init() {
     // seq = random(255);
     seq = 42; // temporarily init to fixed value
     state = ZWAVE_STATUS_WAIT_SOF;
+    nvmcomm_zwaveLastByteTime = avr_currentTime;
     f=NULL;
     f_nodeinfo=NULL;
     uart_init(ZWAVE_UART, ZWAVE_UART_BAUDRATE);
@@ -246,8 +248,18 @@ void nvmcomm_zwave_poll(void) {
     //   return true;
     // }
     if (uart_available(ZWAVE_UART))
-    {    nvmcomm_zwave_receive(1);
-        //DEBUGF_ZWAVETRACE("zwave poll!!!!!!!!!!!");
+    {    
+        DEBUGF_ZWAVETRACE("data_available\n");
+        nvmcomm_zwave_receive(1);
+        /*nvmcomm_zwaveLastByteTime = avr_currentTime;*/
+    } else {
+        DEBUGF_ZWAVETRACE("data_not_available\n");
+        // This will confuse Zwave state and make it stop running, so don't use it
+        /*if (avr_currentTime > nvmcomm_zwaveLastByteTime + 600) {*/
+            /*state = ZWAVE_STATUS_WAIT_SOF;*/
+            /*nvmcomm_zwaveLastByteTime = avr_currentTime;*/
+            /*nvmcomm_zwave_receive(0);*/
+        /*}*/
     }
 }
 

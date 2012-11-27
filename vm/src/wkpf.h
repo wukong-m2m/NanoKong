@@ -38,6 +38,8 @@
 #define WKPF_ERR_COMPONENT_NOT_FOUND                         15
 #define WKPF_ERR_LOCATION_TOO_LONG                           16
 #define WKPF_ERR_UNKNOWN_FEATURE                             17
+#define WKPF_ERR_LINK_NOT_FOUND                              18
+#define WKPF_ERR_ENDPOINT_NOT_FOUND                          19
 #define WKPF_ERR_SHOULDNT_HAPPEN                           0xFF
 
 extern void wkpf_init();

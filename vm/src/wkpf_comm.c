@@ -73,7 +73,7 @@ uint8_t wkpf_send_request_property_init(address_t dest_node_id, uint8_t port_num
 }
 
 
-void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
+void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
   uint8_t number_of_wuclasses;
   uint8_t number_of_wuobjects;
   // TODONR: uint16_t wuclass_id;
@@ -207,6 +207,19 @@ void wkpf_comm_handle_message(u08_t nvmcomm_command, u08_t *payload, u08_t *resp
       port_number = payload[2];
       // TODONR: wuclass_id = (uint16_t)(payload[3]<<8)+(uint16_t)(payload[4]);
       property_number = payload[5];
+      uint16_t wuclass_id;
+      link_entry link;
+      wuclass_id = (int16_t)(payload[3]);
+      wuclass_id = (int16_t)(wuclass_id<<8) + (int16_t)(payload[4]);
+      wkpf_get_link_by_dest_property_and_dest_wuclass_id(property_number, wuclass_id, &link);
+
+      // If the sender is not a leader
+      if (!wkpf_node_is_leader(link.src_component_id, src)) {
+        *response_cmd = NVMCOMM_WKPF_ERROR_R;
+        *response_size = 3;//payload size
+        break;
+      }
+
       retval = wkpf_get_wuobject_by_port(port_number, &wuobject);
       if (retval != WKPF_OK) {
         payload [2] = retval;

@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "group.h"
 #include "vm.h"
+#include "wkpf_config.h"
 
 #ifdef NVM_USE_GROUP
 
@@ -166,7 +167,7 @@ int multicast_members(
 
 // Reply Handler
 void
-group_handle_message(u08_t nvmcomm_command,
+group_handle_message(address_t src, u08_t nvmcomm_command,
         u08_t *payload,
         u08_t *response_size,
         u08_t *response_cmd)
@@ -518,6 +519,78 @@ group_init(u08_t flag)
 
     return 0;
 }
+
+
+//////////
+#define HEARTBEAT_INTERVAL 1000
+#define HEARTBEAT_TIMEOUT 2500
+#define INITIALISATION_TIMEOUT 30000
+
+#define MAX_NUMBER_OF_WATCHED_NODES 10
+
+typedef struct {
+  address_t node_id;
+  nvmtime_t expect_next_timestamp_before; // Initialise to currenttime + INITIALISATION_TIMEOUT
+} node_to_watch;
+
+node_to_watch watch_list[MAX_NUMBER_OF_WATCHED_NODES];
+uint8_t watch_list_count;
+nvmtime_t next_heartbeat_broadcast = 0; // Initialise to 0 to start sending heartbeats straight away.
+
+// To be called periodically (at least as often as HEARTBEAT_INTERVAL)
+void group_heartbeat() {
+  // Send a heartbeat if it is due.
+  if (nvm_current_time > next_heartbeat_broadcast) {
+#ifdef DEBUG
+    DEBUGF_GROUP("sending heartbeat\n");
+#endif
+    /*nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);*/
+    for(uint8_t i=0; i<watch_list_count; i++) {
+      nvmcomm_send(watch_list[i].node_id, NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
+    }
+    next_heartbeat_broadcast = nvm_current_time + HEARTBEAT_INTERVAL;
+  }
+  // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
+  for(uint8_t i=0; i<watch_list_count; i++) {
+    if (nvm_current_time > watch_list[i].expect_next_timestamp_before) {
+#ifdef DEBUG
+      DEBUGF_GROUP("notify master of failure\n");
+#endif
+      // Tell the master we didn't receive the heartbeat in time
+      address_t master_node_id = wkpf_config_get_master_node_id();
+      // Do we need a reply here? Maybe not for now. If the message isn't received, it will be sent again after a second.
+      // For future versions we may want to stop sending when we know the master got the message, but since we're going
+      // to do a full reconfiguration anyway, it doesn't really matter for now.
+      nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, &watch_list[i].node_id, sizeof(address_t));
+    }
+  }
+}
+
+void group_handle_heartbeat_message(address_t src) {
+  for(uint8_t i=0; i<watch_list_count; i++)
+    if (watch_list[i].node_id == src) {
+#ifdef DEBUG
+      DEBUGF_GROUP("handling heartbeat message from node %x\n", src);
+#endif
+      watch_list[i].expect_next_timestamp_before = nvm_current_time + HEARTBEAT_TIMEOUT;
+    }
+}
+
+void group_add_node_to_watch(address_t node_id) {
+  if (watch_list_count < MAX_NUMBER_OF_WATCHED_NODES) {
+#ifdef DEBUG
+    DEBUGF_GROUP("adding node %x to watch\n", node_id);
+#endif
+    for (uint8_t i=0; i<watch_list_count; i++) {
+      if (watch_list[i].node_id == node_id)
+        return;
+    }
+    watch_list[watch_list_count].node_id = node_id;
+    watch_list[watch_list_count].expect_next_timestamp_before = nvm_current_time + INITIALISATION_TIMEOUT;
+    watch_list_count++;
+  }
+}
+//////////
 
 // Private
 void

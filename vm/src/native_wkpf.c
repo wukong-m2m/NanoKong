@@ -6,6 +6,7 @@
 #include "array.h"
 #include "wkpf.h"
 #include "vm.h"
+#include "group.h"
 #include "avr/native_avr.h"
 
 uint8_t wkpf_error_code = WKPF_OK;
@@ -148,6 +149,8 @@ void native_wkpf_invoke(u08_t mref) {
     while(true) {
       // Process any incoming messages
       nvmcomm_poll();
+      // Send out a heartbeat message if it's due, and check for failed nodes.
+      group_heartbeat();
       if (nvm_runlevel == NVM_RUNLVL_VM) {
         // Propagate any dirty properties
         wkpf_propagate_dirty_properties();

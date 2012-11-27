@@ -55,7 +55,6 @@ class Communication:
       print 'getAllNodeInfos'
       if force or self.all_node_infos == []:
         nodeIds = self.getNodeIds()
-        print 'getAllNodeInfos', nodeIds
         self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
       return self.all_node_infos
 

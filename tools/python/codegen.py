@@ -16,13 +16,15 @@ import sys
 import re
 import distutils.dir_util
 import logging
-sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../master"))
 from jinja2 import Template
 from jinja2 import Environment, FileSystemLoader
 from optparse import OptionParser
 #from lxml import etree
 from wkpf import *
 from xml.dom.minidom import parse, parseString
+
+from configuration import *
 
 CWD = os.getcwd()
 
@@ -415,3 +417,7 @@ if __name__ == "__main__":
     codegen.generate(logging.getLogger())
   else:
     print "path don't exist", options.component_file, options.project_dir
+
+def generateCode(application):
+  codegen = CodeGen(open(COMPONENTXML_PATH).read(), ROOT_PATH)
+  codegen.generate(application)

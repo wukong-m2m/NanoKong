@@ -1,26 +1,22 @@
 import os
-import fakedata
 from configobj import ConfigObj
-ZWAVE_GATEWAY_IP = None
-MASTER_PORT = 80
-LOCATION_ROOT = "universal"
-SIMULATION = 0
-CONFIG_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config', 'master.cfg')
-print CONFIG_PATH
 
-def readConfig():
-    config = ConfigObj(CONFIG_PATH)
-    print config
-    #get zwave_ip from network section
-    global ZWAVE_GATEWAY_IP 
-    global MASTER_PORT
-    ZWAVE_GATEWAY_IP = config.get('ZWAVE_GATEWAY_IP')
-    MASTER_PORT = int(config.get('MASTER_PORT'))
-    
-    global LOCATION_ROOT
-    LOCATION_ROOT = config.get('LOCATION_ROOT')
-    global SIMULATION
-    SIMULATION = int(config.get('SIMULATION'))
-readConfig()
-if SIMULATION == 1:
-    fakedata.genFakeData()
+ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+CONFIG_PATH = os.path.join(ROOT_PATH, 'config', 'master.cfg')
+config = ConfigObj(CONFIG_PATH)
+
+ZWAVE_GATEWAY_IP = config.get('ZWAVE_GATEWAY_IP', '')
+MASTER_PORT = int(config.get('MASTER_PORT', 80))
+
+LOCATION_ROOT = config.get('LOCATION_ROOT', 'universal')
+SIMULATION = int(config.get('SIMULATION', 0))
+
+DEPLOY_PLATFORMS = ['avr_mega2560']
+
+#XML_PATH = os.path.join(ROOT_PATH, 'Applications')
+COMPONENTXML_PATH = os.path.join(ROOT_PATH, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')
+TEMPLATE_DIR = os.path.join(ROOT_PATH, 'tools', 'xml2java')
+JAVA_OUTPUT_DIR = os.path.join(ROOT_PATH, 'java', 'examples')
+TESTRTT_PATH = os.path.join(ROOT_PATH, 'tools', 'python', 'pyzwave')
+APP_DIR = os.path.join(ROOT_PATH, 'vm', 'apps')
+BASE_DIR = os.path.join(APP_DIR, 'base')

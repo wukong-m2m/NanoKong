@@ -9,6 +9,7 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../master"))
 from wkpf import *
 import pickle
 from xml.dom.minidom import parse, parseString
@@ -22,7 +23,7 @@ from wkpfcomm import Communication
 from inspector import *
 from optparse import OptionParser
 
-rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+from configuration import *
 
 ## print flag for parsed files
 print_wuClasses = False
@@ -68,7 +69,7 @@ def getNodeList():
               WuObject(portNumber=4, wuClass=wuClasses[2], instanceId='', instanceIndex=1, nodeId=6))) # light at port 4
     node_list = (node1, node3)
 
-    #wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
+    #wuclasses = parseXML(os.path.join(ROOT_PATH, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
 
     #node_infos = [NodeInfo(nodeId=3,
                     #wuClasses=wuclasses,
@@ -364,34 +365,15 @@ public class {{ CLASS_NAME }} {
     print>>out_fd, rendered_tpl
 
 
-class Mapper:
-    def __init__(self, app, node_infos, app_xml_string, locTree=LocationTree('Default_tree')):
-        self.node_infos = node_infos
-        self.app_dom = parseString(app_xml_string)
-        self.application = app
-        self.locTree = locTree
+def generateJava(application):
+    print 'generate Java'
+    application.setOutputDir(JAVA_OUTPUT_DIR)
+    jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
+    output = open(os.path.join(application.destinationDir, application.applicationName+".java"), 'w')
+    wuObjects = sorted(application.wuObjects.values(), key=lambda obj: obj.getInstanceIndex())
 
-    # Mapper that takes a location tree to map node id to wuobject generated from application xml
-    def map(self):
-        self.application.setFlowDom(self.app_dom)
-        self.application.setTemplateDir(os.path.join(rootpath, 'tools', 'xml2java'))
-        self.application.setComponentXml(open(os.path.join(rootpath, 'ComponentDefinitions', 'WuKongStandardLibrary.xml')).read())
-
-        self.application.parseComponents()
-        self.application.parseApplicationXML()
-        self.application.mapping(self.locTree)
-        return self.application.wuObjects
-
-    def generateJava(self):
-        print 'generate Java'
-        self.application.setOutputDir(os.path.join(rootpath, 'java', 'examples'))
-        jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
-        output = open(os.path.join(self.application.destinationDir, self.application.applicationName+".java"), 'w')
-        wuObjects = sorted(self.application.wuObjects.values(), key=lambda obj: obj.getInstanceIndex())
-
-        output.write(jinja2_env.get_template('application.java').render(applicationName=self.application.applicationName, wuObjects=wuObjects, wuLinks=self.application.wuLinks))
-        output.close()
-
+    output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName, wuObjects=wuObjects, wuLinks=application.wuLinks))
+    output.close()
 
 
 if __name__ == "__main__":
@@ -414,13 +396,13 @@ if __name__ == "__main__":
   (options, args) = parser.parse_args()
 
   if not options.pathc and \
-      os.path.exists(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")):
+      os.path.exists(os.path.join(ROOT_PATH, "ComponentDefinitions", "WuKongStandardLibrary.xml")):
       print "Component.xml file not specified, default WuKongStandardLibrary.xml used"
-      options.pathc = os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")
+      options.pathc = os.path.join(ROOT_PATH, "ComponentDefinitions", "WuKongStandardLibrary.xml")
   if not options.pathf and \
-      os.path.exists(os.path.join(rootpath, "Applications", "HAScenario1.xml")):
+      os.path.exists(os.path.join(ROOT_PATH, "Applications", "HAScenario1.xml")):
       print "flow.xml file not specified, default HAScenario1.xml used"
-      options.pathf = os.path.join(rootpath, "Applications", "HAScenario1.xml")
+      options.pathf = os.path.join(ROOT_PATH, "Applications", "HAScenario1.xml")
   if not options.pathc or not options.pathf: 
       parser.error("invalid component and flow xml, please refer to -h for help")
 
@@ -449,7 +431,7 @@ if __name__ == "__main__":
               None,
               None]
 
-  application = WuApplication(flowDom=parse(options.pathf), outputDir=options.out, templateDir=os.path.join(rootpath, 'tools', 'xml2java'), componentXml=open(options.pathc).read())
+  application = WuApplication(flowDom=parse(options.pathf), outputDir=options.out, templateDir=os.path.join(ROOT_PATH, 'tools', 'xml2java'), componentXml=open(options.pathc).read())
   application.parseComponents()
   application.parseApplicationXML()
   application.mappingWithNodeList(locTree, queries)

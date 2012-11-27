@@ -82,7 +82,7 @@ volatile u08_t *pins[]  = { NULL,   &PINB,  &PINC,  &PIND  };
 #error "Unsupported AVR CPU!"
 #endif
 
-volatile u32_t avr_currentTime=0;
+volatile nvmtime_t avr_currentTime=0;
 volatile static nvm_int_t ticks_2A;
 volatile static nvm_int_t ticks_1A,ticks_1B,wake_from_timer2;
 volatile static u08_t sleep_mode;//0=power save,1=power down
