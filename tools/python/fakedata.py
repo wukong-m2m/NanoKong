@@ -45,4 +45,4 @@ queries = ["Boli_Building/3F/South_Corridor/Room318#near(0,1,2,1)|near(1,1,3,1)"
 '''
 
 if SIMULATION == 1:
-    fakedata.genFakeData()
+    genFakeData()
