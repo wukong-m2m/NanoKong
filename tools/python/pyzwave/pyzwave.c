@@ -1,4 +1,5 @@
 // vim: ts=2 sw=2
+#include <regex.h>
 #include <Python.h>
 
 #include "pyzwave-testrtt.h"
@@ -58,17 +59,39 @@ static PyObject* pyzwave_receive(PyObject *self, PyObject *args) {
 }
 
 static PyObject* pyzwave_init(PyObject *self, PyObject *args) {
-  char *host;
+  char *host_or_dev_name;
+  regex_t regex;
+  int regi;
+
+  regi = regcomp(&regex, "[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}", REG_EXTENDED);
+  if (regi) { fprintf(stderr, "Could not compile regex\n"); return NULL; }
   
   printf("pyzwave_init\n");
-  if (!PyArg_ParseTuple( args, "s", &host))
-    return NULL;
+  if (!PyArg_ParseTuple( args, "s", &host_or_dev_name)) return NULL;
   printf("PyArg_ParseTuple\n");
-  if (PyZwave_init(host) < 0) {
-    PyErr_SetString(PyExc_IOError, "Call to zwave_init failed.");
-    return NULL;
+ 
+  regi = regexec(&regex, host_or_dev_name, 0, NULL, 0);
+  printf("%s\n", host_or_dev_name);
+  printf("%d\n", regi);
+  if (!regi) {
+    printf("is IP\n");
+    if (PyZwave_init(host_or_dev_name) < 0) {
+      PyErr_SetString(PyExc_IOError, "Call to zwave_init failed.");
+      return NULL;
+    }
+    printf("PyZwave_init\n");
+  } else if (regi == REG_NOMATCH) {
+    printf("Not IP\n");
+    if (PyZwave_init_usb(host_or_dev_name) < 0) {
+      PyErr_SetString(PyExc_IOError, "Call to zwave_init failed.");
+      return NULL;
+    }
+    printf("PyZwave_init_usb\n");
+  } else {
+    printf("Match failed\n");
   }
-  printf("PyZwave_init\n");
+
+  regfree(&regex);
 
   initialised = 1;
   Py_RETURN_NONE;

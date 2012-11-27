@@ -753,12 +753,12 @@ app = tornado.web.Application([
 
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
-	configuration.readConfig()
-	update_applications()
-	app.listen(5001)	
-#	app.listen(MASTER_PORT)
-	locationTree = LocationTree(LOCATION_ROOT)
-#	import_wuXML()	#KatsunoriSato added
-#	make_FBP()
-	ioloop.start()
+  configuration.readConfig()
+  update_applications()
+  #app.listen(5001)	
+  app.listen(MASTER_PORT)
+  locationTree = LocationTree(LOCATION_ROOT)
+  #	import_wuXML()	#KatsunoriSato added
+  #	make_FBP()
+  ioloop.start()
 

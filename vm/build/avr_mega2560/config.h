@@ -31,7 +31,7 @@
 //#define TEST_WKPF_LOGICAL_WUCLASSES
 //#define TEST_WKPF_CONFIGURATION
 #if defined(TEST_WKPF_WUCLASSES) || defined(TEST_WKPF_WUOBJECTS) || defined(TEST_WKPF_PROPERTIES) || defined(TEST_WKPF_NATIVE_WUCLASSES) || defined(TEST_WKPF_UPDATE_FOR_NATIVE_WUCLASSES) || defined(TEST_WKPF_LOGICAL_WUCLASSES) || defined(TEST_WKPF_CONFIGURATION)
-#define TEST_WKPF // General WKPF test support
+//#define TEST_WKPF // General WKPF test support
 #endif
 
 //#define TEST_GROUP // Virtual Synchrony test support

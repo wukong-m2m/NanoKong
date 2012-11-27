@@ -24,6 +24,7 @@ Block.prototype.init=function() {
 //	this.setPosition(Math.floor((Math.random()*100)),Math.floor((Math.random()*50)));
 	this.setSize(100,100);
 	this.location = '';
+	this.group_size = 1;
 	this.signals=[];
 	this.actions=[];
 	this.sigProper=[];
@@ -59,6 +60,7 @@ Block.prototype.serialize=function(obj) {
 	obj.h = size[1];
 	obj.type = this.type;
 	obj.location = this.location;
+	obj.group_size = this.group_size;
 	return obj;
 }
 Block.restore=function(a) {
@@ -68,6 +70,7 @@ Block.restore=function(a) {
 	n.setSize(a.w,a.h);
 	n.type = a.type;
 	n.location = a.location;
+	n.group_size = a.group_size;
 	// Call the restore of the derived class in the future
 	return n;
 }
@@ -138,7 +141,17 @@ Block.prototype.attach=function(parent) {
 		FBP_refreshLines();
 	});
 	this.div.dblclick(function() {
+		$('#propertyeditor').empty();
+		$('#propertyeditor').append('<div>Location</div>');
+		$('#propertyeditor').append('<input type=text id=propertyeditor_location></input>');
+		$('#propertyeditor').append('<div>Group Size</div>');
+		$('#propertyeditor').append('<input type=text id=propertyeditor_groupsize></input>');
+		$('#propertyeditor').append('');
+
 		$('#propertyeditor_location').val(self.location);
+		$('#propertyeditor_groupsize').val(self.group_size);
+		$("#propertyeditor_action").append('<div id=propertyeditor_action></div>');
+		$("#propertyeditor_action").append('<div id=propertyeditor_signal></div>');
 //sato added from here
 		$("#propertyeditor_action").empty();
 		$("#propertyeditor_signal").empty();
@@ -162,6 +175,7 @@ Block.prototype.attach=function(parent) {
 			buttons: {
 				'OK': function () {
 					self.location = $('#propertyeditor_location').val();
+					self.group_size = $('#propertyeditor_groupsize').val();
 					for(i=0;i<_siglist.length;i++){
 						sig = _siglist[i];
 						self.sigProper[i]=$('#s'+sig.name).val();
