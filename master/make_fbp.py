@@ -84,7 +84,7 @@ class fbp_main:
 
 		addHead()
 #		_jsList = glob.glob("./static/js/*.js")
-		_testList = glob.glob("./static/js/test/*.js")
+		_testList = glob.glob("./static/js/__comp__*.js")
 #		addMiddle(_jsList)
 		addMiddle(_testList)
 		addEnd()

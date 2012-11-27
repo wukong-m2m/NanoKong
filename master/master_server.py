@@ -758,7 +758,7 @@ if __name__ == "__main__":
   #app.listen(5001)	
   app.listen(MASTER_PORT)
   locationTree = LocationTree(LOCATION_ROOT)
-  #	import_wuXML()	#KatsunoriSato added
-  #	make_FBP()
+  import_wuXML()	#KatsunoriSato added
+  make_FBP()
   ioloop.start()
 
