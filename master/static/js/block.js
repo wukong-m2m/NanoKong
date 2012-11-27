@@ -150,8 +150,8 @@ Block.prototype.attach=function(parent) {
 
 		$('#propertyeditor_location').val(self.location);
 		$('#propertyeditor_groupsize').val(self.group_size);
-		$("#propertyeditor_action").append('<div id=propertyeditor_action></div>');
-		$("#propertyeditor_action").append('<div id=propertyeditor_signal></div>');
+		$("#propertyeditor").append('<div><b> Action </b></div><div id=propertyeditor_action></div>');
+		$("#propertyeditor").append('<div><b> Signal </b></div><div id=propertyeditor_signal></div>');
 //sato added from here
 		$("#propertyeditor_action").empty();
 		$("#propertyeditor_signal").empty();

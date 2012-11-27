@@ -58,10 +58,6 @@ def addEnd():
                 '\t\t'+'<div id=propertyeditor>'+'\n'+
                 '\t\t'+'<div> Location </div>'+'\n'+
                 '\t\t'+'<input type=text id=propertyeditor_location></input>'+'\n'+
-                '\t\t'+'<div><b> Action </b></div>'+'\n'+
-				'\t\t'+'<div id=propertyeditor_action></div>'+'\n'+
-				'\t\t'+'<div><b> Signal </b></div>'+'\n'+
-				'\t\t'+'<div id=propertyeditor_signal></div>'+'\n'+
                 '\t\t'+'</div>'+'\n'+
                 '\t\t'+'<div id="progress"><div id="compile_status"></div>'+'\n'+
                 '\t\t'+'<div id="normal"></div><div id="critical_error"></div>'+'\n'+
