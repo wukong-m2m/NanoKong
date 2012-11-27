@@ -57,12 +57,12 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
     return WKPF_ERR_OUT_OF_MEMORY;
 
   for(int i=0; i<number_of_entries; i++) {
-    heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(map_heap_id)+1+i);
+    heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(map_heap_id)+1+(2*i));
     uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(remote_endpoint);
     remote_endpoint *nodes = (remote_endpoint *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
 
     component_to_wuobject_map[i] = (remote_endpoints){number_of_nodes, nodes};
-    DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> at \n");
+    DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> at \n", i);
     for (int j=0; j<number_of_nodes; j++) {
       DEBUGF_WKPF("\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
       if (nodes[j].node_id == nvmcomm_get_node_id()) {
