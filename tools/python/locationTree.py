@@ -2,10 +2,11 @@
 
 import logging
 import odict
+import json
 from wkpf import NodeInfo, WuClass, WuObject
 
 json_data = odict.odict()
-#json_data = []
+#json_data = {}
 number = 0
 
 class SensorNode:
@@ -34,87 +35,89 @@ class SensorNode:
         return None
         
 class LocationTreeNode:
-    def __init__(self, name, parent):
-        self.name = name
-        self.parent = parent
-        self.children = []
-        self.childrenCnt = 0
-        self.sensorLst = []
-        self.sensorCnt = 0
-        self.idSet = set([])			#all sensor ids contained in this Node and its children nodes
-    def addChild(self, name):
-        tmp = LocationTreeNode (name, self)
-        self.children.append(tmp)
-        self.childrenCnt = self.childrenCnt + 1
-        
-    def delChild(self, locTreeNode):
-        self.children.remove(locTreeNode)
-        self.childrenCnt = self.childrenCnt - 1
-        
-    def addSensor(self, sensorNode):
-        self.sensorLst.append(sensorNode)
-        self.sensorCnt = self.sensorCnt + 1
-        sensorNode.locationTreeNode = self
-        self.idSet.add(sensorNode.nodeInfo.nodeId)
-        # update sensorCnt for all ancestor nodes
-        pa = self.parent
-        while pa != None:
-            pa.sensorCnt = pa.sensorCnt + 1
-            pa.idSet.add(sensorNode.nodeInfo.nodeId)
-            pa = pa.parent
-    
-    def delSensor(self, sensorNode):
-        self.sensorLst.remove(sensorNode)
-        self.sensorCnt = self.sensorCnt - 1
-        sensorNode.locationTreeNode = None
-        self.idSet.remove(sensorNode.nodeInfo.nodeId)
-        # update sensorCnt for all ancestor nodes
-        pa = self.parent
-        while pa != None:
-            pa.sensorCnt = pa.sensorCnt - 1
-            pa.idSet.remove(sensorNode.nodeInfo.nodeId)
-            pa = pa.parent
-        
-    def getAllNodes(self):
-        ret_val = self.idSet
-        return ret_val
-    
-    def getAllNodeInfos(self):
-        ret_val = []
-        for sensor in self.sensorLst:
-            ret_val.append(sensor.nodeInfo)
-        for child in self.children:
-            ret_val.append(child.getAllNodeInfos())
-        return ret_val
-        
-    def toString(self, indent = 0):
-        print_str = ""
-        for i in range(indent):
-            print_str  = print_str + "\t"
-        print_str = print_str + self.name + "#"
-        for i in range(len(self.sensorLst)):
-            print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
-        return print_str
-        
-    def _toString(self, indent = 0):
-        global number
-        print_str = ""
-        print_str = print_str + self.name # + "#"
+	def __init__(self, name, parent):
+		self.name = name
+		self.parent = parent
+		self.children = []
+		self.childrenCnt = 0
+		self.sensorLst = []
+		self.sensorCnt = 0
+		self.idSet = set([])			#all sensor ids contained in this Node and its children nodes
+	def addChild(self, name):
+		tmp = LocationTreeNode (name, self)
+		self.children.append(tmp)
+		self.childrenCnt = self.childrenCnt + 1
+		
+	def delChild(self, locTreeNode):
+		self.children.remove(locTreeNode)
+		self.childrenCnt = self.childrenCnt - 1
+		
+	def addSensor(self, sensorNode):
+		self.sensorLst.append(sensorNode)
+		self.sensorCnt = self.sensorCnt + 1
+		sensorNode.locationTreeNode = self
+		self.idSet.add(sensorNode.nodeInfo.nodeId)
+		# update sensorCnt for all ancestor nodes
+		pa = self.parent
+		while pa != None:
+			pa.sensorCnt = pa.sensorCnt + 1
+			pa.idSet.add(sensorNode.nodeInfo.nodeId)
+			pa = pa.parent
+	
+	def delSensor(self, sensorNode):
+		self.sensorLst.remove(sensorNode)
+		self.sensorCnt = self.sensorCnt - 1
+		sensorNode.locationTreeNode = None
+		self.idSet.remove(sensorNode.nodeInfo.nodeId)
+		# update sensorCnt for all ancestor nodes
+		pa = self.parent
+		while pa != None:
+			pa.sensorCnt = pa.sensorCnt - 1
+			pa.idSet.remove(sensorNode.nodeInfo.nodeId)
+			pa = pa.parent
+		
+	def getAllNodes(self):
+		ret_val = self.idSet
+		return ret_val
+	
+	def getAllNodeInfos(self):
+		ret_val = []
+		for sensor in self.sensorLst:
+			ret_val.append(sensor.nodeInfo)
+		for child in self.children:
+			ret_val.append(child.getAllNodeInfos())
+		return ret_val
+		
+	def toString(self, indent = 0):
+		print_str = ""
+		for i in range(indent):
+			print_str  = print_str + "\t"
+		print_str = print_str + self.name + "#"
+		for i in range(len(self.sensorLst)):
+			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
+		return print_str
+		
+	def _toString(self, indent = 0):
+		global number
+		print_str = ""
+		print_str = print_str + self.name  + "#"
 #		for i in range(len(self.sensorLst)):
 #			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
-        json_data[indent+number*10] = print_str
-        if not len(self.sensorLst) == 0:		
-            self._chldString(indent)
-        return print_str
-        
-    def _chldString(self, indent=0):
-        global number
-        for i in range(len(self.sensorLst)):
-            number += 1
-            json_data[indent+1+number*10] = str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)
-            
-        
-        
+		json_data[indent+number*10] = print_str
+#		json_data[print_str] = indent + number*10
+		if not len(self.sensorLst) == 0:		
+			self._chldString(indent)
+		return print_str
+		
+	def _chldString(self, indent=0):
+		global number
+		for i in range(len(self.sensorLst)):
+			number += 1
+#			json_data[str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)] = indent+1+number*10
+			json_data[indent+1+number*10] = str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)
+			
+		
+		
 class LocationTree:
         
     def __init__(self, name):

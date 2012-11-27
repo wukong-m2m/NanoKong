@@ -36,7 +36,7 @@ def addEnd():
     g.write(
                 '\t'+'</head>'+'\n'+
                 '\t'+'<body scrolling="no">'+'\n'+
-                '\t\t'+'<canvas id=canvas style="position:absolute; left:100; top:50;" height=600 width=800></canvas>'+'\n'+
+                '\t\t'+'<canvas id=canvas style="position:absolute; left:205; top:50;" height=600 width=800></canvas>'+'\n'+
                 '\t\t'+'<div id=client></div>'+'\n'+
                 '\t\t'+'<canvas id=canvastop style="position:absolute; left:0; top:50;" height=600 width=800></canvas>'+'\n'+
                 '\t\t'+'<div id=connection>'+'\n'+
@@ -58,6 +58,10 @@ def addEnd():
                 '\t\t'+'<div id=propertyeditor>'+'\n'+
                 '\t\t'+'<div> Location </div>'+'\n'+
                 '\t\t'+'<input type=text id=propertyeditor_location></input>'+'\n'+
+                '\t\t'+'<div><b> Action </b></div>'+'\n'+
+				'\t\t'+'<div id=propertyeditor_action></div>'+'\n'+
+				'\t\t'+'<div><b> Signal </b></div>'+'\n'+
+				'\t\t'+'<div id=propertyeditor_signal></div>'+'\n'+
                 '\t\t'+'</div>'+'\n'+
                 '\t\t'+'<div id="progress"><div id="compile_status"></div>'+'\n'+
                 '\t\t'+'<div id="normal"></div><div id="critical_error"></div>'+'\n'+

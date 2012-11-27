@@ -576,17 +576,15 @@ class nodes(tornado.web.RequestHandler):
             senNd = SensorNode(info, 0, 0, 0)
             locationTree.addSensor(senNd)
         locationTree.printTree()
-#        treedata = locationTree.json_tree(locationTree)
         self.content_type = 'application/json'
         self.write({'status':0})
-#        self.write(treedata)
       else:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
         
 class tree(tornado.web.RequestHandler):	
-	def get(self):
-		pass
+#	def get(self):
+#		pass
 		
 	def post(self):
 		global locationTree
@@ -603,13 +601,14 @@ class tree(tornado.web.RequestHandler):
 		for info in node_infos:
 			senNd = SensorNode(info, 0, 0, 0)
 			locationTree.addSensor(senNd)
+		addloc = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True)
+#		addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
 
 		locationTree.printTree()
 		disploc = locationTree.getJson()
-		print "@@@getJson@@@@", disploc
 		self.content_type = 'application/json'
-#		self.write({'status':0})
-		self.write(json.dumps(disploc))			
+		self.write({'loc':json.dumps(disploc),'node':addloc})			
+
        
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
