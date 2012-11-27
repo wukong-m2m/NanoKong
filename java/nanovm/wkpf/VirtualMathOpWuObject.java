@@ -1,6 +1,6 @@
 package nanovm.wkpf;
 
-public class VirtualMathWuObject extends GENERATEDVirtualMathWuObject {
+public class VirtualMathOpWuObject extends GENERATEDVirtualMathOpWuObject {
     public void update() {
         // TODONR: replace these calls with convenience methods in VirtualWuObject once we get the inheritance issue sorted out.
         short input1 = WKPF.getPropertyShort(this, INPUT1);
