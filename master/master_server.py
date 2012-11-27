@@ -644,7 +644,7 @@ if __name__ == "__main__":
   tornado.ioloop.PeriodicCallback(wusignal.signal_handler, 100, ioloop)
   app.listen(MASTER_PORT)
   locationTree = LocationTree(LOCATION_ROOT)
-  #	import_wuXML()	#KatsunoriSato added
-  #	make_FBP()
+  import_wuXML()	#KatsunoriSato added
+  make_FBP()
   ioloop.start()
 
