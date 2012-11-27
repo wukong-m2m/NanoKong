@@ -59,38 +59,43 @@ function make_tree(rt)
 	var r = JSON.parse(rt.loc);
 	
     var temp = 0
-    var html_tree = ""
-    html_tree += '<ul>'
+    var html_tree = '<script type="text/javascript" src="/static/js/jquery.js"></script><script type="text/javascript" src="/static/js/jquery.treeview.js"></script><script type="text/javascript" src="/static/js/tree_expand.js"></script>'
+    html_tree += '<ul id="display" class="treeview">'
     for( i in r){
 		l = i % 10
 		if(l == 0){
-			html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+			html_tree += '<li id="'+ r[i] +'">'+r[i]
 		}else if(l == temp){
 			if(r[i].indexOf("#") == -1){
-				html_tree += '<a role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#myModal" class="btn more">'+r[i]+'</button></a>'
+				html_tree += '</li><li role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#dispObj" class="btn more">'+r[i]
 			}else{
-				html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+				html_tree += '</li><li id="'+ r[i] +'">'+r[i]
 			}
 		}else if(l > temp){
 			if(r[i].indexOf("#") == -1){
-				html_tree += '<ul><a role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#myModal" class="btn more">'+r[i]+'</button></a>'
+				html_tree += '<ul><li role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#dispObj" class="btn more">'+r[i]
 			}else{
-				html_tree += '<ul><li id="'+ r[i] +'">'+r[i]+'</li>'
+				html_tree += '<ul><li id="'+ r[i] +'">'+r[i]
 			}
 		}else if(l < temp){
 			m = temp - l
 			for(var j=0; j<m ;j++){
-				html_tree += '</ul>'
+				html_tree += '</li></ul>'
 			}
-			html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+			if(m > 1){
+				for(var j=0; j<m-1 ;j++){
+					html_tree += '</li>'
+				}
+			}
+			html_tree += '<li id="'+ r[i] +'">'+r[i]
 		}
 
 		temp = l
 	}
 	for(var j=0; j<temp+1; j++){
-		html_tree += '</ul>'
+		html_tree += '</li></ul>'
 	}
-//	DebugPrint(html_tree);
+	DebugPrint(html_tree);
 	$('#content').append(html_tree);
 }
 
