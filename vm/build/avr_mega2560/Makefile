@@ -20,10 +20,10 @@ CODEGEN_PATH = $(ROOT_DIR)/tools/python/codegen.py
 NVMCOMM_REPROGRAM = $(ROOT_DIR)/tools/python/reprogram.py
 TEST_PATH = $(ROOT_DIR)/vm/tests
 
-UNAME := $(shell uname)
+WHOAMI := $(shell whoami)
 
 AVRDUDE = avrdude
-ifeq ($(UNAME), Darwin)
+ifeq ($(WHOAMI), penn)
 AVRDUDE = $(ROOT_DIR)/tools/avrdude
 endif
 
