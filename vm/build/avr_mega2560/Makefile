@@ -22,8 +22,10 @@ TEST_PATH = $(ROOT_DIR)/vm/tests
 
 WHOAMI := $(shell whoami)
 
+AVRSIZE = avr-size
 AVRDUDE = avrdude
 ifeq ($(WHOAMI), penn)
+AVRSIZE = $(ROOT_DIR)/tools/avr-size
 AVRDUDE = $(ROOT_DIR)/tools/avrdude
 endif
 
@@ -74,8 +76,7 @@ endef
 # avr specific entries
 %.elf: $(OBJS)
 	$(CC) $(CLDFLAGS) -o $@ $(OBJS)
-	avr-size -C --mcu=atmega2560 $@
-	#$(ROOT_DIR)/tools/avr-size -C --mcu=atmega2560 $@
+	$(AVRSIZE) -C --mcu=atmega2560 $@
 
 %.hex: %.elf
 	$(OBJCOPY) -j .text -j .lowtext -j .data -j .javabytecode -O ihex $< $@
