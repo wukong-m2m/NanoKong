@@ -1,0 +1,14 @@
+
+
+
+
+
+.build/mega2560/src/Zwave_bridge.cpp : src/Zwave_bridge.pde
+	@mkdir -p .build/mega2560/src
+	@echo [93msrc/Zwave_bridge.pde[0m
+	@/usr/local/bin/ino preproc  -o $@ $^
+
+
+all : .build/mega2560/src/Zwave_bridge.cpp
+	@true
+
