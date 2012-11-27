@@ -2,10 +2,11 @@
 
 import logging
 import odict
+import json
 from wkpf import NodeInfo, WuClass, WuObject
 
 json_data = odict.odict()
-#json_data = []
+#json_data = {}
 number = 0
 
 class SensorNode:
@@ -99,10 +100,11 @@ class LocationTreeNode:
 	def _toString(self, indent = 0):
 		global number
 		print_str = ""
-		print_str = print_str + self.name # + "#"
+		print_str = print_str + self.name  + "#"
 #		for i in range(len(self.sensorLst)):
 #			print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
 		json_data[indent+number*10] = print_str
+#		json_data[print_str] = indent + number*10
 		if not len(self.sensorLst) == 0:		
 			self._chldString(indent)
 		return print_str
@@ -111,6 +113,7 @@ class LocationTreeNode:
 		global number
 		for i in range(len(self.sensorLst)):
 			number += 1
+#			json_data[str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)] = indent+1+number*10
 			json_data[indent+1+number*10] = str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)
 			
 		

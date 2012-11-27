@@ -146,7 +146,7 @@ Block.prototype.attach=function(parent) {
 		for(i=0;i<_actlist.length;i++) {
     		var act = _actlist[i];
     		$('#propertyeditor_action').append(act.name);
-    		$('#propertyeditor_action').append('<input type=text id=a'+act.name+'></input>');
+    		$('#propertyeditor_action').append('<input type=text id=a'+act.name+'></input><br>');
     		$('#a'+act.name).val(self.actProper[i]);
     		
 		}
@@ -154,7 +154,7 @@ Block.prototype.attach=function(parent) {
 		for(i=0;i<_siglist.length;i++) {
     		var sig = _siglist[i];
     		$('#propertyeditor_signal').append(sig.name);
-    		$('#propertyeditor_signal').append('<input type=text id=s'+sig.name+'></input>');
+    		$('#propertyeditor_signal').append('<input type=text id=s'+sig.name+'></input><br>');
     		$('#s'+sig.name).val(self.sigProper[i]);
 		}
 //sato added end
@@ -170,9 +170,6 @@ Block.prototype.attach=function(parent) {
 						act = _actlist[i];
 						self.actProper[i]=$('#a'+act.name).val();
 					}
-//					self.actProper = $('#propertyeditor_action').val();
-//					$('#test').append(self.sigProper[0]);
-//					self.sigProper = $('#propertyeditor_signal').val();
 					$('#propertyeditor').dialog("close");
 				},
 				'Cancel': function() {

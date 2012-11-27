@@ -15,7 +15,7 @@ $(document).ready(function() {
     $('#client').append('<div id=content></div>');
     var toolbar = $('#toolbar');
 	toolbar.append('<table><tr>');
-    toolbar.append('<td><select id=toolbar_type size=10></select></td>');
+    toolbar.append('<td><select id=toolbar_type size=10 style="width:200px;"></select></td>');
     FBP_fillBlockType($('#toolbar_type'));
 
 /*    toolbar.append('<button id=toolbar_addBlock style="position: relative; left: 0px; top: -155px;">Add</button>');
