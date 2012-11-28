@@ -9,7 +9,7 @@ import os, sys, zipfile
 import simplejson as json
 import logging
 import hashlib
-from xml.dom.minidom import parse
+from xml.dom.minidom import parse, parseString
 from threading import Thread
 import traceback
 import time
@@ -342,12 +342,15 @@ class map_application(tornado.web.RequestHandler):
       locationTree.printTree(locationTree.root)
 
       # Map with location tree info (discovery), this will produce mapping_results
-      application[app_ind].map(locationTree)
+      applications[app_ind].map(locationTree)
 
       ret = []
       for key, value in applications[app_ind].mapping_results.items():
-        ret.append({'instanceId': value.getInstanceId(), 'name': value.getWuClassName(), 'nodeId': value.getNodeId(), 'portNumber': value.getPortNumber()})
-
+        tmp_ret  =[]
+        for wuobj in value:
+          tmp_ret.append({'instanceId': wuobj.getInstanceId(), 'name': wuobj.getWuClassName(), 'nodeId': wuobj.getNodeId(), 'portNumber': wuobj.getPortNumber()})
+        ret.append (tmp_ret)
+      print ret
 
       self.content_type = 'application/json'
       self.write({'status':0, 'mapping_results': ret, 'version': applications[app_ind].version})
@@ -412,8 +415,11 @@ class save_fbp(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      applications[app_ind].updateXML(self.get_argument('xml'))
+      xml = self.get_argument('xml')
+      applications[app_ind].updateXML(xml)
       applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
+      applications[app_ind].xml = xml
+      applications[app_ind].setFlowDom(parseString(xml))
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']

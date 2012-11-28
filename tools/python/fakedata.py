@@ -7,8 +7,8 @@ all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongS
 all_wutypes = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml"), type='wutype').values()
 
 simNodeInfos = []
-locs = ["/universal/CS_Building/3F/South_Corridor/Room336", "/universal/CS_Building/3F/East_Corridor/Room318",
-"/universal/CS_Building/3F/South_Corridor/Room336", "/universal/CS_Building/3F/East_Corridor/Room318"]
+locs = [u"/universal/CS_Building/3F/South_Corridor/Room336", u"/universal/CS_Building/3F/East_Corridor/Room318",
+u"/universal/CS_Building/3F/South_Corridor/Room336", u"/universal/CS_Building/3F/East_Corridor/Room318"]
 coords = [(0, 1, 2), (0, 5, 3), (0,1,3), (0, 6, 4)]
 
 def genFakeData():	
@@ -24,7 +24,7 @@ def genFakeData():
 		wuobjects = []
 		for wuclass in all_wuclasses:
 			wuobjects.append(WuObject(wuclass, 'testId'+str(count), 1, nodeId = id, portNumber=count))
-			if count > 5:
+			if count > 10:
 				break
 			count = count+1
 		simNodeInfos.append(NodeInfo(nodeId = id,
