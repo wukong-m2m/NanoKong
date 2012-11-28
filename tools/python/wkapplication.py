@@ -70,12 +70,11 @@ def firstCandidate(app, wuObjects, locTree):
                         candidateSet.append([node_info.nodeId, portNumber])
                         break
             elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
-                portLst.append (node_info.nodeId)
                 sensorNode = locTree.sensor_dict[node_info.nodeId]
                 sensorNode.initPortList(forceInit = False)
                 portNo = sensorNode.reserveNextPort() 
                 if portNo != None:  #means Not all ports in node occupied, still can assign new port
-                    candidateSet.append([node_info.nodeId, portNumber])
+                    candidateSet.append([node_info.nodeId, portNo])
                 
         
         if len(candidateSet) == 0:
