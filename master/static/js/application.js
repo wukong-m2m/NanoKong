@@ -57,7 +57,6 @@ function make_tree(rt)
 {
 	$('#content').empty();
 	var r = JSON.parse(rt.loc);
-	
     var temp = 0
     var html_tree = '<script type="text/javascript" src="/static/js/jquery.js"></script><script type="text/javascript" src="/static/js/jquery.treeview.js"></script><script type="text/javascript" src="/static/js/tree_expand.js"></script>'
     html_tree += '<ul id="display" class="treeview">'
@@ -92,10 +91,11 @@ function make_tree(rt)
 
 		temp = l
 	}
+	
 	for(var j=0; j<temp+1; j++){
 		html_tree += '</li></ul>'
 	}
-	DebugPrint(html_tree);
+	
 	$('#content').append(html_tree);
 }
 
