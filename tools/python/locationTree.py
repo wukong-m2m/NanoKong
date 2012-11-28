@@ -271,6 +271,13 @@ class LocationTree:
 
     def getJson(self):
         return json_data
+        
+    def reset(self, name):
+        tmp = LocationTreeNode(name, None)
+        self.sensor_dict = {}
+        self.root = tmp
+        self.totalSensorCount = 0
+        json_data.clear()
 
     def buildTree(self, node_infos):
         for info in node_infos:

@@ -596,6 +596,7 @@ class tree(tornado.web.RequestHandler):
 		global locationTree
 		global node_infos
 		
+		locationTree.reset(LOCATION_ROOT)	
 		if SIMULATION == 0:
 			comm = getComm()
 			node_infos = comm.getAllNodeInfos()
@@ -607,7 +608,7 @@ class tree(tornado.web.RequestHandler):
 		for info in node_infos:
 			senNd = SensorNode(info, 0, 0, 0)
 			locationTree.addSensor(senNd)
-#		addloc = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True)
+
 		addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
 
 		locationTree.printTree()
