@@ -35,7 +35,12 @@ $(function() {
                 }
 
                 _.each(data.mapping_results, function(result) {
-                    var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    var compiled;
+                    if (result.leader) {
+                        compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    } else {
+                        compiled = _.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    }
                     $table.append(compiled(result));
                 });
             }

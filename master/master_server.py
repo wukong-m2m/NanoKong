@@ -344,12 +344,17 @@ class map_application(tornado.web.RequestHandler):
       # Map with location tree info (discovery), this will produce mapping_results
       applications[app_ind].map(locationTree)
 
+      print '[][][][]mapping results'
+      print applications[app_ind].mapping_results
+
       ret = []
       for key, value in applications[app_ind].mapping_results.items():
-        tmp_ret  =[]
-        for wuobj in value:
-          tmp_ret.append({'instanceId': wuobj.getInstanceId(), 'name': wuobj.getWuClassName(), 'nodeId': wuobj.getNodeId(), 'portNumber': wuobj.getPortNumber()})
-        ret.append (tmp_ret)
+        for ind, wuobj in enumerate(value):
+          if ind == 0:
+            ret.append({'leader': True, 'instanceId': wuobj.getInstanceId(), 'name': wuobj.getWuClassName(), 'nodeId': wuobj.getNodeId(), 'portNumber': wuobj.getPortNumber()})
+          else:
+            ret.append({'leader': False, 'instanceId': wuobj.getInstanceId(), 'name': wuobj.getWuClassName(), 'nodeId': wuobj.getNodeId(), 'portNumber': wuobj.getPortNumber()})
+
       print ret
 
       self.content_type = 'application/json'

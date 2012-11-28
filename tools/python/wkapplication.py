@@ -56,7 +56,7 @@ def firstCandidate(app, wuObjects, locTree):
             if len(tmpSet) > 0:
                 candidateSet = tmpSet
             else:
-                logging.error('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
+                app.error('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
                 return False
 
         # filter by available wuclasses for non-virtual components
@@ -70,24 +70,23 @@ def firstCandidate(app, wuObjects, locTree):
                         candidateSet.append([node_info.nodeId, portNumber])
                         break
             elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
-                portLst.append (node_info.nodeId)
+                #portLst.append (node_info.nodeId)
                 sensorNode = locTree.sensor_dict[node_info.nodeId]
                 sensorNode.initPortList(forceInit = False)
                 portNo = sensorNode.reserveNextPort() 
                 if portNo != None:  #means Not all ports in node occupied, still can assign new port
-                    candidateSet.append([node_info.nodeId, portNumber])
+                    candidateSet.append([node_info.nodeId, portNo])
                 
         
         if len(candidateSet) == 0:
-          logging.error ('No node could be mapped for component'+str(wuObject[0].getInstanceId()))
+          app.error ('No node could be mapped for component'+str(wuObject[0].getInstanceId()))
           return False
         actualGroupSize = queries[1] #queries[1] is the suggested group size
         if actualGroupSize > len(candidateSet):
             actualGroupSize = len(candidateSet)
         groupMemberIds = candidateSet[:actualGroupSize]
         #select the first candidates who satisfies the condiditon
-        logging.warning('will select the first '+ str(actualGroupSize), 'in this candidateSet', str(candidateSet))
-        print ('will select the first '+ str(actualGroupSize) + ' in this candidateSet'+ str(candidateSet))
+        app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
         wuObject[0].setNodeId(candidateSet[0][0])    
         wuObject[0].setPortNumber(candidateSet[0][1])
         for i in range(1, actualGroupSize):
@@ -164,6 +163,11 @@ class WuApplication:
     self.logger.error(line)
     self.version += 2
 
+  def warning(self, line):
+    print 'warning log'
+    self.logger.warning(line)
+    self.version += 1
+
   def updateXML(self, xml):
     print 'updateConfig'
     self.xml = xml
@@ -181,6 +185,7 @@ class WuApplication:
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
+    self.setFlowDom(parseString(self.xml))
 
   def saveConfig(self):
     print 'saveConfig'
