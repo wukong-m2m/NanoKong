@@ -136,7 +136,7 @@ class LocationURL:
 	
 	#be able to parse sth like near(0,1,2)
  	def parseURL(self):
-		if self.urlStr == None:
+		if self.urlStr == None or len(self.urlStr.rstrip()) == 0:
 			self.urlStr = self.locationTree.root.name + u"#" + u"getAll()"
 		tmpStrLst = self.urlStr.split(u'#')
 		if(len(tmpStrLst)>2):

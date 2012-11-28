@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath("../xml2java"))
 sys.path.append(os.path.abspath("../../master"))
 from wkpf import *
 from locationTree import *
-from xml.dom.minidom import parse
+from xml.dom.minidom import parse, parseString
 import simplejson as json
 import logging
 import logging.handlers
@@ -14,6 +14,7 @@ import copy
 from URLParser import *
 from wkpfcomm import *
 from codegen import generateCode
+import copy
 
 from configuration import *
 
@@ -21,23 +22,20 @@ OK = 0
 NOTOK = 1
 
 def firstCandidate(app, wuObjects, locTree):
-    #input: nodes, WuObjects, WuLinks, WuClassDefs
+    #input: nodes, WuObjects, WuLinks, WuClassDefsm, wuObjects is a list of wuobject list corresponding to group mapping
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
-    print wuObjects
 
     for i, wuObject in enumerate(wuObjects.values()):
         candidateSet = set()
-        queries = wuObject.getLocationQueries()
+        queries = wuObject[0].getQueries()
 
-        # filter by location query
-        print queries
+        # filter by query
         if queries == []:
             locURLHandler = LocationURL(None, locTree)
             candidateSet = locTree.root.getAllNodes()
         else:
-            print 'LocationURL', queries[0], locTree
-            locURLHandler = LocationURL(queries[0], locTree) # get the first location query for a component, TODO:should consider other queries too later
+            locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
 
             '''
             try:
@@ -58,30 +56,47 @@ def firstCandidate(app, wuObjects, locTree):
             if len(tmpSet) > 0:
                 candidateSet = tmpSet
             else:
-                logging.err('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
+                logging.error('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
                 return False
 
         # filter by available wuclasses for non-virtual components
         node_infos = [locTree.getNodeInfoById(nodeId) for nodeId in candidateSet]
-        if not wuObject.getWuClass().isVirtual():
-          candidateSet = [node_info.nodeId for node_info in node_infos if wuObject.getWuClassId() in [wuClass.getId() for wuClass in node_info.wuClasses]]
-        else:
-          candidateSet = list(candidateSet)
-
-        if len(candidateSet) == 0:
-          app.error('No nodes could be mapped for component %s' % (wuObject.getInstanceId()))
-          return False
+        candidateSet = [] # a list of [sensor id, port no.] pairs
+        for node_info in node_infos:
+            if wuObject[0].getWuClass().getId() in node_info.nativeWuClasses: #native class, use the wuobj port
+                for wuobject in node_info.wuObjects:
+                    if wuobject.getWuClassId()== wuObject[0].getWuClassId() and wuobject.isOccupied() == False:
+                        portNumber = wuobject.getPortNumber() 
+                        candidateSet.append([node_info.nodeId, portNumber])
+                        break
+            elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
+                portLst.append (node_info.nodeId)
+                sensorNode = locTree.sensor_dict[node_info.nodeId]
+                sensorNode.initPortList(forceInit = False)
+                portNo = sensorNode.reserveNextPort() 
+                if portNo != None:  #means Not all ports in node occupied, still can assign new port
+                    candidateSet.append([node_info.nodeId, portNumber])
+                
         
-        print 'will select the first in this candidateSet', candidateSet
-
-        wuObject.setNodeId(candidateSet[0])    #select the first candidate who satisfies the condiditon
-        sensorNode = locTree.sensor_dict[list(candidateSet)[0]]
-        sensorNode.initPortList(forceInit = False)
-        portNo = sensorNode.reserveNextPort()
-        if portNo == None:
-            app.error('All ports in node %s occupied, cannot assign new port' % (candidateSet[0]))
-            return False
-        wuObject.setPortNumber(portNo)
+        if len(candidateSet) == 0:
+          logging.error ('No node could be mapped for component'+str(wuObject[0].getInstanceId()))
+          return False
+        actualGroupSize = queries[1] #queries[1] is the suggested group size
+        if actualGroupSize > len(candidateSet):
+            actualGroupSize = len(candidateSet)
+        groupMemberIds = candidateSet[:actualGroupSize]
+        #select the first candidates who satisfies the condiditon
+        logging.warning('will select the first '+ str(actualGroupSize), 'in this candidateSet', str(candidateSet))
+        print ('will select the first '+ str(actualGroupSize) + ' in this candidateSet'+ str(candidateSet))
+        wuObject[0].setNodeId(candidateSet[0][0])    
+        wuObject[0].setPortNumber(candidateSet[0][1])
+        for i in range(1, actualGroupSize):
+            tmp = copy.deepcopy(wuObject[0])
+            tmp.setNodeId(candidateSet[i][0])    
+            tmp.setPortNumber(candidateSet[i][1])
+            tmp.setOccupied(True)
+            wuObject.append(tmp)
+            
         
     return True
 
@@ -187,6 +202,7 @@ class WuApplication:
       self.wuClasses = parseXMLString(self.componentXml) # an array of wuClasses
 
   def parseApplicationXML(self):
+
       # TODO: parse application XML to generate WuClasses, WuObjects and WuLinks
       for index, componentTag in enumerate(self.applicationDom.getElementsByTagName('component')):
           # make sure application component is found in wuClassDef component list
@@ -204,20 +220,32 @@ class WuApplication:
                   wuProperty.setDefault(propertyTag.getAttribute('default'))
 
           queries = []
+          #assume there is one location requirement per component in application.xml
           for locationQuery in componentTag.getElementsByTagName('location'):
               queries.append(locationQuery.getAttribute('requirement'))
-
+          if len(queries) ==0:
+              queries.append ('')
+          elif len (queries) > 1:
+              logging.error('input file violating the assumption there is one location requirement per component in application.xml')
+          #assume there is one group_size requirement per component in application.xml
+          for groupSizeQuery in componentTag.getElementsByTagName('group_size'):
+              queries.append(eval(groupSizeQuery.getAttribute('requirement')))
+          if len(queries) ==1:
+              queries.append (1)
+          elif len (queries) > 2:
+              logging.error('input file violating the assumption there is one group_size requirement per component in application.xml')
           # nodeId is not used here, portNumber is generated later
-          wuObj = WuObject(wuClass=wuClass, instanceId=componentTag.getAttribute('instanceId'), instanceIndex=index, locationQueries=queries)
+          wuObj = WuObject(wuClass=wuClass, instanceId=componentTag.getAttribute('instanceId'), instanceIndex=index, queries=queries)
 
-          self.wuObjects[wuObj.getInstanceId()] = wuObj
+          #for each component, there is a list of wuObjs (length depending on group_size)
+          self.wuObjects[wuObj.getInstanceId()] = [wuObj]
 
       # links
       for linkTag in self.applicationDom.getElementsByTagName('link'):
-          fromWuObject = self.wuObjects[linkTag.parentNode.getAttribute('instanceId')]
+          fromWuObject = self.wuObjects[linkTag.parentNode.getAttribute('instanceId')][0]
           fromPropertyId = fromWuObject.getPropertyByName(linkTag.getAttribute('fromProperty')).getId()
 
-          toWuObject = self.wuObjects[linkTag.getAttribute('toInstanceId')]
+          toWuObject = self.wuObjects[linkTag.getAttribute('toInstanceId')][0]
           toPropertyId = toWuObject.getPropertyByName(linkTag.getAttribute('toProperty')).getId()
 
           self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
@@ -227,6 +255,7 @@ class WuApplication:
     self.parseApplicationXML()
     self.mapping(location_tree)
     self.mapping_results = self.wuObjects
+    print "Mapping result"+str(self.mapping_results)
 
   def mapping(self, locTree, mapFunc=firstCandidate):
       #input: nodes, WuObjects, WuLinks, WuClassDefs
@@ -236,7 +265,7 @@ class WuApplication:
       return mapFunc(self, self.wuObjects, locTree)
 
   def deploy(self, destination_ids, platforms):
-    comm = getComm()
+    
     app_path = self.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
@@ -279,7 +308,10 @@ class WuApplication:
         self.error('Error generating nvmdefault.h')
         return False
       self.info('Finishing compression')
-
+      if  SIMULATION !=0:
+          #we don't do any real deployment for simulation, 
+          return False
+      comm = getComm()
       # Deploy nvmdefault.h to nodes
       print 'changing to path: %s...' % platform_dir
       self.info('Deploying to nodes')
