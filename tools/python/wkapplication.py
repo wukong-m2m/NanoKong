@@ -70,7 +70,6 @@ def firstCandidate(app, wuObjects, locTree):
                         candidateSet.append([node_info.nodeId, portNumber])
                         break
             elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
-                #portLst.append (node_info.nodeId)
                 sensorNode = locTree.sensor_dict[node_info.nodeId]
                 sensorNode.initPortList(forceInit = False)
                 portNo = sensorNode.reserveNextPort() 
