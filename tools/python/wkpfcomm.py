@@ -165,7 +165,7 @@ class Communication:
       return reply[3:]
 
     def setFeature(self, destination, feature, onOff):
-      print 'setLocation'
+      print 'setFeature'
 
       reply = self.zwave.send(destination, pynvc.WKPF_SET_FEATURE, [feature, onOff], [pynvc.WKPF_SET_FEATURE_R, pynvc.WKPF_ERROR_R])
       print reply
