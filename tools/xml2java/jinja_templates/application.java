@@ -27,12 +27,12 @@ public class {{ applicationName }} {
     //component node id and port number table
     // each row corresponds to the component index mapped from component ID above
     // each row has two items: node id, port number
-    private final static byte[] componentInstanceToWuObjectAddrMap = {
+    private final static byte[][] componentInstanceToWuObjectAddrMap = {
         {%- for wuobjectgroup in wuObjects %}
          new byte[]{ {%- for wuobject in wuobjectgroup %}
                        {{ wuobject.toJava() }}{{ ',' if not loop.last else '' }}
                       {%- endfor %}
-                   }
+                   },
                   
         {%- endfor %}
     };
