@@ -307,7 +307,7 @@ class deploy_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-      if len(node_ids) > 0 and applications[app_ind].deploy(node_ids, platforms):
+      if applications[app_ind].deploy(node_ids, platforms):
         active_ind = app_ind
         self.content_type = 'application/json'
         self.write({'status':0, 'version': applications[app_ind].version})
@@ -418,9 +418,8 @@ class save_fbp(tornado.web.RequestHandler):
     else:
       xml = self.get_argument('xml')
       applications[app_ind].updateXML(xml)
-      applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
-      applications[app_ind].xml = xml
-      applications[app_ind].setFlowDom(parseString(xml))
+      #applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
+      #applications[app_ind].xml = xml
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
@@ -515,6 +514,8 @@ class testrtt(tornado.web.RequestHandler):
         node_infos = fakedata.simNodeInfos
     else:
         logging.info("SIMULATION set to invalid value")
+
+    print node_infos
 
     # debug purpose
     #node_infos = fakedata.node_infos
