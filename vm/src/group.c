@@ -539,16 +539,18 @@ nvmtime_t next_heartbeat_broadcast = 0; // Initialise to 0 to start sending hear
 
 // To be called periodically (at least as often as HEARTBEAT_INTERVAL)
 void group_heartbeat() {
-  // Send a heartbeat if it is due.
-  if (nvm_current_time > next_heartbeat_broadcast) {
+  if (watch_list_count > 0) {
+    // Send a heartbeat if it is due.
+    if (nvm_current_time > next_heartbeat_broadcast) {
 #ifdef DEBUG
-    DEBUGF_GROUP("sending heartbeat\n");
+      DEBUGF_GROUP("sending heartbeat\n");
 #endif
-    /*nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);*/
-    for(uint8_t i=0; i<watch_list_count; i++) {
-      nvmcomm_send(watch_list[i].node_id, NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
+      /*nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);*/
+      for(uint8_t i=0; i<watch_list_count; i++) {
+        nvmcomm_send(watch_list[i].node_id, NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
+      }
+      next_heartbeat_broadcast = nvm_current_time + HEARTBEAT_INTERVAL;
     }
-    next_heartbeat_broadcast = nvm_current_time + HEARTBEAT_INTERVAL;
   }
   // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
   for(uint8_t i=0; i<watch_list_count; i++) {
