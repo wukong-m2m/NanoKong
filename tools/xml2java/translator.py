@@ -366,11 +366,13 @@ public class {{ CLASS_NAME }} {
 
 
 def generateJava(application):
-    print 'generate Java'
     application.setOutputDir(JAVA_OUTPUT_DIR)
     jinja2_env = Environment(loader=FileSystemLoader([os.path.join(os.path.dirname(__file__), 'jinja_templates')]))
     output = open(os.path.join(application.destinationDir, application.applicationName+".java"), 'w')
-    wuObjects = sorted(application.wuObjects.values(), key=lambda obj: obj.getInstanceIndex())
+    wuObjects = sorted(application.wuObjects.values(), key=lambda obj: obj[0].getInstanceIndex())
+        
+    print 'generating', os.path.join(application.destinationDir, application.applicationName+".java")
+    
 
     output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName, wuObjects=wuObjects, wuLinks=application.wuLinks))
     output.close()

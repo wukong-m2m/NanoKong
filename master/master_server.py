@@ -20,14 +20,13 @@ import datetime
 from subprocess import Popen, PIPE, STDOUT
 
 sys.path.append(os.path.abspath("../tools/python"))
+sys.path.append(os.path.abspath("../tools/xml2java"))
 import fakedata
 import wusignal
 from wkapplication import WuApplication
-sys.path.append(os.path.abspath("../tools/xml2java"))
 from wkpf import *
 from wkpfcomm import *
 from inspector import Inspector
-from translator import generateJava
 
 from configuration import *
 
@@ -300,29 +299,26 @@ class deploy_application(tornado.web.RequestHandler):
     app_ind = getAppIndex(app_id)
     # Discovery results
     # TODO: persistent store
-    if SIMULATION == 0:
-      comm = getComm()
       
-      
-      if app_ind == None:
-        self.content_type = 'application/json'
-        self.write({'status':1, 'mesg': 'Cannot find the application'})
-      else:
-        platforms = ['avr_mega2560']
-        # TODO: need platforms from fbp
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      platforms = ['avr_mega2560']
+      # TODO: need platforms from fbp
 
-        if len(node_ids) > 0 and applications[app_ind].deploy(node_ids, platforms):
-          active_ind = app_ind
-          self.content_type = 'application/json'
-          self.write({'status':0, 'version': applications[app_ind].version})
-        else:
-          self.content_type = 'application/json'
-          self.write({'status':1, 'mesg': 'Deploy has failed'})
-    else:   
+      if len(node_ids) > 0 and applications[app_ind].deploy(node_ids, platforms):
+        active_ind = app_ind
+        self.content_type = 'application/json'
+        self.write({'status':0, 'version': applications[app_ind].version})
+      else:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Deploy has failed'})
+ #   else:   
       #in simulation, we should also deploy the sensor nodes into the simulation nodes
       #TODO: implement the deployment part
-      self.content_type = 'application/json'
-      self.write({'status':1, 'version': applications[app_ind].version})
+  #    self.content_type = 'application/json'
+   #   self.write({'status':1, 'version': applications[app_ind].version})
 
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
@@ -344,8 +340,8 @@ class map_application(tornado.web.RequestHandler):
       # Map with location tree info (discovery), this will produce mapping_results
       applications[app_ind].map(locationTree)
 
-      print '[][][][]mapping results'
-      print applications[app_ind].mapping_results
+     # print '[][][][]mapping results'
+    #  print applications[app_ind].mapping_results
 
       ret = []
       for key, value in applications[app_ind].mapping_results.items():

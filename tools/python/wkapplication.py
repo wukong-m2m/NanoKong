@@ -1,6 +1,6 @@
 # vim: ts=2 sw=2
 
-import sys, os
+import sys, os, traceback
 sys.path.append(os.path.abspath("../xml2java"))
 sys.path.append(os.path.abspath("../../master"))
 from wkpf import *
@@ -14,6 +14,7 @@ import copy
 from URLParser import *
 from wkpfcomm import *
 from codegen import generateCode
+from translator import generateJava
 import copy
 
 from configuration import *
@@ -279,7 +280,9 @@ class WuApplication:
       try:
         generateCode(self)
       except Exception as e:
-        traceback.print_last()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
         self.error(e)
         return False
 
@@ -289,7 +292,9 @@ class WuApplication:
       try:
         generateJava(self)
       except Exception as e:
-        traceback.print_last()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
         self.error(e)
         return False
 
