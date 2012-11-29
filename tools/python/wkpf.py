@@ -288,7 +288,7 @@ class WuObject:
         self._queries = queries
 
     def __repr__(self):
-        return 'wuobject(node:'+ str(self._nodeId)+' port:'+ str(self._portNumber)+ ' wuclass id: '+ str(self.getWuClassId())+')'
+        return 'wuobject(node:'+ str(self._nodeId)+' port:'+ str(self._portNumber)+ ' wuclass id: '+ str(self.getWuClassId())+' queries:'+ str(self._queries) +')'
 
     def __contains__(self, propertyName):
         return propertyName in self._wuClass.getProperties()
