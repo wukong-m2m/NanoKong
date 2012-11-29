@@ -282,7 +282,7 @@ class BrokerAgent:
 
             # if it is special messages
             if message.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
-                wusignal.reconfiguration_signal = True
+                wusignal.signal_handler(message.command)
                 continue
 
             # find out which defer it is for

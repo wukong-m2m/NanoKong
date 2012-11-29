@@ -29,6 +29,7 @@ from wkpfcomm import *
 from inspector import Inspector
 
 from configuration import *
+from globals import *
 
 import tornado.options
 tornado.options.parse_command_line()
@@ -39,8 +40,6 @@ IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
 locationTree= None
 
-active_ind = 0
-applications = []
 node_infos = []
 #######################
 # KatsunoriSato added #
@@ -61,9 +60,6 @@ def make_FBP():
 def allowed_file(filename):
   return '.' in filename and \
       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
-
-def active_application():
-  return applications[active_ind]
 
 def copyAnything(src, dst):
   try:
@@ -650,7 +646,6 @@ app = tornado.web.Application([
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
   update_applications()
-  tornado.ioloop.PeriodicCallback(wusignal.signal_handler, 100, ioloop)
   app.listen(MASTER_PORT)
   locationTree = LocationTree(LOCATION_ROOT)
   import_wuXML()	#KatsunoriSato added
