@@ -5,6 +5,7 @@ import time
 from transport import *
 from wkpf import *
 from locationTree import *
+from globals import *
 import fakedata
 
 communication = None
@@ -52,10 +53,10 @@ class Communication:
         return [self.getNodeInfo(int(destination)) for destination in node_ids]
 
     def getAllNodeInfos(self, force=False):
-      print 'getAllNodeInfos'
       if force or self.all_node_infos == []:
         nodeIds = self.getNodeIds()
         self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
+      print 'got all nodeInfos'
       return self.all_node_infos
 
     def onAddMode(self):
@@ -291,6 +292,7 @@ class Communication:
 
     def setProperty(self, wuobject, propertyNumber, datatype, value):
       print 'setProperty'
+      MASTER_BUSY = True
 
       if datatype == DATATYPE_BOOLEAN:
         payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, 1 if value else 0]
@@ -313,16 +315,18 @@ class Communication:
                                                         verify=self.verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
       '''
 
+      MASTER_BUSY = False
       if reply == None:
         return None
 
       if reply.command == pynvc.WKPF_ERROR_R:
         print "WKPF RETURNED ERROR ", reply.payload
         return None
+      MASTER_BUSY = False
       return value
 
     def reprogram(self, destination, filename, retry=False):
-      print 'reprgramming'
+      MASTER_BUSY = True
 
       ret = self.reprogramNvmdefault(destination, filename)
       if retry:
@@ -331,6 +335,7 @@ class Communication:
           time.sleep(5)
           return self.reprogramNvmdefault(destination, filename)
       else:
+        MASTER_BUSY = False
         return ret
 
     def reprogramNvmdefault(self, destination, filename):
@@ -345,7 +350,7 @@ class Communication:
                                                     quitOnFailure=False)
       '''
       if reply == None:
-        return None
+        return False
 
       reply = [reply.command] + reply.payload[2:] # without the seq numbers
 
