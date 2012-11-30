@@ -161,7 +161,10 @@ class ZwaveAgent(TransportAgent):
         gateway_id = nodes[0]
         total_nodes = nodes[1]
          # remaining are the discovered nodes
-        return nodes[2:]
+        #return nodes[2:]
+        discovered_nodes = nodes[2:]
+        discovered_nodes.remove(gateway_id)
+        return discovered_nodes
 
     def add(self):
         if self._mode != 'stop':
@@ -202,8 +205,8 @@ class ZwaveAgent(TransportAgent):
             return "Not availble"
 
     def receive(self, timeout_msec=100):
+        logging.info('start receiving')
         while 1:
-            logging.info('receiving')
             try:
                 src, reply = pyzwave.receive(timeout_msec)
                 if src and reply:
@@ -212,7 +215,7 @@ class ZwaveAgent(TransportAgent):
                     messages.put_nowait(message)
             except:
                 logging.exception('receive exception')
-            logging.info('receive: going to sleep')
+            #logging.info('receive: going to sleep')
             gevent.sleep(0.01) # sleep for at least 10 msec
 
 
@@ -279,7 +282,7 @@ class BrokerAgent:
 
             # if it is special messages
             if message.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
-                wusignal.reconfiguration_signal = True
+                wusignal.signal_handler(message.command)
                 continue
 
             # find out which defer it is for

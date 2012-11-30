@@ -29,6 +29,7 @@ from wkpfcomm import *
 from inspector import Inspector
 
 from configuration import *
+from globals import *
 
 import tornado.options
 tornado.options.parse_command_line()
@@ -39,8 +40,6 @@ IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
 locationTree= None
 
-active_ind = 0
-applications = []
 node_infos = []
 #######################
 # KatsunoriSato added #
@@ -61,9 +60,6 @@ def make_FBP():
 def allowed_file(filename):
   return '.' in filename and \
       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
-
-def active_application():
-  return applications[active_ind]
 
 def copyAnything(src, dst):
   try:
@@ -307,7 +303,7 @@ class deploy_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-      if len(node_ids) > 0 and applications[app_ind].deploy(node_ids, platforms):
+      if applications[app_ind].deploy(node_ids, platforms):
         active_ind = app_ind
         self.content_type = 'application/json'
         self.write({'status':0, 'version': applications[app_ind].version})
@@ -418,9 +414,8 @@ class save_fbp(tornado.web.RequestHandler):
     else:
       xml = self.get_argument('xml')
       applications[app_ind].updateXML(xml)
-      applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
-      applications[app_ind].xml = xml
-      applications[app_ind].setFlowDom(parseString(xml))
+      #applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
+      #applications[app_ind].xml = xml
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
@@ -515,6 +510,8 @@ class testrtt(tornado.web.RequestHandler):
         node_infos = fakedata.simNodeInfos
     else:
         logging.info("SIMULATION set to invalid value")
+
+    print node_infos
 
     # debug purpose
     #node_infos = fakedata.node_infos
@@ -649,7 +646,6 @@ app = tornado.web.Application([
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
   update_applications()
-  tornado.ioloop.PeriodicCallback(wusignal.signal_handler, 100, ioloop)
   app.listen(MASTER_PORT)
   locationTree = LocationTree(LOCATION_ROOT)
   import_wuXML()	#KatsunoriSato added
