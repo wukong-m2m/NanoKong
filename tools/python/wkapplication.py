@@ -48,26 +48,19 @@ def firstCandidate(app, wuObjects, locTree):
         else:
             locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
 
-            '''
-            try:
-              locURLHandler.parseURL()
-              tmpSet = locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
-              if len(tmpSet) > 0:
-                  candidateSet = tmpSet
-              else:
-                  app.error('Conditions for component ', str(len(candidateSet)), '(start form 0) too strict, no available candidate found')
-                  return False
-            except Exception as e:
-              app.error(e)
-              return False
-            '''
-
             locURLHandler.parseURL()
             tmpSet = locURLHandler.solveParseTree()
+
+            logging.info("query")
+            logging.info(queries[0])
+
+            logging.info("location Tree")
+            logging.info(locTree.printTree())
+
             if len(tmpSet) > 0:
                 candidateSet = tmpSet
             else:
-                app.error('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
+                app.error('Locality conditions for component wuclass id "%s" are too strict; no available candidate found' % (wuObject[0].getWuClass().getId()))
                 return False
 
         actualGroupSize = queries[1] #queries[1] is the suggested group size
@@ -123,6 +116,7 @@ def firstCandidate(app, wuObjects, locTree):
             tmp = copy.deepcopy(shadow)
             tmp.setNodeId(candidate[0])
             tmp.setPortNumber(candidate[1])
+            tmp.setHasWuClass(candidate[2])
             tmp.setOccupied(True)
             wuObject.append(tmp)
 
@@ -383,7 +377,7 @@ class WuApplication:
     return True
 
   def reconfiguration(self):
-    node_infos = getComm().getAllNodeInfos()
+    node_infos = getComm().getActiveNodeInfos(force=True)
     locationTree = LocationTree(LOCATION_ROOT)
     locationTree.buildTree(node_infos)
     self.map(locationTree)
