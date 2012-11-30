@@ -224,6 +224,7 @@ class ZwaveAgent(TransportAgent):
                     # with seq number
                     deliver = new_deliver(src, reply[0], reply[1:])
                     messages.put_nowait(deliver)
+                    logging.info('receive: put a message to messages')
             except:
                 logging.exception('receive exception')
 
@@ -236,8 +237,8 @@ class ZwaveAgent(TransportAgent):
     # to be run in a thread, and others will use ioloop to monitor this thread
     def handler(self):
         while 1:
-            logging.info('handler: getting defer from task queue')
             defer = tasks.get()
+            logging.info('handler: getting defer from task queue')
 
             if defer.message.command == "discovery":
                 logging.info('handler: processing discovery')
@@ -299,8 +300,8 @@ class BrokerAgent:
     def run(self):
         while 1:
             # monitor pipes from receive
-            logging.info('getting messages from nodes')
             deliver = messages.get()
+            logging.info('getting messages from nodes')
             logging.info(str(deliver))
 
             # find out which defer it is for
@@ -316,7 +317,8 @@ class BrokerAgent:
                 # if it is special messages
                 if not is_master_busy():
                     logging.info("reconfiguration message received")
-                    wusignal.signal_handler(deliver.command)
+                    if deliver.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
+                        wusignal.signal_reconfig()
                 else:
                     logging.info("message discarded")
                     #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)

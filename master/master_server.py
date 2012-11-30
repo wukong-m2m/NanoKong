@@ -2,6 +2,7 @@
 # vim: ts=2 sw=2
 # author: Penn Su
 from gevent import monkey; monkey.patch_all()
+import gevent
 import tornado.ioloop
 import tornado.web
 import tornado.template as template
@@ -56,6 +57,9 @@ def make_FBP():
 #######################
 
 # Helper functions
+def setup_signal_handler_greenlet():
+  logging.info('setting up signal handler')
+  gevent.spawn(wusignal.signal_handler)
 def allowed_file(filename):
   return '.' in filename and \
       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -486,15 +490,13 @@ class refresh_nodes(tornado.web.RequestHandler):
     global node_infos
     if SIMULATION == 0:
       comm = getComm()
-      node_infos = comm.getAllNodeInfos(force=True)
+      node_infos = comm.getActiveNodeInfos(force=True)
     elif SIMULATION ==1:
       node_infos = fakedata.simNodeInfos
     else:
       logging.error("SIMULATION %d is not invalid" % (SIMULATION))
       exit()
-    for info in node_infos:
-      senNd = SensorNode(info, 0, 0, 0)
-      locationTree.addSensor(senNd)
+    locationTree.buildTree(node_infos)
     locationTree.printTree()
     # default is false
     set_location = self.get_argument('set_location', False)
@@ -533,7 +535,7 @@ class nodes(tornado.web.RequestHandler):
       comm = getComm()
       if comm.setLocation(int(nodeId), location):
         # update our knowledge too
-        for info in comm.all_node_infos:
+        for info in comm.getActiveNodeInfos():
           if info.nodeId == int(nodeId):
             info.location = location
             senNd = SensorNode(info, 0, 0, 0)
@@ -553,7 +555,7 @@ class tree(tornado.web.RequestHandler):
     locationTree.reset(LOCATION_ROOT)	
     if SIMULATION == 0:
       comm = getComm()
-      node_infos = comm.getAllNodeInfos()
+      node_infos = comm.getActiveNodeInfos()
     elif SIMULATION == 1:
       node_infos = fakedata.simNodeInfos
     else:
@@ -603,6 +605,7 @@ app = tornado.web.Application([
 ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
   logging.info("WuKong starting up...")
+  setup_signal_handler_greenlet()
   update_applications()
   app.listen(MASTER_PORT)
   locationTree = LocationTree(LOCATION_ROOT)
