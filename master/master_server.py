@@ -19,8 +19,8 @@ import shutil, errno
 import datetime
 from subprocess import Popen, PIPE, STDOUT
 
-sys.path.append(os.path.abspath("../tools/python"))
-sys.path.append(os.path.abspath("../tools/xml2java"))
+sys.path.insert(0,os.path.abspath("../tools/python"))
+sys.path.insert(0,os.path.abspath("../tools/xml2java"))
 import fakedata
 import wusignal
 from wkapplication import WuApplication
