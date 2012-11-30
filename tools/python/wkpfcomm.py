@@ -40,9 +40,9 @@ class Communication:
     def getNodeIds(self):
       return self.zwave.discovery()
 
-    def getActiveNodeInfos(self):
+    def getActiveNodeInfos(self, force=False):
       print 'getActiveNodeInfos'
-      self.all_node_infos = self.getAllNodeInfos()
+      self.all_node_infos = self.getAllNodeInfos(force=force)
       return filter(lambda item: item.isResponding(), self.all_node_infos)
 
     def getNodeInfos(self, node_ids):
@@ -72,7 +72,7 @@ class Communication:
       return self.zwave.poll()
 
     def getNodeInfo(self, destination):
-      print 'getNodeInfo'
+      print 'getNodeInfo', destination
 
       wuClasses = self.getWuClassList(destination)
       print wuClasses
@@ -89,7 +89,7 @@ class Communication:
                         location = location)
 
     def getLocation(self, destination):
-      print 'getLocation'
+      print 'getLocation', destination
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_LOCATION, [], [pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R])
 
@@ -118,7 +118,7 @@ class Communication:
         return ''
 
     def setLocation(self, destination, location):
-      print 'setLocation'
+      print 'setLocation', destination
 
       reply = self.zwave.send(destination, pynvc.WKPF_SET_LOCATION, [len(location)] + [int(ord(char)) for char in location], [pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R])
       print reply
