@@ -292,7 +292,7 @@ class Communication:
 
     def setProperty(self, wuobject, propertyNumber, datatype, value):
       print 'setProperty'
-      MASTER_BUSY = True
+      master_busy()
 
       if datatype == DATATYPE_BOOLEAN:
         payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, 1 if value else 0]
@@ -315,18 +315,18 @@ class Communication:
                                                         verify=self.verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
       '''
 
-      MASTER_BUSY = False
+      master_available()
       if reply == None:
         return None
 
       if reply.command == pynvc.WKPF_ERROR_R:
         print "WKPF RETURNED ERROR ", reply.payload
         return None
-      MASTER_BUSY = False
+      master_available()
       return value
 
     def reprogram(self, destination, filename, retry=False):
-      MASTER_BUSY = True
+      master_busy()
 
       ret = self.reprogramNvmdefault(destination, filename)
       if retry:
@@ -335,7 +335,7 @@ class Communication:
           time.sleep(5)
           return self.reprogramNvmdefault(destination, filename)
       else:
-        MASTER_BUSY = False
+        master_available()
         return ret
 
     def reprogramNvmdefault(self, destination, filename):
@@ -384,16 +384,16 @@ class Communication:
                                                         payload=payload_pos+payload_data)
           '''
           print "Page boundary reached, wait for REPRG_WRITE_R_OK or REPRG_WRITE_R_RETRANSMIT"
-          if reply.command == pynvc.REPRG_WRITE_R_OK:
+          if reply == None:
+            print "No reply received. Code update failed. :-("
+            return False
+          elif reply.command == pynvc.REPRG_WRITE_R_OK:
             print "Received REPRG_WRITE_R_OK in reply to packet writing at", payload_pos
             pos += len(payload_data)
           elif reply.command == pynvc.REPRG_WRITE_R_RETRANSMIT:
             reply = [reply.command] + reply.payload[2:] # without the seq numbers
             pos = reply[1]*256 + reply[2]
             print "===========>Received REPRG_WRITE_R_RETRANSMIT request to retransmit from ", pos
-          else:
-            print "No reply received. Code update failed. :-("
-            return False
 
         if pos == len(bytecode):
           print "Send REPRG_COMMIT after last packet"
@@ -407,16 +407,16 @@ class Communication:
                                             pynvc.REPRG_COMMIT_R_OK],
                             payload=[pos/256, pos%256])
           '''
-          if reply.command == pynvc.REPRG_COMMIT_R_OK:
+          if reply == None:
+            print "Commit failed."
+            return False
+          elif reply.command == pynvc.REPRG_COMMIT_R_OK:
             print reply.payload
             print "Commit OK."
           elif reply.command == pynvc.REPRG_COMMIT_R_RETRANSMIT:
             reply = [reply.command] + reply.payload[2:] # without the seq numbers
             pos = reply[1]*256 + reply[2]
             print "===========>Received REPRG_COMMIT_R_RETRANSMIT request to retransmit from ", pos
-          else:
-            print "Commit failed."
-            return False
 
       reply = self.zwave.send(destination, pynvc.SETRUNLVL, [pynvc.RUNLVL_RESET], [pynvc.SETRUNLVL_R])
       '''

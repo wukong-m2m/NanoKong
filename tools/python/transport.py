@@ -314,7 +314,7 @@ class BrokerAgent:
                 self._defer_queue.remove_defer(defer_id)
             else:
                 # if it is special messages
-                if not MASTER_BUSY:
+                if not is_master_busy():
                     logging.info("reconfiguration message received")
                     wusignal.signal_handler(deliver.command)
                 else:
