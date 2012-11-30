@@ -57,7 +57,7 @@ public class {{ applicationName }} {
         //all WuClasses from the same group has the same instanceIndex and wuclass
         if (WKPF.isLocalComponent((short){{ objectLst[0].getInstanceIndex() }})) {
 
-        {%- if objectLst[0].getWuClass().isVirtual() %}
+        {%- if not objectLst[0].hasWuClass() %}
 
         // Virtual WuClasses (Java)
         VirtualWuObject wuclassInstance{{ objectLst[0].getWuClassName() }} = new {{ objectLst[0].getWuClass().getJavaClassName() }}();

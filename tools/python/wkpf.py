@@ -283,6 +283,7 @@ class WuObject:
         self._instanceIndex = instanceIndex
         self._nodeId = nodeId
         self._portNumber = portNumber
+        self._hasWuClass = False
         self._occupied = occupied
          #queries are [locationQuery, group_sizeQuery], should be replaced by a query class when we have more policy requirements in the future.
         self._queries = queries
@@ -296,10 +297,18 @@ class WuObject:
     def __iter__(self):
         for property in self.getProperties().values():
             yield property
+
     def isOccupied(self):
         return self._occupied
+
     def setOccupied(self, va = False):
         self._occupied = va
+
+    def hasWuClass(self):
+        return self._hasWuClass
+
+    def setHasWuClass(self, value):
+        self._hasWuClass = value
 
     def addQueries(self, queries):
         for query in queries:
