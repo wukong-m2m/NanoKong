@@ -26,6 +26,7 @@ import datetime
 from subprocess import Popen, PIPE, STDOUT
 
 from configuration import *
+from globals import *
 
 OK = 0
 NOTOK = 1
@@ -34,7 +35,7 @@ def firstCandidate(app, wuObjects, locTree):
     #input: nodes, WuObjects, WuLinks, WuClassDefsm, wuObjects is a list of wuobject list corresponding to group mapping
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
-    print wuObjects
+    #print wuObjects
 
     for i, wuObject in enumerate(wuObjects.values()):
         candidateSet = set()
@@ -75,8 +76,10 @@ def firstCandidate(app, wuObjects, locTree):
         node_infos = [locTree.getNodeInfoById(nodeId) for nodeId in candidateSet]
         candidateSet = [] # a list of [sensor id, port no.] pairs
         for node_info in node_infos:
-            if wuObject[0].getWuClass().getId() in node_info.nativeWuClasses: #native class, use the wuobj port
-                print 'native in node id', node_info.nodeId
+            print "node_info", node_info
+            print wuObject[0].getWuClass().getId()
+            if wuObject[0].getWuClass() in node_info.wuClasses: #native class, use the wuobj port
+                print 'wuclass ', wuObject[0].getWuClass(), ' in node id', node_info.nodeId
                 for wuobject in node_info.wuObjects:
                     print 'node wuobject', wuobject
                     if wuobject.getWuClassId() == wuObject[0].getWuClassId():
@@ -88,12 +91,12 @@ def firstCandidate(app, wuObjects, locTree):
                             break
                         else:
                             continue
-                    print 'create new wuobject'
-                    sensorNode = locTree.sensor_dict[node_info.nodeId]
-                    sensorNode.initPortList(forceInit = False)
-                    portNo = sensorNode.reserveNextPort() 
-                    candidateSet.append([node_info.nodeId, portNo])
-                    break
+                print 'create new wuobject'
+                sensorNode = locTree.sensor_dict[node_info.nodeId]
+                sensorNode.initPortList(forceInit = False)
+                portNo = sensorNode.reserveNextPort() 
+                candidateSet.append([node_info.nodeId, portNo])
+                break
             elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
                 sensorNode = locTree.sensor_dict[node_info.nodeId]
                 sensorNode.initPortList(forceInit = False)
@@ -178,23 +181,18 @@ class WuApplication:
     return self.loggerHandler.retrieve()
 
   def info(self, line):
-    print 'info log'
     self.logger.info(line)
     self.version += 1
 
   def error(self, line):
-    print 'error log'
     self.logger.error(line)
     self.version += 2
 
   def warning(self, line):
-    print 'warning log'
     self.logger.warning(line)
     self.version += 1
 
   def updateXML(self, xml):
-    print 'updateConfig'
-    print xml
     self.xml = xml
     self.setFlowDom(parseString(self.xml))
     self.saveConfig()
@@ -203,7 +201,6 @@ class WuApplication:
     f.close()
 
   def loadConfig(self):
-    print 'loadConfig'
     config = json.load(open(os.path.join(self.dir, 'config.json')))
     self.id = config['id']
     self.name = config['name']
@@ -213,7 +210,6 @@ class WuApplication:
     self.setFlowDom(parseString(self.xml))
 
   def saveConfig(self):
-    print 'saveConfig'
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
 
   def getReturnCode(self):
@@ -291,9 +287,9 @@ class WuApplication:
     self.parseApplicationXML()
     self.mapping(location_tree)
     self.mapping_results = self.wuObjects
-    print "Mapping result"+str(self.mapping_results)
 
   def deploy(self, destination_ids, platforms):
+    MASTER_BUSY = True
     app_path = self.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
@@ -323,7 +319,6 @@ class WuApplication:
 
       # Generate nvmdefault.h
       self.info('==Compressing application code to bytecode format')
-      #print 'changing to path: %s...' % platform_dir
       pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.id), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
       while pp.poll() == None:
@@ -343,9 +338,10 @@ class WuApplication:
       if  SIMULATION !=0:
           #we don't do any real deployment for simulation, 
           return False
+
       comm = getComm()
+
       # Deploy nvmdefault.h to nodes
-      #print 'changing to path: %s...' % platform_dir
       self.info('==Deploying to nodes')
       for node_id in destination_ids:
         self.info('==Deploying to node id: %d' % (node_id))
@@ -369,6 +365,7 @@ class WuApplication:
         '''
         self.info('==Deploying to node completed')
     self.info('==Deployment has completed')
+    MASTER_BUSY = False
     return True
 
   def reconfiguration(self):
