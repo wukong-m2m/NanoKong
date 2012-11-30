@@ -74,55 +74,59 @@ def firstCandidate(app, wuObjects, locTree):
 
         # filter by available wuclasses for non-virtual components
         node_infos = [locTree.getNodeInfoById(nodeId) for nodeId in candidateSet]
-        candidateSet = [] # a list of [sensor id, port no.] pairs
+        candidateSet = [] # a list of [sensor id, port no., has native wuclass] pairs
+        logging.info(wuObject[0].getWuClass().getId())
         for node_info in node_infos:
-            print "node_info", node_info
-            print wuObject[0].getWuClass().getId()
-            if wuObject[0].getWuClass() in node_info.wuClasses: #native class, use the wuobj port
-                print 'wuclass ', wuObject[0].getWuClass(), ' in node id', node_info.nodeId
+            logging.info("node id %d" % (node_info.nodeId))
+            if wuObject[0].getWuClass().getId() in [wuclass.getId() for wuclass in node_info.wuClasses]: #native class, use the wuobj port
+                found = False
                 for wuobject in node_info.wuObjects:
-                    print 'node wuobject', wuobject
-                    if wuobject.getWuClassId() == wuObject[0].getWuClassId():
-                        print 'available node id', node_info.nodeId
                     if wuobject.getWuClassId()== wuObject[0].getWuClassId() and wuobject.isOccupied() == False:
+                        logging.info('using existing wuobject')
                         portNumber = wuobject.getPortNumber() 
-                        candidateSet.append([node_info.nodeId, portNumber])
-                        if actualGroupSize == len(candidateSet):
-                            break
-                        else:
-                            continue
-                print 'create new wuobject'
-                sensorNode = locTree.sensor_dict[node_info.nodeId]
-                sensorNode.initPortList(forceInit = False)
-                portNo = sensorNode.reserveNextPort() 
-                candidateSet.append([node_info.nodeId, portNo])
-                break
+                        candidateSet.append([node_info.nodeId, portNumber, True])
+                        found = True
+                if not found:
+                    logging.info('creating wuobject')
+                    sensorNode = locTree.sensor_dict[node_info.nodeId]
+                    sensorNode.initPortList(forceInit = False)
+                    portNo = sensorNode.reserveNextPort() 
+                    candidateSet.append([node_info.nodeId, portNo, True])
             elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
+                logging.info('creating virtual wuobject')
                 sensorNode = locTree.sensor_dict[node_info.nodeId]
                 sensorNode.initPortList(forceInit = False)
                 portNo = sensorNode.reserveNextPort() 
                 if portNo != None:  #means Not all ports in node occupied, still can assign new port
-                    candidateSet.append([node_info.nodeId, portNo])
+                    candidateSet.append([node_info.nodeId, portNo, False])
                 
         
         if len(candidateSet) == 0:
-          app.error ('No node could be mapped for component'+str(wuObject[0].getInstanceId()))
+          app.error ('No node could be mapped for component id '+str(wuObject[0].getId()))
           return False
         app.info('group size for component ' + str(wuObject) + ' is ' + str(actualGroupSize) + ' for candidates ' + str(candidateSet))
         if actualGroupSize > len(candidateSet):
             actualGroupSize = len(candidateSet)
         groupMemberIds = candidateSet[:actualGroupSize]
+
+        candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
+        candidateSet.reverse()
         #select the first candidates who satisfies the condiditon
         app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
-        wuObject[0].setNodeId(candidateSet[0][0])    
-        wuObject[0].setPortNumber(candidateSet[0][1])
-        for i in range(1, actualGroupSize):
-            tmp = copy.deepcopy(wuObject[0])
-            tmp.setNodeId(candidateSet[i][0])    
-            tmp.setPortNumber(candidateSet[i][1])
+
+        final_list = []
+
+        shadow = copy.deepcopy(wuObject[0])
+        del wuObject[:]
+
+        for candidate in candidateSet[:actualGroupSize]:
+            tmp = copy.deepcopy(shadow)
+            tmp.setNodeId(candidate[0])
+            tmp.setPortNumber(candidate[1])
             tmp.setOccupied(True)
             wuObject.append(tmp)
-            
+
+        logging.info(wuObject)
         
     return True
 
@@ -287,9 +291,11 @@ class WuApplication:
     self.parseApplicationXML()
     self.mapping(location_tree)
     self.mapping_results = self.wuObjects
+    logging.info("Mapping results")
+    logging.info(self.mapping_results)
 
   def deploy(self, destination_ids, platforms):
-    MASTER_BUSY = True
+    master_busy()
     app_path = self.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
@@ -345,8 +351,16 @@ class WuApplication:
       self.info('==Deploying to nodes')
       for node_id in destination_ids:
         self.info('==Deploying to node id: %d' % (node_id))
-        if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
-          self.error('==Node not deployed successfully')
+        ret = False
+        retries = 3
+        while retries > 0:
+          if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
+            self.error('==Node not deployed successfully, retries = %d' % (retries))
+            retries -= 1
+          else:
+            ret = True
+            break
+        if not ret:
           return False
         '''
         pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d FLOWXML=%s' % (platform_dir, node_id, app.id), shell=True, stdout=PIPE, stderr=PIPE)
@@ -365,7 +379,7 @@ class WuApplication:
         '''
         self.info('==Deploying to node completed')
     self.info('==Deployment has completed')
-    MASTER_BUSY = False
+    master_available()
     return True
 
   def reconfiguration(self):
