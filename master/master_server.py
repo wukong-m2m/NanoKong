@@ -527,6 +527,16 @@ class nodes(tornado.web.RequestHandler):
   def put(self, nodeId):
     global locationTree
     location = self.get_argument('location')
+    if SIMULATION !=0:
+      for info in node_infos:
+        if info.nodeId == int(nodeId):
+          info.location = location
+          senNd = SensorNode(info, 0, 0, 0)
+          locationTree.addSensor(senNd)
+      locationTree.printTree()
+      self.content_type = 'application/json'
+      self.write({'status':0})
+      return
     if location:
       comm = getComm()
       if comm.setLocation(int(nodeId), location):
