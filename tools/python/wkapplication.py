@@ -135,7 +135,7 @@ class WuApplication:
     self.compiler = None
     self.version = 0
     self.returnCode = NOTOK
-    self.status = "Idle"
+    self.status = ""
     self.deployed = False
     self.mapping_results = {}
     self.mapper = None
@@ -226,6 +226,8 @@ class WuApplication:
       self.wuClasses = parseXMLString(self.componentXml) # an array of wuClasses
 
   def parseApplicationXML(self):
+      self.wuObjects = {}
+      self.wuLinks = []
       # TODO: parse application XML to generate WuClasses, WuObjects and WuLinks
       for index, componentTag in enumerate(self.applicationDom.getElementsByTagName('component')):
           # make sure application component is found in wuClassDef component list
@@ -294,6 +296,9 @@ class WuApplication:
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
 
+      self.status = "Generating java library code"
+      gevent.sleep(0)
+
       # CodeGen
       self.info('==Generating necessary files for wukong')
       try:
@@ -304,6 +309,9 @@ class WuApplication:
                                       limit=2, file=sys.stdout)
         self.error(e)
         return False
+
+      self.status = "Generating java application"
+      gevent.sleep(0)
 
       # Mapper results, already did in map_application
       # Generate java code
@@ -316,6 +324,9 @@ class WuApplication:
                                       limit=2, file=sys.stdout)
         self.error(e)
         return False
+
+      self.status = "Compressing java to bytecode format"
+      gevent.sleep(0)
 
       # Generate nvmdefault.h
       self.info('==Compressing application code to bytecode format')
@@ -339,22 +350,33 @@ class WuApplication:
           #we don't do any real deployment for simulation, 
           return False
 
-      comm = getComm()
+      self.status = "Deploying bytecode to nodes"
+      gevent.sleep(0)
 
+      comm = getComm()
       # Deploy nvmdefault.h to nodes
-      self.info('==Deploying to nodes')
+      self.info('==Deploying to nodes %s' % (str(destination_ids)))
+      remaining_ids = copy.deepcopy(destination_ids)
+
       for node_id in destination_ids:
+        remaining_ids.remove(node_id)
+        self.status = "Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids))
+        gevent.sleep(0)
         self.info('==Deploying to node id: %d' % (node_id))
         ret = False
         retries = 3
         while retries > 0:
           if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
+            self.status = "Deploying unsucessful for node %d, trying again" % (node_id)
+            gevent.sleep(0)
             self.error('==Node not deployed successfully, retries = %d' % (retries))
             retries -= 1
           else:
             ret = True
             break
         if not ret:
+          self.status = "Deploying unsucessful"
+          gevent.sleep(0)
           return False
         '''
         pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d FLOWXML=%s' % (platform_dir, node_id, app.id), shell=True, stdout=PIPE, stderr=PIPE)
@@ -373,12 +395,18 @@ class WuApplication:
         '''
         self.info('==Deploying to node completed')
     self.info('==Deployment has completed')
+    self.status = "Deploying sucess"
+    self.status = ""
+    gevent.sleep(0)
     master_available()
     return True
 
   def reconfiguration(self):
+    master_busy()
+    self.status = "Start reconfiguration"
     node_infos = getComm().getActiveNodeInfos(force=True)
     locationTree = LocationTree(LOCATION_ROOT)
     locationTree.buildTree(node_infos)
     self.map(locationTree)
     self.deploy([info.nodeId for info in node_infos], DEPLOY_PLATFORMS)
+    master_available()

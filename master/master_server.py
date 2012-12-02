@@ -38,9 +38,8 @@ tornado.options.enable_pretty_logging()
 
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
-locationTree= None
+locationTree = None
 
-node_infos = []
 #######################
 # KatsunoriSato added #
 #######################
@@ -236,15 +235,11 @@ class application(tornado.web.RequestHandler):
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
     global applications
-    global node_infos
     try:
       # Discovery results
-      # TODO: persistent store
-      #comm = getComm()
+      comm = getComm()
       #node_infos = comm.getAllNodeInfos()
-
-      
-
+      node_infos = []
       app_ind = getAppIndex(app_id)
       if app_ind == None:
         self.content_type = 'application/json'
@@ -260,14 +255,13 @@ class deploy_application(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
 
   def post(self, app_id):
-    global applications
-    global node_infos
-    global active_ind
-    node_ids = [info.nodeId for info in node_infos]
     app_ind = getAppIndex(app_id)
-    # Discovery results
-    # TODO: persistent store
-      
+
+    set_wukong_status("Start deploying")
+    applications[app_ind].status = "    "
+
+    node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
+
     if app_ind == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
@@ -275,24 +269,27 @@ class deploy_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
+      # old stuff
+      '''
       if applications[app_ind].deploy(node_ids, platforms):
-        active_ind = app_ind
         self.content_type = 'application/json'
         self.write({'status':0, 'version': applications[app_ind].version})
       else:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Deploy has failed'})
- #   else:   
-      #in simulation, we should also deploy the sensor nodes into the simulation nodes
-      #TODO: implement the deployment part
-  #    self.content_type = 'application/json'
-   #   self.write({'status':1, 'version': applications[app_ind].version})
+      '''
+
+      # signal deploy in other greenlet task
+      wusignal.signal_deploy(node_ids, platforms)
+      set_active_application_index(app_ind)
+      self.content_type = 'application/json'
+      self.write({'status':0, 'version': applications[app_ind].version})
 
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
     global locationTree
-    global node_infos
+
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:
@@ -302,8 +299,11 @@ class map_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-#      comm.addActiveNodesToLocTree(fakedata.locTree)
-      locationTree.printTree(locationTree.root)
+      locationTree = LocationTree(LOCATION_ROOT)
+
+      locationTree.buildTree(getComm().getActiveNodeInfos())
+      locationTree.printTree()
+      # comm.addActiveNodesToLocTree(fakedata.locTree)
 
       # Map with location tree info (discovery), this will produce mapping_results
       applications[app_ind].map(locationTree)
@@ -363,13 +363,14 @@ class poll(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      #print applications[app_ind].version, self.get_argument('version')
       #if int(applications[app_ind].version) <= int(self.get_argument('version')):
         #self.content_type = 'application/json'
         #self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'logs': applications[app_ind].retrieve()})
       #else:
+
+      logging.info(get_wukong_status())
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version, 'returnCode': applications[app_ind].returnCode, 'logs': applications[app_ind].retrieve()})
+      self.write({'status':0, 'version': applications[app_ind].version, 'wukong_status': get_wukong_status(), 'application_status': applications[app_ind].status, 'returnCode': applications[app_ind].returnCode, 'logs': applications[app_ind].retrieve()})
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
@@ -468,7 +469,6 @@ class include_testrtt(tornado.web.RequestHandler):
 class testrtt(tornado.web.RequestHandler):
   def get(self):
 
-    global node_infos
     if SIMULATION == 0:
         comm = getComm()
         node_infos = comm.getAllNodeInfos()
@@ -478,16 +478,12 @@ class testrtt(tornado.web.RequestHandler):
         logging.error("SIMULATION %d is not invalid" % (SIMULATION))
         exit()
 
-    # debug purpose
-    #node_infos = fakedata.node_infos
-
     testrtt = template.Loader(os.getcwd()).load('templates/testrtt.html').generate(log=['Please press the buttons to add/remove nodes.'], node_infos=node_infos, set_location=True)
     self.content_type = 'application/json'
     self.write({'status':0, 'testrtt':testrtt})
 
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
-    global node_infos
     if SIMULATION == 0:
       comm = getComm()
       node_infos = comm.getActiveNodeInfos(force=True)
@@ -496,6 +492,7 @@ class refresh_nodes(tornado.web.RequestHandler):
     else:
       logging.error("SIMULATION %d is not invalid" % (SIMULATION))
       exit()
+
     locationTree.buildTree(node_infos)
     locationTree.printTree()
     # default is false
@@ -529,7 +526,6 @@ class nodes(tornado.web.RequestHandler):
 
   def put(self, nodeId):
     global locationTree
-    global node_infos
     location = self.get_argument('location')
     if location:
       comm = getComm()
@@ -550,7 +546,6 @@ class nodes(tornado.web.RequestHandler):
 class tree(tornado.web.RequestHandler):	
   def post(self):
     global locationTree
-    global node_infos
     
     locationTree.reset(LOCATION_ROOT)	
     if SIMULATION == 0:

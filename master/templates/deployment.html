@@ -25,7 +25,7 @@
                             <ul class="nav nav-pills">
                                 <li><a id="nodes-btn" class="btn btn-primary" href="#nodes" data-toggle="tab">Discover</a></li>
                                 <li><a id="mapping_results-btn" class="btn btn-primary" href="#mapping_results" data-toggle="tab">Map</a></li>
-                                <li><a id="log-btn" class="btn btn-primary" href="#log" data-toggle="tab">Deploy</a></li>
+                                <li><a id="deploy-btn" class="btn btn-primary" href="#deploy_results" data-toggle="tab">Deploy</a></li>
                             </ul>
                             <div class=tab-content>
                                 <div class="tab-pane" id="nodes">
@@ -34,9 +34,14 @@
                                 <div class="tab-pane" id="mapping_results">
                                     {% include "monitor-mapping-results.html" %}
                                 </div>
-                                <div class="tab-pane" id="log">
-                                    {% include "monitor-log.html" %}
+                                <div class="tab-pane" id="deploy_results">
+                                    <h1 id="wukong_status"></h1>
+                                    <h1 id="application_status"></h1>
                                 </div>
+
+                                <!--<div class="tab-pane" id="log">-->
+                                    <!--{% include "monitor-log.html" %}-->
+                                <!--</div>-->
                             </div>
                         </div>
                     </div>

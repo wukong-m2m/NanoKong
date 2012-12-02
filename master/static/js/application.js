@@ -178,6 +178,25 @@ function application_fillList(r)
                             console.log(page);
                             content_scaffolding(topbar, page);
                             $('#content').unblock();
+
+                            // start polling
+                            window.options = {repeat: true};
+                            $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+                            $('#deploy_results #wukong_status').text('Waiting from master');
+                            $('#deploy_results #application_status').text("");
+
+                            poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
+                                console.log(data)
+                                if (data.wukong_status == "" && data.application_status == "") {
+                                    $('#deploy_results').dialog('close');
+                                } else {
+                                    $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+                                }
+
+                                $('#deploy_results #wukong_status').text(data.wukong_status);
+                                $('#deploy_results #application_status').text(data.application_status);
+
+                            });
                         }
                     });
                 }
@@ -387,7 +406,7 @@ function deploy_poll(id, version)
 */
 
 // might have to worry about multiple calls :P
-function poll(url, version, options)
+function poll(url, version, options, callback)
 {
     var forceRepeat = false;
     if (typeof options != 'undefined') {
@@ -395,8 +414,12 @@ function poll(url, version, options)
         forceRepeat = options.repeat;
     }
 
-    console.log('poll');
+    console.log('polling');
     $.post(url, {version: version}, function(data) {
+        if (typeof callback != 'undefined') {
+            callback(data)
+        }
+
         _.each(data.logs, function(line) {
             if (line != '') {
                 $('#log').append('<pre>' + line + '</pre>');
@@ -414,7 +437,7 @@ function poll(url, version, options)
         if (forceRepeat || data.returnCode < 0) {
             console.log("repeating");
             setTimeout(function() {
-                poll(url, data.version, options);
+                poll(url, data.version, options, callback);
             }, 1000);
         }
     });
