@@ -98,7 +98,7 @@ nvmcomm_reprogram: nvmdefault.h
 	$(NVMCOMM_REPROGRAM) 1 nvmdefault.h
 
 avrdude: NanoVM.hex NanoVM_eeprom.hex
-	$(AVRDUDE) -V -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
+	$(AVRDUDE) -p atmega2560 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex
 
 avrdude1280: NanoVM.hex NanoVM_eeprom.hex
 	$(AVRDUDE) -V -p atmega1280 -P $(PORT) -c stk500v2 -U flash:w:NanoVM.hex -U eeprom:w:NanoVM_eeprom.hex

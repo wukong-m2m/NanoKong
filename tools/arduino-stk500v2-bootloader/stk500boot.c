@@ -869,8 +869,9 @@ int main(void)
 						}
 						else
 						{
+						/*
 						#if (!defined(__AVR_ATmega1280__) && !defined(__AVR_ATmega2560__)  && !defined(__AVR_ATmega2561__))
-							/* write EEPROM */
+							/ * write EEPROM * /
 							do {
 								EEARL	=	address;			// Setup EEPROM address
 								EEARH	=	(address >> 8);
@@ -884,6 +885,11 @@ int main(void)
 								size--;						// Decrease number of bytes to write
 							} while (size);					// Loop until all bytes written
 						#endif
+						*/
+						  do {
+						    eeprom_update_byte(address++, *p++);
+						    size--;						// Decrease number of bytes to write
+              } while (size);
 						}
 							msgLength	=	2;
 						msgBuffer[1]	=	STATUS_CMD_OK;
