@@ -3,6 +3,7 @@
 
 import glob
 import os
+import logging
 
 def addHead():
 	g = open("./templates/fbp.html","a")
@@ -74,9 +75,6 @@ def check(name):
 	return isFile 
 
 class fbp_main:
-	def __init__(self):
-		print ""
-		
 	def make(self):
 		existFile = os.path.exists("./templates/fbp.html")
 		if existFile:
@@ -89,4 +87,4 @@ class fbp_main:
 		addMiddle(_testList)
 		addEnd()
 
-		print "make_fbp_complete" 
+		logging.info("make_fbp_complete")

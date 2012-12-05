@@ -5,6 +5,7 @@ import time
 from transport import *
 from wkpf import *
 from locationTree import *
+from globals import *
 import fakedata
 
 communication = None
@@ -39,9 +40,14 @@ class Communication:
     def getNodeIds(self):
       return self.zwave.discovery()
 
-    def getActiveNodeInfos(self):
-      print 'getActiveNodeInfos'
-      self.all_node_infos = self.getAllNodeInfos()
+    def getActiveNodeInfos(self, force=False):
+      logging.info('getActiveNodeInfos 2')
+
+      set_wukong_status("Discovery: Requesting node info")
+
+      self.all_node_infos = self.getAllNodeInfos(force=force)
+
+      set_wukong_status("")
       return filter(lambda item: item.isResponding(), self.all_node_infos)
 
     def getNodeInfos(self, node_ids):
@@ -52,10 +58,10 @@ class Communication:
         return [self.getNodeInfo(int(destination)) for destination in node_ids]
 
     def getAllNodeInfos(self, force=False):
-      print 'getAllNodeInfos'
       if force or self.all_node_infos == []:
         nodeIds = self.getNodeIds()
         self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
+      print 'got all nodeInfos'
       return self.all_node_infos
 
     def onAddMode(self):
@@ -71,7 +77,7 @@ class Communication:
       return self.zwave.poll()
 
     def getNodeInfo(self, destination):
-      print 'getNodeInfo'
+      print 'getNodeInfo', destination
 
       wuClasses = self.getWuClassList(destination)
       print wuClasses
@@ -88,7 +94,7 @@ class Communication:
                         location = location)
 
     def getLocation(self, destination):
-      print 'getLocation'
+      print 'getLocation', destination
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_LOCATION, [], [pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R])
 
@@ -117,7 +123,7 @@ class Communication:
         return ''
 
     def setLocation(self, destination, location):
-      print 'setLocation'
+      print 'setLocation', destination
 
       reply = self.zwave.send(destination, pynvc.WKPF_SET_LOCATION, [len(location)] + [int(ord(char)) for char in location], [pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R])
       print reply
@@ -165,7 +171,7 @@ class Communication:
       return reply[3:]
 
     def setFeature(self, destination, feature, onOff):
-      print 'setLocation'
+      print 'setFeature'
 
       reply = self.zwave.send(destination, pynvc.WKPF_SET_FEATURE, [feature, onOff], [pynvc.WKPF_SET_FEATURE_R, pynvc.WKPF_ERROR_R])
       print reply
@@ -190,6 +196,8 @@ class Communication:
 
     def getWuClassList(self, destination):
       print 'getWuClassList'
+
+      set_wukong_status("Discovery: Requesting wuclass list from node %d" % (destination))
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUCLASS_LIST, [], [pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R])
 
@@ -224,6 +232,8 @@ class Communication:
 
     def getWuObjectList(self, destination):
       print 'getWuObjectList'
+
+      set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUOBJECT_LIST, [], [pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R])
 
@@ -291,6 +301,7 @@ class Communication:
 
     def setProperty(self, wuobject, propertyNumber, datatype, value):
       print 'setProperty'
+      master_busy()
 
       if datatype == DATATYPE_BOOLEAN:
         payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, 1 if value else 0]
@@ -313,16 +324,18 @@ class Communication:
                                                         verify=self.verifyWKPFmsg(messageStart=payload[0:6], minAdditionalBytes=0))
       '''
 
+      master_available()
       if reply == None:
         return None
 
       if reply.command == pynvc.WKPF_ERROR_R:
         print "WKPF RETURNED ERROR ", reply.payload
         return None
+      master_available()
       return value
 
     def reprogram(self, destination, filename, retry=False):
-      print 'reprgramming'
+      master_busy()
 
       ret = self.reprogramNvmdefault(destination, filename)
       if retry:
@@ -331,6 +344,7 @@ class Communication:
           time.sleep(5)
           return self.reprogramNvmdefault(destination, filename)
       else:
+        master_available()
         return ret
 
     def reprogramNvmdefault(self, destination, filename):
@@ -345,7 +359,7 @@ class Communication:
                                                     quitOnFailure=False)
       '''
       if reply == None:
-        return None
+        return False
 
       reply = [reply.command] + reply.payload[2:] # without the seq numbers
 
@@ -379,16 +393,16 @@ class Communication:
                                                         payload=payload_pos+payload_data)
           '''
           print "Page boundary reached, wait for REPRG_WRITE_R_OK or REPRG_WRITE_R_RETRANSMIT"
-          if reply.command == pynvc.REPRG_WRITE_R_OK:
+          if reply == None:
+            print "No reply received. Code update failed. :-("
+            return False
+          elif reply.command == pynvc.REPRG_WRITE_R_OK:
             print "Received REPRG_WRITE_R_OK in reply to packet writing at", payload_pos
             pos += len(payload_data)
           elif reply.command == pynvc.REPRG_WRITE_R_RETRANSMIT:
             reply = [reply.command] + reply.payload[2:] # without the seq numbers
             pos = reply[1]*256 + reply[2]
             print "===========>Received REPRG_WRITE_R_RETRANSMIT request to retransmit from ", pos
-          else:
-            print "No reply received. Code update failed. :-("
-            return False
 
         if pos == len(bytecode):
           print "Send REPRG_COMMIT after last packet"
@@ -402,16 +416,16 @@ class Communication:
                                             pynvc.REPRG_COMMIT_R_OK],
                             payload=[pos/256, pos%256])
           '''
-          if reply.command == pynvc.REPRG_COMMIT_R_OK:
+          if reply == None:
+            print "Commit failed."
+            return False
+          elif reply.command == pynvc.REPRG_COMMIT_R_OK:
             print reply.payload
             print "Commit OK."
           elif reply.command == pynvc.REPRG_COMMIT_R_RETRANSMIT:
             reply = [reply.command] + reply.payload[2:] # without the seq numbers
             pos = reply[1]*256 + reply[2]
             print "===========>Received REPRG_COMMIT_R_RETRANSMIT request to retransmit from ", pos
-          else:
-            print "Commit failed."
-            return False
 
       reply = self.zwave.send(destination, pynvc.SETRUNLVL, [pynvc.RUNLVL_RESET], [pynvc.SETRUNLVL_R])
       '''

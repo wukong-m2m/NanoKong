@@ -277,16 +277,19 @@ class WuClass:
 # Now both WuClass and WuObject have node id attribute, because each could represent at different stages of mapping process
 # The wuClass in WuObject is just for reference only, the node_id shouldn't be used
 class WuObject:
-    def __init__(self, wuClass, instanceId, instanceIndex, nodeId=None, portNumber=None, locationQueries=[]):
+    def __init__(self, wuClass, instanceId, instanceIndex, nodeId=None, portNumber=None, occupied = False, queries=[]):
         self._wuClass = wuClass
         self._instanceId = instanceId
         self._instanceIndex = instanceIndex
         self._nodeId = nodeId
         self._portNumber = portNumber
-        self._locationQueries = locationQueries
+        self._hasWuClass = False
+        self._occupied = occupied
+         #queries are [locationQuery, group_sizeQuery], should be replaced by a query class when we have more policy requirements in the future.
+        self._queries = queries
 
     def __repr__(self):
-        return 'wuobject(node:'+ str(self._nodeId)+' port:'+ str(self._portNumber)+ ' wuclass id: '+ str(self.getWuClassId())+')'
+        return 'wuobject(node:'+ str(self._nodeId)+' port:'+ str(self._portNumber)+ ' wuclass id: '+ str(self.getWuClassId())+' queries:'+ str(self._queries) +')'
 
     def __contains__(self, propertyName):
         return propertyName in self._wuClass.getProperties()
@@ -295,21 +298,33 @@ class WuObject:
         for property in self.getProperties().values():
             yield property
 
-    def addLocationQueries(self, queries):
+    def isOccupied(self):
+        return self._occupied
+
+    def setOccupied(self, va = False):
+        self._occupied = va
+
+    def hasWuClass(self):
+        return self._hasWuClass
+
+    def setHasWuClass(self, value):
+        self._hasWuClass = value
+
+    def addQueries(self, queries):
         for query in queries:
-            self.addLocationQuery(query)
+            self.addQuery(query)
 
-    def removeLocationQuery(self, query):
-        self._locationQueries.remove(query)
+    def removeQuery(self, query):
+        self._queries.remove(query)
 
-    def addLocationQuery(self, query):
-        self._locationQueries.append(query)
+    def addQuery(self, query):
+        self._queries.append(query)
 
-    def getLocationQueries(self):
-        return self._locationQueries
+    def getQueries(self):
+        return self._queries
 
-    def setLocationQueries(self, queries):
-        self._locationQueries = queries
+    def setQueries(self, queries):
+        self._queries = queries
 
     def toJava(self):
         print 'wuobject toJava'

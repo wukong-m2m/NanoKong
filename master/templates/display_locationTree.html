@@ -1,0 +1,33 @@
+<script type="text/javascript" src="/static/js/testrtt.js"></script>
+
+<div class="modal" id="dispObj" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Modal header</h3>
+    </div>
+    <div class="modal-body">
+        <p>One fine body…</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
+</div>
+
+<script>
+$(function() {
+    $('#dispObj').hide();
+});
+
+    {% for node_info in node_infos %}
+
+    $('#node{{ node_info.nodeId }}').click(function(e) {
+        e.preventDefault();
+
+        console.log('click');
+        $('#dispObj .modal-header').html('Node Info');
+        $('#dispObj .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
+    });
+    {% end %}
+
+</script>
+

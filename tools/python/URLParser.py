@@ -33,7 +33,7 @@ class LocationURL:
 		dist = float(dist)
 		for sensorNd in locationTreeNode.sensorLst:
 			if (sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2 <= dist**2:
-				print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
+				#print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
 				ret_val.add(sensorNd.nodeInfo.nodeId)
 		return ret_val
 	
@@ -81,7 +81,7 @@ class LocationURL:
 		argStr = tmpLst[1].strip(" ),")
 		if len(argStr)>0:
 			foo.args += argStr.split(',')
-		print foo.args
+		#print foo.args
 		return foo
 	
 	#parameters: str --- string to be analysis, connector_id ---- seq. of connector in connector_lst, treeNode --- parseTreeNode to start with
@@ -101,10 +101,10 @@ class LocationURL:
 			treeNode.operation = self.connector_lst[connector_id]
 			if location != 0:			#desired connector is in the middle of the string, go into the first and last half respectively
 				treeNode.children.append(LocationParseTreeNode(treeNode.contentStr[:location]))
-				print treeNode.contentStr[:location], connector_id
+				#print treeNode.contentStr[:location], connector_id
 				self._buildParseTree(treeNode.children[-1], connector_id+1)
 			treeNode.children.append(LocationParseTreeNode(treeNode.contentStr[location+len(self.connector_lst[connector_id]):]))
-			print treeNode.contentStr[location+len(self.connector_lst[connector_id]):]
+			#print treeNode.contentStr[location+len(self.connector_lst[connector_id]):]
 			self._buildParseTree(treeNode.children[-1], connector_id)
 		
 			
@@ -112,7 +112,7 @@ class LocationURL:
 		if treeNode == None:
 			treeNode = self.parseTreeRoot
 		if treeNode.function!=None:
-			print treeNode.function.toString()
+			#print treeNode.function.toString()
 			return treeNode.function.runFunction()
 		if self.connector_dict[treeNode.operation][1] == 1:	#unary op
 			return self.connector_dict[treeNode.operation][0](self.locationTreeNode, self.solveParseTree(treeNode.children[0]))
@@ -136,7 +136,7 @@ class LocationURL:
 	
 	#be able to parse sth like near(0,1,2)
  	def parseURL(self):
-		if self.urlStr == None:
+		if self.urlStr == None or len(self.urlStr.rstrip()) == 0:
 			self.urlStr = self.locationTree.root.name + u"#" + u"getAll()"
 		tmpStrLst = self.urlStr.split(u'#')
 		if(len(tmpStrLst)>2):

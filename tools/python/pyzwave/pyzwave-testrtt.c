@@ -56,7 +56,7 @@ int testmode=0;
 int ack_got=1;
 int send_data_fin=1;
 int cmd_succ=-1;
-int PyZwave_print_debug_info=1;
+int PyZwave_print_debug_info=0;
 int rtt_start_ms;
 int interval = 500;
 int verbose=0;

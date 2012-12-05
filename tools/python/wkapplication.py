@@ -1,11 +1,11 @@
 # vim: ts=2 sw=2
 
-import sys, os
+import sys, os, traceback
 sys.path.append(os.path.abspath("../xml2java"))
 sys.path.append(os.path.abspath("../../master"))
 from wkpf import *
 from locationTree import *
-from xml.dom.minidom import parse
+from xml.dom.minidom import parse, parseString
 import simplejson as json
 import logging
 import logging.handlers
@@ -14,74 +14,113 @@ import copy
 from URLParser import *
 from wkpfcomm import *
 from codegen import generateCode
+from translator import generateJava
+import copy
+from threading import Thread
+import traceback
+import time
+import re
+import StringIO
+import shutil, errno
+import datetime
+from subprocess import Popen, PIPE, STDOUT
 
 from configuration import *
+from globals import *
 
 OK = 0
 NOTOK = 1
 
 def firstCandidate(app, wuObjects, locTree):
-    #input: nodes, WuObjects, WuLinks, WuClassDefs
+    #input: nodes, WuObjects, WuLinks, WuClassDefsm, wuObjects is a list of wuobject list corresponding to group mapping
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
-    print wuObjects
+    #print wuObjects
 
     for i, wuObject in enumerate(wuObjects.values()):
         candidateSet = set()
-        queries = wuObject.getLocationQueries()
+        queries = wuObject[0].getQueries()
 
-        # filter by location query
-        print queries
+        # filter by query
         if queries == []:
             locURLHandler = LocationURL(None, locTree)
             candidateSet = locTree.root.getAllNodes()
         else:
-            print 'LocationURL', queries[0], locTree
-            locURLHandler = LocationURL(queries[0], locTree) # get the first location query for a component, TODO:should consider other queries too later
-
-            '''
-            try:
-              locURLHandler.parseURL()
-              tmpSet = locURLHandler.solveParseTree(locURLHandler.parseTreeRoot)
-              if len(tmpSet) > 0:
-                  candidateSet = tmpSet
-              else:
-                  app.error('Conditions for component ', str(len(candidateSet)), '(start form 0) too strict, no available candidate found')
-                  return False
-            except Exception as e:
-              app.error(e)
-              return False
-            '''
+            locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
 
             locURLHandler.parseURL()
             tmpSet = locURLHandler.solveParseTree()
+
+            logging.info("query")
+            logging.info(queries[0])
+
+            logging.info("location Tree")
+            logging.info(locTree.printTree())
+
             if len(tmpSet) > 0:
                 candidateSet = tmpSet
             else:
-                logging.err('Locality conditions for component "%s" are too strict; no available candidate found' % (wuObject.getInstanceId()))
+                app.error('Locality conditions for component wuclass id "%s" are too strict; no available candidate found' % (wuObject[0].getWuClass().getId()))
                 return False
+
+        actualGroupSize = queries[1] #queries[1] is the suggested group size
 
         # filter by available wuclasses for non-virtual components
         node_infos = [locTree.getNodeInfoById(nodeId) for nodeId in candidateSet]
-        if not wuObject.getWuClass().isVirtual():
-          candidateSet = [node_info.nodeId for node_info in node_infos if wuObject.getWuClassId() in [wuClass.getId() for wuClass in node_info.wuClasses]]
-        else:
-          candidateSet = list(candidateSet)
-
-        if len(candidateSet) == 0:
-          app.error('No nodes could be mapped for component %s' % (wuObject.getInstanceId()))
-          return False
+        candidateSet = [] # a list of [sensor id, port no., has native wuclass] pairs
+        logging.info(wuObject[0].getWuClass().getId())
+        for node_info in node_infos:
+            logging.info("node id %d" % (node_info.nodeId))
+            if wuObject[0].getWuClass().getId() in [wuclass.getId() for wuclass in node_info.wuClasses]: #native class, use the wuobj port
+                found = False
+                for wuobject in node_info.wuObjects:
+                    if wuobject.getWuClassId()== wuObject[0].getWuClassId() and wuobject.isOccupied() == False:
+                        logging.info('using existing wuobject')
+                        portNumber = wuobject.getPortNumber() 
+                        candidateSet.append([node_info.nodeId, portNumber, True])
+                        found = True
+                if not found:
+                    logging.info('creating wuobject')
+                    sensorNode = locTree.sensor_dict[node_info.nodeId]
+                    sensorNode.initPortList(forceInit = False)
+                    portNo = sensorNode.reserveNextPort() 
+                    candidateSet.append([node_info.nodeId, portNo, True])
+            elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
+                logging.info('creating virtual wuobject')
+                sensorNode = locTree.sensor_dict[node_info.nodeId]
+                sensorNode.initPortList(forceInit = False)
+                portNo = sensorNode.reserveNextPort() 
+                if portNo != None:  #means Not all ports in node occupied, still can assign new port
+                    candidateSet.append([node_info.nodeId, portNo, False])
+                
         
-        print 'will select the first in this candidateSet', candidateSet
+        if len(candidateSet) == 0:
+          app.error ('No node could be mapped for component id '+str(wuObject[0].getId()))
+          return False
+        app.info('group size for component ' + str(wuObject) + ' is ' + str(actualGroupSize) + ' for candidates ' + str(candidateSet))
+        if actualGroupSize > len(candidateSet):
+            actualGroupSize = len(candidateSet)
+        groupMemberIds = candidateSet[:actualGroupSize]
 
-        wuObject.setNodeId(candidateSet[0])    #select the first candidate who satisfies the condiditon
-        sensorNode = locTree.sensor_dict[list(candidateSet)[0]]
-        sensorNode.initPortList(forceInit = False)
-        portNo = sensorNode.reserveNextPort()
-        if portNo == None:
-            app.error('All ports in node %s occupied, cannot assign new port' % (candidateSet[0]))
-            return False
-        wuObject.setPortNumber(portNo)
+        candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
+        candidateSet.reverse()
+        #select the first candidates who satisfies the condiditon
+        app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
+
+        final_list = []
+
+        shadow = copy.deepcopy(wuObject[0])
+        del wuObject[:]
+
+        for candidate in candidateSet[:actualGroupSize]:
+            tmp = copy.deepcopy(shadow)
+            tmp.setNodeId(candidate[0])
+            tmp.setPortNumber(candidate[1])
+            tmp.setHasWuClass(candidate[2])
+            tmp.setOccupied(True)
+            wuObject.append(tmp)
+
+        logging.info(wuObject)
         
     return True
 
@@ -96,7 +135,7 @@ class WuApplication:
     self.compiler = None
     self.version = 0
     self.returnCode = NOTOK
-    self.status = "Idle"
+    self.status = ""
     self.deployed = False
     self.mapping_results = {}
     self.mapper = None
@@ -140,17 +179,18 @@ class WuApplication:
     return self.loggerHandler.retrieve()
 
   def info(self, line):
-    print 'info log'
     self.logger.info(line)
     self.version += 1
 
   def error(self, line):
-    print 'error log'
     self.logger.error(line)
     self.version += 2
 
+  def warning(self, line):
+    self.logger.warning(line)
+    self.version += 1
+
   def updateXML(self, xml):
-    print 'updateConfig'
     self.xml = xml
     self.setFlowDom(parseString(self.xml))
     self.saveConfig()
@@ -159,16 +199,15 @@ class WuApplication:
     f.close()
 
   def loadConfig(self):
-    print 'loadConfig'
     config = json.load(open(os.path.join(self.dir, 'config.json')))
     self.id = config['id']
     self.name = config['name']
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
+    self.setFlowDom(parseString(self.xml))
 
   def saveConfig(self):
-    print 'saveConfig'
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
 
   def getReturnCode(self):
@@ -187,6 +226,8 @@ class WuApplication:
       self.wuClasses = parseXMLString(self.componentXml) # an array of wuClasses
 
   def parseApplicationXML(self):
+      self.wuObjects = {}
+      self.wuLinks = []
       # TODO: parse application XML to generate WuClasses, WuObjects and WuLinks
       for index, componentTag in enumerate(self.applicationDom.getElementsByTagName('component')):
           # make sure application component is found in wuClassDef component list
@@ -204,29 +245,35 @@ class WuApplication:
                   wuProperty.setDefault(propertyTag.getAttribute('default'))
 
           queries = []
+          #assume there is one location requirement per component in application.xml
           for locationQuery in componentTag.getElementsByTagName('location'):
               queries.append(locationQuery.getAttribute('requirement'))
-
+          if len(queries) ==0:
+              queries.append ('')
+          elif len (queries) > 1:
+              logging.error('input file violating the assumption there is one location requirement per component in application.xml')
+          #assume there is one group_size requirement per component in application.xml
+          for groupSizeQuery in componentTag.getElementsByTagName('group_size'):
+              queries.append(int(groupSizeQuery.getAttribute('requirement')))
+          if len(queries) ==1:
+              queries.append(1)
+          elif len(queries) > 2:
+              logging.error('input file violating the assumption there is one group_size requirement per component in application.xml')
           # nodeId is not used here, portNumber is generated later
-          wuObj = WuObject(wuClass=wuClass, instanceId=componentTag.getAttribute('instanceId'), instanceIndex=index, locationQueries=queries)
+          wuObj = WuObject(wuClass=wuClass, instanceId=componentTag.getAttribute('instanceId'), instanceIndex=index, queries=queries)
 
-          self.wuObjects[wuObj.getInstanceId()] = wuObj
+          #TODO: for each component, there is a list of wuObjs (length depending on group_size)
+          self.wuObjects[wuObj.getInstanceId()] = [wuObj]
 
       # links
       for linkTag in self.applicationDom.getElementsByTagName('link'):
-          fromWuObject = self.wuObjects[linkTag.parentNode.getAttribute('instanceId')]
+          fromWuObject = self.wuObjects[linkTag.parentNode.getAttribute('instanceId')][0]
           fromPropertyId = fromWuObject.getPropertyByName(linkTag.getAttribute('fromProperty')).getId()
 
-          toWuObject = self.wuObjects[linkTag.getAttribute('toInstanceId')]
+          toWuObject = self.wuObjects[linkTag.getAttribute('toInstanceId')][0]
           toPropertyId = toWuObject.getPropertyByName(linkTag.getAttribute('toProperty')).getId()
 
           self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
-
-  def map(self, location_tree):
-    self.parseComponents()
-    self.parseApplicationXML()
-    self.mapping(location_tree)
-    self.mapping_results = self.wuObjects
 
   def mapping(self, locTree, mapFunc=firstCandidate):
       #input: nodes, WuObjects, WuLinks, WuClassDefs
@@ -235,38 +282,58 @@ class WuApplication:
       
       return mapFunc(self, self.wuObjects, locTree)
 
+  def map(self, location_tree):
+    self.parseComponents()
+    self.parseApplicationXML()
+    self.mapping(location_tree)
+    self.mapping_results = self.wuObjects
+    logging.info("Mapping results")
+    logging.info(self.mapping_results)
+
   def deploy(self, destination_ids, platforms):
-    comm = getComm()
+    master_busy()
     app_path = self.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
 
+      self.status = "Generating java library code"
+      gevent.sleep(0)
+
       # CodeGen
-      self.info('Generating necessary files for wukong')
+      self.info('==Generating necessary files for wukong')
       try:
         generateCode(self)
       except Exception as e:
-        traceback.print_last()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
         self.error(e)
         return False
+
+      self.status = "Generating java application"
+      gevent.sleep(0)
 
       # Mapper results, already did in map_application
       # Generate java code
-      self.info('Generating application code in target language (Java)')
+      self.info('==Generating application code in target language (Java)')
       try:
         generateJava(self)
       except Exception as e:
-        traceback.print_last()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
         self.error(e)
         return False
 
+      self.status = "Compressing java to bytecode format"
+      gevent.sleep(0)
+
       # Generate nvmdefault.h
-      self.info('Compressing application code to bytecode format')
-      print 'changing to path: %s...' % platform_dir
+      self.info('==Compressing application code to bytecode format')
       pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.id), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
       while pp.poll() == None:
-        print 'polling from popen...'
+        #print 'polling from popen...'
         line = pp.stdout.readline()
         if line != '':
           self.info(line)
@@ -276,17 +343,41 @@ class WuApplication:
           self.error(line)
         self.version += 1
       if pp.returncode != 0:
-        self.error('Error generating nvmdefault.h')
+        self.error('==Error generating nvmdefault.h')
         return False
-      self.info('Finishing compression')
+      self.info('==Finishing compression')
+      if  SIMULATION !=0:
+          #we don't do any real deployment for simulation, 
+          return False
 
+      self.status = "Deploying bytecode to nodes"
+      gevent.sleep(0)
+
+      comm = getComm()
       # Deploy nvmdefault.h to nodes
-      print 'changing to path: %s...' % platform_dir
-      self.info('Deploying to nodes')
+      self.info('==Deploying to nodes %s' % (str(destination_ids)))
+      remaining_ids = copy.deepcopy(destination_ids)
+
       for node_id in destination_ids:
-        self.info('Deploying to node id: %d' % (node_id))
-        if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
-          self.error('Node not deployed successfully')
+        remaining_ids.remove(node_id)
+        self.status = "Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids))
+        gevent.sleep(0)
+        self.info('==Deploying to node id: %d' % (node_id))
+        ret = False
+        retries = 3
+        while retries > 0:
+          if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
+            self.status = "Deploying unsucessful for node %d, trying again" % (node_id)
+            gevent.sleep(0)
+            self.error('==Node not deployed successfully, retries = %d' % (retries))
+            retries -= 1
+          else:
+            ret = True
+            break
+        if not ret:
+          self.status = "Deploying unsucessful"
+          gevent.sleep(0)
+          return False
         '''
         pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d FLOWXML=%s' % (platform_dir, node_id, app.id), shell=True, stdout=PIPE, stderr=PIPE)
         app.returnCode = None
@@ -302,12 +393,20 @@ class WuApplication:
           app.version += 1
         app.returnCode = pp.returncode
         '''
-        self.info('Deploying to node completed')
-    self.info('Deployment has completed')
+        self.info('==Deploying to node completed')
+    self.info('==Deployment has completed')
+    self.status = "Deploying sucess"
+    self.status = ""
+    gevent.sleep(0)
+    master_available()
+    return True
 
   def reconfiguration(self):
-    node_infos = getComm().getAllNodeInfos()
+    master_busy()
+    self.status = "Start reconfiguration"
+    node_infos = getComm().getActiveNodeInfos(force=True)
     locationTree = LocationTree(LOCATION_ROOT)
     locationTree.buildTree(node_infos)
     self.map(locationTree)
     self.deploy([info.nodeId for info in node_infos], DEPLOY_PLATFORMS)
+    master_available()

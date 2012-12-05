@@ -236,9 +236,11 @@ function FBP_parseXML(r)
     g_nodes = [];
     g_lines = [];
     var hash={};
+    var loc, group_size;
 
     for(i=0;i<comps.length;i++) {
         var c = $(comps[i]);
+        console.log(c.find("group_size").attr("requirement"));
         var meta ={};
         meta.x = c.attr("x");
         meta.y = c.attr("y");
@@ -249,6 +251,10 @@ function FBP_parseXML(r)
         loc = c.find("location");
         if (loc) {
             meta.location = loc.attr("requirement");
+        }
+        group_size = c.find("group_size");
+        if (group_size) {
+            meta.group_size = group_size.attr("requirement");
         }
         n = Block.restore(meta);
         // This should be replaced with the node type system latter

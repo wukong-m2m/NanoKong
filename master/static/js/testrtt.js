@@ -46,6 +46,7 @@ $(function() {
 
     // node discovery
     $('#myModal').hide();
+    $('#dispObj').hide();
 
     $('#nodes a').click(function(e) {
         e.preventDefault();

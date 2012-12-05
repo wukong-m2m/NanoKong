@@ -57,40 +57,45 @@ function make_tree(rt)
 {
 	$('#content').empty();
 	var r = JSON.parse(rt.loc);
-	
     var temp = 0
-    var html_tree = ""
-    html_tree += '<ul>'
+    var html_tree = '<script type="text/javascript" src="/static/js/jquery.js"></script><script type="text/javascript" src="/static/js/jquery.treeview.js"></script><script type="text/javascript" src="/static/js/tree_expand.js"></script>'
+    html_tree += '<ul id="display" class="treeview">'
     for( i in r){
 		l = i % 10
 		if(l == 0){
-			html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+			html_tree += '<li id="'+ r[i] +'">'+r[i]
 		}else if(l == temp){
 			if(r[i].indexOf("#") == -1){
-				html_tree += '<a role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#myModal" class="btn more">'+r[i]+'</button></a>'
+				html_tree += '</li><li role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#dispObj" class="btn more">'+r[i]
 			}else{
-				html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+				html_tree += '</li><li id="'+ r[i] +'">'+r[i]
 			}
 		}else if(l > temp){
 			if(r[i].indexOf("#") == -1){
-				html_tree += '<ul><a role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#myModal" class="btn more">'+r[i]+'</button></a>'
+				html_tree += '<ul><li role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#dispObj" class="btn more">'+r[i]
 			}else{
-				html_tree += '<ul><li id="'+ r[i] +'">'+r[i]+'</li>'
+				html_tree += '<ul><li id="'+ r[i] +'">'+r[i]
 			}
 		}else if(l < temp){
 			m = temp - l
 			for(var j=0; j<m ;j++){
-				html_tree += '</ul>'
+				html_tree += '</li></ul>'
 			}
-			html_tree += '<li id="'+ r[i] +'">'+r[i]+'</li>'
+			if(m > 1){
+				for(var j=0; j<m-1 ;j++){
+					html_tree += '</li>'
+				}
+			}
+			html_tree += '<li id="'+ r[i] +'">'+r[i]
 		}
 
 		temp = l
 	}
+	
 	for(var j=0; j<temp+1; j++){
-		html_tree += '</ul>'
+		html_tree += '</li></ul>'
 	}
-//	DebugPrint(html_tree);
+	
 	$('#content').append(html_tree);
 }
 
@@ -173,6 +178,25 @@ function application_fillList(r)
                             console.log(page);
                             content_scaffolding(topbar, page);
                             $('#content').unblock();
+
+                            // start polling
+                            window.options = {repeat: true};
+                            $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+                            $('#deploy_results #wukong_status').text('Waiting from master');
+                            $('#deploy_results #application_status').text("");
+
+                            poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
+                                console.log(data)
+                                if (data.wukong_status == "" && data.application_status == "") {
+                                    $('#deploy_results').dialog('close');
+                                } else {
+                                    $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+                                }
+
+                                $('#deploy_results #wukong_status').text(data.wukong_status);
+                                $('#deploy_results #application_status').text(data.application_status);
+
+                            });
                         }
                     });
                 }
@@ -382,7 +406,7 @@ function deploy_poll(id, version)
 */
 
 // might have to worry about multiple calls :P
-function poll(url, version, options)
+function poll(url, version, options, callback)
 {
     var forceRepeat = false;
     if (typeof options != 'undefined') {
@@ -390,8 +414,12 @@ function poll(url, version, options)
         forceRepeat = options.repeat;
     }
 
-    console.log('poll');
+    console.log('polling');
     $.post(url, {version: version}, function(data) {
+        if (typeof callback != 'undefined') {
+            callback(data)
+        }
+
         _.each(data.logs, function(line) {
             if (line != '') {
                 $('#log').append('<pre>' + line + '</pre>');
@@ -409,7 +437,7 @@ function poll(url, version, options)
         if (forceRepeat || data.returnCode < 0) {
             console.log("repeating");
             setTimeout(function() {
-                poll(url, data.version, options);
+                poll(url, data.version, options, callback);
             }, 1000);
         }
     });

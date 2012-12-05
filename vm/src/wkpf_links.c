@@ -222,7 +222,7 @@ uint8_t wkpf_propagate_dirty_properties() {
   uint8_t property_number;
   int16_t value;
   uint8_t status;
-  while(wkpf_get_next_dirty_property(&port_number, &property_number, &value, &status)) {
+  while(wkpf_get_next_dirty_property(&port_number, &property_number, &value, &status))  {
     nvmcomm_poll(); // Process incoming messages
     if (status & PROPERTY_STATUS_NEEDS_PUSH) {
       wkpf_error_code = wkpf_propagate_property(port_number, property_number, value);

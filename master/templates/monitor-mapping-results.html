@@ -10,21 +10,23 @@
         </tr>
     </thead>
     <tbody>
-        {% for wuobject in mapping_results.values() %}
-        <tr class=success>
-            <td>
-                {{ wuobject.getInstanceId() }}
-            </td>
-            <td>
-                {{ wuobject.getWuClassName() }}
-            </td>
-            <td>
-                {{ wuobject.getNodeId() }}
-            </td>
-            <td>
-                {{ wuobject.getPortNumber() }}
-            </td>
-        </tr>
+        {% for key in mapping_results.keys() %}
+            {% for wuobject in mapping_results[key] %}
+            <tr class=success>
+                <td>
+                    {{ wuobject.getInstanceId() }}
+                </td>
+                <td>
+                    {{ wuobject.getWuClassName() }}
+                </td>
+                <td>
+                    {{ wuobject.getNodeId() }}
+                </td>
+                <td>
+                    {{ wuobject.getPortNumber() }}
+                </td>
+            </tr>
+            {% end %}
         {% end %}
 
     </tbody>

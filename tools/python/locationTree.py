@@ -149,13 +149,11 @@ class LocationTree:
 
     #insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
     def addSensor(self, sensorNd, startPos = None ):
-        print ("startPos!!!!!",startPos)
-        print self.root
         if startPos == None:
             startPos = self.root
         if sensorNd.nodeInfo.nodeId in self.sensor_dict:
-            if  sensorNd.nodeInfo.location == sensor_dict[sensorNd.nodeInfo.nodeId].location:
-                logging.info("Node",sensorNd.nodeInfo.nodeId," already inserted, insertion ignore")
+            if  sensorNd.nodeInfo.location == self.sensor_dict[sensorNd.nodeInfo.nodeId].location:
+                logging.info("Node %d already inserted, insertion ignore" % (sensorNd.nodeInfo.nodeId))
                 return False
             else: #sensor node location needs to be updated, delete the original inserted SensorNd first
                 self.delSensor(sensorNd.nodeInfo.nodeId)
@@ -207,9 +205,10 @@ class LocationTree:
         locationLst =  self.parseLocation(locationStr)
         print locationLst
         if startPos.name != locationLst[0]:
-            logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " is not a valid value")
+            logging.error("error! location: "+ str(locationLst[0])+ " is not a valid value")
             return None
         curPos = startPos
+
         for i in range(1, len(locationLst)):
             if  curPos.childrenCnt==0:
                 return None
@@ -272,6 +271,13 @@ class LocationTree:
 
     def getJson(self):
         return json_data
+        
+    def reset(self, name):
+        tmp = LocationTreeNode(name, None)
+        self.sensor_dict = {}
+        self.root = tmp
+        self.totalSensorCount = 0
+        json_data.clear()
 
     def buildTree(self, node_infos):
         for info in node_infos:

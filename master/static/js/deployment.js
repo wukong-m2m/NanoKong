@@ -35,7 +35,12 @@ $(function() {
                 }
 
                 _.each(data.mapping_results, function(result) {
-                    var compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    var compiled;
+                    if (result.leader) {
+                        compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    } else {
+                        compiled = _.template('<tr class=info><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
+                    }
                     $table.append(compiled(result));
                 });
             }
@@ -43,18 +48,16 @@ $(function() {
     });
 
     // Actually deploy
-    $('a#log-btn').click(function(e) {
+    $('a#deploy-btn').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
-
         $.post('/applications/' + current_application + '/deploy', function(data) {
             // Already an object
-            console.log('deploy');
-            console.log(data);
+            console.log('deploy signal set');
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
-                poll('/applications/' + current_application + '/poll', 0, window.options);
+                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
             }
         });
     });

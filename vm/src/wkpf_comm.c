@@ -213,11 +213,12 @@ void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *paylo
       wuclass_id = (int16_t)(wuclass_id<<8) + (int16_t)(payload[4]);
       wkpf_get_link_by_dest_property_and_dest_wuclass_id(property_number, wuclass_id, &link);
 
+      // TODO: should we do that now?
       // If the sender is not a leader
       if (!wkpf_node_is_leader(link.src_component_id, src)) {
-        *response_cmd = NVMCOMM_WKPF_ERROR_R;
-        *response_size = 3;//payload size
-        break;
+        /**response_cmd = NVMCOMM_WKPF_ERROR_R;*/
+        /**response_size = 3;//payload size*/
+        /*break;*/
       }
 
       retval = wkpf_get_wuobject_by_port(port_number, &wuobject);

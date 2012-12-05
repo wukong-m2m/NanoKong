@@ -1,6 +1,7 @@
 #SatoKatsunori made Oct.16 2012 
 
 import os
+import logging
 
 lst = [];
 
@@ -58,9 +59,6 @@ def check(name):
 	return isFile
         
 class make_main:
-	def __init__(self):
-		print ""
-		
 	def make(self):
 		filename = "../ComponentDefinitions/WuKongStandardLibrary.xml"
 		f = open(filename,"r")
@@ -86,4 +84,4 @@ class make_main:
 					break
 				else:
 					pass
-		print "make_js_complete"
+		logging.info("make_js_complete")

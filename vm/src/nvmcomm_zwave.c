@@ -195,6 +195,13 @@ void nvmcomm_zwave_receive(int processmessages) {
 
 // Public interface
 void nvmcomm_zwave_init() {
+
+    // Clear existing queue on Zwave
+    DEBUGF_COMM("Clearing leftovers\n");
+    while (uart_available(ZWAVE_UART)) {
+        uart_read_byte(ZWAVE_UART);
+    }
+
     // TODO: why is this here?
     // for(i=0;i<100;i++)
     //   mainloop();
@@ -215,7 +222,7 @@ void nvmcomm_zwave_init() {
     uint8_t retries = 10;
     address_t previous_received_address = 0;
 
-    //DEBUGF_ZWAVETRACE("test msg");
+    DEBUGF_COMM("Getting zwave address...\n");
     while(!nvmcomm_zwave_my_address_loaded) {
         while(!nvmcomm_zwave_my_address_loaded && retries-->0) {
             SerialAPI_request(buf, 2);
@@ -253,7 +260,7 @@ void nvmcomm_zwave_poll(void) {
         nvmcomm_zwave_receive(1);
         /*nvmcomm_zwaveLastByteTime = avr_currentTime;*/
     } else {
-        DEBUGF_ZWAVETRACE("data_not_available\n");
+        /*DEBUGF_ZWAVETRACE("data_not_available\n");*/
         // This will confuse Zwave state and make it stop running, so don't use it
         /*if (avr_currentTime > nvmcomm_zwaveLastByteTime + 600) {*/
             /*state = ZWAVE_STATUS_WAIT_SOF;*/
