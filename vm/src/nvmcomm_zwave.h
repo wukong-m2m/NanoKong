@@ -25,11 +25,13 @@ extern void nvmcomm_zwave_poll(void);
 // Send ZWave command to another node. This command can be used as wireless repeater between 
 // two nodes. It has no assumption of the payload sent between them.
 extern int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *b, u08_t l, u08_t option);
+extern void nvmcomm_zwave_reset();
 extern void nvmcomm_zwave_learn();
 // Get the ID of this node
 extern address_t nvmcomm_zwave_get_node_id();
-extern u08_t zwave_learn_mode;
-
+extern u08_t zwave_mode;
+extern bool zwave_btn_is_push,zwave_btn_is_release,zwave_learn_on;
+extern u32_t zwave_time_learn_start,zwave_time_btn_interrupt,zwave_time_btn_push,zwave_time_btn_release;
 
 #endif // NVMCOMM_ZWAVE_H
 

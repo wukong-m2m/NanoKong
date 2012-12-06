@@ -121,7 +121,36 @@ ISR(TIMER2_COMPA_vect)//for system absolute clock during sleep
 ISR(INT0_vect)
 {
     #ifdef NVM_USE_COMMZWAVE
-    zwave_learn_mode=1;
+    EIMSK &=~_BV(0);//disable INT0
+    if(zwave_btn_is_push==FALSE)
+    {
+	//DEBUGF_COMM("=======push=========");
+	if( ((*pins[3])&0x01) !=0 )//INT0=pins[3] bit0, 0=button push, otherwise is noise
+	{
+		EIMSK |=_BV(0);
+	}
+	else
+	{
+		zwave_time_btn_interrupt=avr_currentTime;
+		zwave_time_btn_push=avr_currentTime;
+		zwave_btn_is_push=TRUE;
+	}
+    }
+    else
+    {
+	//DEBUGF_COMM("=====release=========");
+	if( ((*pins[3])&0x01) ==0 )//INT0=pins[3] bit0, 0=button push, otherwise is noise
+	{
+		EIMSK |=_BV(0);//enable INT0
+	}
+	else
+	{
+		zwave_time_btn_interrupt=avr_currentTime;
+		zwave_time_btn_release=avr_currentTime;
+		zwave_btn_is_push=FALSE;
+		zwave_btn_is_release=TRUE;
+	}
+    }
     #endif
     iflag_INT |= _BV(0);//set interrupt flag to let java know
 }
@@ -323,10 +352,9 @@ void native_init(void) {
     ivalue_PCINTC=0xff;
     //PCINT
     PCICR=_BV(PCIE0) | _BV(PCIE1) | _BV(PCIE2);	//enable interrupt PCINT0~7,PCINT16~23
-    EICRA |= (0 & 0x03);//GND interrupt mode
-    EIMSK |=_BV(0);//turn on INT0
     #ifdef NVM_USE_COMMZWAVE
-    zwave_learn_mode=0;	
+    EICRA |= (0x02 & 0x03);//falling endge interrupt mode
+    EIMSK |=_BV(0);//enable INT0
     #endif
 #else
     TCCR1B = _BV(CS11);           // clk/8
@@ -601,9 +629,41 @@ void native_avr_timer_invoke(u08_t mref) {
         {
 		nvmcomm_poll();		//wait until time out, but still handle messages
 		#ifdef NVM_USE_COMMZWAVE
-		if(zwave_learn_mode==1)
+		if(zwave_mode==0 || zwave_learn_on)//normal mode or is learning
 		{
-			nvmcomm_zwave_learn();
+			if( (EIMSK&0x01) ==0 )//INT0 is disable
+			{
+				if( (avr_currentTime-zwave_time_btn_interrupt)>50 )//wait 50ms for button debounce, enable interrupt again
+				{
+					EIFR |=_BV(0);//clear INT0 flag
+					EIMSK |=_BV(0);//enable INT0
+				}
+			}
+			if( zwave_btn_is_release==TRUE )
+			{
+				if( (zwave_time_btn_release-zwave_time_btn_push)<5000 )//push btn <5s go to learning mode
+				{
+					if(zwave_learn_on)//push btn in learning mode -> stop learning
+						zwave_time_learn_start=0;//timeout stop learning
+					else//push btn in normal mode -> start learning
+						zwave_mode=1;
+				}				
+				else//push btn >5s go to reset mode
+				{
+					zwave_mode=2;
+				}
+				zwave_btn_is_release=FALSE;
+			}
+		}
+		if(zwave_mode==1)//learning mode
+		{
+			//DEBUGF_COMM("start zwave learn !!!!!!!!!");
+			nvmcomm_zwave_learn();//finish will set zwave mode=0
+		}
+		else if(zwave_mode==2)//reset mode
+		{
+			//DEBUGF_COMM("start zwave reset !!!!!!!!!");
+			nvmcomm_zwave_reset();
 		}
 		#endif		
 	}

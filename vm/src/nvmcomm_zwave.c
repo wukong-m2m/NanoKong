@@ -8,8 +8,8 @@
 
 #ifdef NVM_USE_COMMZWAVE
 
-#define ZWAVE_UART              1//for arduino
-//#define ZWAVE_UART              2//for wukong board
+//#define ZWAVE_UART              1//for arduino
+#define ZWAVE_UART              2//for wukong board
 
 #define ZWAVE_STATUS_WAIT_ACK        0
 #define ZWAVE_STATUS_WAIT_SOF        1
@@ -48,10 +48,11 @@ u08_t seq;          // Sequence number which is used to match the callback funct
 u08_t ack_got = 0;
 int zwsend_ack_got = 0;
 u08_t wait_CAN_NAK = 1;
-u08_t zwave_learn_on = 0;
 u08_t zwave_learn_block = 0;
-u32_t zwave_learn_startT;
-u08_t zwave_learn_mode;
+u32_t zwave_time_learn_start;
+u08_t zwave_mode=0;
+bool zwave_btn_is_push=FALSE, zwave_btn_is_release=FALSE, zwave_learn_on=FALSE;
+u32_t zwave_time_btn_interrupt,zwave_time_btn_push,zwave_time_btn_release;
 // u32_t expire;  // The expire time of the last command
 
 bool nvmcomm_zwave_my_address_loaded = FALSE;
@@ -181,9 +182,9 @@ void nvmcomm_zwave_receive(int processmessages) {
                         //Serial1.write(b[k]);
                         uart_write_byte(ZWAVE_UART, b[k]);
                     }
-                    zwave_learn_on=0;
+                    zwave_learn_on=FALSE;
                     zwave_learn_block=0;
-                    zwave_learn_mode=0;
+                    zwave_mode=0;
                 }
             }
         }
@@ -274,15 +275,34 @@ address_t nvmcomm_zwave_get_node_id() {
     return nvmcomm_zwave_my_address;
 }
 
+void nvmcomm_zwave_reset() {
+    unsigned char b[10];
+    int k;
+
+    b[0] = 1;
+    b[1] = 4;
+    b[2] = 0;
+    b[3] = 0x42;
+    b[4] = seq;
+    b[5] = 0xff^4^0^0x42^seq;
+    seq++;
+    for(k=0;k<7;k++)
+    {
+        uart_write_byte(ZWAVE_UART, b[k]);
+    }
+    zwave_mode=0;
+    //DEBUGF_COMM("reset complete!!!!!!!!!!");
+
+}
 
 void nvmcomm_zwave_learn() {
     unsigned char b[10];
     unsigned char onoff=1;
     int k;    
-    if(zwave_learn_on==0)
+    if(zwave_learn_on==FALSE)
     {
-        zwave_learn_startT=avr_currentTime;
-        zwave_learn_on=1;
+        zwave_time_learn_start=avr_currentTime;
+        zwave_learn_on=TRUE;
         b[0] = 1;
         b[1] = 5;
         b[2] = 0;
@@ -297,9 +317,9 @@ void nvmcomm_zwave_learn() {
             uart_write_byte(ZWAVE_UART, b[k]);
         }
     }
-    //DEBUGF_COMM("current:"DBG32" start:"DBG32", zwave_learn_block:"DBG8": ", avr_currentTime, zwave_learn_startT, zwave_learn_block);
-    if(avr_currentTime-zwave_learn_startT>10000 && !zwave_learn_block) { //time out learn off
-        // DEBUGF_COMM("turn off!!!!!!!!!!!!!!!!");
+    //DEBUGF_COMM("current:"DBG32" start:"DBG32", zwave_learn_block:"DBG8": ", avr_currentTime, zwave_time_learn_start, zwave_learn_block);
+    if(avr_currentTime-zwave_time_learn_start>5000 && !zwave_learn_block) { //time out learn off
+        //DEBUGF_COMM("turn off!!!!!!!!!!!!!!!!");
         onoff=0;
         b[0] = 1;
         b[1] = 5;
@@ -313,9 +333,9 @@ void nvmcomm_zwave_learn() {
         {
             uart_write_byte(ZWAVE_UART, b[k]);
         }  
-        zwave_learn_on=0;
+        zwave_learn_on=FALSE;
         zwave_learn_block=0;
-        zwave_learn_mode=0;
+        zwave_mode=0;
     }
 }
 
