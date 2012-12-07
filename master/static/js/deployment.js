@@ -48,18 +48,16 @@ $(function() {
     });
 
     // Actually deploy
-    $('a#log-btn').click(function(e) {
+    $('a#deploy-btn').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
-
         $.post('/applications/' + current_application + '/deploy', function(data) {
             // Already an object
-            console.log('deploy');
-            console.log(data);
+            console.log('deploy signal set');
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
-                poll('/applications/' + current_application + '/poll', 0, window.options);
+                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
             }
         });
     });

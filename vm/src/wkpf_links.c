@@ -65,6 +65,7 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
     DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> at \n", i);
     for (int j=0; j<number_of_nodes; j++) {
       DEBUGF_WKPF("\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
+#ifdef NVM_USE_GROUP      
       if (nodes[j].node_id == nvmcomm_get_node_id()) {
         // Watchlist
         if (j == 0) {
@@ -78,6 +79,7 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
           group_add_node_to_watch(nodes[0].node_id);
         }
       }
+#endif // NVM_USE_GROUP
     }
   }
 
@@ -220,7 +222,7 @@ uint8_t wkpf_propagate_dirty_properties() {
   uint8_t property_number;
   int16_t value;
   uint8_t status;
-  while(wkpf_get_next_dirty_property(&port_number, &property_number, &value, &status)) {
+  while(wkpf_get_next_dirty_property(&port_number, &property_number, &value, &status))  {
     nvmcomm_poll(); // Process incoming messages
     if (status & PROPERTY_STATUS_NEEDS_PUSH) {
       wkpf_error_code = wkpf_propagate_property(port_number, property_number, value);

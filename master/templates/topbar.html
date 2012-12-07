@@ -3,6 +3,7 @@
       var current_application = "{{ application.id }}";
       $('#back').click(function() {
         // This works because of lazy evaluation (it is injected to the context of application.js)
+        window.options = {repeat: false};
         application_fill();
       });
     </script>

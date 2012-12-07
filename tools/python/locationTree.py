@@ -153,7 +153,7 @@ class LocationTree:
             startPos = self.root
         if sensorNd.nodeInfo.nodeId in self.sensor_dict:
             if  sensorNd.nodeInfo.location == self.sensor_dict[sensorNd.nodeInfo.nodeId].location:
-                logging.info("Node",sensorNd.nodeInfo.nodeId," already inserted, insertion ignore")
+                logging.info("Node %d already inserted, insertion ignore" % (sensorNd.nodeInfo.nodeId))
                 return False
             else: #sensor node location needs to be updated, delete the original inserted SensorNd first
                 self.delSensor(sensorNd.nodeInfo.nodeId)

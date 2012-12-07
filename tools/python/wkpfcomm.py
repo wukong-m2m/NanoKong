@@ -40,9 +40,14 @@ class Communication:
     def getNodeIds(self):
       return self.zwave.discovery()
 
-    def getActiveNodeInfos(self):
-      print 'getActiveNodeInfos'
-      self.all_node_infos = self.getAllNodeInfos()
+    def getActiveNodeInfos(self, force=False):
+      logging.info('getActiveNodeInfos 2')
+
+      set_wukong_status("Discovery: Requesting node info")
+
+      self.all_node_infos = self.getAllNodeInfos(force=force)
+
+      set_wukong_status("")
       return filter(lambda item: item.isResponding(), self.all_node_infos)
 
     def getNodeInfos(self, node_ids):
@@ -72,7 +77,7 @@ class Communication:
       return self.zwave.poll()
 
     def getNodeInfo(self, destination):
-      print 'getNodeInfo'
+      print 'getNodeInfo', destination
 
       wuClasses = self.getWuClassList(destination)
       print wuClasses
@@ -89,7 +94,7 @@ class Communication:
                         location = location)
 
     def getLocation(self, destination):
-      print 'getLocation'
+      print 'getLocation', destination
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_LOCATION, [], [pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R])
 
@@ -118,7 +123,7 @@ class Communication:
         return ''
 
     def setLocation(self, destination, location):
-      print 'setLocation'
+      print 'setLocation', destination
 
       reply = self.zwave.send(destination, pynvc.WKPF_SET_LOCATION, [len(location)] + [int(ord(char)) for char in location], [pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R])
       print reply
@@ -192,6 +197,8 @@ class Communication:
     def getWuClassList(self, destination):
       print 'getWuClassList'
 
+      set_wukong_status("Discovery: Requesting wuclass list from node %d" % (destination))
+
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUCLASS_LIST, [], [pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R])
 
       '''
@@ -225,6 +232,8 @@ class Communication:
 
     def getWuObjectList(self, destination):
       print 'getWuObjectList'
+
+      set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUOBJECT_LIST, [], [pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R])
 
