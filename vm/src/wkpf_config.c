@@ -1,15 +1,15 @@
 #include <string.h>
-#include <avr/eeprom.h>
+#include <eeprom.h>
 #include "debug.h"
 #include "wkpf.h"
 #include "wkpf_config.h"
 
 #define WKPF_FEATURE_ARRAY_SIZE           (WKPF_MAX_FEATURE_NUMBER/8 + 1)
 
-static uint8_t EEMEM eeprom_location_length = 0;
-static char EEMEM eeprom_location[LOCATION_MAX_LENGTH] = ""; // Currently can only handle locations that fit into a single message
-static uint8_t EEMEM eeprom_wkpf_features[WKPF_FEATURE_ARRAY_SIZE];
-static uint8_t EEMEM eeprom_master_address;
+static uint8_t EEPROM eeprom_location_length = 0;
+static char EEPROM eeprom_location[LOCATION_MAX_LENGTH] = ""; // Currently can only handle locations that fit into a single message
+static uint8_t EEPROM eeprom_wkpf_features[WKPF_FEATURE_ARRAY_SIZE];
+static uint8_t EEPROM eeprom_master_address;
 
 #define load_location_length() eeprom_read_byte((u08_t*)&eeprom_location_length)
 #define save_location_length(x) eeprom_update_byte((u08_t*)&eeprom_location_length, (u08_t)x)
