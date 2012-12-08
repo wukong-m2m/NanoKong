@@ -260,7 +260,6 @@ class deploy_application(tornado.web.RequestHandler):
     set_wukong_status("Start deploying")
     applications[app_ind].status = "    "
 
-    node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
 
     if app_ind == None:
       self.content_type = 'application/json'
@@ -280,7 +279,7 @@ class deploy_application(tornado.web.RequestHandler):
       '''
 
       # signal deploy in other greenlet task
-      wusignal.signal_deploy(node_ids, platforms)
+      wusignal.signal_deploy(platforms)
       set_active_application_index(app_ind)
       self.content_type = 'application/json'
       self.write({'status':0, 'version': applications[app_ind].version})

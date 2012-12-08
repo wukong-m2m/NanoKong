@@ -78,15 +78,17 @@ class Communication:
 
     def getNodeInfo(self, destination):
       print 'getNodeInfo', destination
-
       wuClasses = self.getWuClassList(destination)
       print wuClasses
+      gevent.sleep(0)
 
       wuObjects = self.getWuObjectList(destination)
       print wuObjects
+      gevent.sleep(0)
 
       location = self.getLocation(destination)
       print location
+      gevent.sleep(0)
 
       return NodeInfo(nodeId = destination,
                         wuClasses = wuClasses,
