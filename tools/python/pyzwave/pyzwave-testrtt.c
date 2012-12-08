@@ -51,7 +51,7 @@ int server_port;
 
 unsigned char basic_get_report[]={0x20,2};
 int zwavefd = -1;
-int zstate = WAIT_SOF;
+int zstate = WAIT_INIT;
 int zwave_ready = 0;
 int testmode=0;
 int ack_got=1;
@@ -877,8 +877,12 @@ int SerialAPI_request(unsigned char *buf, int len)
             printf("SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", zstate);
             printf("Try to send SerialAPI command in a wrong state......\n");
             usleep(100*1000);
+			// ACK the packet no matter what it is
+			c=6;
+			write(zwavefd,&c,1);
             //continue;
         }
+		zstate = WAIT_SOF;
 
         // send SerialAPI request
 		zwave_retransmit_ptr=0;
