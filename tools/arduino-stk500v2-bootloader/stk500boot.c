@@ -96,6 +96,11 @@ LICENSE:
 #include	<stdlib.h>
 #include	"command.h"
 
+// Some older versions of the AVR libraries don't have the eeprom_update_ functions.
+// In that case just use the eeprom_write_ version instead
+#ifndef eeprom_update_byte
+#define eeprom_update_byte eeprom_write_byte
+#endif
 
 #if defined(_MEGA_BOARD_) || defined(_BOARD_AMBER128_) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega2561__)
 //	#define		ENABLE_MONITOR
