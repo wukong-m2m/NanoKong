@@ -60,7 +60,7 @@ int cmd_succ=-1;
 int PyZwave_print_debug_info=0;
 int rtt_start_ms;
 int interval = 500;
-int verbose=1;
+int verbose=0;
 char *g_host=NULL;
 char g_dev_name[256] = "/dev/ttyS1";
 int g_instance = -1;
