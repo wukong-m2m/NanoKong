@@ -336,6 +336,7 @@ class WuApplication:
       self.returnCode = None
       while pp.poll() == None:
         #print 'polling from popen...'
+        gevent.sleep(0.1)
         line = pp.stdout.readline()
         if line != '':
           self.info(line)
