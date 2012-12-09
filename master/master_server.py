@@ -232,6 +232,19 @@ class application(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot delete application'})
 
+class reset_application(tornado.web.RequestHandler):
+  def post(self, app_id):
+    app_ind = getAppIndex(app_id)
+
+    if app_ind == None:
+      self.content_type = 'application/json'
+      self.write({'status':1, 'mesg': 'Cannot find the application'})
+    else:
+      set_wukong_status("")
+      applications[app_ind].status = ""
+      self.content_type = 'application/json'
+      self.write({'status':0, 'version': applications[app_ind].version})
+
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
     global applications
@@ -597,6 +610,7 @@ app = tornado.web.Application([
   (r"/applications", list_applications),
   (r"/applications/new", new_application),
   (r"/applications/([a-fA-F\d]{32})", application),
+  (r"/applications/([a-fA-F\d]{32})/reset", reset_application),
   (r"/applications/([a-fA-F\d]{32})/properties", properties_application),
   (r"/applications/([a-fA-F\d]{32})/poll", poll),
   (r"/applications/([a-fA-F\d]{32})/deploy", deploy_application),

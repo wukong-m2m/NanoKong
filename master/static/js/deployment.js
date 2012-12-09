@@ -57,7 +57,10 @@ $(function() {
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
-                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open').bind('dialogclose', function(event, ui) {
+                    $.post('/applications/' + current_application + '/reset');
+                    $('#deploy_results').dialog("close");
+                });
             }
         });
     });

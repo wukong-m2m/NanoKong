@@ -95,7 +95,7 @@ def firstCandidate(app, wuObjects, locTree):
                 
         
         if len(candidateSet) == 0:
-          app.error ('No node could be mapped for component id '+str(wuObject[0].getId()))
+          app.error ('No node could be mapped for component id '+str(wuObject[0].getWuClassId()))
           return False
         app.info('group size for component ' + str(wuObject) + ' is ' + str(actualGroupSize) + ' for candidates ' + str(candidateSet))
         if actualGroupSize > len(candidateSet):
@@ -323,6 +323,8 @@ class WuApplication:
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                       limit=2, file=sys.stdout)
         self.error(e)
+        self.status = "Error generating java application"
+        gevent.sleep(0)
         return False
 
       self.status = "Compressing java to bytecode format"
@@ -344,6 +346,8 @@ class WuApplication:
         self.version += 1
       if pp.returncode != 0:
         self.error('==Error generating nvmdefault.h')
+        self.status = "Error generating nvmdefault.h"
+        gevent.sleep(0)
         return False
       self.info('==Finishing compression')
       if  SIMULATION !=0:
@@ -375,7 +379,7 @@ class WuApplication:
             ret = True
             break
         if not ret:
-          self.status = "Deploying unsucessful"
+          self.status = "Deploying unsuccessful"
           gevent.sleep(0)
           return False
         '''
