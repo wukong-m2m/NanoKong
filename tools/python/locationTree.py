@@ -10,9 +10,9 @@ json_data = odict.odict()
 number = 0
 
 class SensorNode:
-    def __init__(self, nodeInfo, x_coord, y_coord, z_coord):
+    def __init__(self, nodeInfo,):
         self.location = nodeInfo.location
-        self.locationLst = LocationTree.parseLocation(nodeInfo.location)
+        self.locationLst, x_coord, y_coord, z_coord = LocationTree.parseLocation(nodeInfo.location)
         self.locationTreeNode = None
         self.nodeInfo = nodeInfo
         self.coord = (x_coord,y_coord,z_coord)
@@ -224,12 +224,17 @@ class LocationTree:
         return curPos
     @staticmethod
     def parseLocation (locationStr):
-        locationLst = locationStr.split(u'/')
+      #be able to handle something like /CS_Building/4F/Room336#(1,2,3)
+        tmpLst = locationStr.split(u'#')
+        x_coord,y_coord,z_coord = 0,0,0
+        if len(tmpLst)>1:
+          [x_coord,y_coord,z_coord] = tmpLst[1].rstrip(') ').lstrip('( ').split(',')
+        locationLst = tmpLst[0].split(u'/')
         for loc in locationLst:
             if len(loc) == 0:
                 locationLst.remove(loc)
                 
-        return locationLst
+        return locationLst, x_coord,y_coord,z_coord
 
 
     def __printTree(self, treeNd=None, indent = 0):
@@ -287,14 +292,14 @@ class LocationTree:
 
 if __name__ == "__main__":
     locTree = LocationTree(u"Boli_Building")
-    loc0 = u"Boli_Building/3F/South_Corridor"
-    loc1 = u"Boli_Building/2F/South_Corridor/Room318"
-    loc2 = u"Boli_Building/3F/East_Corridor/Room318"
-    loc3 = u"Boli_Building/3F/East_Corridor/Room318"
-    senNd0 = SensorNode(NodeInfo(0,[], [], loc0), 0, 1, 2)
-    senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 5, 3)
-    senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 3, 3, 2)
-    senNd3 = SensorNode(NodeInfo(3, [], [], loc3), 2, 1, 2)
+    loc0 = u"Boli_Building/3F/South_Corridor#(0,1,2)"
+    loc1 = u"Boli_Building/2F/South_Corridor/Room318#(0,5,3)"
+    loc2 = u"Boli_Building/3F/East_Corridor/Room318#(3,3,2)"
+    loc3 = u"Boli_Building/3F/East_Corridor/Room318#(2,1,2)"
+    senNd0 = SensorNode(NodeInfo(0,[], [], loc0))
+    senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
+    senNd2 = SensorNode( NodeInfo(2, [], [], loc2))
+    senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
     
     print(locTree.addSensor(senNd0, locTree.root))
     locTree.addSensor(senNd1)
@@ -307,4 +312,3 @@ if __name__ == "__main__":
 
     
             
-        
