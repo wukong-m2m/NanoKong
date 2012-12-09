@@ -172,15 +172,15 @@ class URLFunction:
 
 
 if __name__ == "__main__":
-	locTree = LocationTree(u"Boli_Building")
-	loc0 = u"Boli_Building/3F/South_Corridor/Room318"
-	loc1 = u"Boli_Building/3F/N_Corridor/Room318"
-	loc2 = u"Boli_Building/2F/South_Corridor/Room318"
-	loc3 = u"Boli_Building/3F/South_Corridor/Room318"
-	senNd0 = SensorNode(NodeInfo(0, [], [],loc0), 0, 1, 1)
-	senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 1, 3)
-	senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 1, 1, 2)
-	senNd3 = SensorNode(NodeInfo(3, [], [], loc3), 4, 4, 2)
+	locTree = LocationTree(u"Boli_Building#(9,0,2)")
+	loc0 = u"Boli_Building/3F/South_Corridor/Room318#(3,1,8)"
+	loc1 = u"Boli_Building/3F/N_Corridor/Room318#(8,1,3)"
+	loc2 = u"Boli_Building/2F/South_Corridor/Room318#(4,4,4)"
+	loc3 = u"Boli_Building/3F/South_Corridor/Room318(5,2,2)"
+	senNd0 = SensorNode(NodeInfo(0, [], [],loc0))
+	senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
+	senNd2 = SensorNode( NodeInfo(2, [], [], loc2))
+	senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
 	locTree.addSensor(senNd0)
 	locTree.addSensor(senNd1)
 	locTree.addSensor(senNd2)
