@@ -44,7 +44,7 @@ def firstCandidate(app, wuObjects, locTree):
         # filter by query
         if queries == []:
             locURLHandler = LocationURL(None, locTree)
-            candidateSet = locTree.root.getAllNodes()
+            candidateSet = locTree.getAllAliveNodeIds()
         else:
             locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
 
@@ -407,11 +407,12 @@ class WuApplication:
     return True
 
   def reconfiguration(self):
+    global location_tree
     master_busy()
     self.status = "Start reconfiguration"
     node_infos = getComm().getActiveNodeInfos(force=True)
-    locationTree = LocationTree(LOCATION_ROOT)
-    locationTree.buildTree(node_infos)
-    self.map(locationTree)
+    location_tree = LocationTree(LOCATION_ROOT)
+    location_tree.buildTree(node_infos)
+    self.map(location_tree)
     self.deploy([info.nodeId for info in node_infos], DEPLOY_PLATFORMS)
     master_available()

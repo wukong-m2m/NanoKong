@@ -34,7 +34,7 @@ class SensorNode:
                 portSet =True
                 return (self.port_list[j]+1)%256
         return None
-    def isAlive():
+    def isAlive(self):
         return self.life == MAX_LIFE
 class LocationTreeNode:
 	def __init__(self, name, parent):
@@ -82,6 +82,18 @@ class LocationTreeNode:
 	def getAllNodes(self):
 		ret_val = self.idSet
 		return ret_val
+		
+	def getAllAliveNodeIds(locTreeNode = None):
+		if locTreeNode == None:
+			locTreeNode = self
+		tmpLst = []
+		for sensor in locTreeNode.sensorLst:
+			if sensor.isAlive():
+				tmpLst.append(sensor.nodeInfo.nodeId)
+		tmpLst = set(tmpLst)
+		for child in locTreeNode.children:
+			tmpLst = tmpLst | child.getAllAliveNodeIds()
+		return tmpLst
 	
 	def getAllNodeInfos(self):
 		ret_val = []
@@ -167,7 +179,13 @@ class LocationTree:
     def getAllNodeInfos(self):
         return self.root.getAllNodeInfos()
 
-
+    def getAllAliveNodeIds():
+        tmpLst  = []
+        for key in self.sensor_dict.keys():
+            if self.sensor_dict(key).isAlive() == True:
+                tmpLst.append(key)
+        return tmpLst
+        
     #insert sensorNd into the tree with its location specified in locationLst, starting from startPos node(set to root if locationLst start from beginning)
     def addSensor(self, sensorNd, startPos = None ):
         if startPos == None:
@@ -226,7 +244,7 @@ class LocationTree:
         return None
                 
     def findLocation(self, startPos, locationStr):
-        locationLst =  self.parseLocation(locationStr)
+        locationLst,x,y,z =  self.parseLocation(locationStr)
         if startPos.name != locationLst[0]:
             logging.error("error! location: "+ str(locationLst[0])+ " is not a valid value")
             return None
@@ -249,7 +267,7 @@ class LocationTree:
     def parseLocation (locationStr):
       #be able to handle something like /CS_Building/4F/Room336#(1,2,3)
         tmpLst = locationStr.split(u'#')
-        x_coord,y_coord,z_coord = 0,0,0
+        x_coord,y_coord,z_coord = '0','0','0'
         if len(tmpLst)>1:
           [x_coord,y_coord,z_coord] = tmpLst[1].rstrip(') ').lstrip('( ').split(',')
         locationLst = tmpLst[0].split(u'/')
@@ -257,7 +275,7 @@ class LocationTree:
             if len(loc) == 0:
                 locationLst.remove(loc)
                 
-        return locationLst, x_coord,y_coord,z_coord
+        return locationLst, eval(x_coord),eval(y_coord),eval(z_coord)
 
 
     def __printTree(self, treeNd=None, indent = 0):
@@ -289,7 +307,7 @@ class LocationTree:
         if treeNd ==None:
             treeNd = self.root
 
-        _str += treeNd.toString(indent)
+        _str += treeNd._toString(indent)
 #		json_data[indent+number*10] = _str
 
         print (_str)

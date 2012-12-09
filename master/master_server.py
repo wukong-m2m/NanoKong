@@ -38,7 +38,7 @@ tornado.options.enable_pretty_logging()
 
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
-locationTree = None
+
 
 #######################
 # KatsunoriSato added #
@@ -248,11 +248,12 @@ class reset_application(tornado.web.RequestHandler):
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
     global applications
+    global location_tree
     try:
       # Discovery results
-      comm = getComm()
-      #node_infos = comm.getAllNodeInfos()
-      node_infos = []
+      #comm = getComm()
+      node_infos = location_tree.getAllNodeInfos()
+      #node_infos = []
       app_ind = getAppIndex(app_id)
       if app_ind == None:
         self.content_type = 'application/json'
@@ -300,7 +301,7 @@ class deploy_application(tornado.web.RequestHandler):
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
-    global locationTree
+    global location_tree
 
 
     app_ind = getAppIndex(app_id)
@@ -311,14 +312,10 @@ class map_application(tornado.web.RequestHandler):
       platforms = ['avr_mega2560']
       # TODO: need platforms from fbp
 
-      locationTree = LocationTree(LOCATION_ROOT)
-
-      locationTree.buildTree(getComm().getActiveNodeInfos())
-      locationTree.printTree()
       # comm.addActiveNodesToLocTree(fakedata.locTree)
 
       # Map with location tree info (discovery), this will produce mapping_results
-      applications[app_ind].map(locationTree)
+      applications[app_ind].map(location_tree)
 
     #  print applications[app_ind].mapping_results
 
@@ -496,17 +493,18 @@ class testrtt(tornado.web.RequestHandler):
 
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
+    global location_tree
     if SIMULATION == 0:
       comm = getComm()
       node_infos = comm.getActiveNodeInfos(force=True)
     elif SIMULATION ==1:
       node_infos = fakedata.simNodeInfos
+      
     else:
       logging.error("SIMULATION %d is not invalid" % (SIMULATION))
       exit()
-
-    locationTree.buildTree(node_infos)
-    locationTree.printTree()
+    location_tree.buildTree(node_infos)
+    location_tree.printTree()
     # default is false
     set_location = self.get_argument('set_location', False)
 
@@ -537,15 +535,15 @@ class nodes(tornado.web.RequestHandler):
     self.write({'status':0, 'node_info': info})
 
   def put(self, nodeId):
-    global locationTree
+    global location_tree
     location = self.get_argument('location')
     if SIMULATION !=0:
       for info in node_infos:
         if info.nodeId == int(nodeId):
           info.location = location
-          senNd = SensorNode(info, 0, 0, 0)
-          locationTree.addSensor(senNd)
-      locationTree.printTree()
+          senNd = SensorNode(info)
+          location_tree.addSensor(senNd)
+      location_tree.printTree()
       self.content_type = 'application/json'
       self.write({'status':0})
       return
@@ -556,9 +554,9 @@ class nodes(tornado.web.RequestHandler):
         for info in comm.getActiveNodeInfos():
           if info.nodeId == int(nodeId):
             info.location = location
-            senNd = SensorNode(info, 0, 0, 0)
-            locationTree.addSensor(senNd)
-        locationTree.printTree()
+            senNd = SensorNode(info)
+            location_tree.addSensor(senNd)
+        location_tree.printTree()
         self.content_type = 'application/json'
         self.write({'status':0})
       else:
@@ -567,9 +565,7 @@ class nodes(tornado.web.RequestHandler):
         
 class tree(tornado.web.RequestHandler):	
   def post(self):
-    global locationTree
-    
-    locationTree.reset(LOCATION_ROOT)	
+    global location_tree
     if SIMULATION == 0:
       comm = getComm()
       node_infos = comm.getActiveNodeInfos()
@@ -579,14 +575,10 @@ class tree(tornado.web.RequestHandler):
       logging.error("SIMULATION %d is not invalid" % (SIMULATION))
       exit()
 
-    for info in node_infos:
-      senNd = SensorNode(info, 0, 0, 0)
-      locationTree.addSensor(senNd)
-
     addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
 
-    locationTree.printTree()
-    disploc = locationTree.getJson()
+    location_tree.printTree()
+    disploc = location_tree.getJson()
     self.content_type = 'application/json'
     self.write({'loc':json.dumps(disploc),'node':addloc})			
 
@@ -626,7 +618,7 @@ if __name__ == "__main__":
   setup_signal_handler_greenlet()
   update_applications()
   app.listen(MASTER_PORT)
-  locationTree = LocationTree(LOCATION_ROOT)
+  location_tree = LocationTree(LOCATION_ROOT)
   import_wuXML()	#KatsunoriSato added
   make_FBP()
   ioloop.start()
