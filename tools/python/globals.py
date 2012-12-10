@@ -1,6 +1,6 @@
 active_ind = 0
 applications = []
-
+location_tree = None
 wukong_status = ""
 
 MASTER_BUSY = False

@@ -17,7 +17,7 @@ public class VirtualLoopDelayBooleanWuObject extends GENERATEDVirtualLoopDelayBo
         if (delay_count_boolean>=delay) {
           delay_count_boolean=0;
 	  WKPF.setPropertyBoolean(this, OUTPUT, input);
-          System.out.println("WKPFUPDATE(loop_delay): Native loop_delay: write" + input + "to output \n");
+          System.out.println("WKPFUPDATE(loop_delay): Native loop_delay: write " + (input?"true":"false") + " to output \n");
         }
         else if(output!=input) {
 	  delay_count_boolean++;

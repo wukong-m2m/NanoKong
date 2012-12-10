@@ -51,7 +51,7 @@ class LocationURL:
 		return locationTreeNode.idSet - set1
 		
 	def getAll(locationTreeNode):
-	    return locationTreeNode.getAllNodes()
+	    return locationTreeNode.getAllAliveNodeIds()
 	
 	connector_lst=[ u"|", u"&", u"~"]
 	connector_dict = {u"|":[getUnion,2], u"&":[getIntersect,2], u"~":[negate,1]}  #for DNF(disjunctive norm form expression), function call and num of variables
@@ -138,6 +138,7 @@ class LocationURL:
  	def parseURL(self):
 		if self.urlStr == None or len(self.urlStr.rstrip()) == 0:
 			self.urlStr = self.locationTree.root.name + u"#" + u"getAll()"
+		print self.urlStr
 		tmpStrLst = self.urlStr.split(u'#')
 		if(len(tmpStrLst)>2):
 			print "Error while parsing url:" + self.urlStr +", more than one # found!"
@@ -172,21 +173,21 @@ class URLFunction:
 
 
 if __name__ == "__main__":
-	locTree = LocationTree(u"Boli_Building")
-	loc0 = u"Boli_Building/3F/South_Corridor/Room318"
-	loc1 = u"Boli_Building/3F/N_Corridor/Room318"
-	loc2 = u"Boli_Building/2F/South_Corridor/Room318"
-	loc3 = u"Boli_Building/3F/South_Corridor/Room318"
-	senNd0 = SensorNode(NodeInfo(0, [], [],loc0), 0, 1, 1)
-	senNd1 = SensorNode(NodeInfo(1, [], [], loc1), 0, 1, 3)
-	senNd2 = SensorNode( NodeInfo(2, [], [], loc2), 1, 1, 2)
-	senNd3 = SensorNode(NodeInfo(3, [], [], loc3), 4, 4, 2)
+	locTree = LocationTree(u"universal")
+	loc0 = u"universal/Boli_Building/3F/South_Corridor/Room318#(3,1,8)"
+	loc1 = u"universal/Boli_Building/3F/N_Corridor/Room318#(8,1,3)"
+	loc2 = u"universal/Boli_Building/2F/South_Corridor/Room318#(4,4,4)"
+	loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318#(5,2,2)"
+	senNd0 = SensorNode(NodeInfo(0, [], [],loc0))
+	senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
+	senNd2 = SensorNode( NodeInfo(2, [], [], loc2))
+	senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
 	locTree.addSensor(senNd0)
 	locTree.addSensor(senNd1)
 	locTree.addSensor(senNd2)
 	locTree.addSensor(senNd3)
 	locTree.printTree(locTree.root, 0)
-	query = u"Boli_Building/#getAll()"
+	query = u"universal/Boli_Building/#getAll()"
 	locURLHandler = LocationURL(query, locTree)
 	locURLHandler.parseURL()
 #	print locURLHandler.locationTreeNode.sensorLst
