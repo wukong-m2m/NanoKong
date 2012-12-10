@@ -43,7 +43,7 @@
         <property name="input2" datatype="boolean" access="writeonly" />
         <property name="input3" datatype="boolean" access="writeonly" />
         <property name="input4" datatype="boolean" access="writeonly" />
-        <property name="operator" datatype="LogicalOperator" access="readwrite" default="LogicalOperator.and" depends="LogicalOperator" />
+        <property name="operator" datatype="LogicalOperator" access="readwrite" default="and" />
         <property name="output" datatype="boolean" access="readonly" />
     </WuClass>
 
@@ -78,7 +78,7 @@
         <property name="input2" datatype="short" access="writeonly" />
         <property name="input3" datatype="short" access="writeonly" />
         <property name="input4" datatype="short" access="writeonly" />
-        <property name="operator" datatype="MathOperator" access="readwrite" default="MathOperator.max" depends="MathOperator" />
+        <property name="operator" datatype="MathOperator" access="readwrite" default="max" />
         <property name="output" datatype="short" access="readonly" />
         <property name="remainder" datatype="short" access="readonly" />
     </WuClass>
