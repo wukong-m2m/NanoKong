@@ -423,7 +423,7 @@ if __name__ == "__main__":
   sensorNodes = []
   for i in range(len(nodeInfos)):
     if nodeInfos[i].isResponding == True:
-      sensorNodes.append(SensorNode(nodeInfos[i], *loc_args[i]))
+      sensorNodes.append(SensorNode(nodeInfos[i]))
       locTree.addSensor(sensorNodes[-1])
 
 
