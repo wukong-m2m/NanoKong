@@ -247,7 +247,10 @@ class ZwaveAgent(TransportAgent):
                 total_nodes = nodes[1]
                 # remaining are the discovered nodes
                 discovered_nodes = nodes[2:]
-                discovered_nodes.remove(gateway_id)
+                try:
+                    discovered_nodes.remove(gateway_id)
+                except ValueError:
+                    pass # sometimes gateway_id is not in the list
                 defer.callback(discovered_nodes)
             else:
                 logging.info('handler: processing defer')
