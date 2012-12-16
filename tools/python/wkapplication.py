@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath("../../master"))
 from wkpf import *
 from locationTree import *
 from xml.dom.minidom import parse, parseString
+from xml.parsers.expat import ExpatError
 import simplejson as json
 import logging
 import logging.handlers
@@ -205,7 +206,11 @@ class WuApplication:
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
-    self.setFlowDom(parseString(self.xml))
+    try:
+      dom = parseString(self.xml)
+      self.setFlowDom()
+    except ExpatError:
+      pass
 
   def saveConfig(self):
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
