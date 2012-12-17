@@ -30,6 +30,7 @@ class SensorNode:
         self.coord = (x_coord,y_coord,z_coord)
         self.life = MAX_LIFE
         self.port_list = []
+        self.temp_port = []
         
     def initPortList(self, forceInit = True):
         if len(self.port_list)!=0 and forceInit == False:
@@ -39,9 +40,12 @@ class SensorNode:
         self.port_list.sort()
     def reserveNextPort(self):
         portSet = False
+        for j in range(len(self.temp_port)):
+            self.port_list.remove(temp_port)
         for j in range(len(self.port_list)):
             if (self.port_list[j]+1)%256 !=self.port_list[(j+1)%len(self.port_list)]:
                 self.port_list.append((self.port_list[j]+1)%256)
+                self.temp_port.append((self.port_list[j]+1)%256)
                 self.port_list.sort()
                 portSet =True
                 return (self.port_list[j]+1)%256
@@ -169,6 +173,11 @@ class LocationTree:
         self.root = tmp
         self.totalSensorCount = 0
     
+    def getSensorById(self, nodeId):
+        if nodeId in self.sensor_dict.keys():
+            return self.sensor_dict[nodeId]
+        else:
+            return None
     def decreaseSensorLife(self):
         for k in self.sensor_dict.keys():
             sensor = self.sensor_dict[k]
@@ -269,6 +278,7 @@ class LocationTree:
                 self.sensor_dict[sensorNd.nodeInfo.nodeId].life = MAX_LIFE
                 self.sensor_dict[sensorNd.nodeInfo.nodeId].nodeInfo = sensorNd.nodeInfo
                 self.sensor_dict[sensorNd.nodeInfo.nodeId].port_list = sensorNd.port_list
+                self.sensor_dict[sensorNd.nodeInfo.nodeId].temp_port = sensorNd.temp_port
                 self.sensor_dict[sensorNd.nodeInfo.nodeId].locationTreeNode = sensorNd.locationTreeNode
                 return True
             else: #sensor node location needs to be updated, delete the original inserted SensorNd first
