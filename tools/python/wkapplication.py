@@ -208,7 +208,7 @@ class WuApplication:
     self.xml = config['xml']
     try:
       dom = parseString(self.xml)
-      self.setFlowDom()
+      self.setFlowDom(dom)
     except ExpatError:
       pass
 
