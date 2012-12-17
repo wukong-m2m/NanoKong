@@ -48,6 +48,7 @@ int server_port;
 #define WAIT_CRC 8
 #define WAIT_REQUEST 9
 #define WAIT_RETRANSMIT 10
+#define WAIT_INIT 11
 
 unsigned char basic_get_report[]={0x20,2};
 int zwavefd = -1;
