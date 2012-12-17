@@ -295,6 +295,10 @@ class WuApplication:
     logging.info("Mapping results")
     logging.info(self.mapping_results)
 
+  def deploy_with_discovery(*args):
+    node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
+    self.deploy(node_ids,*args)
+
   def deploy(self, destination_ids, platforms):
     master_busy()
     app_path = self.dir
