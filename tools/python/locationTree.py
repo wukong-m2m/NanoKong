@@ -30,7 +30,7 @@ class SensorNode:
         self.coord = (x_coord,y_coord,z_coord)
         self.life = MAX_LIFE
         self.port_list = []
-        self.temp_port = []
+        self.temp_port_list = []
         
     def initPortList(self, forceInit = True):
         if len(self.port_list)!=0 and forceInit == False:
@@ -40,12 +40,11 @@ class SensorNode:
         self.port_list.sort()
     def reserveNextPort(self):
         portSet = False
-        for j in range(len(self.temp_port)):
-            self.port_list.remove(temp_port)
+        
         for j in range(len(self.port_list)):
             if (self.port_list[j]+1)%256 !=self.port_list[(j+1)%len(self.port_list)]:
                 self.port_list.append((self.port_list[j]+1)%256)
-                self.temp_port.append((self.port_list[j]+1)%256)
+                self.temp_port_list.append((self.port_list[j]+1)%256)
                 self.port_list.sort()
                 portSet =True
                 return (self.port_list[j]+1)%256

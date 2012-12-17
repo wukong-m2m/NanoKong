@@ -49,7 +49,10 @@ def firstCandidate(app, wuObjects, locTree):
         else:
             locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
 
-            locURLHandler.parseURL()
+            ret_val = locURLHandler.parseURL()
+            if ret_val == False:
+              app.error ('Wrong location requirement given for component id '+str(wuObject[0].getWuClassId()))
+              return False
             tmpSet = locURLHandler.solveParseTree()
 
             logging.info("query")
@@ -102,17 +105,16 @@ def firstCandidate(app, wuObjects, locTree):
         if actualGroupSize > len(candidateSet):
             actualGroupSize = len(candidateSet)
         groupMemberIds = candidateSet[:actualGroupSize]
+        print groupMemberIds
 
         candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
         candidateSet.reverse()
         #select the first candidates who satisfies the condiditon
         app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
 
-        final_list = []
-
         shadow = copy.deepcopy(wuObject[0])
         del wuObject[:]
-
+        
         for candidate in candidateSet[:actualGroupSize]:
             tmp = copy.deepcopy(shadow)
             tmp.setNodeId(candidate[0])
@@ -120,9 +122,20 @@ def firstCandidate(app, wuObjects, locTree):
             tmp.setHasWuClass(candidate[2])
             tmp.setOccupied(True)
             wuObject.append(tmp)
+        for unused in candidateSet[actualGroupSize:]:
+            senNd = locTree.getSensorById(unused[0])
+            senNd.temp_port_list.remove(unused[1])
+            senNd.port_list.remove(unused[1])
 
         logging.info(wuObject)
-        
+    #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
+    for key in wuObjects.keys():
+        comp = wuObjects[key]
+        for wuobj in comp:
+            senNd = locTree.getSensorById(wuobj.getNodeId())
+            for j in senNd.temp_port_list:
+                senNd.port_list.remove(j)
+            senNd.temp_port_list = []
     return True
 
 class WuApplication:
