@@ -411,6 +411,7 @@ function poll(url, version, options, callback)
                 poll(url, data.version, options, callback);
             }, 1000);
         }
+        window.polling = null;
     });
 }
 
