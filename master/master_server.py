@@ -299,15 +299,7 @@ class deploy_application(tornado.web.RequestHandler):
       # signal deploy in other greenlet task
       wusignal.signal_deploy(platforms)
       set_active_application_index(app_ind)
-      
-      #TODO: need to examine if the deployment is success or not, no need to roll back temporary assignment only on success deployment
-      #Currently, it just assumes the deployment is success. if not, we can always use re-discovery to make the content of location tree right
-      for key, value in applications[app_ind].mapping_results.items():
-        for ind, wuobj in enumerate(value):
-            nd = location_tree.getSensorNodeById(wuobj.getNodeId().temp_port)
-            if wuobj.getPortNumber() in nd.temp_port: #remove from temp list so we do not need to roll back the port assignment after deployment
-               nd.temp_port.remove(wuobj.getPortNumber())
-      
+           
       self.content_type = 'application/json'
       self.write({'status':0, 'version': applications[app_ind].version})
 
