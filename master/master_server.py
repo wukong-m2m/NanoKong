@@ -137,7 +137,7 @@ class list_applications(tornado.web.RequestHandler):
   def post(self):
     global applications
     update_applications()
-    apps = [application.config() for application in applications]
+    apps = sorted([application.config() for application in applications], key=lambda k: k['name'])
     self.content_type = 'application/json'
     self.write(json.dumps(apps))
 
@@ -261,6 +261,7 @@ class deploy_application(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
+        master_available()
         deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], app_id=app_id, node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results, set_location=False)
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
