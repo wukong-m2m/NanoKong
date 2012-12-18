@@ -308,7 +308,7 @@ class WuApplication:
     logging.info("Mapping results")
     logging.info(self.mapping_results)
 
-  def deploy_with_discovery(*args):
+  def deploy_with_discovery(self,*args):
     node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
     self.deploy(node_ids,*args)
 
