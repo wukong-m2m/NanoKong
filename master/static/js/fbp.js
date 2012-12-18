@@ -35,6 +35,7 @@ $(document).ready(function() {
     $('#toolbar_save').click(function() {
         FBP_save();
     });
+	toolbar.append('<td valign=top><select id=pagelist></select></td>');
     toolbar.append('</tr></table>');
 
     /*
@@ -294,6 +295,9 @@ function FBP_loadFromServer(id)
         success: function(r) {
             if (console) console.log(r);
             FBP_parseXML(r.xml);
+			$('#pagelist').append('<option value="111">11111</option>');
+			$('#pagelist').append('<option value="222">2222w</option>');
+			$('#pagelist').append('<option value="333">33333</option>');
             return;
             meta = JSON.parse(r);
             $('#content').empty();
