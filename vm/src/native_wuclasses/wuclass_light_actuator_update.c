@@ -16,10 +16,15 @@ void wuclass_light_actuator_update(wkpf_local_wuobject *wuobject) {
   // Connect light to port B, bit 4. This maps to pin 3 of JP18 on the WuNode (pin 1 is behind the power connector)
   // SETOUPUT
   DDRB |= _BV(4);
+  DDRB |= _BV(7);
   if (onOff)
     PORTB |= _BV(4);
   else
     PORTB &= ~_BV(4);
+  if (onOff)
+    PORTB |= _BV(7);
+  else
+    PORTB &= ~_BV(7);
   DEBUGF_WKPFUPDATE("WKPFUPDATE(Light): Setting light to: %x\n", onOff);
 }
 
