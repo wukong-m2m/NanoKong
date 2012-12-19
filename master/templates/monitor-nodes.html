@@ -53,6 +53,7 @@
 </div>
 
 <script>
+
     $(function() {
         $('#myModal').hide();
 
@@ -75,10 +76,18 @@
             var nodeId = $.trim($(this).closest('tr').find('#nodeId').text());
             console.log(nodeId);
             console.log($(this).prev().val());
+            var tmp_loc = $(this).prev().val();
+            
+            if(tmp_loc==""){
+              tmp_loc = '/'+'{{ default_location }}'+'#(0,0,0)'
+              $(this).prev().val(tmp_loc);
+              console.log(tmp_loc)
+            }
+                    
             $.ajax('/nodes/' + nodeId, {
                 type: 'PUT',
                 dataType: 'json',
-                data: {location: $.trim($(this).prev().val())},
+                data: {location: tmp_loc},
                 success: function(data) {
                     //data = JSON.parse(data);
                     if (data.status == 1) {
@@ -90,10 +99,9 @@
     });
 
     {% for node_info in node_infos %}
-
+    
     $('#node{{ node_info.nodeId }}').click(function(e) {
         e.preventDefault();
-
         console.log('click');
         $('#myModal .modal-header').html('Node Info');
         $('#myModal .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");

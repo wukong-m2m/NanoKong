@@ -450,11 +450,13 @@ function FBP_toXML(gnodes,glines)
 function Signal(name)
 {
     this.name = name;
+//    this.type = type;
 }
 
 function Action(name)
 {
     this.name = name;
+//    this.type = type;
 }
 
 
