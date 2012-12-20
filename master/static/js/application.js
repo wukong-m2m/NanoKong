@@ -145,7 +145,7 @@ function application_fillList(r)
                                 poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
                                     console.log(data)
                                     if (data.wukong_status == "" && data.application_status == "") {
-                                        $('#deploy_results').dialog('close');
+                                        $('#deploy_results').dialog('destroy');
                                     } else {
                                         $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
                                     }
@@ -262,7 +262,7 @@ function application_polling(app_id)
     poll('/applications/' + app_id + '/poll', 0, window.options, function(data) {
         console.log(data)
         if (data.wukong_status == "" && data.application_status == "") {
-            $('#deploy_results').dialog('close');
+            $('#deploy_results').dialog('destroy');
         } else {
             $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
         }
@@ -387,15 +387,6 @@ function poll(url, version, options, callback)
 
     console.log('polling');
     $.post(url, {version: version}, function(data) {
-        if (typeof callback != 'undefined') {
-            callback(data)
-        }
-
-        _.each(data.logs, function(line) {
-            if (line != '') {
-                $('#log').append('<pre>' + line + '</pre>');
-            }
-        });
 
         // TODO:mapping_results too
         // TODO:node infos too
@@ -411,6 +402,15 @@ function poll(url, version, options, callback)
                 poll(url, data.version, options, callback);
             }, 1000);
         }
+        if (typeof callback != 'undefined') {
+            callback(data)
+        }
+
+        _.each(data.logs, function(line) {
+            if (line != '') {
+                $('#log').append('<pre>' + line + '</pre>');
+            }
+        });
         window.polling = null;
     });
 }
