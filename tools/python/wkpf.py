@@ -191,6 +191,8 @@ class WuProperty:
         return self._access
 
     def getCurrentValue(self):
+        if self._current_value == None:
+            return self._default
         return self._current_value
 
     def setCurrentValue(self, value):
@@ -221,11 +223,26 @@ class WuClass:
         return "WuClass %s (id=%d, virt=%s, soft=%s) prop:%s" % (self._name, self._id,str(self._virtual),str(self._soft),str(self._properties))
 
     def getPropertyByName(self, name):
-        return self._properties[name]
+        if name in self._properties:
+            return self._properties[name]
+        return None
 
     def setPropertyByName(self, name, property):
-        self._properties[name] = property
-
+        if name in self._properties:
+            self._properties[name] = property
+            return True
+        return False
+    
+    def getPropertyValueByName(self, name):
+        if name in self._properties:
+            return prop.getCurrentValue()
+        return None
+            
+    def setPropertyValueByName(self, name, value):
+        if name in self._properties:
+            prop =  self._properties[name]
+            prop.setCurrentValue(value)
+            
     def getJavaGenClassName(self):
         return "GENERATEDVirtual" + Convert.to_java(self._name) + "WuObject"
 
