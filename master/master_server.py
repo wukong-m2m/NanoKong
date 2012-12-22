@@ -137,7 +137,7 @@ class list_applications(tornado.web.RequestHandler):
   def post(self):
     global applications
     update_applications()
-    apps = [application.config() for application in applications]
+    apps = sorted([application.config() for application in applications], key=lambda k: k['name'])
     self.content_type = 'application/json'
     self.write(json.dumps(apps))
 
@@ -192,6 +192,8 @@ class application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
+      # active application
+      set_active_application_index(app_ind)
       app = applications[app_ind].config()
       #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
       topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind], title="Flow Based Programming")
@@ -259,21 +261,25 @@ class deploy_application(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
+        master_available()
         deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], app_id=app_id, node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results, set_location=False)
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
-
+      
     except Exception as e:
       print e
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
 
   def post(self, app_id):
+    global location_tree
     app_ind = getAppIndex(app_id)
 
     set_wukong_status("Start deploying")
     applications[app_ind].status = "    "
-
+    if SIMULATION==1:
+      from translator import generateJava
+      generateJava(applications[app_ind])
 
     if app_ind == None:
       self.content_type = 'application/json'
@@ -295,6 +301,7 @@ class deploy_application(tornado.web.RequestHandler):
       # signal deploy in other greenlet task
       wusignal.signal_deploy(platforms)
       set_active_application_index(app_ind)
+           
       self.content_type = 'application/json'
       self.write({'status':0, 'version': applications[app_ind].version})
 

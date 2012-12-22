@@ -151,6 +151,7 @@ class LocationURL:
 			return False
 		self._parse2Functions(tmpStrLst[1])
 		self._createNodeIdSet()
+		return True
 	
 	
 class URLFunction:

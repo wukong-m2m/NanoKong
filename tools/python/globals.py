@@ -3,7 +3,7 @@ applications = []
 location_tree = None
 wukong_status = ""
 
-MASTER_BUSY = False
+MASTER_BUSY = True
 
 def is_master_busy():
     global MASTER_BUSY

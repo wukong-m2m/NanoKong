@@ -6,6 +6,7 @@
 # Author: B.L.Tsai
 # Date: Jun 10, 2012
 
+#It seems only generateJava() is used here --- Sen 12/18/2012
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
@@ -372,7 +373,7 @@ def generateJava(application):
     wuObjects = sorted(application.wuObjects.values(), key=lambda obj: obj[0].getInstanceIndex())
         
     print 'generating', os.path.join(application.destinationDir, application.applicationName+".java")
-    
+    print wuObjects[0][0].getProperties()
 
     output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName, wuObjects=wuObjects, wuLinks=application.wuLinks))
     output.close()

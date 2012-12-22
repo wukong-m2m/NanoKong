@@ -3,7 +3,6 @@ import gevent
 from gevent.event import AsyncResult
 import pynvc
 import logging
-from wkpfcomm import getComm
 
 signal_reconfiguration = False
 signal_deployment = None
@@ -31,8 +30,9 @@ def signal_handler():
             if signal_deployment:
                 if len(applications) > 0:
                     gevent.sleep(2)
-                    node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
-                    active_application().deploy(node_ids,*signal_deployment)
+                    active_application().deploy_with_discovery(*signal_deployment)
+                    #node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
+                    #active_application().deploy(node_ids,*signal_deployment)
                     signal_deployment = None
 
         gevent.sleep(0.15)

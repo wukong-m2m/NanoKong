@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath("../../master"))
 from wkpf import *
 from locationTree import *
 from xml.dom.minidom import parse, parseString
+from xml.parsers.expat import ExpatError
 import simplejson as json
 import logging
 import logging.handlers
@@ -48,7 +49,10 @@ def firstCandidate(app, wuObjects, locTree):
         else:
             locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
 
-            locURLHandler.parseURL()
+            ret_val = locURLHandler.parseURL()
+            if ret_val == False:
+              app.error ('Wrong location requirement given for component id '+str(wuObject[0].getWuClassId()))
+              return False
             tmpSet = locURLHandler.solveParseTree()
 
             logging.info("query")
@@ -101,17 +105,16 @@ def firstCandidate(app, wuObjects, locTree):
         if actualGroupSize > len(candidateSet):
             actualGroupSize = len(candidateSet)
         groupMemberIds = candidateSet[:actualGroupSize]
+        print groupMemberIds
 
         candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
         candidateSet.reverse()
         #select the first candidates who satisfies the condiditon
         app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
 
-        final_list = []
-
         shadow = copy.deepcopy(wuObject[0])
         del wuObject[:]
-
+        
         for candidate in candidateSet[:actualGroupSize]:
             tmp = copy.deepcopy(shadow)
             tmp.setNodeId(candidate[0])
@@ -119,9 +122,20 @@ def firstCandidate(app, wuObjects, locTree):
             tmp.setHasWuClass(candidate[2])
             tmp.setOccupied(True)
             wuObject.append(tmp)
+        for unused in candidateSet[actualGroupSize:]:
+            senNd = locTree.getSensorById(unused[0])
+            senNd.temp_port_list.remove(unused[1])
+            senNd.port_list.remove(unused[1])
 
         logging.info(wuObject)
-        
+    #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
+    for key in wuObjects.keys():
+        comp = wuObjects[key]
+        for wuobj in comp:
+            senNd = locTree.getSensorById(wuobj.getNodeId())
+            for j in senNd.temp_port_list:
+                senNd.port_list.remove(j)
+            senNd.temp_port_list = []
     return True
 
 class WuApplication:
@@ -205,7 +219,11 @@ class WuApplication:
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
-    self.setFlowDom(parseString(self.xml))
+    try:
+      dom = parseString(self.xml)
+      self.setFlowDom(dom)
+    except ExpatError:
+      pass
 
   def saveConfig(self):
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
@@ -236,14 +254,17 @@ class WuApplication:
           # a copy of wuclass
           wuClass = copy.deepcopy(self.wuClasses[componentTag.getAttribute('type')])
 
-          # TODO: for java variable instantiation
-          for propertyTag in componentTag.getElementsByTagName('property'):
-              assert propertyTag.getAttribute('name') in wuClass
+          # set properties from FBP to wuclass properties
+          for propertyTag in componentTag.getElementsByTagName('signalProperty'):
+              for attr in propertyTag.attributes.values():
+                  if len(attr.value) !=0:
+                      wuClass.setPropertyValueByName(attr.name, attr.value)
 
-              wuProperty = wuClass.getPropertyByName(propertyTag.getAttribute('name'))
-              if propertyTag.getAttribute('default'):
-                  wuProperty.setDefault(propertyTag.getAttribute('default'))
-
+          for propertyTag in componentTag.getElementsByTagName('actionProperty'):
+              for attr in propertyTag.attributes.values():
+                  if len(attr.value) !=0:
+                      wuClass.setPropertyValueByName(attr.name, attr.value)
+                      
           queries = []
           #assume there is one location requirement per component in application.xml
           for locationQuery in componentTag.getElementsByTagName('location'):
@@ -290,9 +311,14 @@ class WuApplication:
     logging.info("Mapping results")
     logging.info(self.mapping_results)
 
+  def deploy_with_discovery(self,*args):
+    node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
+    self.deploy(node_ids,*args)
+
   def deploy(self, destination_ids, platforms):
     master_busy()
     app_path = self.dir
+    
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
 
