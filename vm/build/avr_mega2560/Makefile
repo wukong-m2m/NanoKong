@@ -30,7 +30,7 @@ AVRDUDE = $(ROOT_DIR)/tools/avrdude
 endif
 
 # general GCC compiler flags
-CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline
+CFLAGS = -std=gnu99 -Wall -Werror -pedantic-errors -Wundef -Wno-long-long -Winline -ggdb
 
 # AVR compiler setup
 #PREFIX = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin/
