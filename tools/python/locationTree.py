@@ -93,7 +93,25 @@ class LocationTreeNode:
             if landmarkId == landmarkNd.id:
                 self.landmarkLst.remove(landmarkNd)
                 del landmarkNd
-    
+                
+    def findLandmarksByName(self, landmarkName):
+        retlst = []
+        for landmarkNd in self.landmarkLst:
+            if landmarkName == landmarkNd.name:
+                retLst.append(landmarkNd)
+        for child in self.children:
+            retLst = retLst + child.findLandmarkByName(landmarkName)
+        return retLst
+        
+    def findLandmarkById(self, landmarkId):
+        for landmarkNd in self.landmarkLst:
+            if landmarkId == landmarkNd.id:
+                return landmarkNd
+        for child in self.children:
+            result = child.findLandmarkById(landmarkId)
+            if result != None:
+                return result
+        return None
     
     def delSensor(self, sensorNode):
         self.sensorLst.remove(sensorNode)
