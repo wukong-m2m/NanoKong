@@ -254,14 +254,17 @@ class WuApplication:
           # a copy of wuclass
           wuClass = copy.deepcopy(self.wuClasses[componentTag.getAttribute('type')])
 
-          # TODO: for java variable instantiation
-          for propertyTag in componentTag.getElementsByTagName('property'):
-              assert propertyTag.getAttribute('name') in wuClass
+          # set properties from FBP to wuclass properties
+          for propertyTag in componentTag.getElementsByTagName('signalProperty'):
+              for attr in propertyTag.attributes.values():
+                  if len(attr.value) !=0:
+                      wuClass.setPropertyValueByName(attr.name, attr.value)
 
-              wuProperty = wuClass.getPropertyByName(propertyTag.getAttribute('name'))
-              if propertyTag.getAttribute('default'):
-                  wuProperty.setDefault(propertyTag.getAttribute('default'))
-
+          for propertyTag in componentTag.getElementsByTagName('actionProperty'):
+              for attr in propertyTag.attributes.values():
+                  if len(attr.value) !=0:
+                      wuClass.setPropertyValueByName(attr.name, attr.value)
+                      
           queries = []
           #assume there is one location requirement per component in application.xml
           for locationQuery in componentTag.getElementsByTagName('location'):
@@ -315,6 +318,7 @@ class WuApplication:
   def deploy(self, destination_ids, platforms):
     master_busy()
     app_path = self.dir
+    
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
 

@@ -275,7 +275,9 @@ class deploy_application(tornado.web.RequestHandler):
 
     set_wukong_status("Start deploying")
     applications[app_ind].status = "    "
-
+    if SIMULATION==1:
+      from translator import generateJava
+      generateJava(applications[app_ind])
 
     if app_ind == None:
       self.content_type = 'application/json'
