@@ -38,25 +38,16 @@ function init()
         $('#application').parent().removeClass('active');
         $('#locationTree').parent().addClass('active');
         window.options.repeat = false;
-        $.post('/test/tree', function(data) {
-            make_tree(data);
-            $('#content').append(data.node);
-/*
-            $.ajax({
-                url: '/test/tree',
-                type: 'POST',
-                dataType: 'json',
-                success: function(r) {
-                    make_tree(r);
-                }
-            });
-*/
-        });
+        $.post('/loc_tree', function(data) {
+	    		make_tree(data);
+	    		$('#content').append(data.node);
+	    		load_furniture(data.xml);	    		
+		});                    
     });
     
     application_fill();
+    
 }
-
 
 function application_fill()
 {
@@ -135,26 +126,23 @@ function application_fillList(r)
                             $('#content').unblock();
 
                             // start polling
-                            if(window.polling == null) {
-                                window.options = {repeat: true};
-                                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300});
-                                $('#deploy_results #wukong_status').text('Waiting from master');
-                                $('#deploy_results #application_status').text("");
+                            window.options = {repeat: true};
+                            $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+                            $('#deploy_results #wukong_status').text('Waiting from master');
+                            $('#deploy_results #application_status').text("");
 
-                                window.polling = true;
-                                poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
-                                    console.log(data)
-                                    if (data.wukong_status == "" && data.application_status == "") {
-                                        $('#deploy_results').dialog('destroy');
-                                    } else {
-                                        $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
-                                    }
+                            poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
+                                console.log(data)
+                                if (data.wukong_status == "" && data.application_status == "") {
+                                    $('#deploy_results').dialog('close');
+                                } else {
+                                    $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+                                }
 
-                                    $('#deploy_results #wukong_status').text(data.wukong_status);
-                                    $('#deploy_results #application_status').text(data.application_status);
+                                $('#deploy_results #wukong_status').text(data.wukong_status);
+                                $('#deploy_results #application_status').text(data.application_status);
 
-                                });
-                            }
+                            });
                         }
                     });
                 }
@@ -387,6 +375,15 @@ function poll(url, version, options, callback)
 
     console.log('polling');
     $.post(url, {version: version}, function(data) {
+        if (typeof callback != 'undefined') {
+            callback(data)
+        }
+
+        _.each(data.logs, function(line) {
+            if (line != '') {
+                $('#log').append('<pre>' + line + '</pre>');
+            }
+        });
 
         // TODO:mapping_results too
         // TODO:node infos too
@@ -419,25 +416,32 @@ function poll(url, version, options, callback)
 function make_tree(rt)
 {
 	$('#content').empty();
+	$('#content').append('<script type="text/javascript" src="/static/js/jquery.js"></script>'+
+		'<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
+		'<script type="text/javascript" src="/static/js/tree_expand.js"></script>');
+
 	var r = JSON.parse(rt.loc);
     var temp = 0
-    var html_tree = '<script type="text/javascript" src="/static/js/jquery.js"></script><script type="text/javascript" src="/static/js/jquery.treeview.js"></script><script type="text/javascript" src="/static/js/tree_expand.js"></script>'
+    var html_tree = ''
+    html_tree = '<table width="100%">'
+    html_tree += '<tr><td width="5%"></td><td></td><td></td></tr>'
+    html_tree += '<tr><td></td><td>'
     html_tree += '<ul id="display" class="treeview">'
     for( i in r){
 		l = i % 10
 		if(l == 0){
-			html_tree += '<li id="'+ r[i] +'">'+r[i]
+			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
 		}else if(l == temp){
 			if(r[i].indexOf("#") == -1){
-				html_tree += '</li><li role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#dispObj" class="btn more">'+r[i]
+				html_tree += '</li><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
 			}else{
-				html_tree += '</li><li id="'+ r[i] +'">'+r[i]
+				html_tree += '</li><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0.-1)
 			}
 		}else if(l > temp){
 			if(r[i].indexOf("#") == -1){
-				html_tree += '<ul><li role=button id="node'+r[i].substring(0,1)+'" data-toggle=modal href="#dispObj" class="btn more">'+r[i]
+				html_tree += '<ul><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
 			}else{
-				html_tree += '<ul><li id="'+ r[i] +'">'+r[i]
+				html_tree += '<ul><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
 			}
 		}else if(l < temp){
 			m = temp - l
@@ -449,7 +453,7 @@ function make_tree(rt)
 					html_tree += '</li>'
 				}
 			}
-			html_tree += '<li id="'+ r[i] +'">'+r[i]
+			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
 		}
 
 		temp = l
@@ -458,13 +462,16 @@ function make_tree(rt)
 	for(var j=0; j<temp+1; j++){
 		html_tree += '</li></ul>'
 	}
-	
+	html_tree += '</td><td valign="top">'
+	html_tree += '<button id="saveTree">SAVE</button>'+
+				 '<button id="addNode">ADD</button>'+
+				 '<button id="delNode">DEL</button>'+
+				 '<button type="button" class="change-location">Set Location</button><br>'+
+				 'SensorID <input id="SensorId" type=text size="10"><br>'+
+				 'Location <input id="locName" type=text size="100"><br>'
+	html_tree += 'Add/Del Furniture <input id="node_addDel" type=text size="50"><br>'
+//	html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
+	html_tree += '</td></tr></table>'
 	$('#content').append(html_tree);
 }
 
-function DebugPrint(str)
-{
-    var out = document.getElementById("debug");
-    if (!out) return;
-    out.value += str;
-}

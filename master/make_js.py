@@ -17,11 +17,13 @@ def addHead(name):
 
 def addSignal(name, signal):
 	g = open("./static/js/__comp__"+ name.lower()+".js","a")
+#	g.write("\t"+"this.addSignal( new Signal('"+ signal + "','"+ _type +"'));"+"\n")
 	g.write("\t"+"this.addSignal( new Signal('"+ signal + "'));"+"\n")
 	g.close()
 
 def addAction(name, action):
 	g = open("./static/js/__comp__"+ name.lower()+".js","a")
+#	g.write("\t"+"this.addAction( new Action('"+ action + "','"+ _type +"'));"+"\n")
 	g.write("\t"+"this.addAction( new Action('"+ action + "'));"+"\n")
 	g.close()
 
@@ -45,6 +47,7 @@ def getName(list,_name):
 
 def getPropertyName(list,fileName):
     propertyName = getName(list,"name")
+    dataType = getName(list, "datatype")
     kind = getName(list,"access")
     if kind == "readonly":
         addSignal(fileName,propertyName)
