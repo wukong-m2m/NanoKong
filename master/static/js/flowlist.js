@@ -20,7 +20,7 @@ FlowList.prototype.delFlow=function(idx) {
 FlowList.prototype.getFlowText=function() {
 	return this.list;
 }
-FlowList.prototype.addClick(idx)
+FlowList.prototype.addClick=function(idx)
 {
 	var self=this;
 	$('#flowlist_'+idx).click(function() {

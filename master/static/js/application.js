@@ -1,12 +1,15 @@
 // vim: ts=4 sw=4
+
+window.polling = null;
+
 $(document).ready(function() {
-    application_init();
+    init();
 });
 
-function application_init()
+function init()
 {
-
     window.options = {repeat: false};
+    // Top bar
     $('#application').click(function() {
         $('#node-editor').parent().removeClass('active');
         $('#application').parent().addClass('active');
@@ -46,70 +49,6 @@ function application_init()
     
 }
 
-function make_tree(rt)
-{
-	$('#content').empty();
-	$('#content').append('<script type="text/javascript" src="/static/js/jquery.js"></script>'+
-		'<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
-		'<script type="text/javascript" src="/static/js/tree_expand.js"></script>');
-
-	var r = JSON.parse(rt.loc);
-    var temp = 0
-    var html_tree = ''
-    html_tree = '<table width="100%">'
-    html_tree += '<tr><td width="5%"></td><td></td><td></td></tr>'
-    html_tree += '<tr><td></td><td>'
-    html_tree += '<ul id="display" class="treeview">'
-    for( i in r){
-		l = i % 10
-		if(l == 0){
-			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
-		}else if(l == temp){
-			if(r[i].indexOf("#") == -1){
-				html_tree += '</li><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
-			}else{
-				html_tree += '</li><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0.-1)
-			}
-		}else if(l > temp){
-			if(r[i].indexOf("#") == -1){
-				html_tree += '<ul><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
-			}else{
-				html_tree += '<ul><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
-			}
-		}else if(l < temp){
-			m = temp - l
-			for(var j=0; j<m ;j++){
-				html_tree += '</li></ul>'
-			}
-			if(m > 1){
-				for(var j=0; j<m-1 ;j++){
-					html_tree += '</li>'
-				}
-			}
-			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
-		}
-
-		temp = l
-	}
-	
-	for(var j=0; j<temp+1; j++){
-		html_tree += '</li></ul>'
-	}
-	html_tree += '</td><td valign="top">'
-	html_tree += '<button id="saveTree">SAVE</button>'+
-				 '<button id="addNode">ADD</button>'+
-				 '<button id="delNode">DEL</button>'+
-				 '<button type="button" class="change-location">Set Location</button><br>'+
-				 'SensorID <input id="SensorId" type=text size="10"><br>'+
-				 'Location <input id="locName" type=text size="100"><br>'
-	html_tree += 'Add/Del Furniture <input id="node_addDel" type=text size="50"><br>'
-//	html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
-	html_tree += '</td></tr></table>'
-	$('#content').append(html_tree);
-}
-
-
-
 function application_fill()
 {
     $('#content').empty();
@@ -140,20 +79,24 @@ function application_fillList(r)
     var i;
     var len = r.length;
     var m = $('#content');
-    var obj, act;
 
     applist = $('<table id=applist></table>');
     for(i=0; i<len; i++) {
+        // Html elements
         var appentry = $('<tr class=listitem></tr>');
+        var name = $('<td class=appname data-app_id="' + r[i].id + '" id=appname'+i+'><b><i>' + r[i].name + '</i></b></td>');
+        var act = $('<td class=appact id=appact'+i+'></td>');
 
-        var name = $('<td class=appname id=appname'+i+'></td>');
-        //name.html('<a app_id="' + r[i].id + '" href="#">' + r[i].name + '</a>');
-        name.html('<b app_id="' + r[i].id + '"><i>' + r[i].name + '</i></b>');
+        // Acts
+        //var monitor = $('<button class=appmonitor data-app_id="' + r[i].id + '" id=appmonitor'+i+'></button>');
+        //var deploy = $('<button class=appdeploy data-app_id="' + r[i].id + '" id=appdeploy'+i+'></button>');
+        //var remove = $('<button class=appdel data-app_id="' + r[i].id + '" id=appdel'+i+'></button>');
+        var remove = $('<button class=close data-app_id="' + r[i].id + '" id=appdel'+i+'>&times;</button>');
 
-        var index = i;
+        // Enter application
         name.click(function() {
             var topbar;
-            var app_id = $(this).find('b').attr('app_id');
+            var app_id = $(this).data('app_id');
 
             $('#content').empty();
             $('#content').block({
@@ -171,7 +114,7 @@ function application_fillList(r)
                     //$('#content').html('<div id="topbar"></div><iframe width="100%" height="100%" src="/applications/' + app_id + '/fbp/load"></iframe>');
 
                     topbar = data.topbar;
-                    $.get('/applications/' + id + '/deploy', function(data) {
+                    $.get('/applications/' + app_id + '/deploy', function(data) {
                         if (data.status == 1) {
                             alert(data.mesg);
                             application_fill();
@@ -206,16 +149,6 @@ function application_fillList(r)
             });
         });
 
-        var act = $('<td class=appact id=appact'+i+'></td>');
-
-        // solution against lazy evaluation
-        var id = r[i].id;
-
-        //var monitor = $('<button class=appmonitor id=appmonitor'+i+'></button>');
-        //var deploy = $('<button class=appdeploy id=appdeploy'+i+'></button>');
-        //var remove = $('<button class=appdel id=appdel'+i+'></button>');
-        var remove = $('<button class=close id=appdel'+i+'>&times;</button>');
-
 /*
         monitor.click(function() {
             $('#content').empty();
@@ -226,12 +159,12 @@ function application_fillList(r)
                 css: { border: '3px solid #a00' }
             });
 
-            $.get('/applications/' + id, {title: "Monitoring"}, function(data) {
+            $.get('/applications/' + app_id, {title: "Monitoring"}, function(data) {
                 if (data.status == 1) {
                     alert(data.mesg);
                 } else {
                     topbar = data.topbar;
-                    $.get('/applications/' + id + '/monitor', function(data) {
+                    $.get('/applications/' + app_id + '/monitor', function(data) {
                         if (data.status == 1) {
                             alert(data.mesg);
                             application_fill();
@@ -256,12 +189,12 @@ function application_fillList(r)
                 css: { border: '3px solid #a00' }
             });
 
-            $.get('/applications/' + id, {title: "Deployment"}, function(data) {
+            $.get('/applications/' + app_id, {title: "Deployment"}, function(data) {
                 if (data.status == 1) {
                     alert(data.mesg);
                 } else {
                     topbar = data.topbar;
-                    $.get('/applications/' + id + '/deploy', function(data) {
+                    $.get('/applications/' + app_id + '/deploy', function(data) {
                         if (data.status == 1) {
                             alert(data.mesg);
                             application_fill();
@@ -279,9 +212,10 @@ function application_fillList(r)
 */
 
         remove.click(function() {
+            var app_id = $(this).data('app_id');
             $.ajax({
                 type: 'delete',
-                url: '/applications/' + id,
+                url: '/applications/' + app_id,
                 success: function(data) {
                     if (data.status == 1) {
                         alert(data.mesg);
@@ -303,6 +237,28 @@ function application_fillList(r)
     }
 
     m.append(applist);
+}
+
+function application_polling(app_id)
+{
+    // start polling
+    window.options = {repeat: true};
+    $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+    $('#deploy_results #wukong_status').text('Waiting from master');
+    $('#deploy_results #application_status').text("");
+
+    poll('/applications/' + app_id + '/poll', 0, window.options, function(data) {
+        console.log(data)
+        if (data.wukong_status == "" && data.application_status == "") {
+            $('#deploy_results').dialog('destroy');
+        } else {
+            $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+        }
+
+        $('#deploy_results #wukong_status').text(data.wukong_status);
+        $('#deploy_results #application_status').text(data.application_status);
+
+    });
 }
 
 function content_scaffolding(topbar, editor)
@@ -443,5 +399,79 @@ function poll(url, version, options, callback)
                 poll(url, data.version, options, callback);
             }, 1000);
         }
+        if (typeof callback != 'undefined') {
+            callback(data)
+        }
+
+        _.each(data.logs, function(line) {
+            if (line != '') {
+                $('#log').append('<pre>' + line + '</pre>');
+            }
+        });
+        window.polling = null;
     });
 }
+
+
+function make_tree(rt)
+{
+	$('#content').empty();
+	$('#content').append('<script type="text/javascript" src="/static/js/jquery.js"></script>'+
+		'<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
+		'<script type="text/javascript" src="/static/js/tree_expand.js"></script>');
+
+	var r = JSON.parse(rt.loc);
+    var temp = 0
+    var html_tree = ''
+    html_tree = '<table width="100%">'
+    html_tree += '<tr><td width="5%"></td><td></td><td></td></tr>'
+    html_tree += '<tr><td></td><td>'
+    html_tree += '<ul id="display" class="treeview">'
+    for( i in r){
+		l = i % 10
+		if(l == 0){
+			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
+		}else if(l == temp){
+			if(r[i].indexOf("#") == -1){
+				html_tree += '</li><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
+			}else{
+				html_tree += '</li><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0.-1)
+			}
+		}else if(l > temp){
+			if(r[i].indexOf("#") == -1){
+				html_tree += '<ul><li id="node'+r[i].substring(0,1)+'" data-toggle=modal  role=button class="btn" >'+r[i]
+			}else{
+				html_tree += '<ul><li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
+			}
+		}else if(l < temp){
+			m = temp - l
+			for(var j=0; j<m ;j++){
+				html_tree += '</li></ul>'
+			}
+			if(m > 1){
+				for(var j=0; j<m-1 ;j++){
+					html_tree += '</li>'
+				}
+			}
+			html_tree += '<li class="parent" id="'+ r[i].slice(0,-1) +'">'+r[i].slice(0,-1)
+		}
+
+		temp = l
+	}
+	
+	for(var j=0; j<temp+1; j++){
+		html_tree += '</li></ul>'
+	}
+	html_tree += '</td><td valign="top">'
+	html_tree += '<button id="saveTree">SAVE</button>'+
+				 '<button id="addNode">ADD</button>'+
+				 '<button id="delNode">DEL</button>'+
+				 '<button type="button" class="change-location">Set Location</button><br>'+
+				 'SensorID <input id="SensorId" type=text size="10"><br>'+
+				 'Location <input id="locName" type=text size="100"><br>'
+	html_tree += 'Add/Del Furniture <input id="node_addDel" type=text size="50"><br>'
+//	html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
+	html_tree += '</td></tr></table>'
+	$('#content').append(html_tree);
+}
+

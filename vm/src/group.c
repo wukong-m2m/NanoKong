@@ -1,4 +1,4 @@
-#include <avr/eeprom.h>
+#include <eeprom.h>
 #include <string.h>
 #include "types.h"
 #include "delay.h"
@@ -17,18 +17,18 @@ static u08_t prepared_proposal[NVMCOMM_MESSAGE_SIZE]; // Client of a oracle repr
 static group oracle; // GMS service
 static group local_groups[MAX_GROUP_LIST_SIZE]; // GMS service
 
-static bool_t EEMEM eeprom_can_be_oracle = false;
+static bool_t EEPROM eeprom_can_be_oracle = false;
 
-static address_t EEMEM eeprom_found_oracle = NVMCOMM_ADDRESS_NULL; // Don't use this directly!
-static address_t EEMEM eeprom_client_of = NVMCOMM_ADDRESS_NULL; // Don't use this directly!
+static address_t EEPROM eeprom_found_oracle = NVMCOMM_ADDRESS_NULL; // Don't use this directly!
+static address_t EEPROM eeprom_client_of = NVMCOMM_ADDRESS_NULL; // Don't use this directly!
 
-static bool_t EEMEM eeprom_has_proposal = false; // Don't use this directly!
-static u08_t EEMEM eeprom_prepared_proposal[NVMCOMM_MESSAGE_SIZE]; // Don't use this directly!
-static u08_t EEMEM eeprom_prepared_proposal_size = 0; // Don't use this directly!
+static bool_t EEPROM eeprom_has_proposal = false; // Don't use this directly!
+static u08_t EEPROM eeprom_prepared_proposal[NVMCOMM_MESSAGE_SIZE]; // Don't use this directly!
+static u08_t EEPROM eeprom_prepared_proposal_size = 0; // Don't use this directly!
 
-static group EEMEM eeprom_oracle; // Don't use this directly!
-static group EEMEM eeprom_local_groups[MAX_GROUP_LIST_SIZE]; // Don't use this directly!
-static u08_t EEMEM eeprom_local_group_size; // Don't use this directly!
+static group EEPROM eeprom_oracle; // Don't use this directly!
+static group EEPROM eeprom_local_groups[MAX_GROUP_LIST_SIZE]; // Don't use this directly!
+static u08_t EEPROM eeprom_local_group_size; // Don't use this directly!
 
 // INSIGHT: use update varient of write is to extend lifespan of EEPROM by making a
 // check on the content, only write if they differ
@@ -524,7 +524,7 @@ group_init(u08_t flag)
 //////////
 #define HEARTBEAT_INTERVAL 1000
 #define HEARTBEAT_TIMEOUT 2500
-#define INITIALISATION_TIMEOUT 30000
+#define INITIALISATION_TIMEOUT 15000
 #define NOTIFY_TIMEOUT 30000
 
 #define MAX_NUMBER_OF_WATCHED_NODES 10

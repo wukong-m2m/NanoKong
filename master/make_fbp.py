@@ -10,11 +10,11 @@ def addHead():
 	g.write('\n'+
             '<html>'+'\n'+
             '\t'+'<head>'+'\n'+
-            '\t\t'+'<link type="text/css" href="/static/css/smoothness/jquery-ui-1.8.21.custom.css" rel="stylesheet" />'+'\n'+
+            '\t\t'+'<link type="text/css" href="/static/css/smoothness/jquery-ui-1.9.2.custom.css" rel="stylesheet" />'+'\n'+
             '\t\t'+'<link type="text/css" href="/static/css/jquery.contextMenu.css" rel="stylesheet" />'+'\n'+
             '\t\t'+'<link type="text/css" href="/static/css/fbp.css" rel="stylesheet" />'+'\n'+
-            '\t\t'+'<script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>'+'\n'+
-			'\t\t'+'<script type="text/javascript" src="/static/js/jquery-ui-1.8.21.custom.min.js"></script>'+'\n'+
+            '\t\t'+'<script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>'+'\n'+
+			'\t\t'+'<script type="text/javascript" src="/static/js/jquery-ui-1.9.2.custom.min.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/jquery.contextMenu.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/jcanvas.js"></script>'+'\n'+
 			'\t\t'+'<script type="text/javascript" src="/static/js/json2.js"></script>'+'\n'+

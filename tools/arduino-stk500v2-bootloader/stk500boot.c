@@ -96,6 +96,11 @@ LICENSE:
 #include	<stdlib.h>
 #include	"command.h"
 
+// Some older versions of the AVR libraries don't have the eeprom_update_ functions.
+// In that case just use the eeprom_write_ version instead
+#ifndef eeprom_update_byte
+#define eeprom_update_byte eeprom_write_byte
+#endif
 
 #if defined(_MEGA_BOARD_) || defined(_BOARD_AMBER128_) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega2561__)
 //	#define		ENABLE_MONITOR
@@ -869,8 +874,9 @@ int main(void)
 						}
 						else
 						{
+						/*
 						#if (!defined(__AVR_ATmega1280__) && !defined(__AVR_ATmega2560__)  && !defined(__AVR_ATmega2561__))
-							/* write EEPROM */
+							/ * write EEPROM * /
 							do {
 								EEARL	=	address;			// Setup EEPROM address
 								EEARH	=	(address >> 8);
@@ -884,6 +890,11 @@ int main(void)
 								size--;						// Decrease number of bytes to write
 							} while (size);					// Loop until all bytes written
 						#endif
+						*/
+						  do {
+						    eeprom_update_byte(address++, *p++);
+						    size--;						// Decrease number of bytes to write
+              } while (size);
 						}
 							msgLength	=	2;
 						msgBuffer[1]	=	STATUS_CMD_OK;

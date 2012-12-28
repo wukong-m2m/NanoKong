@@ -47,10 +47,12 @@ int server_port;
 #define WAIT_EOF 7
 #define WAIT_CRC 8
 #define WAIT_REQUEST 9
+#define WAIT_RETRANSMIT 10
+#define WAIT_INIT 11
 
 unsigned char basic_get_report[]={0x20,2};
 int zwavefd = -1;
-int zstate = WAIT_SOF;
+int zstate = WAIT_INIT;
 int zwave_ready = 0;
 int testmode=0;
 int ack_got=1;
@@ -72,6 +74,8 @@ int main_ret = 0;
 int repeat_cmd;
 int repeat_nodeid;
 int repeat_value;
+char zwave_retransmit_buffer[64];
+int zwave_retransmit_ptr=0;
 
 char current_status[1024] = "stop";
 
@@ -874,30 +878,42 @@ int SerialAPI_request(unsigned char *buf, int len)
             printf("SerialAPI is not in ready state!!!!!!!!!! zstate=%d\n", zstate);
             printf("Try to send SerialAPI command in a wrong state......\n");
             usleep(100*1000);
+			// ACK the packet no matter what it is
+			c=6;
+			write(zwavefd,&c,1);
             //continue;
         }
+		zstate = WAIT_SOF;
 
         // send SerialAPI request
+		zwave_retransmit_ptr=0;
         c=1;
         write(zwavefd, &c, 1);	// SOF (start of frame)
+		zwave_retransmit_buffer[zwave_retransmit_ptr++] = c;
         c = len+1;
         write(zwavefd, &c, 1);	// len (length of frame)
+		zwave_retransmit_buffer[zwave_retransmit_ptr++] = c;
         wlen = write(zwavefd, buf,len);	// REQ, cmd, data
         if (wlen != len) {
             printf("write fail %d %d\n", len,wlen);
         }
+		for(i=0;i<len;i++) {
+			zwave_retransmit_buffer[zwave_retransmit_ptr++] = buf[i];
+		}
 
         crc = 0xff;
         crc = crc ^ (len+1);
         for(i=0;i<len;i++)
             crc = crc ^ buf[i];
         write(zwavefd,&crc,1);	// LRC checksum
+		zwave_retransmit_buffer[zwave_retransmit_ptr++] = crc;
         if (PyZwave_print_debug_info) {
             printf("Send len=%d ", len+1);
             for(i=0;i<len;i++) 
                 printf("%02x ", buf[i]);
             printf("CRC=0x%x\n", crc);
         }
+		printf("Send request\n");
         zstate = WAIT_ACK;
         ack_got = 0;
 
@@ -930,6 +946,11 @@ int SerialAPI_request(unsigned char *buf, int len)
                 printf("Ack error!!! zstate=%d ack_got=%d c=%d\n", zstate, ack_got, c);
                 //break;
             }
+			if (zstate == WAIT_RETRANSMIT) {
+				zstate = WAIT_SOF;
+				write(zwavefd, zwave_retransmit_buffer, zwave_retransmit_ptr);
+			}
+				
         }
         if (!retry--) {
             printf("SerialAPI request:\n");
@@ -3132,7 +3153,6 @@ void dumpRouteInformation()
     }
     printf("\n");
 }
-
 void zwave_check_state(unsigned char c)
 {
     int i;
@@ -3162,8 +3182,8 @@ void zwave_check_state(unsigned char c)
                 // the host that a host transmitted data frame 
                 // has been dropped.
                 printf("[CAN] SerialAPI frame is dropped by ZW!!!\n");
-                usleep(100*1000);
-                zstate = WAIT_SOF;
+                usleep(50*1000);
+                zstate = WAIT_RETRANSMIT;
             }
             else if (c == ZW_SOF) {
                 printf("       WAIT_ACK: SerialAPI got SOF without ACK ????????\n");

@@ -1,3 +1,5 @@
+
+
 $(function() {
     window.options = {repeat: true};
 
@@ -28,14 +30,22 @@ $(function() {
 
                 console.log(data.mapping_results);
                 if (data.mapping_results) {
-                    $('#deploy').removeAttr('disabled');
+                  $('a#deploy-btn').disabler().disabler("enable");
                 }
                 else {
-                    $('#deploy').attr('disabled', 'disabled');
+                   // $('a#deploy-btn').attr('disabled', 'disabled');
+                   // $('a#deploy-btn').removeAttr('disabled');
+                   alert("No mapping result!")
+                   $('a#deploy-btn').disabler().disabler("disable");
+                   
                 }
-
+                var no_result = false
                 _.each(data.mapping_results, function(result) {
                     var compiled;
+                    if (result.nodeId == null){
+                        $('a#deploy-btn').disabler().disabler("disable");
+                        no_result = true;
+                    }
                     if (result.leader) {
                         compiled = _.template('<tr class=success><td><%= instanceId %></td><td><%= name %></td><td><%= nodeId %></td><td><%= portNumber %></td></tr>');
                     } else {
@@ -43,23 +53,27 @@ $(function() {
                     }
                     $table.append(compiled(result));
                 });
+                if (no_result){
+                    alert("No mapping result!");
+                }
             }
         });
     });
 
     // Actually deploy
-    $('a#log-btn').click(function(e) {
+    $('a#deploy-btn').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
-
         $.post('/applications/' + current_application + '/deploy', function(data) {
             // Already an object
-            console.log('deploy');
-            console.log(data);
+            console.log('deploy signal set');
             if (data.status == 1) {
                 alert(data.mesg);
             } else {
-                poll('/applications/' + current_application + '/poll', 0, window.options);
+                $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open').bind('dialogclose', function(event, ui) {
+                    $.post('/applications/' + current_application + '/reset');
+                    $('#deploy_results').dialog("close");
+                });
             }
         });
     });

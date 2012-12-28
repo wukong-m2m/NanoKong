@@ -417,7 +417,7 @@ function FBP_toXML(gnodes,glines)
         	if (source.group_size && source.group_size != '') {
             	xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
 	        }
-//sato add start            
+           
             if(gnodes[k].actProper.length != 0){
 				var actlist = gnodes[k].getActions();
 				xml = xml + '        <actionProperty ';
@@ -437,7 +437,6 @@ function FBP_toXML(gnodes,glines)
 				}
 			xml = xml + ' />\n';
 			}
-//sato add end
 			}
             xml = xml + '    </component>\n';
         }

@@ -153,12 +153,13 @@ Block.prototype.attach=function(parent) {
 		$('#propertyeditor').empty();
 		$('#propertyeditor').append('<div>Location</div>');
 		$('#propertyeditor').append('<input type=text id=propertyeditor_location></input>');
-		$('#propertyeditor').append('<div>Group Size</div>');
-		$('#propertyeditor').append('<input type=text id=propertyeditor_groupsize></input>');
+		$('#propertyeditor').append('<br><label for="propertyeditor_groupsize">Group Size</label>');
+		$('#propertyeditor').append('<br><input id=propertyeditor_groupsize name=value></input>');
 		$('#propertyeditor').append('');
 
 		$('#propertyeditor_location').val(self.location);
-		$('#propertyeditor_groupsize').val(self.group_size);
+		$('#propertyeditor_groupsize').spinner();
+		$('#propertyeditor_groupsize').spinner("value",self.group_size);
 		$("#propertyeditor").append('<div><b> Action </b></div><div id=propertyeditor_action></div>');
 		$("#propertyeditor").append('<div><b> Signal </b></div><div id=propertyeditor_signal></div>');
 		$("#propertyeditor_action").empty();
@@ -190,7 +191,7 @@ Block.prototype.attach=function(parent) {
 			buttons: {
 				'OK': function () {
 					self.location = $('#propertyeditor_location').val();
-					self.group_size = $('#propertyeditor_groupsize').val();
+					self.group_size = $('#propertyeditor_groupsize').spinner("value");
 					for(i=0;i<_siglist.length;i++){
 						sig = _siglist[i];
 						self.sigProper[i]=$('#s'+sig.name).val();

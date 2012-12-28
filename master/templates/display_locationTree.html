@@ -71,9 +71,8 @@ $("#addNode").click(function(){
 
 $("#delNode").click(function(){
 	delNode = $('#node_addDel').val();
-	delete furniture[delNode];
+	delete furniture[delNode]
 	$("li").remove("#"+delNode);
-	console.log(furniture);
 });
 /*
 $("#delNode").click(function(){
@@ -172,18 +171,18 @@ function load_furniture(r)
 
 function save_furniture()
 {
-	var furniture_xml = '<application name="test">\n';
+	var landmark_xml = '<application name="test">\n';
 	for(var l in furniture){
-		furniture_xml += '	<furniture name="'+ l +'" location="'+furniture[l]+'" />\n';
+		landmark_xml += '	<furniture name="'+ l +'" location="'+furniture[l]+'" />\n';
 	}
-	furniture_xml += '</application>';	
-	console.log(furniture_xml);
+	landmark_xml += '</application>';	
+	console.log(landmark_xml);
 	
 	$.ajax({
         url:'/loc_tree/save',
-        data: {xml:furniture_xml},
+        data: {xml:landmark_xml},
         type:'POST',
-        success: function(furniture_xml) {
+        success: function(landmark_xml) {
         
         }
     });

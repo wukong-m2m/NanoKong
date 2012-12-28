@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath("../../master"))
 from wkpf import *
 from locationTree import *
 from xml.dom.minidom import parse, parseString
+from xml.parsers.expat import ExpatError
 import simplejson as json
 import logging
 import logging.handlers
@@ -44,11 +45,14 @@ def firstCandidate(app, wuObjects, locTree):
         # filter by query
         if queries == []:
             locURLHandler = LocationURL(None, locTree)
-            candidateSet = locTree.root.getAllNodes()
+            candidateSet = locTree.getAllAliveNodeIds()
         else:
             locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
 
-            locURLHandler.parseURL()
+            ret_val = locURLHandler.parseURL()
+            if ret_val == False:
+              app.error ('Wrong location requirement given for component id '+str(wuObject[0].getWuClassId()))
+              return False
             tmpSet = locURLHandler.solveParseTree()
 
             logging.info("query")
@@ -95,23 +99,22 @@ def firstCandidate(app, wuObjects, locTree):
                 
         
         if len(candidateSet) == 0:
-          app.error ('No node could be mapped for component id '+str(wuObject[0].getId()))
+          app.error ('No node could be mapped for component id '+str(wuObject[0].getWuClassId()))
           return False
         app.info('group size for component ' + str(wuObject) + ' is ' + str(actualGroupSize) + ' for candidates ' + str(candidateSet))
         if actualGroupSize > len(candidateSet):
             actualGroupSize = len(candidateSet)
         groupMemberIds = candidateSet[:actualGroupSize]
+        print groupMemberIds
 
         candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
         candidateSet.reverse()
         #select the first candidates who satisfies the condiditon
         app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
 
-        final_list = []
-
         shadow = copy.deepcopy(wuObject[0])
         del wuObject[:]
-
+        
         for candidate in candidateSet[:actualGroupSize]:
             tmp = copy.deepcopy(shadow)
             tmp.setNodeId(candidate[0])
@@ -119,9 +122,20 @@ def firstCandidate(app, wuObjects, locTree):
             tmp.setHasWuClass(candidate[2])
             tmp.setOccupied(True)
             wuObject.append(tmp)
+        for unused in candidateSet[actualGroupSize:]:
+            senNd = locTree.getSensorById(unused[0])
+            senNd.temp_port_list.remove(unused[1])
+            senNd.port_list.remove(unused[1])
 
         logging.info(wuObject)
-        
+    #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
+    for key in wuObjects.keys():
+        comp = wuObjects[key]
+        for wuobj in comp:
+            senNd = locTree.getSensorById(wuobj.getNodeId())
+            for j in senNd.temp_port_list:
+                senNd.port_list.remove(j)
+            senNd.temp_port_list = []
     return True
 
 class WuApplication:
@@ -135,7 +149,7 @@ class WuApplication:
     self.compiler = None
     self.version = 0
     self.returnCode = NOTOK
-    self.status = "Idle"
+    self.status = ""
     self.deployed = False
     self.mapping_results = {}
     self.mapper = None
@@ -205,7 +219,11 @@ class WuApplication:
     self.desc = config['desc']
     self.dir = config['dir']
     self.xml = config['xml']
-    self.setFlowDom(parseString(self.xml))
+    try:
+      dom = parseString(self.xml)
+      self.setFlowDom(dom)
+    except ExpatError:
+      pass
 
   def saveConfig(self):
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
@@ -226,6 +244,8 @@ class WuApplication:
       self.wuClasses = parseXMLString(self.componentXml) # an array of wuClasses
 
   def parseApplicationXML(self):
+      self.wuObjects = {}
+      self.wuLinks = []
       # TODO: parse application XML to generate WuClasses, WuObjects and WuLinks
       for index, componentTag in enumerate(self.applicationDom.getElementsByTagName('component')):
           # make sure application component is found in wuClassDef component list
@@ -288,11 +308,18 @@ class WuApplication:
     logging.info("Mapping results")
     logging.info(self.mapping_results)
 
+  def deploy_with_discovery(self,*args):
+    node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
+    self.deploy(node_ids,*args)
+
   def deploy(self, destination_ids, platforms):
     master_busy()
     app_path = self.dir
     for platform in platforms:
       platform_dir = os.path.join(app_path, platform)
+
+      self.status = "Generating java library code"
+      gevent.sleep(0)
 
       # CodeGen
       self.info('==Generating necessary files for wukong')
@@ -305,6 +332,9 @@ class WuApplication:
         self.error(e)
         return False
 
+      self.status = "Generating java application"
+      gevent.sleep(0)
+
       # Mapper results, already did in map_application
       # Generate java code
       self.info('==Generating application code in target language (Java)')
@@ -315,7 +345,12 @@ class WuApplication:
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                       limit=2, file=sys.stdout)
         self.error(e)
+        self.status = "Error generating java application"
+        gevent.sleep(0)
         return False
+
+      self.status = "Compressing java to bytecode format"
+      gevent.sleep(0)
 
       # Generate nvmdefault.h
       self.info('==Compressing application code to bytecode format')
@@ -323,6 +358,7 @@ class WuApplication:
       self.returnCode = None
       while pp.poll() == None:
         #print 'polling from popen...'
+        gevent.sleep(0.1)
         line = pp.stdout.readline()
         if line != '':
           self.info(line)
@@ -333,28 +369,41 @@ class WuApplication:
         self.version += 1
       if pp.returncode != 0:
         self.error('==Error generating nvmdefault.h')
+        self.status = "Error generating nvmdefault.h"
+        gevent.sleep(0)
         return False
       self.info('==Finishing compression')
       if  SIMULATION !=0:
           #we don't do any real deployment for simulation, 
           return False
 
-      comm = getComm()
+      self.status = "Deploying bytecode to nodes"
+      gevent.sleep(0)
 
+      comm = getComm()
       # Deploy nvmdefault.h to nodes
-      self.info('==Deploying to nodes')
+      self.info('==Deploying to nodes %s' % (str(destination_ids)))
+      remaining_ids = copy.deepcopy(destination_ids)
+
       for node_id in destination_ids:
+        remaining_ids.remove(node_id)
+        self.status = "Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids))
+        gevent.sleep(0)
         self.info('==Deploying to node id: %d' % (node_id))
         ret = False
         retries = 3
         while retries > 0:
           if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
+            self.status = "Deploying unsucessful for node %d, trying again" % (node_id)
+            gevent.sleep(0)
             self.error('==Node not deployed successfully, retries = %d' % (retries))
             retries -= 1
           else:
             ret = True
             break
         if not ret:
+          self.status = "Deploying unsuccessful"
+          gevent.sleep(0)
           return False
         '''
         pp = Popen('cd %s; make nvmcomm_reprogram NODE_ID=%d FLOWXML=%s' % (platform_dir, node_id, app.id), shell=True, stdout=PIPE, stderr=PIPE)
@@ -373,12 +422,19 @@ class WuApplication:
         '''
         self.info('==Deploying to node completed')
     self.info('==Deployment has completed')
+    self.status = "Deploying sucess"
+    self.status = ""
+    gevent.sleep(0)
     master_available()
     return True
 
   def reconfiguration(self):
+    global location_tree
+    master_busy()
+    self.status = "Start reconfiguration"
     node_infos = getComm().getActiveNodeInfos(force=True)
-    locationTree = LocationTree(LOCATION_ROOT)
-    locationTree.buildTree(node_infos)
-    self.map(locationTree)
+    location_tree = LocationTree(LOCATION_ROOT)
+    location_tree.buildTree(node_infos)
+    self.map(location_tree)
     self.deploy([info.nodeId for info in node_infos], DEPLOY_PLATFORMS)
+    master_available()

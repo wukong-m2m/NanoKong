@@ -20,16 +20,15 @@
 #ifndef EEPROM_H
 #define EEPROM_H
 
-typedef u08_t* eeprom_addr_t;
-
-#ifdef NVM_USE_EEPROM
+//typedef u08_t* eeprom_addr_t;
 
 #ifdef UNIX
 #include <string.h> // for memcpy
 
-#define eeprom_write_byte(a, d) { *a = d; }
+#define eeprom_read_byte(a) (*a)
+#define eeprom_update_byte(a, d) { *a = d; }
 #define eeprom_read_block(a, s, l) { memcpy(a, s, l); }
-#define eeprom_write_block(a, s, l) { memcpy(s, a, l); }
+#define eeprom_update_block(a, s, l) { memcpy(s, a, l); }
 #define EEPROM
 
 #else // UNIX
@@ -40,7 +39,18 @@ typedef u08_t* eeprom_addr_t;
 #define asm __asm__
 
 #include <avr/eeprom.h>
-#define EEPROM __attribute__((section (".eeprom")))
+#define EEPROM EEMEM
+
+// Some older versions of the AVR libraries don't have the eeprom_update_ functions.
+// In that case just use the eeprom_write_ version instead
+#ifndef eeprom_update_byte
+#define eeprom_update_byte eeprom_write_byte
+#endif
+
+#ifndef eeprom_update_block
+#define eeprom_update_block eeprom_write_block
+#endif
+
 
 #else // AVR
 
@@ -52,7 +62,5 @@ typedef u08_t* eeprom_addr_t;
 #else // NVM_USE_EEPROM
 
 #define EEPROM
-
-#endif // NVM_USE_EEPROM
 
 #endif // EEPROM_H

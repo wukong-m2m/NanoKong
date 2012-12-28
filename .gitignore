@@ -4,6 +4,13 @@
 *.d
 *.jar
 *.pyc
+*.eep
+*.elf
+*.lss
+*.lst
+*.map
+*.sym
+*.out
 tools/zwave/search
 tools/zwave/testrtt
 .DS_Store
