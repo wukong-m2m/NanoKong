@@ -344,7 +344,23 @@ class LocationTree:
                         return senr.nodeInfo
                 curNode = None
         return None
-                
+
+    def getSensorById (self, Id): #return None on failure
+        curNode = self.root
+        while curNode != None and (Id in curNode.idSet):
+            found = False
+            for child in curNode.children:
+                if Id in child.idSet:
+                    curNode = child
+                    found = True
+                    break
+            if found == False: #sensor in curNode but not in its children
+                for senr in curNode.sensorLst:
+                    if senr.nodeInfo.nodeId == Id:
+                        return senr
+                curNode = None
+        return None                
+        
     def findLocation(self, startPos, locationStr):
         locationLst,x,y,z = self.parseLocation(locationStr)
         if startPos.name != locationLst[0]:
