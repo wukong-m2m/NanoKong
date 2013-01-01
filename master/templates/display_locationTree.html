@@ -14,20 +14,179 @@
 </div>
 
 <script>
+
+nowSensorId=""
+tempVaule =""
+furniture = {}
+
 $(function() {
     $('#dispObj').hide();
 });
 
-    {% for node_info in node_infos %}
+function object_show(){
+	$('#dispObj').show();
+}
 
-    $('#node{{ node_info.nodeId }}').click(function(e) {
-        e.preventDefault();
+$('#dispObj .btn').click(function(e) {
+	$('#dispObj').hide();
+});
 
-        console.log('click');
-        $('#dispObj .modal-header').html('Node Info');
-        $('#dispObj .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
+function common(_temp1, _temp2){
+	var temp1 = _temp1.split("/");
+	var temp2 = _temp2.split("/");
+	var common_loc = " ";
+	for(var i=1; i<temp1.length; i++){
+		if(temp1[i]==temp2[i]){
+			common_loc += "/" + temp1[i];
+		}else{
+			break;
+		}
+	}
+	return common_loc;
+}
+
+$("#addNode").click(function(){
+	var add_node = $('#node_addDel').val();
+	var add_loc = $('#locName').val();
+	furniture[add_node] = add_loc;
+	console.log(furniture);
+	$.ajax('/loc_tree/land_mark', {
+        type: 'PUT',
+        dataType: 'json',
+        data: {ope: 1, name: add_node, location: $('#locName').val()},
+        success: function(data) {
+            //data = JSON.parse(data);
+            //display update
+             $.post('/loc_tree', function(data) {
+	    		make_tree(data);
+	    		$('#content').append(data.node);
+	    		load_furniture(data.xml);
+			});
+            if (data.status == 1) {
+                alert(data.mesg);
+            }
+        }
     });
-    {% end %}
+});
+
+$("#delNode").click(function(){
+	delNode = $('#node_addDel').val();
+	delete furniture[delNode]
+	$("li").remove("#"+delNode);
+});
+/*
+$("#delNode").click(function(){
+	var del_node = $('#node_addDel').val();
+	$.ajax('/loc_tree/land_mark', {
+        type: 'PUT',
+        dataType: 'json',
+        data: {ope: 0, name: del_node, location: $('#locName').val()},
+        success: function(data) {
+             $.post('/loc_tree', function(data) {
+	    		make_tree(data);
+	    		$('#content').append(data.node);
+//	    		load_furniture(data.xml);
+			});
+            if (data.status == 1) {
+                alert(data.mesg);
+            }
+        }
+    });
+});
+*/
+$("#saveTree").click(function(){
+	save_furniture();
+});
+
+$('.btn').click(function(){
+	console.log($(this).attr("id"));
+	$('#node_addDel').val($(this).attr("id"));
+});
+
+$('.change-location').click(function() {
+	var nodeId = $('#SensorId').val().substring(4);
+    console.log(nodeId);
+    console.log($('#locName').val());
+    $.ajax('/nodes/' + nodeId, {
+        type: 'PUT',
+        dataType: 'json',
+        data: {location: $('#locName').val()},
+        success: function(data) {
+            //data = JSON.parse(data);
+            //display update
+             $.post('/loc_tree', function(data) {
+	    		make_tree(data);
+	    		$('#content').append(data.node);
+	    		//load_furniture(data.xml);
+			});
+            if (data.status == 1) {
+                alert(data.mesg);
+            }
+        }
+    });
+});
+
+{% for node_info in node_infos %}
+
+	$('#node{{ node_info.nodeId }}').click(function(e) {
+		e.preventDefault();
+		console.log('click');	
+		if(e.shiftKey){
+			var nowVal = $('#locName').val();
+			var clkVal = '{{ node_info.location }}'
+			var comLoc = common(clkVal, nowVal);
+			$('#locName').val(comLoc);
+			$('#SensorId').val('');
+		}else{
+			nowSensorId = $(this).attr("id");
+			$('#locName').val(' {{ node_info.location }} ');
+			$('#SensorId').val(nowSensorId);		
+		}
+	});
+	
+	$('#node{{ node_info.nodeId }}').dblclick(function(e) {
+		e.preventDefault();
+		console.log('dblclick');
+		$('#dispObj .modal-header').html('Node Info');
+		$('#dispObj .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
+		object_show();
+	})	
+
+{% end %}
+
+function load_furniture(r)
+{
+	var xml = $.parseXML(r)
+	console.log(xml);
+	var funi = $(xml).find('furniture');
+	for(var i=0; i<funi.length; i++){
+		var f = $(funi[i]);
+		furniture[f.attr("name")]=f.attr("location");
+	};
+
+	for(var l in furniture){
+		$('#'+furniture[l]).children('ul',this).append('<li id="'+l+'" role=button class="btn">'+l+'</li>');
+	}
+}
+
+function save_furniture()
+{
+	var landmark_xml = '<application name="test">\n';
+	for(var l in furniture){
+		landmark_xml += '	<furniture name="'+ l +'" location="'+furniture[l]+'" />\n';
+	}
+	landmark_xml += '</application>';	
+	console.log(landmark_xml);
+	
+	$.ajax({
+        url:'/loc_tree/save',
+        data: {xml:landmark_xml},
+        type:'POST',
+        success: function(landmark_xml) {
+        
+        }
+    });
+}
 
 </script>
 
