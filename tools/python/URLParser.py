@@ -227,10 +227,10 @@ class URLFunction:
 
 if __name__ == "__main__":
     locTree = LocationTree(u"universal")
-    loc0 = u"universal/Boli_Building/3F/South_Corridor/Room318#(3,1,8)"
-    loc1 = u"universal/Boli_Building/3F/South_Corridor/Room318#(4,1,7)"
-    loc2 = u"universal/Boli_Building/3F/South_Corridor/Room318#(4,4,4)"
-    loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318#(5,2,2)"
+    loc0 = u"universal/Boli_Building/3F/South_Corridor/Room318@(3,1,8)"
+    loc1 = u"universal/Boli_Building/3F/South_Corridor/Room318@(4,1,7)"
+    loc2 = u"universal/Boli_Building/3F/South_Corridor/Room318@(4,4,4)"
+    loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318@(5,2,2)"
     senNd0 = SensorNode(NodeInfo(0, [], [],loc0))
     senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
     senNd2 = SensorNode( NodeInfo(2, [], [], loc2))

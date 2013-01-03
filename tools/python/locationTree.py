@@ -400,7 +400,7 @@ class LocationTree:
     @staticmethod
     def parseLocation (locationStr):
       #be able to handle something like /CS_Building/4F/Room336#(1,2,3)
-        tmpLst = locationStr.split(u'#')
+        tmpLst = locationStr.split(u'@')
         x_coord,y_coord,z_coord = '0','0','0'
         if len(tmpLst)>1:
           [x_coord,y_coord,z_coord] = tmpLst[1].rstrip(') ').lstrip('( ').split(',')
@@ -445,17 +445,17 @@ class LocationTree:
 
 if __name__ == "__main__":
     locTree = LocationTree(u"Boli_Building")
-    loc0 = u"Boli_Building/3F/South_Corridor#(0,1,2)"
-    loc1 = u"Boli_Building/2F/South_Corridor/Room318#(0,5,3)"
-    loc2 = u"Boli_Building/3F/East_Corridor/Room318#(3,3,2)"
-    loc3 = u"Boli_Building/3F/East_Corridor/Room318#(2,1,2)"
+    loc0 = u"Boli_Building/3F/South_Corridor@(0,1,2)"
+    loc1 = u"Boli_Building/2F/South_Corridor/Room318@(0,5,3)"
+    loc2 = u"Boli_Building/3F/East_Corridor/Room318@(3,3,2)"
+    loc3 = u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)"
     senNd0 = SensorNode(NodeInfo(0,[], [], loc0))
     
     senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
     senNd2 = SensorNode(NodeInfo(2, [], [], loc2))
     senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
-    landmark1 = LandmarkNode(0, 'sofa',u"Boli_Building/3F/East_Corridor/Room318#(2,1,2)", (2,2,1))
-    landmark2 = LandmarkNode(1, 'sofa',u"Boli_Building/3F/East_Corridor/Room319#(2,1,2)", (2,2,1))
+    landmark1 = LandmarkNode(0, 'sofa',u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)", (2,2,1))
+    landmark2 = LandmarkNode(1, 'sofa',u"Boli_Building/3F/East_Corridor/Room319@(2,1,2)", (2,2,1))
 
     infoList = [NodeInfo(0,[], [], loc0),NodeInfo(1,[], [], loc1),NodeInfo(2,[], [], loc3),NodeInfo(4,[], [], loc2)]
     print(locTree.addSensor(senNd0, locTree.root))
@@ -467,8 +467,8 @@ if __name__ == "__main__":
     locTree.printTree(locTree.root, 0)
     locTree.updateSensors(infoList)
     locTree.printTree()
-    locTree.delLandmark (0, u"Boli_Building/3F/East_Corridor/Room318#(2,1,2)")
-    locTree.delLandmark(1,u"Boli_Building/3F/East_Corridor/Room319#(2,1,2)")
+    locTree.delLandmark (0, u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)")
+    locTree.delLandmark(1,u"Boli_Building/3F/East_Corridor/Room319@(2,1,2)")
     locTree.printTree()
     print locTree.root
     locTree.getAllNodeInfos()
