@@ -84,6 +84,22 @@ class LocationTreeNode:
             pa.idSet.add(sensorNode.nodeInfo.nodeId)
             pa = pa.parent
     
+    def getSensorById (self, Id): #return None on failure
+        curNode = self
+        while curNode != None and (Id in curNode.idSet):
+            found = False
+            for child in curNode.children:
+                if Id in child.idSet:
+                    curNode = child
+                    found = True
+                    break
+            if found == False: #sensor in curNode but not in its children
+                for senr in curNode.sensorLst:
+                    if senr.nodeInfo.nodeId == Id:
+                        return senr
+                curNode = None
+        return None
+        
     def addLandmark(self, landmarkNode):
         self.landmarkLst.append(landmarkNode)
         landmarkNode.locationTreeNode = self

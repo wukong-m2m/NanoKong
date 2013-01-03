@@ -46,7 +46,49 @@ class LocationURL:
                 #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
                 ret_val.add(sensorNd.nodeInfo.nodeId)
         return ret_val
-    
+
+#return the nearest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
+    def nearest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
+        node_lst = []       #list of nodes to be returned
+        dist_lst = []       #list of nodes' distances in the node_list
+        try:            #case one, coordinates are given
+            x = float(x)
+            y = float(y)
+            z = float(z)
+        except ValueError:  #case 2, the name of a landmark is given, x would be the landmarkName
+            landMarks = locationTreeNode.findLandMarksByName(x)
+            # Assume we use the first landmark of the same name
+            if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
+                return ret_val
+            x = landMarks[0].coord[0]
+            y = landMarks[0].coord[1]
+            z = landMarks[0].coord[2]
+
+        if count ==-1:
+            count = 65535   #count==-1 means we find and sort all
+            
+        largest_dist = 0
+        if idLst == None:
+            idLst = list(locationTreeNode.idSet)
+        for sensorId in idLst:
+            sensorNd = locationTreeNode.getSensorById(sensorId)
+            if sensorNd == None:
+                continue
+            dist = (sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2
+            if dist >= largest_dist:
+                if len(node_lst)<count:
+                    #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
+                    node_lst.append(sensorNd.nodeInfo.nodeId)
+                    dist_lst.append(dist)
+                    largest_dist = dist
+            else:
+                for i in range(len(node_lst)):
+                    if dist_lst[i] > dist:
+                        node_lst.insert(i, sensorNd.nodeInfo.nodeId)
+                        dist_lst.insert(i, dist)
+                        break
+        return node_lst
+        
     def isID(locationTreeNode, id):
         id = int(id)
         return set([id])
@@ -65,7 +107,7 @@ class LocationURL:
     
     connector_lst=[ u"|", u"&", u"~"]
     connector_dict = {u"|":[getUnion,2], u"&":[getIntersect,2], u"~":[negate,1]}  #for DNF(disjunctive norm form expression), function call and num of variables
-    funct_dict = {u"near":near, u"idID":isID, u"getAll":getAll}
+    funct_dict = {u"near":near, u"idID":isID, u"getAll":getAll, u"nearest":nearest}
 
     
         
@@ -186,8 +228,8 @@ class URLFunction:
 if __name__ == "__main__":
     locTree = LocationTree(u"universal")
     loc0 = u"universal/Boli_Building/3F/South_Corridor/Room318#(3,1,8)"
-    loc1 = u"universal/Boli_Building/3F/N_Corridor/Room318#(8,1,3)"
-    loc2 = u"universal/Boli_Building/2F/South_Corridor/Room318#(4,4,4)"
+    loc1 = u"universal/Boli_Building/3F/South_Corridor/Room318#(4,1,7)"
+    loc2 = u"universal/Boli_Building/3F/South_Corridor/Room318#(4,4,4)"
     loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318#(5,2,2)"
     senNd0 = SensorNode(NodeInfo(0, [], [],loc0))
     senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
@@ -198,7 +240,7 @@ if __name__ == "__main__":
     locTree.addSensor(senNd2)
     locTree.addSensor(senNd3)
     locTree.printTree(locTree.root, 0)
-    query = u"universal/Boli_Building/#getAll()"
+    query = u"universal/Boli_Building/#nearest(4,4,4)"
     locURLHandler = LocationURL(query, locTree)
     locURLHandler.parseURL()
 #   print locURLHandler.locationTreeNode.sensorLst
