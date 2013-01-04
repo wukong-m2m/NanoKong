@@ -48,8 +48,13 @@ def firstCandidate(app, wuObjects, locTree):
             candidateSet = locTree.getAllAliveNodeIds()
         else:
             locParser = LocationParser(locTree) # get the location query for a component, TODO:should consider other queries too later
-
-            tmpSet = locParser.parse(queries[0])
+            try:
+                tmpSet = locParser.parse(queries[0])
+            except:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                set_wukong_status(str(exc_type)+str(exc_value))
+                return False
+                
             print tmpSet
             logging.info("query")
             logging.info(queries[0])

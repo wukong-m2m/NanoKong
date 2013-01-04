@@ -189,10 +189,11 @@ class LocationParser:
             result =  specification.parseString(str, True)
             print "parse result: ", result
             return self.evaluate(None, result[0])
-        except:
+        except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             print traceback.print_exception(exc_type, exc_value, exc_traceback,
                                           limit=2, file=sys.stdout)
+            raise
 
 if __name__ == "__main__":
     locTree = LocationTree(u"universal")
