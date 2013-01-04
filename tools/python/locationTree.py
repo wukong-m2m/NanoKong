@@ -378,7 +378,11 @@ class LocationTree:
         return None                
         
     def findLocation(self, startPos, locationStr):
-        locationLst,x,y,z = self.parseLocation(locationStr)
+        locationLst = None
+        if type(locationStr) == list:   
+            locationLst = locationStr       #in locationParser, we may pass a list directly
+        else:
+            locationLst,x,y,z = self.parseLocation(locationStr)
         if startPos.name != locationLst[0]:
             logging.error("error! location: "+ str(locationLst[0])+ " is not a valid value")
             return None
@@ -399,11 +403,13 @@ class LocationTree:
         return curPos
     @staticmethod
     def parseLocation (locationStr):
-      #be able to handle something like /CS_Building/4F/Room336#(1,2,3)
+      #be able to handle something like /CS_Building/4F/Room336@(1,2,3)
         tmpLst = locationStr.split(u'@')
         x_coord,y_coord,z_coord = '0','0','0'
         if len(tmpLst)>1:
-          [x_coord,y_coord,z_coord] = tmpLst[1].rstrip(') ').lstrip('( ').split(',')
+            [x_coord,y_coord,z_coord] = tmpLst[1].rstrip(') ').lstrip('( ').split(',')
+        else:
+            tmpLst= locationStr.split(u'#')
         locationLst = tmpLst[0].split(u'/')
         for loc in locationLst:
             if len(loc) == 0:
