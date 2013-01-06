@@ -247,10 +247,16 @@ class WuApplication:
   def parseApplicationXML(self):
       self.wuObjects = {}
       self.wuLinks = []
+      instanceIdSet = []
       # TODO: parse application XML to generate WuClasses, WuObjects and WuLinks
       for index, componentTag in enumerate(self.applicationDom.getElementsByTagName('component')):
           # make sure application component is found in wuClassDef component list
           assert componentTag.getAttribute('type') in self.wuClasses.keys()
+          instanceId=componentTag.getAttribute('instanceId')
+          if instanceId in instanceIdSet:
+              continue
+          else:
+              instanceIdSet.append(instanceId)
 
           # a copy of wuclass
           wuClass = copy.deepcopy(self.wuClasses[componentTag.getAttribute('type')])
