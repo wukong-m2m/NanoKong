@@ -289,16 +289,21 @@ class WuApplication:
 
           #TODO: for each component, there is a list of wuObjs (length depending on group_size)
           self.wuObjects[wuObj.getInstanceId()] = [wuObj]
-
+      #assumption: at most 99 properties for each instance, at most 999 instances
+      linkSet = []  #store hashed result of links to avoid duplicated links: (fromInstanceId*100+fromProperty)*100000+toInstanceId*100+toProperty
       # links
       for linkTag in self.applicationDom.getElementsByTagName('link'):
-          fromWuObject = self.wuObjects[linkTag.parentNode.getAttribute('instanceId')][0]
+          fromInstanceId = linkTag.parentNode.getAttribute('instanceId')
+          fromWuObject = self.wuObjects[fromInstanceId][0]
           fromPropertyId = fromWuObject.getPropertyByName(linkTag.getAttribute('fromProperty')).getId()
-
-          toWuObject = self.wuObjects[linkTag.getAttribute('toInstanceId')][0]
+          
+          toInstanceId = linkTag.getAttribute('toInstanceId')
+          toWuObject = self.wuObjects[toInstanceId][0]
           toPropertyId = toWuObject.getPropertyByName(linkTag.getAttribute('toProperty')).getId()
-
-          self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
+          hash_value = (fromInstanceId*100+fromPropertyId)*100000+toInstanceId*100+toPropertyId
+          if hash_value not in linkSet:
+              linkSet.append(hash_value)
+              self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
 
   def mapping(self, locTree, mapFunc=firstCandidate):
       #input: nodes, WuObjects, WuLinks, WuClassDefs
