@@ -17,7 +17,7 @@
 
 nowSensorId=""
 tempVaule =""
-furniture = {}
+landmark = {}
 
 $(function() {
     $('#dispObj').hide();
@@ -48,8 +48,8 @@ function common(_temp1, _temp2){
 $("#addNode").click(function(){
 	var add_node = $('#node_addDel').val();
 	var add_loc = $('#locName').val();
-	furniture[add_node] = add_loc;
-	console.log(furniture);
+	landmark[add_node] = add_loc;
+	console.log(landmark);
 	$.ajax('/loc_tree/land_mark', {
         type: 'PUT',
         dataType: 'json',
@@ -60,7 +60,7 @@ $("#addNode").click(function(){
              $.post('/loc_tree', function(data) {
 	    		make_tree(data);
 	    		$('#content').append(data.node);
-	    		load_furniture(data.xml);
+	    		load_landmark(data.xml);
 			});
             if (data.status == 1) {
                 alert(data.mesg);
@@ -71,7 +71,7 @@ $("#addNode").click(function(){
 
 $("#delNode").click(function(){
 	delNode = $('#node_addDel').val();
-	delete furniture[delNode]
+	delete landmark[delNode]
 	$("li").remove("#"+delNode);
 });
 /*
@@ -85,7 +85,7 @@ $("#delNode").click(function(){
              $.post('/loc_tree', function(data) {
 	    		make_tree(data);
 	    		$('#content').append(data.node);
-//	    		load_furniture(data.xml);
+//	    		load_landmark(data.xml);
 			});
             if (data.status == 1) {
                 alert(data.mesg);
@@ -95,7 +95,7 @@ $("#delNode").click(function(){
 });
 */
 $("#saveTree").click(function(){
-	save_furniture();
+	save_landmark();
 });
 
 $('.btn').click(function(){
@@ -117,7 +117,7 @@ $('.change-location').click(function() {
              $.post('/loc_tree', function(data) {
 	    		make_tree(data);
 	    		$('#content').append(data.node);
-	    		//load_furniture(data.xml);
+	    		//load_landmark(data.xml);
 			});
             if (data.status == 1) {
                 alert(data.mesg);
@@ -154,26 +154,26 @@ $('.change-location').click(function() {
 
 {% end %}
 
-function load_furniture(r)
+function load_landmark(r)
 {
 	var xml = $.parseXML(r)
 	console.log(xml);
-	var funi = $(xml).find('furniture');
+	var funi = $(xml).find('landmark');
 	for(var i=0; i<funi.length; i++){
 		var f = $(funi[i]);
-		furniture[f.attr("name")]=f.attr("location");
+		landmark[f.attr("name")]=f.attr("location");
 	};
 
-	for(var l in furniture){
-		$('#'+furniture[l]).children('ul',this).append('<li id="'+l+'" role=button class="btn">'+l+'</li>');
+	for(var l in landmark){
+		$('#'+landmark[l]).children('ul',this).append('<li id="'+l+'" role=button class="btn">'+l+'</li>');
 	}
 }
 
-function save_furniture()
+function save_landmark()
 {
 	var landmark_xml = '<application name="test">\n';
-	for(var l in furniture){
-		landmark_xml += '	<furniture name="'+ l +'" location="'+furniture[l]+'" />\n';
+	for(var l in landmark){
+		landmark_xml += '	<landmark name="'+ l +'" location="'+landmark[l]+'" />\n';
 	}
 	landmark_xml += '</application>';	
 	console.log(landmark_xml);

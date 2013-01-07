@@ -581,10 +581,10 @@ class tree(tornado.web.RequestHandler):
     global node_infos
     
     load_xml = ""
-    flag = os.path.exists("../ComponentDefinitions/furniture.xml")
+    flag = os.path.exists("../ComponentDefinitions/landmark.xml")
 #    if(flag):
     if(False):
-      f = open("../ComponentDefinitions/furniture.xml","r")
+      f = open("../ComponentDefinitions/landmark.xml","r")
       for row in f:
         load_xml += row	
     else:
@@ -605,9 +605,9 @@ class save_tree(tornado.web.RequestHandler):
 		self.write({'tree':location_tree})
 
 	def post(self):
-		furniture_info = self.get_argument('xml')
-		f = open("../ComponentDefinitions/furniture.xml","w")
-		f.write(furniture_info)
+		landmark_info = self.get_argument('xml')
+		f = open("../ComponentDefinitions/landmark.xml","w")
+		f.write(landmark_info)
 		f.close()
 		
 class add_landmark(tornado.web.RequestHandler):

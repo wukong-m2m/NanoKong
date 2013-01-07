@@ -41,7 +41,7 @@ function init()
         $.post('/loc_tree', function(data) {
 	    		make_tree(data);
 	    		$('#content').append(data.node);
-	    		load_furniture(data.xml);	    		
+	    		load_landmark(data.xml);	    		
 		});                    
     });
     
@@ -469,7 +469,7 @@ function make_tree(rt)
 				 '<button type="button" class="change-location">Set Location</button><br>'+
 				 'SensorID <input id="SensorId" type=text size="10"><br>'+
 				 'Location <input id="locName" type=text size="100"><br>'
-	html_tree += 'Add/Del Furniture <input id="node_addDel" type=text size="50"><br>'
+	html_tree += 'Add/Del Object <input id="node_addDel" type=text size="50"><br>'
 //	html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
 	html_tree += '</td></tr></table>'
 	$('#content').append(html_tree);
