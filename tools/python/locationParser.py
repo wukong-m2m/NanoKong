@@ -5,6 +5,7 @@
 #any kind of spaces, tabs or "\n" are not allowed in URL
 import sys, traceback
 import os
+from configuration import *
 sys.path.append(os.path.join(os.path.dirname(__file__), "./pyparsing"))
 from wkpf import WuClass, WuObject, NodeInfo
 from locationTree import *
@@ -22,7 +23,7 @@ from pyparsing import *
 <opNegate> = <function> | '~' <opNegate>
 <opAnd> = <opNegate> | <opNegate> '&' <opAnd>
 <opOr> = <opAnd> | <opOr> '|' <opOr>
-<path> = Optional('/') <word> | <path> '/' <word> 
+<path> = '/' <word> | <path> '/' <word> 
 <specification> = <path> | <path>'#' <opOr>
 <location_def> = <path>'@'<coordinate>
 '''
@@ -186,11 +187,16 @@ class LocationParser:
         specification = (Group(path + POND + opOr *(0,1))).setResultsName(u"specification") | Group(path).setResultsName(u"specification")
         location_def = path + AT +coordinate   #not used, because this file is for specificaiton parser
         try:
+            if str == "" or str == "/":
+                str = "/"+ LOCATION_ROOT
+            if len(str)>1 and str[0]!='/':
+                str = '/'+str
             result =  specification.parseString(str, True)
             print "parse result: ", result
             return self.evaluate(None, result[0])
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
+            print str
             print traceback.print_exception(exc_type, exc_value, exc_traceback,
                                           limit=2, file=sys.stdout)
             raise
