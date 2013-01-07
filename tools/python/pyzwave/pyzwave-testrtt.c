@@ -2750,7 +2750,7 @@ int zwave_init()
         }
 #endif //_WIN32		
     }
-    printf("print debug info...\n");ver
+    printf("print debug info...\n");
     int PyZwave_print_debug_info_old = PyZwave_print_debug_info;
     PyZwave_print_debug_info = 0;
     clear_serial_api_queue();
