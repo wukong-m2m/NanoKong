@@ -125,8 +125,9 @@ def firstCandidate(app, wuObjects, locTree):
             wuObject.append(tmp)
         for unused in candidateSet[actualGroupSize:]:
             senNd = locTree.getSensorById(unused[0])
-            senNd.temp_port_list.remove(unused[1])
-            senNd.port_list.remove(unused[1])
+            if unused[1] in senNd.temp_port_list:          #not in means it is a native wuclass port, so no need to roll back	
+                senNd.temp_port_list.remove(unused[1])
+                senNd.port_list.remove(unused[1])
 
         logging.info(wuObject)
     #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
