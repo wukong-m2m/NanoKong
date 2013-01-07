@@ -12,7 +12,7 @@ import logging
 import logging.handlers
 import wukonghandler
 import copy
-from URLParser import *
+from locationParser import *
 from wkpfcomm import *
 from codegen import generateCode
 from translator import generateJava
@@ -44,17 +44,18 @@ def firstCandidate(app, wuObjects, locTree):
 
         # filter by query
         if queries == []:
-            locURLHandler = LocationURL(None, locTree)
+            locParser = LocationParser(locTree)
             candidateSet = locTree.getAllAliveNodeIds()
         else:
-            locURLHandler = LocationURL(queries[0], locTree) # get the location query for a component, TODO:should consider other queries too later
-
-            ret_val = locURLHandler.parseURL()
-            if ret_val == False:
-              app.error ('Wrong location requirement given for component id '+str(wuObject[0].getWuClassId()))
-              return False
-            tmpSet = locURLHandler.solveParseTree()
-
+            locParser = LocationParser(locTree) # get the location query for a component, TODO:should consider other queries too later
+            try:
+                tmpSet = locParser.parse(queries[0])
+            except:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                set_wukong_status(str(exc_type)+str(exc_value))
+                return False
+                
+            print tmpSet
             logging.info("query")
             logging.info(queries[0])
 

@@ -84,6 +84,22 @@ class LocationTreeNode:
             pa.idSet.add(sensorNode.nodeInfo.nodeId)
             pa = pa.parent
     
+    def getSensorById (self, Id): #return None on failure
+        curNode = self
+        while curNode != None and (Id in curNode.idSet):
+            found = False
+            for child in curNode.children:
+                if Id in child.idSet:
+                    curNode = child
+                    found = True
+                    break
+            if found == False: #sensor in curNode but not in its children
+                for senr in curNode.sensorLst:
+                    if senr.nodeInfo.nodeId == Id:
+                        return senr
+                curNode = None
+        return None
+        
     def addLandmark(self, landmarkNode):
         self.landmarkLst.append(landmarkNode)
         landmarkNode.locationTreeNode = self
@@ -362,7 +378,11 @@ class LocationTree:
         return None                
         
     def findLocation(self, startPos, locationStr):
-        locationLst,x,y,z = self.parseLocation(locationStr)
+        locationLst = None
+        if type(locationStr) == list:   
+            locationLst = locationStr       #in locationParser, we may pass a list directly
+        else:
+            locationLst,x,y,z = self.parseLocation(locationStr)
         if startPos.name != locationLst[0]:
             logging.error("error! location: "+ str(locationLst[0])+ " is not a valid value")
             return None
@@ -383,11 +403,13 @@ class LocationTree:
         return curPos
     @staticmethod
     def parseLocation (locationStr):
-      #be able to handle something like /CS_Building/4F/Room336#(1,2,3)
-        tmpLst = locationStr.split(u'#')
+      #be able to handle something like /CS_Building/4F/Room336@(1,2,3)
+        tmpLst = locationStr.split(u'@')
         x_coord,y_coord,z_coord = '0','0','0'
         if len(tmpLst)>1:
-          [x_coord,y_coord,z_coord] = tmpLst[1].rstrip(') ').lstrip('( ').split(',')
+            [x_coord,y_coord,z_coord] = tmpLst[1].rstrip(') ').lstrip('( ').split(',')
+        else:
+            tmpLst= locationStr.split(u'#')
         locationLst = tmpLst[0].split(u'/')
         for loc in locationLst:
             if len(loc) == 0:
@@ -429,17 +451,17 @@ class LocationTree:
 
 if __name__ == "__main__":
     locTree = LocationTree(u"Boli_Building")
-    loc0 = u"Boli_Building/3F/South_Corridor#(0,1,2)"
-    loc1 = u"Boli_Building/2F/South_Corridor/Room318#(0,5,3)"
-    loc2 = u"Boli_Building/3F/East_Corridor/Room318#(3,3,2)"
-    loc3 = u"Boli_Building/3F/East_Corridor/Room318#(2,1,2)"
+    loc0 = u"Boli_Building/3F/South_Corridor@(0,1,2)"
+    loc1 = u"Boli_Building/2F/South_Corridor/Room318@(0,5,3)"
+    loc2 = u"Boli_Building/3F/East_Corridor/Room318@(3,3,2)"
+    loc3 = u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)"
     senNd0 = SensorNode(NodeInfo(0,[], [], loc0))
     
     senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
     senNd2 = SensorNode(NodeInfo(2, [], [], loc2))
     senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
-    landmark1 = LandmarkNode(0, 'sofa',u"Boli_Building/3F/East_Corridor/Room318#(2,1,2)", (2,2,1))
-    landmark2 = LandmarkNode(1, 'sofa',u"Boli_Building/3F/East_Corridor/Room319#(2,1,2)", (2,2,1))
+    landmark1 = LandmarkNode(0, 'sofa',u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)", (2,2,1))
+    landmark2 = LandmarkNode(1, 'sofa',u"Boli_Building/3F/East_Corridor/Room319@(2,1,2)", (2,2,1))
 
     infoList = [NodeInfo(0,[], [], loc0),NodeInfo(1,[], [], loc1),NodeInfo(2,[], [], loc3),NodeInfo(4,[], [], loc2)]
     print(locTree.addSensor(senNd0, locTree.root))
@@ -451,8 +473,8 @@ if __name__ == "__main__":
     locTree.printTree(locTree.root, 0)
     locTree.updateSensors(infoList)
     locTree.printTree()
-    locTree.delLandmark (0, u"Boli_Building/3F/East_Corridor/Room318#(2,1,2)")
-    locTree.delLandmark(1,u"Boli_Building/3F/East_Corridor/Room319#(2,1,2)")
+    locTree.delLandmark (0, u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)")
+    locTree.delLandmark(1,u"Boli_Building/3F/East_Corridor/Room319@(2,1,2)")
     locTree.printTree()
     print locTree.root
     locTree.getAllNodeInfos()
