@@ -56,7 +56,7 @@ class DeferredQueue:
     def add_defer(self, defer):
         queue_id = str(len(self.queue)) + hashlib.md5(str(defer.message.destination) + str(defer.message.command)).hexdigest()
         log = "adding to queue: queue_id " + str(queue_id)
-        logging.info(log)
+        logging.debug(log)
         self.queue[queue_id] = defer
         return queue_id
 
@@ -224,13 +224,13 @@ class ZwaveAgent(TransportAgent):
                     # with seq number
                     deliver = new_deliver(src, reply[0], reply[1:])
                     messages.put_nowait(deliver)
-                    logging.info('receive: put a message to messages')
+                    logging.debug('receive: put a message to messages')
             except:
                 logging.exception('receive exception')
 
             defer_queue.removeTimeoutDefer()
 
-            #logging.info('receive: going to sleep')
+            #logging.debug('receive: going to sleep')
             gevent.sleep(0.01) # sleep for at least 10 msec
 
 
@@ -238,10 +238,10 @@ class ZwaveAgent(TransportAgent):
     def handler(self):
         while 1:
             defer = tasks.get()
-            logging.info('handler: getting defer from task queue')
+            logging.debug('handler: getting defer from task queue')
 
             if defer.message.command == "discovery":
-                logging.info('handler: processing discovery')
+                logging.debug('handler: processing discovery')
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
                 total_nodes = nodes[1]
@@ -253,7 +253,7 @@ class ZwaveAgent(TransportAgent):
                     pass # sometimes gateway_id is not in the list
                 defer.callback(discovered_nodes)
             else:
-                logging.info('handler: processing defer')
+                logging.debug('handler: processing defer')
                 retries = 1
                 destination = defer.message.destination
                 command = defer.message.command
@@ -261,7 +261,7 @@ class ZwaveAgent(TransportAgent):
 
                 while retries > 0:
                     try:
-                        logging.info("handler: sending message from defer")
+                        logging.debug("handler: sending message from defer")
                         pyzwave.send(destination, [0x88, command] + payload)
 
                         if len(defer.allowed_replies) > 0:
@@ -304,8 +304,13 @@ class BrokerAgent:
         while 1:
             # monitor pipes from receive
             deliver = messages.get()
-            logging.info('getting messages from nodes')
-            logging.info(str(deliver))
+            logging.debug('getting messages from nodes')
+            logging.debug(str(deliver))
+
+            # display logs from nodes if received
+            if deliver.command == pynvc.LOGGING:
+                logging.info('[LOGGING] node %d : %s' % (deliver.destination,
+                            str(bytearray(deliver.payload))))
 
             # find out which defer it is for
             defer_id, defer = self._defer_queue.find_defer(deliver)
@@ -319,13 +324,13 @@ class BrokerAgent:
             else:
                 # if it is special messages
                 if not is_master_busy():
-                    logging.info("reconfiguration message received")
                     if deliver.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
+                        logging.info("reconfiguration message received")
                         wusignal.signal_reconfig()
                 else:
-                    logging.info("message discarded")
                     #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
-                    logging.info(str(deliver))
+                    logging.debug("message discarded")
+                    logging.debug(str(deliver))
             gevent.sleep(0)
 
 defer_queue = DeferredQueue()

@@ -71,6 +71,7 @@
 
 #define NVMCOMM_DEBUG_TRACE_PART                 0xB0
 #define NVMCOMM_DEBUG_TRACE_FINAL                0xB2
+#define NVMCOMM_LOGGING                          0xB4
 
 //#define NVMCOMM_WKPF_...
 

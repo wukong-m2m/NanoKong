@@ -26,6 +26,7 @@
 #include "types.h"
 #include "config.h"
 #include "debug.h"
+#include "logging.h"
 
 #include "uart.h"
 #include "nvmfile.h"

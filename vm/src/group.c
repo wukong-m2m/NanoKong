@@ -1,9 +1,11 @@
 #include <eeprom.h>
 #include <string.h>
+#include <stdio.h>
 #include "types.h"
 #include "delay.h"
 #include "nvmcomm.h"
 #include "debug.h"
+#include "logging.h"
 #include "group.h"
 #include "vm.h"
 #include "wkpf_config.h"
@@ -568,6 +570,11 @@ void group_heartbeat() {
 #endif
           nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, &watch_list[i].node_id, sizeof(address_t));
           next_time_to_notify = nvm_current_time + NOTIFY_TIMEOUT;
+#ifdef LOGGING
+          char message[25];
+          uint8_t n = sprintf(message, "node %d failure", watch_list[i].node_id);
+          LOGF_GROUP(message, n);
+#endif
       }
     }
   }
@@ -576,6 +583,11 @@ void group_heartbeat() {
 void group_handle_heartbeat_message(address_t src) {
 #ifdef DEBUG
   DEBUGF_GROUP("getting heartbeat message from node %x\n", src);
+#endif
+#ifdef LOGGING
+          char message[25];
+          uint8_t n = sprintf(message, "got heartbeat from node %d", src);
+          LOGF_GROUP(message, n);
 #endif
   for(uint8_t i=0; i<watch_list_count; i++)
     if (watch_list[i].node_id == src) {
