@@ -67,16 +67,12 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
       DEBUGF_WKPF("\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
 #ifdef NVM_USE_GROUP      
       if (nodes[j].node_id == nvmcomm_get_node_id()) {
-        // Watchlist
+        // Daisy chain watchlist
         if (j == 0) {
           // Leader
-          if (number_of_nodes > 1) {
-            for (int k=1; k<number_of_nodes; k++) {
-              group_add_node_to_watch(nodes[k].node_id);
-            }
-          }
+          group_add_node_to_watch(nodes[number_of_nodes-1].node_id);
         } else {
-          group_add_node_to_watch(nodes[0].node_id);
+          group_add_node_to_watch(nodes[j-1].node_id);
         }
       }
 #endif // NVM_USE_GROUP
