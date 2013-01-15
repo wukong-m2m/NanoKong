@@ -1,8 +1,9 @@
 import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..',
+            'master')))
 
-from pynvc import *
-from wkpfcomm import *
+from wkpf.pynvc import *
+from wkpf.wkpfcomm import *
 
 comm = getComm()
 
