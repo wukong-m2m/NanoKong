@@ -3,6 +3,12 @@
 
 #define INTERVAL 250
 
+// Some macros that make the code more readable
+#define output_low(port,pin) port &= ~(1<<pin)
+#define output_high(port,pin) port |= (1<<pin)
+#define set_input(portdir,pin) portdir &= ~(1<<pin)
+#define set_output(portdir,pin) portdir |= (1<<pin)
+
 void delay_ms(uint16_t ms) {
     uint16_t delay_count = F_CPU / 17500;
     volatile uint16_t i;
