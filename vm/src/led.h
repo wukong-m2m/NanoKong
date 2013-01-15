@@ -2,10 +2,10 @@
 #define LED_H
 
 typedef enum {
-    LED4=4,
-    LED5=5,
-    LED6=6,
-    LED7=7
+    LED4,
+    LED5,
+    LED6,
+    LED7
 } LED;
 
 void blink_once(LED which);
