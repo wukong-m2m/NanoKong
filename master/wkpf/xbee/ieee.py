@@ -8,7 +8,7 @@ pmalmsten@gmail.com
 This module provides an XBee (IEEE 802.15.4) API library.
 """
 import struct
-from xbee.base import XBeeBase
+from wkpf.xbee.base import XBeeBase
 
 class XBee(XBeeBase):
     """

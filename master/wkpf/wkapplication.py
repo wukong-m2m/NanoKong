@@ -15,7 +15,7 @@ import copy
 from locationParser import *
 from wkpfcomm import *
 from codegen import generateCode
-from translator import generateJava
+from xml2java.translator import generateJava
 import copy
 from threading import Thread
 import traceback

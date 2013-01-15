@@ -14,14 +14,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../master"))
 from wkpf import *
 import pickle
 from xml.dom.minidom import parse, parseString
-from wkapplication import *
+from wkpf.wkapplication import *
 from jinja2 import Template
 from jinja2 import Environment, FileSystemLoader
 
 #from inspector import readNodeInfo
 
-from wkpfcomm import Communication
-from inspector import *
+from wkpf.wkpfcomm import Communication
+from wkpf.inspector import *
 from optparse import OptionParser
 
 from configuration import *

@@ -2,7 +2,6 @@ import pyzwave
 import pyzigbee
 import sys
 import os
-sys.path.append(os.path.abspath("../../master"))
 from configuration import *
 
 REPRG_OPEN                   = 0x10

@@ -20,17 +20,14 @@ import shutil, errno
 import datetime
 from subprocess import Popen, PIPE, STDOUT
 
-sys.path.insert(0,os.path.abspath("../tools/python"))
-sys.path.insert(0,os.path.abspath("../tools/xml2java"))
-import fakedata
-import wusignal
-from wkapplication import WuApplication
-from wkpf import *
-from wkpfcomm import *
-from inspector import Inspector
+import wkpf.fakedata
+import wkpf.wusignal
+from wkpf.wkapplication import WuApplication
+from wkpf.wkpf import *
+from wkpf.wkpfcomm import *
 
+from wkpf.globals import *
 from configuration import *
-from globals import *
 
 import tornado.options
 tornado.options.parse_command_line()
@@ -345,7 +342,6 @@ class monitor_application(tornado.web.RequestHandler):
       #self.content_type = 'application/json'
       #self.wrtie({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
     else:
-      #applications[app_ind].inspector = Inspector(applications[app_ind].mapping_results)
 
       #properties_json = {}
       properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])

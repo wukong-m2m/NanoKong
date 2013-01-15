@@ -12,7 +12,7 @@ This class should be subclassed in order to provide
 series-specific functionality.
 """
 import struct, threading, time
-from xbee.frame import APIFrame
+from wkpf.xbee.frame import APIFrame
 
 class ThreadQuitException(Exception):
     pass

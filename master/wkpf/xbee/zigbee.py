@@ -9,7 +9,7 @@ gdrapp@gmail.com
 This module implements an XBee ZB (ZigBee) API library.
 """
 import struct
-from xbee.base import XBeeBase
+from wkpf.xbee.base import XBeeBase
 
 class ZigBee(XBeeBase):
     """

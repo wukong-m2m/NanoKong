@@ -5,5 +5,5 @@ By Paul Malmsten, 2010
 pmalmsten@gmail.com
 """
 
-from xbee.ieee import XBee
-from xbee.zigbee import ZigBee
+from wkpf.xbee.ieee import XBee
+from wkpf.xbee.zigbee import ZigBee
