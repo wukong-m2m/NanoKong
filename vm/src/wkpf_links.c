@@ -5,6 +5,7 @@
 #include "heap.h"
 #include "array.h"
 #include "wkpf.h"
+#include "led.h"
 #include "group.h"
 #include "wkpf_properties.h"
 #include "wkpf_links.h"
@@ -207,6 +208,8 @@ uint8_t wkpf_propagate_property(uint8_t port_number, uint8_t property_number, in
       }
       if (wkpf_error_code != WKPF_OK)
         return wkpf_error_code;
+      // Blink here
+      blink_once(LED4);
     }
   }
   return WKPF_OK;

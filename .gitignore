@@ -11,6 +11,7 @@
 *.map
 *.sym
 *.out
+*.pyc
 tools/zwave/search
 tools/zwave/testrtt
 .DS_Store

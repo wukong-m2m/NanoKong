@@ -16,8 +16,8 @@ endif
 ROOT_DIR = ../../..
 FLOWXML_DIR = $(ROOT_DIR)/Applications
 COMPONENTXML_PATH = $(ROOT_DIR)/ComponentDefinitions/WuKongStandardLibrary.xml
-CODEGEN_PATH = $(ROOT_DIR)/tools/python/codegen.py
-NVMCOMM_REPROGRAM = $(ROOT_DIR)/tools/python/reprogram.py
+CODEGEN_PATH = $(ROOT_DIR)/master/wkpf/codegen.py
+NVMCOMM_REPROGRAM = $(ROOT_DIR)/master/wkpf/reprogram.py
 TEST_PATH = $(ROOT_DIR)/vm/tests
 
 WHOAMI := $(shell whoami)

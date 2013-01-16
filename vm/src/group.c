@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "logging.h"
 #include "group.h"
+#include "led.h"
 #include "vm.h"
 #include "wkpf_config.h"
 
@@ -548,6 +549,10 @@ void group_heartbeat() {
     if (nvm_current_time > next_heartbeat_broadcast) {
 #ifdef DEBUG
       DEBUGF_GROUP("sending heartbeat\n");
+#endif
+      blink_once(LED5);
+#ifdef DEBUG
+          DEBUGF_GROUP("notify master of failure\n");
 #endif
       /*nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);*/
       for(uint8_t i=0; i<watch_list_count; i++) {
