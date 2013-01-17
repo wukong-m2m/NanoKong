@@ -23,6 +23,7 @@ public class WKPF extends GENERATEDWKPF {
   public static native VirtualWuObject select();
 
   // Load component-wuobject map and link definitions
+  public static native void loadHeartbeatToNodeAddrMap(byte[][] map);
   public static native void loadComponentToWuObjectAddrMap(byte[][] map);
   public static native void loadLinkDefinitions(byte[] links);
 
