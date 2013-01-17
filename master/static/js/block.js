@@ -151,17 +151,21 @@ Block.prototype.attach=function(parent) {
 	});
 	this.div.dblclick(function() {
 		$('#propertyeditor').empty();
-		$('#propertyeditor').append('<div>Location</div>');
+		$('#propertyeditor').append('<h3>Location</h3>');
 		$('#propertyeditor').append('<input type=text id=propertyeditor_location></input>');
-		$('#propertyeditor').append('<br><label for="propertyeditor_groupsize">Group Size</label>');
+
+		$('#propertyeditor').append('<h3> Fault Tolerance </h3><label for="propertyeditor_groupsize">Group Size</label>');
 		$('#propertyeditor').append('<br><input id=propertyeditor_groupsize name=value></input>');
 		$('#propertyeditor').append('');
 
 		$('#propertyeditor_location').val(self.location);
 		$('#propertyeditor_groupsize').spinner();
 		$('#propertyeditor_groupsize').spinner("value",self.group_size);
-		$("#propertyeditor").append('<div><b> Action </b></div><div id=propertyeditor_action></div>');
-		$("#propertyeditor").append('<div><b> Signal </b></div><div id=propertyeditor_signal></div>');
+
+        /* TODO: Discuss the proper name and interface for configuring
+         * properties default values
+		$("#propertyeditor").append('<h3> Action </h3><div id=propertyeditor_action></div>');
+		$("#propertyeditor").append('<h3> Signal </h3><div id=propertyeditor_signal></div>');
 		$("#propertyeditor_action").empty();
 		$("#propertyeditor_signal").empty();
 		
@@ -187,6 +191,7 @@ Block.prototype.attach=function(parent) {
     		$('#propertyeditor_signal').append('<input type=text id=s'+sig.name+'></input><br>');
     		$('#s'+sig.name).val(self.sigProper[i]);
 		}
+        */
 		$('#propertyeditor').dialog({
 			buttons: {
 				'OK': function () {
