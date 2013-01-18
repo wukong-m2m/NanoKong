@@ -561,7 +561,8 @@ class nodes(tornado.web.RequestHandler):
         for info in comm.getActiveNodeInfos():
           if info.nodeId == int(nodeId):
             info.location = location
-            senND = SensorNode(info)
+            senNd = SensorNode(info)
+            print (info.location)
 #            senNd = SensorNode(info, 0, 0, 0)
             location_tree.addSensor(senNd)
         location_tree.printTree()
@@ -639,7 +640,7 @@ app = tornado.web.Application([
   (r"/testrtt/stop", stop_testrtt),
   (r"/testrtt/poll", poll_testrtt),
   (r"/testrtt", testrtt),
-  (r"/nodes/([1-9]*)", nodes),
+  (r"/nodes/([0-9]*)", nodes),
   (r"/nodes/refresh", refresh_nodes),
   (r"/applications", list_applications),
   (r"/applications/new", new_application),
