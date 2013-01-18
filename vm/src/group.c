@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "logging.h"
 #include "group.h"
+#include "led.h"
 #include "vm.h"
 #include "wkpf_config.h"
 
@@ -528,6 +529,7 @@ group_init(u08_t flag)
 #define HEARTBEAT_TIMEOUT 2500
 #define INITIALISATION_TIMEOUT 15000
 #define NOTIFY_TIMEOUT 30000
+#define JITTERING_TIMEOUT 500
 
 #define MAX_NUMBER_OF_WATCHED_NODES 10
 
@@ -554,6 +556,7 @@ void group_heartbeat() {
         nvmcomm_send(watch_list[i].node_id, NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
       }
       next_heartbeat_broadcast = nvm_current_time + HEARTBEAT_INTERVAL;
+      blink_once(LED5);
     }
   }
   // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
@@ -564,16 +567,17 @@ void group_heartbeat() {
       // Do we need a reply here? Maybe not for now. If the message isn't received, it will be sent again after a second.
       // For future versions we may want to stop sending when we know the master got the message, but since we're going
       // to do a full reconfiguration anyway, it doesn't really matter for now.
-      if (next_time_to_notify <= nvm_current_time) {
+      if (next_time_to_notify + JITTERING_TIMEOUT <= nvm_current_time) {
 #ifdef DEBUG
-          DEBUGF_GROUP("notify master of failure\n");
+        DEBUGF_GROUP("notify master the failure of node %x\n", watch_list[i].node_id);
 #endif
-          nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, &watch_list[i].node_id, sizeof(address_t));
-          next_time_to_notify = nvm_current_time + NOTIFY_TIMEOUT;
+        nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, &watch_list[i].node_id, sizeof(address_t));
+        next_time_to_notify = nvm_current_time + NOTIFY_TIMEOUT;
+        blink_twice(LED5);
 #ifdef LOGGING
-          char message[25];
-          uint8_t n = sprintf(message, "node %d failure", watch_list[i].node_id);
-          LOGF_GROUP(message, n);
+        char message[25];
+        uint8_t n = sprintf(message, "node %d was suspected failure", watch_list[i].node_id);
+        LOGF_GROUP(message, n);
 #endif
       }
     }
@@ -585,9 +589,9 @@ void group_handle_heartbeat_message(address_t src) {
   DEBUGF_GROUP("getting heartbeat message from node %x\n", src);
 #endif
 #ifdef LOGGING
-          char message[25];
-          uint8_t n = sprintf(message, "got heartbeat from node %d", src);
-          LOGF_GROUP(message, n);
+  char message[25];
+  uint8_t n = sprintf(message, "got heartbeat from node %d", src);
+  LOGF_GROUP(message, n);
 #endif
   for(uint8_t i=0; i<watch_list_count; i++)
     if (watch_list[i].node_id == src) {

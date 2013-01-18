@@ -5,6 +5,7 @@
 #include "heap.h"
 #include "array.h"
 #include "wkpf.h"
+#include "led.h"
 #include "group.h"
 #include "wkpf_properties.h"
 #include "wkpf_links.h"
@@ -48,6 +49,42 @@ uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_numb
   return WKPF_ERR_LINK_NOT_FOUND;
 }
 
+uint8_t wkpf_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id) {
+#ifdef NVM_USE_GROUP
+  uint16_t number_of_entries = array_length(heartbeat_map_heap_id)/sizeof(heap_id_t);
+
+  DEBUGF_WKPF("WKPF: Scanning %x heartbeat groups (%x bytes)\n\n", number_of_entries, array_length(heartbeat_map_heap_id));
+
+  /* No restrictions on the size of heartbeat group yet
+  if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
+    return WKPF_ERR_OUT_OF_MEMORY;
+  */
+
+  for(int i=0; i<number_of_entries; i++) {
+    heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(heartbeat_map_heap_id)+1+(2*i));
+    uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(address_t);
+    address_t *nodes = (address_t *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
+
+    DEBUGF_WKPF("WKPF: Scanning heartbeat group %x with %x nodes\n", number_of_entries, number_of_nodes);
+    for (int j=0; j<number_of_nodes; j++) {
+      DEBUGF_WKPF("\tnode %x", nodes[j]);
+      if (nodes[j] == nvmcomm_get_node_id()) {
+        // Daisy chain heartbeat
+        if (j == 0) {
+          group_add_node_to_watch(nodes[number_of_nodes-1]);
+        } else {
+          group_add_node_to_watch(nodes[j-1]);
+        }
+        break;
+      }
+    }
+    DEBUGF_WKPF("\n");
+  }
+
+#endif // NVM_USE_GROUP
+  return WKPF_OK;
+}
+
 uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
   uint16_t number_of_entries = array_length(map_heap_id)/sizeof(heap_id_t);
 
@@ -65,33 +102,9 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
     DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> at \n", i);
     for (int j=0; j<number_of_nodes; j++) {
       DEBUGF_WKPF("\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
-#ifdef NVM_USE_GROUP      
-      if (nodes[j].node_id == nvmcomm_get_node_id()) {
-        // Daisy chain watchlist
-        if (j == 0) {
-          // Leader
-          group_add_node_to_watch(nodes[number_of_nodes-1].node_id);
-        } else {
-          group_add_node_to_watch(nodes[j-1].node_id);
-        }
-      }
-#endif // NVM_USE_GROUP
     }
   }
 
-  /*
-  uint16_t number_of_entries = array_length(map_heap_id)/sizeof(remote_endpoint);
-  remote_endpoint *map = (remote_endpoint *)((uint8_t *)heap_get_addr(map_heap_id)+1); // +1 to skip type byte
-
-  DEBUGF_WKPF("WKPF: Registering %x components (%x bytes, %x each)\n\n", number_of_entries, array_length(map_heap_id), sizeof(remote_endpoint));
-
-  if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
-    return WKPF_ERR_OUT_OF_MEMORY;
-  for(int i=0; i<number_of_entries; i++) {
-    component_to_wuobject_map[i] = map[i];
-    DEBUGF_WKPF("WKPF: Registered component wuobject: component %x -> (node %x, port %x)\n", i, component_to_wuobject_map[i].node_id, component_to_wuobject_map[i].port_number);
-  }
-  */
   number_of_components = number_of_entries;
   return WKPF_OK;
 }
@@ -222,13 +235,18 @@ uint8_t wkpf_propagate_dirty_properties() {
     nvmcomm_poll(); // Process incoming messages
     if (status & PROPERTY_STATUS_NEEDS_PUSH) {
       wkpf_error_code = wkpf_propagate_property(port_number, property_number, value);
+      if (wkpf_error_code == WKPF_OK)
+        blink_once(LED4);
     } else { // PROPERTY_STATUS_NEEDS_PULL
       DEBUGF_WKPF("WKPF: (pull) requesting initial value for property %x at port %x\n", property_number, port_number);
       wkpf_error_code = wkpf_pull_property(port_number, property_number);
+      if (wkpf_error_code == WKPF_OK)
+        blink_twice(LED4);
     }
     if (wkpf_error_code != WKPF_OK) { // TODONR: need better retry mechanism
       DEBUGF_WKPF("WKPF: ------!!!------ Propagating property failed: port %x property %x error %x\n", port_number, property_number, wkpf_error_code);
       wkpf_propagating_dirty_property_failed(port_number, property_number, status);
+      blink_thrice(LED4);
       return wkpf_error_code;
     }
   }

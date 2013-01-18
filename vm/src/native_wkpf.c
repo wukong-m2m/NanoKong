@@ -168,6 +168,10 @@ void native_wkpf_invoke(u08_t mref) {
   } else if (mref == NATIVE_WKPF_METHOD_GETMYNODEID) {
     stack_push(nvmcomm_get_node_id());
 
+  } else if (mref == NATIVE_WKPF_METHOD_LOAD_HEARTBEAT_MAP) {
+    heap_id_t map_heap_id = stack_pop() & ~NVM_TYPE_MASK;
+    wkpf_error_code = wkpf_load_heartbeat_to_node_map(map_heap_id);
+
   } else if (mref == NATIVE_WKPF_METHOD_LOAD_COMPONENT_MAP) {
     heap_id_t map_heap_id = stack_pop() & ~NVM_TYPE_MASK;
     wkpf_error_code = wkpf_load_component_to_wuobject_map(map_heap_id);

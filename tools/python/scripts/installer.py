@@ -1,6 +1,5 @@
 import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..',
-            'master')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'master')))
 
 from wkpf.pynvc import *
 from wkpf.wkpfcomm import *
