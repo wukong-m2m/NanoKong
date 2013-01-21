@@ -44,10 +44,10 @@
 #define DEBUGF_USART(...) // debugf(true, __VA_ARGS__) 
 #define DEBUGF_XBEE(...) // debugf(false, __VA_ARGS__) 
 #define DEBUGF_READFLASH(...) // debugf(true, __VA_ARGS__) 
-#define DEBUGF_WKPF(...) //debugf(true, __VA_ARGS__) 
-#define DEBUGF_WKPFUPDATE(...) // debugf(true, __VA_ARGS__) 
+#define DEBUGF_WKPF(...) debugf(true, __VA_ARGS__) 
+#define DEBUGF_WKPFUPDATE(...) //debugf(true, __VA_ARGS__) 
 #define DEBUGF_TEST(...) // debugf(true, __VA_ARGS__) 
-#define DEBUGF(...) // debugf(true, __VA_ARGS__) // All other debug info.
+#define DEBUGF(...) //debugf(true, __VA_ARGS__) // All other debug info.
 #define DEBUG_HEXDUMP(a,b) // debug_hexdump(a,b)
 void debugf(bool send_wireless_trace, const char *fmt, ...);
 void debug_hexdump(const void *data, u16_t size);

@@ -151,7 +151,8 @@ void native_wkpf_invoke(u08_t mref) {
       nvmcomm_poll();
 #ifdef NVM_USE_GROUP
       // Send out a heartbeat message if it's due, and check for failed nodes.
-      group_heartbeat();
+      send_heartbeat();
+      handle_failure();
 #endif // NVM_USE_GROUP
       if (nvm_runlevel == NVM_RUNLVL_VM) {
         // Propagate any dirty properties

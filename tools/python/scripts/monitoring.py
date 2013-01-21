@@ -8,16 +8,33 @@ comm = getComm()
 
 print "node ids", comm.getNodeIds()
 
+print "node 2 :"
+print "[wuclasses]"
+for wuclass in comm.getWuClassList(2):
+    print wuclass
 
-while 1:
-    sys.stdout.write("node 2 :")
-    sys.stdout.write(repr(comm.getWuObjectList(2)))
+print "[wuobjects]"
+for wuobject in comm.getWuObjectList(2):
+    print wuobject
 
-    sys.stdout.write("node 4 :")
-    sys.stdout.write(repr(comm.getWuObjectList(4)))
+print "node 4 :"
+print "[wuclasses]"
+for wuclass in comm.getWuClassList(4):
+    print wuclass
 
-    sys.stdout.write("node 6 :")
-    sys.stdout.write(repr(comm.getWuObjectList(6)))
+print "[wuobjects]"
+for wuobject in comm.getWuObjectList(4):
+    print wuobject
 
-    sys.stdout.flush()
-    time.sleep(5)
+print "node 6 :"
+print "[wuclasses]"
+for wuclass in comm.getWuClassList(6):
+    print wuclass
+
+print "[wuobjects]"
+for wuobject in comm.getWuObjectList(6):
+    print wuobject
+
+print "\n\n"
+
+sys.stdout.flush()

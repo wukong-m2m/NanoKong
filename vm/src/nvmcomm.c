@@ -279,14 +279,11 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       wkpf_comm_handle_message(src, nvmcomm_command, payload, &response_size, &response_cmd);
     break;
 #ifdef NVM_USE_GROUP
-    case NVMCOMM_GROUP_PROPOSE:
-    case NVMCOMM_GROUP_COMMIT:
-    case NVMCOMM_GROUP_EVENT_JOIN:
-    case NVMCOMM_GROUP_EVENT_LEAVE:
-      group_handle_message(src, nvmcomm_command, payload, &response_size, &response_cmd);
-      break;
     case NVMCOMM_GROUP_HEARTBEAT:
       group_handle_heartbeat_message(src);
+      break;
+    case NVMCOMM_GROUP_UPDATE_COMPONENT:
+      group_handle_update_component(src, nvmcomm_command, payload, &response_size, &response_cmd);
       break;
     break;
 #endif // NVM_USE_GROUP

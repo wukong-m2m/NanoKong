@@ -35,18 +35,10 @@
 #define NVMCOMM_APPMSG_ACK                       0x01
 #define NVMCOMM_APPMSG_BUSY                      0x02
 
-#define NVMCOMM_GROUP_PROPOSE                    0x70
-#define NVMCOMM_GROUP_PROPOSE_R                  0x71
-#define NVMCOMM_GROUP_COMMIT                     0x72
-#define NVMCOMM_GROUP_EVENT_JOIN                 0x74
-#define NVMCOMM_GROUP_EVENT_JOIN_R               0x75
-#define NVMCOMM_GROUP_EVENT_LEAVE                0x76
-#define NVMCOMM_GROUP_EVENT_LEAVE_R              0x77
-#define NVMCOMM_GROUP_EVENT_ORACLE_FIND          0x78
-#define NVMCOMM_GROUP_EVENT_ORACLE_FIND_R        0x79
-#define NVMCOMM_GROUP_EVENT_FULL_R               0x7A
 #define NVMCOMM_GROUP_HEARTBEAT                  0x7B
 #define NVMCOMM_GROUP_NOTIFY_NODE_FAILURE        0x7C
+#define NVMCOMM_GROUP_UPDATE_COMPONENT           0x7D
+#define NVMCOMM_GROUP_UPDATE_COMPONENT_R         0x7E
 #define NVMCOMM_GROUP_ERROR_R                    0x7F
 
 #define NVMCOMM_WKPF_GET_WUCLASS_LIST            0x90

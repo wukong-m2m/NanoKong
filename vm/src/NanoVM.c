@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
   test_group();
 #endif
 
-  DEBUGF("NanoVM node id is %x\n", nvmcomm_get_node_id());
+  DEBUGF("My node id is %x\n", nvmcomm_get_node_id());
 
   nvmfile_call_main();
 

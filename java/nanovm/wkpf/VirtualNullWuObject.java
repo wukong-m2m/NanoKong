@@ -3,6 +3,8 @@ package nanovm.wkpf;
 public class VirtualNullWuObject extends GENERATEDVirtualNullWuObject {
     public void update() {
         // Force property to be sent
-        WKPF.setPropertyShort(this, NULL, (short)0);
+        short value = WKPF.getPropertyShort(this, NULL);
+        value += 1;
+        WKPF.setPropertyShort(this, NULL, (short)value);
     }
 }

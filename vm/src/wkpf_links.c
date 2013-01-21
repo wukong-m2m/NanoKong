@@ -1,3 +1,4 @@
+//# vim: ts=2 sw=2
 #include "config.h"
 #include "types.h"
 #include "debug.h"
@@ -10,12 +11,6 @@
 #include "wkpf_properties.h"
 #include "wkpf_links.h"
 
-typedef struct remote_endpoints_struct {
-  uint16_t number_of_endpoints;
-  remote_endpoint* endpoints;
-} remote_endpoints;
-
-
 #define MAX_NUMBER_OF_COMPONENTS 10
 uint8_t number_of_components;
 remote_endpoints component_to_wuobject_map[MAX_NUMBER_OF_COMPONENTS];
@@ -23,7 +18,6 @@ remote_endpoints component_to_wuobject_map[MAX_NUMBER_OF_COMPONENTS];
 #define MAX_NUMBER_OF_LINKS 10
 uint8_t number_of_links;
 link_entry links[MAX_NUMBER_OF_LINKS];
-
 
 bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id) {
   for(int i=0; i<number_of_components; i++) {
@@ -264,6 +258,74 @@ uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *n
   return WKPF_OK;
 }
 
+uint8_t wkpf_remove_endpoint_from_component(int index, remote_endpoints* component) {
+  if (component == NULL) {
+    return WKPF_ERR_COMPONENT_NOT_FOUND;
+  }
+
+  for (int c=index; c<component->number_of_endpoints; ++c) {
+    component->endpoints[c] = component->endpoints[c+1];
+  }
+  component->number_of_endpoints--;
+
+#ifdef DEBUG
+  DEBUGF_WKPF("Removing endpoint from component");
+#endif
+
+  return WKPF_OK;
+}
+
+uint8_t wkpf_remove_endpoint_from_component_id(int index, int component_id) {
+  if (component_id > MAX_NUMBER_OF_COMPONENTS) {
+    return WKPF_ERR_COMPONENT_NOT_FOUND;
+  }
+
+  for (int c=index; c<component_to_wuobject_map[component_id].number_of_endpoints; ++c) {
+    component_to_wuobject_map[component_id].endpoints[c] = component_to_wuobject_map[component_id].endpoints[c+1];
+  }
+  component_to_wuobject_map[component_id].number_of_endpoints--;
+
+#ifdef DEBUG
+  DEBUGF_WKPF("Removing endpoint from component id %x", component_id);
+#endif
+
+  return WKPF_OK;
+}
+
+uint8_t wkpf_insert_endpoint_for_component(remote_endpoint endpoint, uint8_t position, remote_endpoints* component) {
+    if (component == NULL) {
+        return WKPF_ERR_COMPONENT_NOT_FOUND;
+    }
+
+    // Alloc more memory
+    component->endpoints = (remote_endpoint*)realloc(component->endpoints, sizeof(remote_endpoint) * (component->number_of_endpoints+1));
+
+    for (int c=component->number_of_endpoints; c>position; ++c) {
+        component->endpoints[c] = component->endpoints[c-1];
+    }
+    component->endpoints[position] = endpoint;
+    component->number_of_endpoints++;
+
+    return WKPF_OK;
+}
+
+uint8_t wkpf_insert_endpoint_for_component_id(remote_endpoint endpoint, uint8_t position, int component_id) {
+    if (component_id > MAX_NUMBER_OF_COMPONENTS) {
+        return WKPF_ERR_COMPONENT_NOT_FOUND;
+    }
+
+    // Alloc more memory
+    component_to_wuobject_map[component_id].endpoints = (remote_endpoint*)realloc(component_to_wuobject_map[component_id].endpoints, sizeof(remote_endpoint) * (component_to_wuobject_map[component_id].number_of_endpoints+1));
+
+    for (int c=component_to_wuobject_map[component_id].number_of_endpoints; c>position; ++c) {
+        component_to_wuobject_map[component_id].endpoints[c] = component_to_wuobject_map[component_id].endpoints[c-1];
+    }
+    component_to_wuobject_map[component_id].endpoints[position] = endpoint;
+    component_to_wuobject_map[component_id].number_of_endpoints++;
+
+    return WKPF_OK;
+}
+
 bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
   return component_to_wuobject_map[component_id].number_of_endpoints > 0
     && component_to_wuobject_map[component_id].endpoints[0].node_id == node_id;
@@ -271,6 +333,30 @@ bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
 
 remote_endpoint wkpf_leader_for_component(uint16_t component_id) {
   return component_to_wuobject_map[component_id].endpoints[0];
+}
+
+bool wkpf_get_component_for_node(address_t node_id, int component_id, remote_endpoints** component) {
+  if (component_id > MAX_NUMBER_OF_COMPONENTS) {
+    return false;
+  }
+
+  for (int j=0; j<component_to_wuobject_map[component_id].number_of_endpoints; ++j) {
+    if (component_to_wuobject_map[component_id].endpoints[j].node_id == node_id) {
+      *component = component_to_wuobject_map + component_id;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+uint8_t wkpf_endpoints_for_component(uint16_t component_id, remote_endpoint* endpoints) {
+  if (component_id > MAX_NUMBER_OF_COMPONENTS) {
+    return WKPF_ERR_COMPONENT_NOT_FOUND;
+  }
+
+  endpoints = component_to_wuobject_map[component_id].endpoints;
+  return WKPF_OK;
 }
 
 uint8_t wkpf_local_endpoint_for_component(uint16_t component_id, remote_endpoint* endpoint) {

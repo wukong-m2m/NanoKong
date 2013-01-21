@@ -434,6 +434,7 @@ char * cmd_class_string(int cls)
 
 void clear_serial_api_queue(void)
 {
+    printf("clear_serial_api_queue\n");
     unsigned char ack = ZW_ACK;
     unsigned char c;
     struct timeval to;
@@ -480,6 +481,7 @@ void clear_serial_api_queue(void)
        }
        }
        */
+    printf("clear_serial_api_queue done\n");
 }
 
 int ZW_sendData(unsigned id,unsigned char *in,int len)
@@ -3200,6 +3202,9 @@ void zwave_check_state(unsigned char c)
             } else if (c == ZW_ACK) {
                 printf("       WAIT_SOF: SerialAPI got unknown ACK ????????\n");
                 ack_got = 1;
+            } else if (c == ZW_CAN) {
+                printf("       WAIT_SOF: SerialAPI got CAN, we should wait for ACK\n");
+                zstate = WAIT_ACK;
             }
             else {
                 printf("       WAIT_SOF: SerialAPI got unexpected byte 0x%x ?????????\n", c);
