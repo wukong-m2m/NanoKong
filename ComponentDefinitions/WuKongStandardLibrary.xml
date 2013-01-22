@@ -133,5 +133,6 @@
     <!-- Just for testing -->
     <WuClass name="Null" id="45" virtual="true" type="soft">
         <property name="null" datatype="short" access="readwrite" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="3" />
     </WuClass>
 </WuKong>

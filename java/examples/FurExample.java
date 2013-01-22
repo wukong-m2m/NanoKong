@@ -50,9 +50,10 @@ public class FurExample {
         initialiseLocalWuObjects();
 
         while(true){
-            VirtualWuObject wuclass = WKPF.select();
-            if (wuclass != null) {
-                wuclass.update();
+            VirtualWuObject wuobject = WKPF.select();
+            if (wuobject != null) {
+                System.out.println("Updating Virtual WuObject");
+                wuobject.update();
             }
         }
     }
@@ -62,14 +63,16 @@ public class FurExample {
 
         // Only for the first initialization, the backup should have code to
         // create WuObjects when they become the leader...
-        if (WKPF.getMyNodeId() == (short)2) {
+        if (WKPF.getMyNodeId() == (short)2 || WKPF.getMyNodeId() == (short)4) {
             VirtualWuObject wuclassInstanceNull = new VirtualNullWuObject();
             WKPF.createWuObject((short)WKPF.WUCLASS_NULL, (byte)0x04, wuclassInstanceNull);
+            WKPF.setPropertyRefreshRate((short)0, WKPF.PROPERTY_NULL_REFRESH_RATE, (short)3); // Set property to set next_scheduled_update
         }
 
-        if (WKPF.getMyNodeId() == (short)4) {
+        if (WKPF.getMyNodeId() == (short)4 || WKPF.getMyNodeId() == (short)6) {
             VirtualWuObject wuclassInstanceNull2 = new VirtualNullWuObject();
             WKPF.createWuObject((short)WKPF.WUCLASS_NULL, (byte)0x06, wuclassInstanceNull2);
+            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_NULL_REFRESH_RATE, (short)3); // Set property to set next_scheduled_update
         }
     }
 }

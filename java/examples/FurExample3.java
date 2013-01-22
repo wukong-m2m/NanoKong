@@ -66,19 +66,22 @@ public class FurExample {
     private static void initialiseLocalWuObjects() {
         WKPF.registerWuClass(WKPF.WUCLASS_NULL, GENERATEDVirtualNullWuObject.properties);
 
-        if (WKPF.getMyNodeId() == (short)2) {
+        if (WKPF.getMyNodeId() == (short)2 || WKPF.getMyNodeId() == (short)4) {
             VirtualWuObject wuclassInstanceNull = new VirtualNullWuObject();
             WKPF.createWuObject((short)WKPF.WUCLASS_NULL, (byte)0x04, wuclassInstanceNull);
+            WKPF.setPropertyRefreshRate((short)0, WKPF.PROPERTY_NULL_REFRESH_RATE, (short)3); // Set property to set next_scheduled_update
         }
 
-        if (WKPF.getMyNodeId() == (short)4) {
+        if (WKPF.getMyNodeId() == (short)4 || WKPF.getMyNodeId() == (short)6) {
             VirtualWuObject wuclassInstanceNull2 = new VirtualNullWuObject();
             WKPF.createWuObject((short)WKPF.WUCLASS_NULL, (byte)0x06, wuclassInstanceNull2);
+            WKPF.setPropertyRefreshRate((short)1, WKPF.PROPERTY_NULL_REFRESH_RATE, (short)3); // Set property to set next_scheduled_update
         }
 
-        if (WKPF.getMyNodeId() == (short)6) {
+        if (WKPF.getMyNodeId() == (short)6 || WKPF.getMyNodeId() == (short)2) {
             VirtualWuObject wuclassInstanceNull3 = new VirtualNullWuObject();
             WKPF.createWuObject((short)WKPF.WUCLASS_NULL, (byte)0x08, wuclassInstanceNull2);
+            WKPF.setPropertyRefreshRate((short)2, WKPF.PROPERTY_NULL_REFRESH_RATE, (short)3); // Set property to set next_scheduled_update
         }
     }
 }
