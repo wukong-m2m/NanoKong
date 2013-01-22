@@ -8,6 +8,7 @@ comm = getComm()
 
 print "node ids", comm.getNodeIds()
 
+'''
 print "node 2 :"
 print "[wuclasses]"
 for wuclass in comm.getWuClassList(2):
@@ -36,5 +37,8 @@ for wuobject in comm.getWuObjectList(6):
     print wuobject
 
 print "\n\n"
+'''
 
 sys.stdout.flush()
+while 1:
+  pass
