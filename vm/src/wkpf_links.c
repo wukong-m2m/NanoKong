@@ -45,36 +45,34 @@ uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_numb
 
 uint8_t wkpf_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id) {
 #ifdef NVM_USE_GROUP
-  uint16_t number_of_entries = array_length(heartbeat_map_heap_id)/sizeof(heap_id_t);
+  uint16_t number_of_groups = array_length(heartbeat_map_heap_id)/sizeof(heap_id_t);
 
-  DEBUGF_WKPF("WKPF: Scanning %x heartbeat groups (%x bytes)\n\n", number_of_entries, array_length(heartbeat_map_heap_id));
+  DEBUGF_WKPF("WKPF: Scanning %x heartbeat groups (%x bytes)\n\n", number_of_groups, array_length(heartbeat_map_heap_id));
 
   /* No restrictions on the size of heartbeat group yet
-  if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
+  if (number_of_groups>MAX_NUMBER_OF_COMPONENTS)
     return WKPF_ERR_OUT_OF_MEMORY;
   */
 
-  for(int i=0; i<number_of_entries; i++) {
+  int group_index = -1;
+  for(int i=0; i<number_of_groups; i++) {
     heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(heartbeat_map_heap_id)+1+(2*i));
     uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(address_t);
     address_t *nodes = (address_t *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
 
-    DEBUGF_WKPF("WKPF: Scanning heartbeat group %x with %x nodes\n", number_of_entries, number_of_nodes);
+    DEBUGF_WKPF("WKPF: Scanning heartbeat group with %x nodes\n", number_of_nodes);
     for (int j=0; j<number_of_nodes; j++) {
-      DEBUGF_WKPF("\tnode %x", nodes[j]);
       if (nodes[j] == nvmcomm_get_node_id()) {
-        // Daisy chain heartbeat
-        if (j == 0) {
-          group_add_node_to_watch(nodes[number_of_nodes-1]);
-        } else {
-          group_add_node_to_watch(nodes[j-1]);
-        }
+        DEBUGF_WKPF("Found itself\n");
+        group_index = i;
+        group_setup_watch_list(j, number_of_nodes, nodes);
         break;
       }
     }
-    DEBUGF_WKPF("\n");
+    if (group_index != -1) {
+      break;
+    }
   }
-
 #endif // NVM_USE_GROUP
   return WKPF_OK;
 }
@@ -234,13 +232,11 @@ uint8_t wkpf_propagate_dirty_properties() {
     } else { // PROPERTY_STATUS_NEEDS_PULL
       DEBUGF_WKPF("WKPF: (pull) requesting initial value for property %x at port %x\n", property_number, port_number);
       wkpf_error_code = wkpf_pull_property(port_number, property_number);
-      if (wkpf_error_code == WKPF_OK)
-        blink_twice(LED4);
     }
     if (wkpf_error_code != WKPF_OK) { // TODONR: need better retry mechanism
       DEBUGF_WKPF("WKPF: ------!!!------ Propagating property failed: port %x property %x error %x\n", port_number, property_number, wkpf_error_code);
       wkpf_propagating_dirty_property_failed(port_number, property_number, status);
-      blink_thrice(LED4);
+      blink_twice(LED4);
       return wkpf_error_code;
     }
   }
@@ -258,72 +254,37 @@ uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *n
   return WKPF_OK;
 }
 
-uint8_t wkpf_remove_endpoint_from_component(int index, remote_endpoints* component) {
+remote_endpoints* wkpf_get_component_from_component_id(uint16_t component_id) {
+  if (component_id >= number_of_components || component_id < 0) {
+    return NULL;
+  }
+
+  return &component_to_wuobject_map[component_id];
+}
+
+uint8_t wkpf_remove_endpoint_from_component(address_t node_id, remote_endpoints* component) {
   if (component == NULL) {
     return WKPF_ERR_COMPONENT_NOT_FOUND;
   }
 
-  for (int c=index; c<component->number_of_endpoints; ++c) {
-    component->endpoints[c] = component->endpoints[c+1];
+  int index = component->number_of_endpoints;
+  for (int i=0; i<component->number_of_endpoints; ++i) {
+    if (component->endpoints[i].node_id == node_id) {
+      index = i;
+    }
   }
-  component->number_of_endpoints--;
 
+  if (index < component->number_of_endpoints) {
+    for (int c=index; c<component->number_of_endpoints-1; ++c) {
+      component->endpoints[c] = component->endpoints[c+1];
+    }
+    component->number_of_endpoints--;
 #ifdef DEBUG
-  DEBUGF_WKPF("Removing endpoint from component");
+    DEBUGF_WKPF("Removing endpoint (node_id: %x) from component\n", node_id);
 #endif
+  }
 
   return WKPF_OK;
-}
-
-uint8_t wkpf_remove_endpoint_from_component_id(int index, int component_id) {
-  if (component_id > MAX_NUMBER_OF_COMPONENTS) {
-    return WKPF_ERR_COMPONENT_NOT_FOUND;
-  }
-
-  for (int c=index; c<component_to_wuobject_map[component_id].number_of_endpoints; ++c) {
-    component_to_wuobject_map[component_id].endpoints[c] = component_to_wuobject_map[component_id].endpoints[c+1];
-  }
-  component_to_wuobject_map[component_id].number_of_endpoints--;
-
-#ifdef DEBUG
-  DEBUGF_WKPF("Removing endpoint from component id %x", component_id);
-#endif
-
-  return WKPF_OK;
-}
-
-uint8_t wkpf_insert_endpoint_for_component(remote_endpoint endpoint, uint8_t position, remote_endpoints* component) {
-    if (component == NULL) {
-        return WKPF_ERR_COMPONENT_NOT_FOUND;
-    }
-
-    // Alloc more memory
-    component->endpoints = (remote_endpoint*)realloc(component->endpoints, sizeof(remote_endpoint) * (component->number_of_endpoints+1));
-
-    for (int c=component->number_of_endpoints; c>position; ++c) {
-        component->endpoints[c] = component->endpoints[c-1];
-    }
-    component->endpoints[position] = endpoint;
-    component->number_of_endpoints++;
-
-    return WKPF_OK;
-}
-
-uint8_t wkpf_insert_endpoint_for_component_id(remote_endpoint endpoint, uint8_t position, int component_id) {
-    if (component_id > MAX_NUMBER_OF_COMPONENTS) {
-        return WKPF_ERR_COMPONENT_NOT_FOUND;
-    }
-
-    // Alloc more memory
-    component_to_wuobject_map[component_id].endpoints = (remote_endpoint*)realloc(component_to_wuobject_map[component_id].endpoints, sizeof(remote_endpoint) * (component_to_wuobject_map[component_id].number_of_endpoints+1));
-
-    for (int c=component_to_wuobject_map[component_id].number_of_endpoints; c>position; ++c) {
-        component_to_wuobject_map[component_id].endpoints[c] = component_to_wuobject_map[component_id].endpoints[c-1];
-    }
-    component_to_wuobject_map[component_id].endpoints[position] = endpoint;
-    component_to_wuobject_map[component_id].number_of_endpoints++;
-
-    return WKPF_OK;
 }
 
 bool wkpf_node_is_leader(uint16_t component_id, address_t node_id) {
@@ -335,17 +296,60 @@ remote_endpoint wkpf_leader_for_component(uint16_t component_id) {
   return component_to_wuobject_map[component_id].endpoints[0];
 }
 
-bool wkpf_get_component_for_node(address_t node_id, int component_id, remote_endpoints** component) {
-  if (component_id > MAX_NUMBER_OF_COMPONENTS) {
+bool wkpf_get_component_for_node(address_t node_id, uint16_t component_id, remote_endpoints** component) {
+  if (component_id > number_of_components || component_id < 0) {
     return false;
   }
 
+#ifdef DEBUG
+  DEBUGF_WKPF("Whether node %x is in component %x\n", node_id, component_id);
+#endif
+
+
   for (int j=0; j<component_to_wuobject_map[component_id].number_of_endpoints; ++j) {
     if (component_to_wuobject_map[component_id].endpoints[j].node_id == node_id) {
+#ifdef DEBUG
+      DEBUGF_WKPF("yes\n");
+#endif
       *component = component_to_wuobject_map + component_id;
       return true;
     }
   }
+
+#ifdef DEBUG
+  DEBUGF_WKPF("no\n");
+#endif
+
+  return false;
+}
+
+bool wkpf_get_connected_component_for_component(uint16_t component_id, uint8_t* start_from, remote_endpoints** connected_component) {
+  if (component_id > number_of_components || component_id < 0) {
+    return false;
+  }
+
+  if (*start_from > number_of_links || *start_from < 0) {
+    return false;
+  }
+
+#ifdef DEBUG
+  DEBUGF_WKPF("Whether component %x has connected component starting from component id %x\n", component_id, *start_from);
+#endif
+
+  for (int i=*start_from; i<number_of_links; ++i) {
+    if (links[i].src_component_id == component_id || links[i].dest_component_id == component_id) {
+#ifdef DEBUG
+      DEBUGF_WKPF("yes\n");
+#endif
+      *start_from = i+1;
+      *connected_component = &component_to_wuobject_map[component_id];
+      return true;
+    }
+  }
+
+#ifdef DEBUG
+  DEBUGF_WKPF("no\n");
+#endif
 
   return false;
 }

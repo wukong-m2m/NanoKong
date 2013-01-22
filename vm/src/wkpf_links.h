@@ -31,15 +31,15 @@ extern uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, addre
 extern bool wkpf_get_component_id(uint8_t port_number, uint16_t *component_id);
 extern uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_number, uint16_t wuclass_id, link_entry *entry);
 
-extern uint8_t wkpf_remove_endpoint_from_component(int index, remote_endpoints* component);
-extern uint8_t wkpf_remove_endpoint_from_component_id(int index, int component_id);
-
-extern uint8_t wkpf_insert_endpoint_for_component(remote_endpoint endpoint, uint8_t position, remote_endpoints* component);
-extern uint8_t wkpf_insert_endpoint_for_component_id(remote_endpoint endpoint, uint8_t position, int component_id);
+extern remote_endpoints* wkpf_get_component_from_component_id(uint16_t component_id);
+extern uint8_t wkpf_remove_endpoint_from_component(address_t node_id, remote_endpoints* component);
 
 extern bool wkpf_node_is_leader(uint16_t component_id, address_t node_id);
 extern remote_endpoint wkpf_leader_for_component(uint16_t component_id);
-extern bool wkpf_get_component_for_node(address_t node_id, int component_id, remote_endpoints** component);
+
+extern bool wkpf_get_component_for_node(address_t node_id, uint16_t component_id, remote_endpoints** component);
+extern bool wkpf_get_connected_component_for_component(uint16_t component_id, uint8_t* start_from, remote_endpoints** connected_component);
+
 extern uint8_t wkpf_endpoints_for_component(uint16_t component_id, remote_endpoint* endpoints);
 extern uint8_t wkpf_local_endpoint_for_component(uint16_t component_id, remote_endpoint* endpoint);
 
