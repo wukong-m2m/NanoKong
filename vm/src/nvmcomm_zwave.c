@@ -121,6 +121,9 @@ void nvmcomm_zwave_receive(int processmessages) {
             if (c == 0x01) {
                 state = ZWAVE_STATUS_WAIT_LEN;
                 len = 0;
+            } else if (c == 0x18) {
+                DEBUGF_COMM("ZWAVE_STATUS_WAIT_SOF: SerialAPI got CAN, we should wait for ACK\n");
+                state = ZWAVE_STATUS_WAIT_ACK;
             } else if (c == ZWAVE_ACK) {
                 DEBUGF_COMM("ZWAVE_STATUS_WAIT_SOF: SerialAPI got unknown ACK ????????\n");
                 ack_got = 1;

@@ -293,6 +293,7 @@ class BrokerAgent:
         self._agents = []
         gevent.spawn(self.run)
         self._defer_queue = defer_queue
+        logging.info('BrokerAgent init')
 
     def append(self, defer):
         self._defer_queue.add_defer(defer)

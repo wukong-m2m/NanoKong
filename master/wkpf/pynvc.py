@@ -22,7 +22,7 @@ SETRUNLVL_R                  = 0x61
 APPMSG                       = 0x80
 APPMSG_R                     = 0x81
 
-GROUP_NOTIFY_NODE_FAILURE    = 0x7C
+GROUP_NOTIFY_NODE_FAILURE    = 0x71
 
 #WKPF message types here
 WKPF_GET_WUCLASS_LIST        = 0x90
