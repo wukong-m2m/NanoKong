@@ -32,7 +32,7 @@ from globals import *
 OK = 0
 NOTOK = 1
 
-def firstCandidate(app, wuObjects, locTree):
+def firstCandidate(app, heartbeatGroups, wuObjects, locTree):
     #input: nodes, WuObjects, WuLinks, WuClassDefsm, wuObjects is a list of wuobject list corresponding to group mapping
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
@@ -72,6 +72,11 @@ def firstCandidate(app, wuObjects, locTree):
 
         # filter by available wuclasses for non-virtual components
         node_infos = [locTree.getNodeInfoById(nodeId) for nodeId in candidateSet]
+
+        # heartbeat groups - testing just make one group
+        if len(heartbeatGroups) == 0:
+          heartbeatGroups.append([nodeId for nodeId in candidateSet])
+
         candidateSet = [] # a list of [sensor id, port no., has native wuclass] pairs
         logging.info(wuObject[0].getWuClass().getId())
         for node_info in node_infos:
@@ -172,6 +177,7 @@ class WuApplication:
     self.wuClasses = {}
     self.wuObjects = {}
     self.wuLinks = []
+    self.heartbeatGroups = []
 
   def setFlowDom(self, flowDom):
     self.applicationDom = flowDom
@@ -303,7 +309,7 @@ class WuApplication:
       #output: assign node id to WuObjects
       # TODO: mapping results for generating the appropriate instiantiation for different nodes
       
-      return mapFunc(self, self.wuObjects, locTree)
+      return mapFunc(self, self.heartbeatGroups, self.wuObjects, locTree)
 
   def map(self, location_tree):
     self.parseComponents()
