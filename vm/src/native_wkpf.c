@@ -193,6 +193,15 @@ void native_wkpf_invoke(u08_t mref) {
     address_t node_id;
     uint8_t port_number;
     wkpf_error_code = wkpf_get_node_and_port_for_component(component_id, &node_id, &port_number);
-    stack_push(node_id == nvmcomm_get_node_id());
+
+    if (wkpf_error_code == WKPF_OK) {
+      DEBUGF_WKPF("WKPF: Component %x is local\n", component_id);
+      DEBUGF_WKPF("WKPF: found at (%x, %x)\n", node_id, port_number);
+      stack_push(true);
+    }
+    else {
+      DEBUGF_WKPF("WKPF: Component %x is not local\n", component_id);
+      stack_push(false);
+    }
   }
 }

@@ -240,48 +240,51 @@ void handle_failure() {
     // Update all nodes in recovery chains that were on the dead node
     remote_endpoints* component;
     uint16_t component_id = 0;
-    while (wkpf_get_component_for_node(dead_node_id, component_id, &component)) {
+    while (wkpf_get_component_from_component_id(component_id)) {
       nvmcomm_poll(); // Process incoming messages
-      // Remove dead node from local component map
-      wkpf_remove_endpoint_from_component(dead_node_id, component);
+      if (wkpf_get_component_for_node(dead_node_id, component_id, &component)) {
+        // Remove dead node from local component map
+        wkpf_remove_endpoint_from_component(dead_node_id, component);
 
 #ifdef DEBUG
-      DEBUGF_GROUP("local component id %x now has endpoints\n", component_id);
-      for (int i=0; i<component->number_of_endpoints; ++i) {
-        DEBUGF_GROUP(" (%x) ", component->endpoints[i].node_id);
-      }
-      DEBUGF_GROUP("\n");
+        DEBUGF_GROUP("local component id %x now has endpoints\n", component_id);
+        for (int i=0; i<component->number_of_endpoints; ++i) {
+          DEBUGF_GROUP(" (%x) ", component->endpoints[i].node_id);
+        }
+        DEBUGF_GROUP("\n");
 #endif
 
 #ifdef LOGGING
-      char message[40];
-      sprintf(message, "component id %x endpoints ", component_id);
-      for (int i=0; i<component->number_of_endpoints; ++i) {
-        char buf[30];
-        sprintf(buf, " %x ", component->endpoints[i].node_id);
-        strcat(message, buf);
-      }
-      LOGF_GROUP(message, strlen(message));
+        char message[40];
+        sprintf(message, "component id %x endpoints ", component_id);
+        for (int i=0; i<component->number_of_endpoints; ++i) {
+          char buf[30];
+          sprintf(buf, " %x ", component->endpoints[i].node_id);
+          strcat(message, buf);
+        }
+        LOGF_GROUP(message, strlen(message));
 #endif
-
-      // Notify and update nodes that contains this
-      // component
-      group_update_component_for_all_other_endpoints(GROUP_COMPONENT_NODE_REMOVE, 
-          dead_node_id, component_id, component);
-
-      // Update and repair application link (for other node that
-      // don't necessary use the component but is connected)
-      uint8_t start_from = 0;
-      remote_endpoints* connected_component;
-      while (wkpf_get_connected_component_for_component(component_id, &start_from, &connected_component)) {
-        nvmcomm_poll(); // Process incoming messages
-        // Remove dead node from local component map
-        wkpf_remove_endpoint_from_component(dead_node_id, connected_component);
 
         // Notify and update nodes that contains this
         // component
         group_update_component_for_all_other_endpoints(GROUP_COMPONENT_NODE_REMOVE, 
-            dead_node_id, component_id, connected_component);
+            dead_node_id, component_id, component);
+
+        // Update and repair application link (for other node that
+        // don't necessary use the component but is connected)
+        uint8_t start_from = 0;
+        remote_endpoints* connected_component;
+        while (wkpf_get_connected_component_for_component(component_id, &start_from, &connected_component)) {
+          nvmcomm_poll(); // Process incoming messages
+
+          // Don't need to remove local since it is already been taken cared of
+          // in outer loop
+
+          // Notify and update nodes that contains this
+          // component
+          group_update_component_for_all_other_endpoints(GROUP_COMPONENT_NODE_REMOVE, 
+              dead_node_id, component_id, connected_component);
+        }
       }
 
       component_id++;
