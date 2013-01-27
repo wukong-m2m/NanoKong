@@ -404,6 +404,30 @@ function FBP_toXML(gnodes,glines)
         if (source.group_size && source.group_size != '') {
             xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
         }
+        if(linehash[k][0].source.actProper.length != 0){
+				  var actlist = linehash[k][0].source.getActions();
+				  xml = xml + '        <actionProperty ';
+				  var l;	var act;
+				  for(l=0;l<linehash[k][0].source.actProper.length;l++){
+					  act = actlist[l];
+					  if (linehash[k][0].source.actProper[l] !=''){
+					    xml = xml + act.name + '="'+linehash[k][0].source.actProper[l]+'" ';
+				    }
+				  }
+			    xml = xml + ' />\n';
+			    if(linehash[k][0].source.sigProper.length != 0){
+				    var siglist = linehash[k][0].source.getSignals();
+				    xml = xml + '        <signalProperty ';
+				    var l;	var sig;
+				    for(l=0;l<linehash[k][0].source.sigProper.length;l++){
+					    sig = siglist[l];
+					    if(linehash[k][0].source.sigProper[l]!=''){
+					      xml = xml + sig.name + '="'+linehash[k][0].source.sigProper[l]+'" ';
+				      }
+				    }
+			      xml = xml + ' />\n';
+			    }
+			  }
         xml = xml + '    </component>\n';
     }
     for(var k in gnodes) {
@@ -418,26 +442,30 @@ function FBP_toXML(gnodes,glines)
             	xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
 	        }
            
-            if(gnodes[k].actProper.length != 0){
-				var actlist = gnodes[k].getActions();
-				xml = xml + '        <actionProperty ';
-				var l;	var act;
-				for(l=0;l<gnodes[k].actProper.length;l++){
-					act = actlist[l];
-					xml = xml + act.name + '="'+gnodes[k].actProper[l]+'" ';
-				}
-			xml = xml + ' />\n';
-			if(gnodes[k].sigProper.length != 0){
-				var siglist = gnodes[k].getSignals();
-				xml = xml + '        <signalProperty ';
-				var l;	var sig;
-				for(l=0;l<gnodes[k].sigProper.length;l++){
-					sig = siglist[l];
-					xml = xml + sig.name + '="'+gnodes[k].sigProper[l]+'" ';
-				}
-			xml = xml + ' />\n';
-			}
-			}
+        if(gnodes[k].actProper.length != 0){
+				  var actlist = gnodes[k].getActions();
+				  xml = xml + '        <actionProperty ';
+				  var l;	var act;
+				  for(l=0;l<gnodes[k].actProper.length;l++){
+					  act = actlist[l];
+					  if (gnodes[k].actProper[l] !=''){
+					    xml = xml + act.name + '="'+gnodes[k].actProper[l]+'" ';
+				    }
+				  }
+			    xml = xml + ' />\n';
+			    if(gnodes[k].sigProper.length != 0){
+				    var siglist = gnodes[k].getSignals();
+				    xml = xml + '        <signalProperty ';
+				    var l;	var sig;
+				    for(l=0;l<gnodes[k].sigProper.length;l++){
+					    sig = siglist[l];
+					    if (gnodes[k].sigProper[l] != ''){
+					      xml = xml + sig.name + '="'+gnodes[k].sigProper[l]+'" ';
+				      }
+				    }
+			      xml = xml + ' />\n';
+			    }
+			  }
             xml = xml + '    </component>\n';
         }
     }
