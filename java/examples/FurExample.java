@@ -44,6 +44,7 @@ public class FurExample {
 
     public static void main (String[] args) {
         System.out.println("FurExample");
+        System.out.println(WKPF.getMyNodeId());
         WKPF.loadHeartbeatToNodeAddrMap(heartbeatToNodeAddrMap);
         WKPF.loadComponentToWuObjectAddrMap(componentInstanceToWuObjectAddrMap);
         WKPF.loadLinkDefinitions(linkDefinitions);
@@ -52,7 +53,6 @@ public class FurExample {
         while(true){
             VirtualWuObject wuobject = WKPF.select();
             if (wuobject != null) {
-                System.out.println("Updating Virtual WuObject");
                 wuobject.update();
             }
         }

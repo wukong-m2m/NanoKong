@@ -375,7 +375,9 @@ def generateJava(application):
     print 'generating', os.path.join(application.destinationDir, application.applicationName+".java")
     print wuObjects[0][0].getProperties()
 
-    output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName, wuObjects=wuObjects, wuLinks=application.wuLinks))
+    output.write(jinja2_env.get_template('application.java').render(applicationName=application.applicationName,
+          wuObjects=wuObjects, wuLinks=application.wuLinks,
+          heartbeatGroups=application.heartbeatGroups))
     output.close()
 
 
