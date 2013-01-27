@@ -49,13 +49,15 @@ def firstCandidate(app, wuObjects, locTree):
         else:
             locParser = LocationParser(locTree) # get the location query for a component, TODO:should consider other queries too later
             try:
+                print "query:",queries[0]
                 tmpSet = locParser.parse(queries[0])
+                print "parsing result:", tmpSet
             except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 set_wukong_status(str(exc_type)+str(exc_value))
                 return False
                 
-            print tmpSet
+            print "parsing result:", tmpSet
             logging.info("query")
             logging.info(queries[0])
 
@@ -108,8 +110,8 @@ def firstCandidate(app, wuObjects, locTree):
         groupMemberIds = candidateSet[:actualGroupSize]
         print groupMemberIds
 
-        candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
-        candidateSet.reverse()
+        #candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
+        #candidateSet.reverse()
         #select the first candidates who satisfies the condiditon
         app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
 
