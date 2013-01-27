@@ -362,17 +362,12 @@ class WuApplication:
       self.info('==Compressing application code to bytecode format')
       pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.id), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
-      while pp.poll() == None:
-        #print 'polling from popen...'
-        gevent.sleep(0.1)
-        line = pp.stdout.readline()
-        if line != '':
-          self.info(line)
+      (infomsg,errmsg) = pp.communicate()
 
-        line = pp.stderr.readline()
-        if line != '':
-          self.error(line)
-        self.version += 1
+      self.info(infomsg)
+
+      self.error(errmsg)
+      self.version += 1
       if pp.returncode != 0:
         self.error('==Error generating nvmdefault.h')
         self.status = "Error generating nvmdefault.h"
