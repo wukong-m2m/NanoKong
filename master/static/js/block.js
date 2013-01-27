@@ -162,8 +162,7 @@ Block.prototype.attach=function(parent) {
 		$('#propertyeditor_groupsize').spinner();
 		$('#propertyeditor_groupsize').spinner("value",self.group_size);
 
-        /* TODO: Discuss the proper name and interface for configuring
-         * properties default values
+ 
 		$("#propertyeditor").append('<h3> Action </h3><div id=propertyeditor_action></div>');
 		$("#propertyeditor").append('<h3> Signal </h3><div id=propertyeditor_signal></div>');
 		$("#propertyeditor_action").empty();
@@ -191,7 +190,7 @@ Block.prototype.attach=function(parent) {
     		$('#propertyeditor_signal').append('<input type=text id=s'+sig.name+'></input><br>');
     		$('#s'+sig.name).val(self.sigProper[i]);
 		}
-        */
+
 		$('#propertyeditor').dialog({
 			buttons: {
 				'OK': function () {
