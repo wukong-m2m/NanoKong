@@ -31,6 +31,7 @@ class SensorNode:
         self.life = MAX_LIFE
         self.port_list = []
         self.temp_port_list = []
+        self.last_reserved_port = 0
         
     def initPortList(self, forceInit = True):
         if len(self.port_list)!=0 and forceInit == False:
@@ -38,16 +39,23 @@ class SensorNode:
         for wuObj in self.nodeInfo.wuObjects:
             self.port_list.append(wuObj.getPortNumber())
         self.port_list.sort()
-    def reserveNextPort(self):
+    def reserveNextPort(self):      #reserve a port from 128~255
         portSet = False
         
         for j in range(len(self.port_list)):
-            if (self.port_list[j]+1)%256 !=self.port_list[(j+1)%len(self.port_list)]:
-                self.port_list.append((self.port_list[j]+1)%256)
-                self.temp_port_list.append((self.port_list[j]+1)%256)
+            if self.port_list[j]<self.last_reserved_port:
+                if j==len(self.port_list)-1:
+                    self.last_reserved_port = 128
+                    return 128
+                else:
+                    continue
+            if (self.port_list[j]+1)%128 + 128 !=self.port_list[(j+1)%len(self.port_list)]:
+                self.port_list.append((self.port_list[j]+1)%128+128)
+                self.temp_port_list.append((self.port_list[j]+1)%128+128)
                 self.port_list.sort()
                 portSet =True
-                return (self.port_list[j]+1)%256
+                self.last_reserved_port = (self.port_list[j]+1)%128+128
+                return (self.port_list[j]+1)%128+128
         return None
     def isAlive(self):
         return self.life == MAX_LIFE

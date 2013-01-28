@@ -132,7 +132,7 @@ def firstCandidate(app, heartbeatGroups, wuObjects, locTree):
             wuObject.append(tmp)
         for unused in candidateSet[actualGroupSize:]:
             senNd = locTree.getSensorById(unused[0])
-            if unused[1] in senNd.temp_port_list:          #not in means it is a native wuclass port, so no need to roll back	
+            if unused[1] in senNd.temp_port_list:          #not in means it is a native wuclass port, so no need to roll back
                 senNd.temp_port_list.remove(unused[1])
                 senNd.port_list.remove(unused[1])
 
@@ -256,10 +256,16 @@ class WuApplication:
   def parseApplicationXML(self):
       self.wuObjects = {}
       self.wuLinks = []
+      instanceIdSet = []
       # TODO: parse application XML to generate WuClasses, WuObjects and WuLinks
       for index, componentTag in enumerate(self.applicationDom.getElementsByTagName('component')):
           # make sure application component is found in wuClassDef component list
           assert componentTag.getAttribute('type') in self.wuClasses.keys()
+          instanceId=componentTag.getAttribute('instanceId')
+          if instanceId in instanceIdSet:
+              continue
+          else:
+              instanceIdSet.append(instanceId)
 
           # a copy of wuclass
           wuClass = copy.deepcopy(self.wuClasses[componentTag.getAttribute('type')])
@@ -295,16 +301,21 @@ class WuApplication:
 
           #TODO: for each component, there is a list of wuObjs (length depending on group_size)
           self.wuObjects[wuObj.getInstanceId()] = [wuObj]
-
+      #assumption: at most 99 properties for each instance, at most 999 instances
+      linkSet = []  #store hashed result of links to avoid duplicated links: (fromInstanceId*100+fromProperty)*100000+toInstanceId*100+toProperty
       # links
       for linkTag in self.applicationDom.getElementsByTagName('link'):
-          fromWuObject = self.wuObjects[linkTag.parentNode.getAttribute('instanceId')][0]
+          fromInstanceId = linkTag.parentNode.getAttribute('instanceId')
+          fromWuObject = self.wuObjects[fromInstanceId][0]
           fromPropertyId = fromWuObject.getPropertyByName(linkTag.getAttribute('fromProperty')).getId()
-
-          toWuObject = self.wuObjects[linkTag.getAttribute('toInstanceId')][0]
+          
+          toInstanceId = linkTag.getAttribute('toInstanceId')
+          toWuObject = self.wuObjects[toInstanceId][0]
           toPropertyId = toWuObject.getPropertyByName(linkTag.getAttribute('toProperty')).getId()
-
-          self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
+          hash_value = (fromInstanceId*100+fromPropertyId)*100000+toInstanceId*100+toPropertyId
+          if hash_value not in linkSet:
+              linkSet.append(hash_value)
+              self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
 
   def mapping(self, locTree, mapFunc=firstCandidate):
       #input: nodes, WuObjects, WuLinks, WuClassDefs
