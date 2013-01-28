@@ -262,13 +262,13 @@ class WuApplication:
           # make sure application component is found in wuClassDef component list
           assert componentTag.getAttribute('type') in self.wuClasses.keys()
           instanceId=componentTag.getAttribute('instanceId')
+          wuClass = None
           if instanceId in instanceIdSet:
-              continue
+              wuClass = self.wuObjects[instanceId]
           else:
               instanceIdSet.append(instanceId)
-
-          # a copy of wuclass
-          wuClass = copy.deepcopy(self.wuClasses[componentTag.getAttribute('type')])
+              # a copy of wuclass
+              wuClass = copy.deepcopy(self.wuClasses[componentTag.getAttribute('type')])
 
           # set properties from FBP to wuclass properties
           for propertyTag in componentTag.getElementsByTagName('signalProperty'):
