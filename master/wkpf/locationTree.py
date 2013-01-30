@@ -45,17 +45,17 @@ class SensorNode:
         for j in range(len(self.port_list)):
             if self.port_list[j]<self.last_reserved_port:
                 if j==len(self.port_list)-1:
-                    self.last_reserved_port = 128
-                    return 128
+                    self.last_reserved_port = 0
+                    return 0
                 else:
                     continue
-            if (self.port_list[j]+1)%128 + 128 !=self.port_list[(j+1)%len(self.port_list)]:
-                self.port_list.append((self.port_list[j]+1)%128+128)
-                self.temp_port_list.append((self.port_list[j]+1)%128+128)
+            if (self.port_list[j]+1)%128 !=self.port_list[(j+1)%len(self.port_list)]:
+                self.port_list.append((self.port_list[j]+1)%128)
+                self.temp_port_list.append((self.port_list[j]+1)%128)
                 self.port_list.sort()
                 portSet =True
-                self.last_reserved_port = (self.port_list[j]+1)%128+128
-                return (self.port_list[j]+1)%128+128
+                self.last_reserved_port = (self.port_list[j]+1)%128
+                return (self.port_list[j]+1)%128
         return None
     def isAlive(self):
         return self.life == MAX_LIFE
@@ -109,8 +109,9 @@ class LocationTreeNode:
         return None
         
     def addLandmark(self, landmarkNode):
-        self.landmarkLst.append(landmarkNode)
-        landmarkNode.locationTreeNode = self
+        if landmarkNode not in self.landmarkLst:
+            self.landmarkLst.append(landmarkNode)
+            landmarkNode.locationTreeNode = self
     
     def delLandmark (self, landmarkId):
         for landmarkNd in self.landmarkLst:
@@ -119,12 +120,12 @@ class LocationTreeNode:
                 del landmarkNd
                 
     def findLandmarksByName(self, landmarkName):
-        retlst = []
+        retLst = []
         for landmarkNd in self.landmarkLst:
             if landmarkName == landmarkNd.name:
                 retLst.append(landmarkNd)
         for child in self.children:
-            retLst = retLst + child.findLandmarkByName(landmarkName)
+            retLst = retLst + child.findLandmarksByName(landmarkName)
         return retLst
         
     def findLandmarkById(self, landmarkId):
@@ -183,7 +184,7 @@ class LocationTreeNode:
        
         for landmarkNode in self.landmarkLst:
             print_str = print_str + 'landmark: '
-            print_str = print_str + str(landmarkNode.id)+str(landmarkNode.coord)+', '
+            print_str = print_str + str(landmarkNode.id)+str(landmarkNode.name)+str(landmarkNode.coord)+', '
         return print_str
         
     def _toString(self, indent = 0):
@@ -468,8 +469,8 @@ if __name__ == "__main__":
     senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
     senNd2 = SensorNode(NodeInfo(2, [], [], loc2))
     senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
-    landmark1 = LandmarkNode(0, 'sofa',u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)", (2,2,1))
-    landmark2 = LandmarkNode(1, 'sofa',u"Boli_Building/3F/East_Corridor/Room319@(2,1,2)", (2,2,1))
+    landmark1 = LandmarkNode(0, u'sofa',u"Boli_Building/3F/East_Corridor/Room318@(2,1,2)", (2,2,1))
+    landmark2 = LandmarkNode(1, u'sofa',u"Boli_Building/3F/East_Corridor/Room319@(2,1,2)", (2,2,1))
 
     infoList = [NodeInfo(0,[], [], loc0),NodeInfo(1,[], [], loc1),NodeInfo(2,[], [], loc3),NodeInfo(4,[], [], loc2)]
     print(locTree.addSensor(senNd0, locTree.root))

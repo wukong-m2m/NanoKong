@@ -32,7 +32,7 @@ class LocationURL:
             y = float(y)
             z = float(z)
         except ValueError:  #case 2, the name of a landmark is given, x would be the landmarkName
-            landMarks = locationTreeNode.findLandMarksByName(x)
+            landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
             if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
                 return ret_val
@@ -47,7 +47,7 @@ class LocationURL:
                 ret_val.add(sensorNd.nodeInfo.nodeId)
         return ret_val
 
-#return the nearest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
+#return the nearest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x when x is the landmark name)
     def nearest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
         node_lst = []       #list of nodes to be returned
         dist_lst = []       #list of nodes' distances in the node_list
@@ -56,7 +56,7 @@ class LocationURL:
             y = float(y)
             z = float(z)
         except ValueError:  #case 2, the name of a landmark is given, x would be the landmarkName
-            landMarks = locationTreeNode.findLandMarksByName(x)
+            landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
             if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
                 return ret_val
@@ -65,7 +65,7 @@ class LocationURL:
             z = landMarks[0].coord[2]
 
         if count ==-1:
-            count = 65535   #count==-1 means we find and sort all
+            count = 65535   #setting count==-1 means we want to find and sort all
             
         largest_dist = 0
         if idLst == None:

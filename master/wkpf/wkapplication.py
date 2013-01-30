@@ -312,7 +312,7 @@ class WuApplication:
           toInstanceId = linkTag.getAttribute('toInstanceId')
           toWuObject = self.wuObjects[toInstanceId][0]
           toPropertyId = toWuObject.getPropertyByName(linkTag.getAttribute('toProperty')).getId()
-          hash_value = (fromInstanceId*100+fromPropertyId)*100000+toInstanceId*100+toPropertyId
+          hash_value = (int(fromInstanceId)*100+int(fromPropertyId))*100000+int(toInstanceId)*100+int(toPropertyId)
           if hash_value not in linkSet:
               linkSet.append(hash_value)
               self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )

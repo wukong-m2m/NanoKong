@@ -510,6 +510,8 @@ class refresh_nodes(tornado.web.RequestHandler):
       logging.error("SIMULATION %d is not invalid" % (SIMULATION))
       exit()
     location_tree.buildTree(node_infos)
+    if SIMULATION ==1:
+      location_tree.addLandmark(fakedata.landmark1)
     location_tree.printTree()
     # default is false
     set_location = self.get_argument('set_location', False)
@@ -550,6 +552,7 @@ class nodes(tornado.web.RequestHandler):
           senNd = SensorNode(info)
 #          senNd = SensorNode(info, 0, 0, 0)
           location_tree.addSensor(senNd)
+      location_tree.addLandmark(fakedata.landmark1)
       location_tree.printTree()
       self.content_type = 'application/json'
       self.write({'status':0})
