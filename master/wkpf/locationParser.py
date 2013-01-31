@@ -86,7 +86,7 @@ class LocationParser:
             y = float(y)
             z = float(z)
         except ValueError:  #case 2, the name of a landmark is given, x would be the landmarkName
-            landMarks = locationTreeNode.findLandMarksByName(x)
+            landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
             if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
                 return ret_val
@@ -110,7 +110,7 @@ class LocationParser:
             y = float(y)
             z = float(z)
         except ValueError:  #case 2, the name of a landmark is given, x would be the landmarkName
-            landMarks = locationTreeNode.findLandMarksByName(x)
+            landMarks = locationTreeNode.findLandmarksByName(x)
             # Assume we use the first landmark of the same name
             if landMarks ==None or len(landMarks)==0:   #no such landmark of the name
                 return ret_val

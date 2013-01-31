@@ -3,7 +3,9 @@ var FBP_canvas;
 var FBP_CANVAS_TOP=50;
 var g_lines=[];
 var g_nodes=[];
+var g_pages={};
 var g_filename;
+g_current_page = null;
 var id=window.location.href;
 var f=id.split("/");
 id = f[4];
@@ -23,6 +25,10 @@ $(document).ready(function() {
         FBP_addBlock();
     });
 */
+    toolbar.append('<td valign="top"><button id=toolbar_importBlock>Import</button></td>');
+    $('#toolbar_importBlock').click(function() {
+        FBP_importBlock();
+    });
     toolbar.append('<td valign="top"><button id=toolbar_delBlock>Del</button></td>');
     $('#toolbar_delBlock').click(function() {
         FBP_delBlock();
@@ -35,6 +41,7 @@ $(document).ready(function() {
     $('#toolbar_save').click(function() {
         FBP_save();
     });
+	toolbar.append('<td valign=top><select id=pagelist></select></td>');
     toolbar.append('</tr></table>');
 
     /*
@@ -193,7 +200,18 @@ function FBP_link()
 }
 function FBP_save()
 {
-    data = FBP_toXML(g_nodes,g_lines);
+    var i;
+	var data;
+
+	FBP_updatePage();
+	
+    data='<application name="'+g_filename+'">\n';
+	$.each(g_pages, function(title,obj) {
+		data += '<page title="'+title+'">\n';
+	    data += FBP_toXML(g_pages[title].nodes, g_pages[title].lines);
+		data += '</page>\n';
+	});
+    data = data + "</application>\n";
     $.ajax({
         url:'/applications/'+id+'/fbp/save',
         data: {xml:data},
@@ -229,12 +247,58 @@ function FBP_parseXML(r)
 {
     var xml = $.parseXML(r);	
     var app = $(xml).find("application");
-    var comps = app.find("component");
+	var pages = app.find("page");
+    var comps;
     var i,len,j;
 
+	if (pages.length == 0) {
+		g_pages={};
+		comps = $(xml).find("component");
+		g_pages['_first_'] = FBP_parseXMLPage(comps);
+		if (g_current_page == null)
+			g_current_page = '_first_'
+	} else {
+		g_pages={};
+		for(i=0;i<pages.length;i++) {
+			var page = $(pages[i]);
+			comps = page.find("component");
+			g_pages[page.attr('title')] = FBP_parseXMLPage(comps);
+			if (g_current_page == null)
+				g_current_page = page.attr('title');
+		}
+	}
+}
+
+function FBP_renderPage(page)
+{
     $('#content').empty();
     g_nodes = [];
     g_lines = [];
+    var hash={};
+    var loc, group_size;
+
+    for(i=0;i<page.nodes.length;i++) {
+        n = Block.restore(page.nodes[i]);
+        // This should be replaced with the node type system latter
+        n.attach($('#content'));
+        hash[n.id] = n;
+        g_nodes.push(n);
+    }
+    for(i=0;i<page.lines.length;i++) {
+	    var line = new Object();
+		line.source = hash[page.lines[i].source];
+		line.signal = page.lines[i].signal;
+		line.dest = hash[page.lines[i].dest];
+		line.action = page.lines[i].action;
+        g_lines.push(Line.restore(line));
+    }
+    FBP_refreshLines();
+}
+
+function FBP_parseXMLPage(comps)
+{
+    nodes = [];
+    lines = [];
     var hash={};
     var loc, group_size;
 
@@ -256,11 +320,8 @@ function FBP_parseXML(r)
         if (group_size) {
             meta.group_size = group_size.attr("requirement");
         }
-        n = Block.restore(meta);
-        // This should be replaced with the node type system latter
-        n.attach($('#content'));
-        hash[n.id] = n;
-        g_nodes.push(n);
+		nodes.push(meta);
+		hash[meta.id] = meta;
     }
     for(i=0;i<comps.length;i++) {
         var c = $(comps[i]);
@@ -272,15 +333,88 @@ function FBP_parseXML(r)
             var dest = l.attr("toInstanceId");
             var action = l.attr("toProperty");
             var a = {};
-            a.source = hash[source];
+            a.source = hash[source].id;
             a.signal = signal;
-            a.dest = hash[dest];
+            a.dest = hash[dest].id;
             a.action = action;
-            g_lines.push(Line.restore(a));
+            lines.push(a);
         }
     }
-    FBP_refreshLines();
+	return {nodes:nodes,lines:lines};
+}
+var g_disable_page_update=false;
+function FBP_initPage()
+{
+	$('#pagelist').empty();
+	$('#pagelist').append('<option value="newpage">New Page...</option>');
+	$.each(g_pages, function(title,page) {
+		$('#pagelist').append('<option value="'+title+'">'+title+'</option>');
+	});
+	$('#pagelist').change(function() {
+		if (g_disable_page_update) {
+			g_disable_page_update = false;
+			return;
+		}
+		var sel = $('#pagelist option:selected').val();
 
+		if (sel == 'newpage') {
+			$('#content').append('<div id=dianewpage></div>');
+			$('#dianewpage').append('<div>Please input the name of the new page</div><input type=text id=dianewpage_name></input>');
+
+			$('#dianewpage').dialog({
+				autoOpen:true, 
+				modal:true, 
+				width:400, height:200,
+				buttons: {
+					'Add': function() {
+						var page = $('#dianewpage_name').val();
+						if (g_pages.hasOwnProperty(page)) {
+							alert('page title is duplicated');
+							return;
+						}
+						FBP_updatePage();
+						var option = new Option(page,page,true,true);
+						$('#pagelist').append(option);
+						$('#dianewpage').dialog("close");
+						$('#dianewpage').remove();
+						g_disable_page_update = true;
+						g_current_page = page;
+						g_pages[page] = {nodes:[], lines:[]};
+						FBP_renderPage(g_pages[page]);
+						g_disable_page_update = false;
+					},
+					'Cancel': function() {
+						$('#dianewpage').dialog("close");
+						$('#dianewpage').remove();
+					}
+				}
+			}).dialog("open");
+		} else {
+			
+			FBP_updatePage();
+			g_current_page = sel;
+			FBP_renderPage(g_pages[g_current_page]);
+		}
+	});
+
+}
+
+function FBP_updatePage()
+{
+	var nodes = [];
+	var lines=[];
+	for(i=0;i<g_nodes.length;i++) {
+		meta={};
+		g_nodes[i].serialize(meta);
+		nodes.push(meta);
+	}
+	for(i=0;i<g_lines.length;i++) {
+		meta={}
+		line = g_lines[i].serialize();
+		lines.push(line);
+	}
+
+	g_pages[g_current_page] = {nodes: nodes, lines: lines};
 }
 
 function FBP_loadFromServer(id)
@@ -293,27 +427,11 @@ function FBP_loadFromServer(id)
         },
         success: function(r) {
             if (console) console.log(r);
+			g_current_page = null;
             FBP_parseXML(r.xml);
-            return;
-            meta = JSON.parse(r);
-            $('#content').empty();
-            g_nodes = [];
-            g_lines = [];
-            var hash={};
-            for(i=0;i<meta.nodes.length;i++) {
-                n = Block.restore(meta.nodes[i]);msg
-                // This should be replaced with the node type system latter
-                n.attach($('#content'));
-                hash[n.id] = n;
-                g_nodes.push(n);
-            }
-            for(i=0;i<meta.lines.length;i++) {
-                var a = meta.lines[i];
-                a.source = hash[a.source];
-                a.dest = hash[a.dest];
-                g_lines.push(Line.restore(a));
-            }
-            FBP_refreshLines();
+			FBP_initPage();
+
+			FBP_renderPage(g_pages[g_current_page]);
         }
     });
 }
@@ -378,25 +496,28 @@ function FBP_serialize(gnodes,glines)
 function FBP_toXML(gnodes,glines)
 {
     var linehash={};
+	var hash={};
     var i;
     var len = glines.length;
 
     for(i=0;i<len;i++) {
-        if (linehash[glines[i].source.id]) {
-            linehash[glines[i].source.id].push(glines[i]);
+        if (linehash[glines[i].source]) {
+            linehash[glines[i].source].push(glines[i]);
         } else {
-            linehash[glines[i].source.id] =[(glines[i])];
+            linehash[glines[i].source] =[(glines[i])];
         }
     }
-    var xml='<application name="'+g_filename+'">\n';
+    for(var k in gnodes) {
+		hash[gnodes[k].id] = gnodes[k];
+	}
+	var xml = '';
     for(var k in linehash) {
-        var source ={};
-        linehash[k][0].source.serialize(source);
+        var source =hash[linehash[k][0].source];
         xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'">\n';
         len = linehash[k].length;
         for(i=0;i<len;i++) {
             var line = linehash[k][i];
-            xml = xml + '        <link fromProperty="'+line.signal+'" toInstanceId="'+line.dest.id+'" toProperty="'+line.action+'"/>\n';
+            xml = xml + '        <link fromProperty="'+line.signal+'" toInstanceId="'+line.dest+'" toProperty="'+line.action+'"/>\n';
         }
         if (source.location && source.location != '') {
             xml = xml + '        <location requirement="'+source.location+'" />\n';
@@ -404,72 +525,57 @@ function FBP_toXML(gnodes,glines)
         if (source.group_size && source.group_size != '') {
             xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
         }
-        if(linehash[k][0].source.actProper.length != 0){
-				  var actlist = linehash[k][0].source.getActions();
-				  xml = xml + '        <actionProperty ';
-				  var l;	var act;
-				  for(l=0;l<linehash[k][0].source.actProper.length;l++){
-					  act = actlist[l];
-					  if (linehash[k][0].source.actProper[l] !=''){
-					    xml = xml + act.name + '="'+linehash[k][0].source.actProper[l]+'" ';
-				    }
-				  }
-			    xml = xml + ' />\n';
-			    if(linehash[k][0].source.sigProper.length != 0){
-				    var siglist = linehash[k][0].source.getSignals();
-				    xml = xml + '        <signalProperty ';
-				    var l;	var sig;
-				    for(l=0;l<linehash[k][0].source.sigProper.length;l++){
-					    sig = siglist[l];
-					    if(linehash[k][0].source.sigProper[l]!=''){
-					      xml = xml + sig.name + '="'+linehash[k][0].source.sigProper[l]+'" ';
-				      }
-				    }
-			      xml = xml + ' />\n';
-			    }
-			  }
+//sato add start            
+        if(source.actions){
+			xml = xml + '        <actionProperty ';
+			var l;	var act;
+			$.each(source.actions, function(name, val) {
+				xml = xml + name + '="'+val+'" ';
+			});
+			xml = xml + ' />\n';
+		}
+		if(source.signals) {
+			xml = xml + '        <signalProperty ';
+			var l;	var sig;
+			$.each(source.signals, function(name,val) {
+				xml = xml + name + '="'+val+'" ';
+			});
+			xml = xml + ' />\n';
+		}
+//sato add end
         xml = xml + '    </component>\n';
     }
     for(var k in gnodes) {
-        var source ={};
-        gnodes[k].serialize(source);
-        if (linehash[gnodes[k].id] == undefined) {
+        var source =gnodes[k];
+        if (linehash[source.id] == undefined) {
             xml = xml + '    <component type="'+source.type+'" instanceId="'+source.id+'" x="'+source.x+'" y="'+source.y+'" w="'+source.w+'" h="'+source.h+'">\n';
             if (gnodes[k].location && gnodes[k].location != '') {
-                xml = xml + '        <location requirement="'+gnodes[k].location+'" />\n';
+                xml = xml + '        <location requirement="'+source.location+'" />\n';
             }
         	if (source.group_size && source.group_size != '') {
             	xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
 	        }
-           
-        if(gnodes[k].actProper.length != 0){
-				  var actlist = gnodes[k].getActions();
-				  xml = xml + '        <actionProperty ';
-				  var l;	var act;
-				  for(l=0;l<gnodes[k].actProper.length;l++){
-					  act = actlist[l];
-					  if (gnodes[k].actProper[l] !=''){
-					    xml = xml + act.name + '="'+gnodes[k].actProper[l]+'" ';
-				    }
-				  }
-			    xml = xml + ' />\n';
-			    if(gnodes[k].sigProper.length != 0){
-				    var siglist = gnodes[k].getSignals();
-				    xml = xml + '        <signalProperty ';
-				    var l;	var sig;
-				    for(l=0;l<gnodes[k].sigProper.length;l++){
-					    sig = siglist[l];
-					    if (gnodes[k].sigProper[l] != ''){
-					      xml = xml + sig.name + '="'+gnodes[k].sigProper[l]+'" ';
-				      }
-				    }
-			      xml = xml + ' />\n';
-			    }
-			  }
+//sato add start            
+            if(gnodes[k].actions){
+				xml = xml + '        <actionProperty ';
+				var l;	var act;
+				$.each(gnodes[k].actions, function(name, val) {
+					xml = xml + name + '="'+val+'" ';
+				});
+				xml = xml + ' />\n';
+			}
+			if(gnodes[k].signals) {
+				xml = xml + '        <signalProperty ';
+				var l;	var sig;
+				$.each(gnodes[k].signals, function(name,val) {
+					xml = xml + name + '="'+val+'" ';
+				});
+				xml = xml + ' />\n';
+			}
+//sato add end
             xml = xml + '    </component>\n';
         }
     }
-    xml = xml + "</application>\n";
 
     return xml;
 }
@@ -477,13 +583,60 @@ function FBP_toXML(gnodes,glines)
 function Signal(name)
 {
     this.name = name;
-//    this.type = type;
 }
 
 function Action(name)
 {
     this.name = name;
-//    this.type = type;
 }
 
 
+
+
+function FBP_importBlock()
+{
+	
+	$('#content').append('<div id=diaimport></div>');
+	var pages = '<select id="diaimport_page">';
+	$.each(g_pages,function(title,val) {
+		pages = pages + '<option val="'+title+'">'+title+'</option>';
+	});
+	pages = pages + '</select>';
+	$('#diaimport').append('<div>Import component from other page</div>'+pages+'<select id="diaimport_comp"></select>');
+	$('#diaimport_page').change(function() {
+		var sel = $('#diaimport_page option:selected').val();
+		var list = $('#diaimport_comp');
+		list.empty();
+		var nodes = g_pages[sel].nodes;
+		for(i=0;i<nodes.length;i++) {
+			list.append('<option val="'+nodes[i].id+'">'+nodes[i].id+'</option>');
+		}
+	});
+
+	$('#diaimport').dialog({
+		autoOpen:true, 
+		modal:true, 
+		width:600, height:400,
+		buttons: {
+			'Import': function() {
+				var page = $('#diaimport_page option:selected').val();
+				var comp = $('#diaimport_comp option:selected').val();
+				var nodes = g_pages[page].nodes;
+				for(i=0;i<nodes.length;i++) {
+					if (nodes[i].id == comp) break;
+				}
+				var meta = g_pages[page].nodes[i];
+				if (meta == null) {
+					alert('internal error');
+				}
+				var block = Block.restore(meta);
+				block.attach($('#content'));
+				g_nodes.push(block);
+				$('#diaimport').dialog("close");
+			},
+			'Cancel': function () {
+				$('#diaimport').dialog("close");
+			}
+		},
+	}).dialog("open");
+}

@@ -61,6 +61,18 @@ Block.prototype.serialize=function(obj) {
 	obj.type = this.type;
 	obj.location = this.location;
 	obj.group_size = this.group_size;
+	obj.actions = {};
+	obj.signals = {};
+	actlist= this.getActions();
+	for(l=0;l<this.actProper.length;l++){
+		act = actlist[l];
+		obj.actions[act.name] = this.actProper[l];
+	}
+	siglist = this.getSignals();
+	for(l=0;l<this.sigProper.length;l++) {
+		sig = siglist[l];
+		obj.signals[sig.name] = this.sigProper[l];
+	}
 	return obj;
 }
 Block.restore=function(a) {
