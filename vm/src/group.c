@@ -34,7 +34,6 @@ typedef struct {
     nvmtime_t expect_next_timestamp_before; // Initialise to currenttime + INITIALISATION_TIMEOUT
 } node_to_watch;
 
-bool necessary_for_reconfiguration = false;
 nvmtime_t next_time_to_notify = 0;
 // Watch list is now a list of nodes in order of heartbeat importance
 // The node at left_offset_to_monitor is the node to monitor
@@ -74,6 +73,40 @@ node_to_watch* monitor_node() {
 #endif
 
   return NULL;
+}
+
+uint8_t group_probe_node(address_t node_id) {
+  address_t dest = node_id;
+
+  uint8_t message[NVMCOMM_MESSAGE_SIZE];
+  set_message_sequence_number(message, NULL);
+  if (nvmcomm_send(dest, NVMCOMM_GROUP_PROBE_NODE, message, 2) != 0) {
+#ifdef DEBUG
+    DEBUGF_GROUP("Probe failed to send to node %x\n", dest);
+#endif
+    return WKPF_ERR_NVMCOMM_SEND_ERROR;
+  }
+
+  // Wait for a reply
+  uint32_t timeout = nvm_current_time + 100;
+  while(nvm_current_time < timeout) {
+    nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){NVMCOMM_GROUP_PROBE_NODE+1 /* the reply to this command */, NVMCOMM_GROUP_TRIAGE_R, NVMCOMM_WKPF_ERROR_R}, 3);
+    if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
+          && check_sequence_number(reply->payload, message)) {
+#ifdef DEBUG
+      DEBUGF_GROUP("got a reply\n");
+#endif
+      if (reply->command == NVMCOMM_GROUP_TRIAGE_R) {
+        return WKPF_ERR_NETWORK_TRIAGE;
+      } else if (reply->command == NVMCOMM_GROUP_PROBE_NODE_R) {
+        return WKPF_OK;
+      } else {
+        return WKPF_ERR_NVMCOMM_SEND_ERROR;
+      }
+    }
+  }
+
+  return WKPF_ERR_NVMCOMM_NO_REPLY;
 }
 
 void group_update_component_for_all_other_endpoints(uint8_t cmd, address_t node_id, uint16_t component_id, remote_endpoints* component) {
@@ -144,6 +177,27 @@ void group_update_nodes_in_watchlist(uint8_t cmd, address_t node_id) {
     }
   }
 }
+
+bool group_node_in_watchlist(address_t node) {
+  for (int i=0; i<watch_list_count; i++) {
+    if (node == watch_list[i].node_id)
+      return true;
+  }
+  return false;
+}
+
+void group_handle_probe_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
+  if (nvmcomm_command == NVMCOMM_GROUP_PROBE_NODE) {
+    if (group_node_in_watchlist(src)) {
+      *response_cmd = nvmcomm_command+1;
+      *response_size = 2;
+    } else {
+      *response_cmd = NVMCOMM_GROUP_TRIAGE_R;
+      *response_size = 2;
+    }
+  }
+}
+
 
 void group_handle_update(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
     uint8_t operation;
@@ -227,10 +281,43 @@ void send_heartbeat() {
     nvmcomm_poll(); // Process incoming messages
 }
 
+void group_reconfiguration() {
+  // Notify master if necessary
+  if (nvm_current_time > next_time_to_notify) {
+    address_t master_node_id = wkpf_config_get_master_node_id();
+    // Do we need a reply here? Maybe not for now. If the message isn't received, it will be sent again after a second.
+    // For future versions we may want to stop sending when we know the master got the message, but since we're going
+    // to do a full reconfiguration anyway, it doesn't really matter for now.
+    nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, NULL, 0);
+#ifdef DEBUG
+    DEBUGF_GROUP("reconfiguration msg sent\n");
+#endif
+
+    // Slow down Master notification
+    next_time_to_notify = nvm_current_time + NOTIFY_TIMEOUT;
+  }
+}
+
 void handle_failure() {
   // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
   if (monitored_node() != NULL && nvm_current_time > monitored_node()->expect_next_timestamp_before) {
     address_t dead_node_id = monitored_node()->node_id;
+
+    // A probe, not used
+    /*
+    uint8_t ret = group_probe_node(dead_node_id);
+    if (ret == WKPF_OK) {
+      // Like a heartbeat
+      monitored_node()->expect_next_timestamp_before = nvm_current_time + HEARTBEAT_TIMEOUT;
+      return;
+    } else if (ret == WKPF_ERR_NETWORK_TRIAGE) {
+      // Reconfiguration or do nothing here
+      group_reconfiguration();
+      return;
+    }
+    // Otherwise, initiate recovery algorithm
+    */
+
 
 #ifdef DEBUG
     DEBUGF_GROUP("node %x was suspected of failure\n", dead_node_id);
@@ -298,23 +385,6 @@ void handle_failure() {
 
     // Blink
     blink_twice(LED5);
-  } else {
-    // Notify master if necessary
-    if (necessary_for_reconfiguration) {
-      if (nvm_current_time > next_time_to_notify) {
-        address_t master_node_id = wkpf_config_get_master_node_id();
-        // Do we need a reply here? Maybe not for now. If the message isn't received, it will be sent again after a second.
-        // For future versions we may want to stop sending when we know the master got the message, but since we're going
-        // to do a full reconfiguration anyway, it doesn't really matter for now.
-        nvmcomm_send(master_node_id, NVMCOMM_GROUP_NOTIFY_NODE_FAILURE, NULL, 0);
-#ifdef DEBUG
-        DEBUGF_GROUP("reconfiguration msg sent\n");
-#endif
-
-        // Slow down Master notification
-        next_time_to_notify = nvm_current_time + NOTIFY_TIMEOUT;
-      }
-    }
   }
 }
 

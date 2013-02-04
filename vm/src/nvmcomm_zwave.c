@@ -61,6 +61,7 @@ address_t nvmcomm_zwave_my_address;
 void (*f)(address_t src, u08_t nvc3_command, u08_t *payload, u08_t length); // The callback function registered by callback
 void (*f_nodeinfo)(u08_t *payload, u08_t length);
 
+int ZW_GetRoutingInformation(uint8_t id);
 int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t txoptions);
 int SerialAPI_request(unsigned char *buf, int len);
 
@@ -418,6 +419,19 @@ int SerialAPI_request(unsigned char *buf, int len)
     }
     return -1; // Never happens
 }
+
+/*
+int ZW_GetRoutingInformation(uint8_t id)
+{
+    unsigned char buf[255];
+
+    buf[0] = ZW_REQ;
+    buf[1] = GetRoutingInformation;
+    buf[2] = id;
+    if (SerialAPI_request(buf, 3) != 0)
+      return -1;
+}
+*/
 
 int ZW_sendData(uint8_t id, uint8_t nvc3_command, u08_t *in, u08_t len, u08_t txoptions)
 {

@@ -3144,15 +3144,19 @@ void ApplicationCommandHandler(unsigned char * buf, int len)
 
 void dumpRouteInformation()
 {
-    int i,j;
+    int i,j,k;
 
+    k=0;
     printf("connected to\n");
     for(i=0;i<29;i++) {
         for(j=0;j<8;j++)
             if (zdata[i]& (1<<j)) {
+                init_data_buf[k+1] = i*8+j+1;
                 printf("%d " , i*8+j+1);
+                ++k;
             }
     }
+    init_data_buf[0] = k;
     printf("\n");
 }
 void zwave_check_state(unsigned char c)
@@ -4487,6 +4491,19 @@ void PyZwave_discover(){
     }
     zwave_my_address = zdata[4];
     printf("my zwave address: %d\n", zdata[4]);
+}
+
+// Penn
+void PyZwave_routing(unsigned node_id) {
+  printf("calling GetRoutingInformation!\n");
+  PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+  ZW_GetRoutingInformation(node_id);
+  while (1) {
+    if (!PyZwave_receiveByte(1000))
+      break; // No data received.
+    if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+      break; // Ack or error received.
+  }
 }
 
 int PyZwave_zwavefd() {

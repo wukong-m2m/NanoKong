@@ -32,11 +32,55 @@ from globals import *
 OK = 0
 NOTOK = 1
 
-def firstCandidate(app, heartbeatGroups, wuObjects, locTree):
+def constructHeartbeatGroups(heartbeatGroups, routingTable, allCandidateIds):
+  groups = 0
+  del heartbeatGroups[:]
+  heartbeatGroups.append({'period': 0, 'members': []})
+  while len(allCandidateIds) > 0:
+    if len(heartbeatGroups[groups]['members']) == 0:
+      heartbeatGroups[groups]['members'].append(allCandidateIds.pop(0))
+    elif len(heartbeatGroups[groups]['members']) == 1:
+      pivot = heartbeatGroups[groups]['members'][0]
+      if pivot in routingTable:
+        for neighbor in routingTable[pivot]:
+          if neighbor in allCandidateIds:
+            heartbeatGroups[groups]['members'].append(neighbor)
+            allCandidateIds.remove(neighbor)
+      if len(allCandidateIds) > 0:
+        groups += 1 #next group
+        heartbeatGroups.insert(groups, {'period': 0, 'members': []})
+
+# assign periods
+# FTComponentPolicy = {wuclass id: {'level': 3, 'reaction': 4}}
+def determinePeriodForHeartbeatGroups(wuObjects, heartbeatGroups, FTComponentPolicy):
+  logging.info('FTComponentPolicy')
+  logging.info(FTComponentPolicy)
+  for group in heartbeatGroups:
+    period = None
+    for nodeId in group['members']:
+      for candidates in wuObjects.values():
+        for wuobject in candidates:
+          if nodeId == wuobject.getNodeId():
+            if period == None or period > FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']:
+              period = FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']
+    group['period'] = period
+
+def sortCandidates(wuObjects):
+    nodeScores = {}
+    for candidates in wuObjects:
+      for node in candidates:
+        if node[0] in nodeScores:
+          nodeScores[node[0]] += 1
+        else:
+          nodeScores[node[0]] = 1
+
+    for candidates in wuObjects:
+      sorted(candidates, key=lambda node: nodeScores[node[0]])
+
+def firstCandidate(app, FTComponentPolicy, heartbeatGroups, routingTable, wuObjects, locTree):
     #input: nodes, WuObjects, WuLinks, WuClassDefsm, wuObjects is a list of wuobject list corresponding to group mapping
     #output: assign node id to WuObjects
     # TODO: mapping results for generating the appropriate instiantiation for different nodes
-    #print wuObjects
 
     for i, wuObject in enumerate(wuObjects.values()):
         candidateSet = set()
@@ -70,14 +114,11 @@ def firstCandidate(app, heartbeatGroups, wuObjects, locTree):
                 app.error('Locality conditions for component wuclass id "%s" are too strict; no available candidate found' % (wuObject[0].getWuClass().getId()))
                 return False
 
-        actualGroupSize = queries[1] #queries[1] is the suggested group size
+        #actualGroupSize = queries[1] #queries[1] is the suggested group size
+        actualGroupSize = FTComponentPolicy[str(wuObject[0].getWuClassId())]['level'] #the suggested group size
 
         # filter by available wuclasses for non-virtual components
         node_infos = [locTree.getNodeInfoById(nodeId) for nodeId in candidateSet]
-
-        # heartbeat groups - testing just make one group
-        if len(heartbeatGroups) == 0:
-          heartbeatGroups.append([nodeId for nodeId in candidateSet])
 
         candidateSet = [] # a list of [sensor id, port no., has native wuclass] pairs
         logging.info(wuObject[0].getWuClass().getId())
@@ -88,6 +129,7 @@ def firstCandidate(app, heartbeatGroups, wuObjects, locTree):
                 for wuobject in node_info.wuObjects:
                     if wuobject.getWuClassId()== wuObject[0].getWuClassId() and wuobject.isOccupied() == False:
                         logging.info('using existing wuobject')
+                        logging.info(wuobject)
                         portNumber = wuobject.getPortNumber() 
                         candidateSet.append([node_info.nodeId, portNumber, True])
                         found = True
@@ -96,6 +138,7 @@ def firstCandidate(app, heartbeatGroups, wuObjects, locTree):
                     sensorNode = locTree.sensor_dict[node_info.nodeId]
                     sensorNode.initPortList(forceInit = False)
                     portNo = sensorNode.reserveNextPort() 
+                    logging.info('at port %d', portNo)
                     candidateSet.append([node_info.nodeId, portNo, True])
             elif wuObject[0].getWuClass().isVirtual(): #virtual wuclass, create new port number
                 logging.info('creating virtual wuobject')
@@ -107,36 +150,55 @@ def firstCandidate(app, heartbeatGroups, wuObjects, locTree):
                 
         
         if len(candidateSet) == 0:
-          app.error ('No node could be mapped for component id '+str(wuObject[0].getWuClassId()))
+          app.error ('[ERROR] No node could be mapped for component id '+str(wuObject[0].getWuClassId()))
           return False
-        app.info('group size for component ' + str(wuObject) + ' is ' + str(actualGroupSize) + ' for candidates ' + str(candidateSet))
-        if actualGroupSize > len(candidateSet):
-            actualGroupSize = len(candidateSet)
-        groupMemberIds = candidateSet[:actualGroupSize]
-        print groupMemberIds
 
+        #temporary hack
         #candidateSet = sorted(candidateSet, key=lambda candidate: candidate[2])
         #candidateSet.reverse()
-        #select the first candidates who satisfies the condiditon
-        app.warning('will select the first '+ str(actualGroupSize)+' in this candidateSet ' + str(candidateSet))
+
+        app.warning('unsorted candidates are ' + str(candidateSet))
+
+        #integrity check
+        if len(candidateSet) < actualGroupSize:
+          app.warning('[WARNING] candidates for component do not satisfy the FT policy')
+        else:
+          app.info('Minimum redundancy level for component ' + str(wuObject) + ' is ' + str(actualGroupSize) + ' is satisfied')
 
         shadow = copy.deepcopy(wuObject[0])
         del wuObject[:]
         
-        for candidate in candidateSet[:actualGroupSize]:
-            tmp = copy.deepcopy(shadow)
-            tmp.setNodeId(candidate[0])
-            tmp.setPortNumber(candidate[1])
-            tmp.setHasWuClass(candidate[2])
-            tmp.setOccupied(True)
-            wuObject.append(tmp)
+        # minimum group size will not affect the result
+        for candidate in candidateSet:
+          tmp = copy.deepcopy(shadow)
+          tmp.setNodeId(candidate[0])
+          tmp.setPortNumber(candidate[1])
+          tmp.setHasWuClass(candidate[2])
+          tmp.setOccupied(True)
+          wuObject.append(tmp)
+
         for unused in candidateSet[actualGroupSize:]:
-            senNd = locTree.getSensorById(unused[0])
-            if unused[1] in senNd.temp_port_list:          #not in means it is a native wuclass port, so no need to roll back
-                senNd.temp_port_list.remove(unused[1])
-                senNd.port_list.remove(unused[1])
+          senNd = locTree.getSensorById(unused[0])
+          if unused[1] in senNd.temp_port_list:          #not in means it is a native wuclass port, so no need to roll back	
+            senNd.temp_port_list.remove(unused[1])
+            senNd.port_list.remove(unused[1])
 
         logging.info(wuObject)
+
+    # construct heartbeat groups plus period assignment
+    allCandidateIds = []
+    for candidates in wuObjects.values():
+      allCandidateIds += candidates
+    allCandidateIds = [node.getNodeId() for node in allCandidateIds]
+    nodeInfos = [locTree.getNodeInfoById(nodeId) for nodeId in allCandidateIds]
+    constructHeartbeatGroups(heartbeatGroups, routingTable, allCandidateIds)
+    determinePeriodForHeartbeatGroups(wuObjects, heartbeatGroups, FTComponentPolicy)
+    logging.info('heartbeatGroups constructed, periods assigned')
+    logging.info(heartbeatGroups)
+
+    #sort candidates
+    sortCandidates(wuObjects)
+
     #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
     for key in wuObjects.keys():
         comp = wuObjects[key]
@@ -180,6 +242,7 @@ class WuApplication:
     self.wuObjects = {}
     self.wuLinks = []
     self.heartbeatGroups = []
+    self.FTComponentPolicy = {}
 
   def setFlowDom(self, flowDom):
     self.applicationDom = flowDom
@@ -289,18 +352,25 @@ class WuApplication:
               queries.append ('')
           elif len (queries) > 1:
               logging.error('input file violating the assumption there is one location requirement per component in application.xml')
-          #assume there is one group_size requirement per component in application.xml
-          for groupSizeQuery in componentTag.getElementsByTagName('group_size'):
-              queries.append(int(groupSizeQuery.getAttribute('requirement')))
-          if len(queries) ==1:
-              queries.append(1)
-          elif len(queries) > 2:
-              logging.error('input file violating the assumption there is one group_size requirement per component in application.xml')
           # nodeId is not used here, portNumber is generated later
           wuObj = WuObject(wuClass=wuClass, instanceId=componentTag.getAttribute('instanceId'), instanceIndex=index, queries=queries)
 
           #TODO: for each component, there is a list of wuObjs (length depending on group_size)
+          # Instance id is only for mapping temporarily (since there could be
+          # duplicate wuobjects)
           self.wuObjects[wuObj.getInstanceId()] = [wuObj]
+
+          self.FTComponentPolicy[str(wuObj.getWuClassId())] = {'level': None,
+            'reaction': None}
+
+          #FTComponentPolicy
+          #assume there is one group_size requirement per component
+          for groupSizeQuery in componentTag.getElementsByTagName('group_size'):
+              self.FTComponentPolicy[str(wuObj.getWuClassId())]['level'] = int(groupSizeQuery.getAttribute('requirement'))
+          #assume there is one reaction_time requirement per component
+          for reactionTimeQuery in componentTag.getElementsByTagName('reaction_time'):
+              self.FTComponentPolicy[str(wuObj.getWuClassId())]['reaction'] = int(reactionTimeQuery.getAttribute('requirement'))
+
       #assumption: at most 99 properties for each instance, at most 999 instances
       linkSet = []  #store hashed result of links to avoid duplicated links: (fromInstanceId*100+fromProperty)*100000+toInstanceId*100+toProperty
       # links
@@ -317,17 +387,17 @@ class WuApplication:
               linkSet.append(hash_value)
               self.wuLinks.append( WuLink(fromWuObject, fromPropertyId, toWuObject, toPropertyId) )
 
-  def mapping(self, locTree, mapFunc=firstCandidate):
+  def mapping(self, locTree, routingTable, mapFunc=firstCandidate):
       #input: nodes, WuObjects, WuLinks, WuClassDefs
       #output: assign node id to WuObjects
       # TODO: mapping results for generating the appropriate instiantiation for different nodes
       
-      return mapFunc(self, self.heartbeatGroups, self.wuObjects, locTree)
+      return mapFunc(self, self.FTComponentPolicy, self.heartbeatGroups, routingTable, self.wuObjects, locTree)
 
-  def map(self, location_tree):
+  def map(self, location_tree, routingTable):
     self.parseComponents()
     self.parseApplicationXML()
-    self.mapping(location_tree)
+    self.mapping(location_tree, routingTable)
     self.mapping_results = self.wuObjects
     logging.info("Mapping results")
     logging.info(self.mapping_results)
@@ -450,11 +520,13 @@ class WuApplication:
 
   def reconfiguration(self):
     global location_tree
+    global routingTable
     master_busy()
     self.status = "Start reconfiguration"
     node_infos = getComm().getActiveNodeInfos(force=True)
     location_tree = LocationTree(LOCATION_ROOT)
     location_tree.buildTree(node_infos)
-    self.map(location_tree)
+    routingTable = getComm().getRoutingInformation()
+    self.map(location_tree, routingTable)
     self.deploy([info.nodeId for info in node_infos], DEPLOY_PLATFORMS)
     master_available()

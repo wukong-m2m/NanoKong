@@ -1,3 +1,4 @@
+# vim: ts=4 sw=4
 import sys, os, fcntl
 import pickle
 import tornado.ioloop
@@ -162,6 +163,23 @@ class ZwaveAgent(TransportAgent):
         # received ack from Agent
         return message
 
+    def routing(self):
+
+        result = AsyncResult()
+
+        def callback(reply):
+            result.set(reply)
+
+        defer = new_defer(callback,
+                callback,
+                None,
+                None,
+                new_message(1, "routing", 0),
+                0)
+        tasks.put_nowait(defer)
+
+        return result.get()
+
     def discovery(self):
 
         result = AsyncResult()
@@ -241,7 +259,7 @@ class ZwaveAgent(TransportAgent):
             logging.debug('handler: getting defer from task queue')
 
             if defer.message.command == "discovery":
-                logging.debug('handler: processing discovery')
+                logging.debug('handler: processing discovery request')
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
                 total_nodes = nodes[1]
@@ -252,8 +270,25 @@ class ZwaveAgent(TransportAgent):
                 except ValueError:
                     pass # sometimes gateway_id is not in the list
                 defer.callback(discovered_nodes)
+            elif defer.message.command == "routing":
+                logging.debug('handler: processing routing request')
+                routing = {}
+                nodes = pyzwave.discover()
+                gateway_id = nodes[0]
+                nodes = nodes[2:]
+                try:
+                    nodes.remove(gateway_id)
+                except ValueError:
+                    pass # sometimes gateway_id is not in the list
+                for node in nodes:
+                    routing[node] = pyzwave.routing(node)
+                    try:
+                        routing[node].remove(gateway_id)
+                    except ValueError:
+                        pass
+                defer.callback(routing)
             else:
-                logging.debug('handler: processing defer')
+                logging.debug('handler: processing send request')
                 retries = 1
                 destination = defer.message.destination
                 command = defer.message.command

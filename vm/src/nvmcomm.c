@@ -279,6 +279,8 @@ void handle_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t 
       wkpf_comm_handle_message(src, nvmcomm_command, payload, &response_size, &response_cmd);
     break;
 #ifdef NVM_USE_GROUP
+    case NVMCOMM_GROUP_PROBE_NODE:
+      group_handle_probe_message(src, nvmcomm_command, payload, &response_size, &response_cmd);
     case NVMCOMM_GROUP_HEARTBEAT:
       group_handle_heartbeat_message(src);
     break;

@@ -249,8 +249,8 @@ class deploy_application(tornado.web.RequestHandler):
     global node_infos
     try:
       # Discovery results
-      #comm = getComm()
       node_infos = location_tree.getAllNodeInfos()
+
       #node_infos = []
       app_ind = getAppIndex(app_id)
       if app_ind == None:
@@ -273,37 +273,30 @@ class deploy_application(tornado.web.RequestHandler):
     set_wukong_status("Start deploying")
     applications[app_ind].status = "    "
     if SIMULATION==1:
-      from translator import generateJava
+      from wkpf.xml2java.translator import generateJava
+      from wkpf.codegen import generateCode
+      generateCode(applications[app_ind])
       generateJava(applications[app_ind])
-
-    if app_ind == None:
-      self.content_type = 'application/json'
-      self.write({'status':1, 'mesg': 'Cannot find the application'})
+      set_wukong_status("")
+      applications[app_ind].status = ""
     else:
-      platforms = ['avr_mega2560']
-      # TODO: need platforms from fbp
-
-      # old stuff
-      '''
-      if applications[app_ind].deploy(node_ids, platforms):
+      if app_ind == None:
+        self.content_type = 'application/json'
+        self.write({'status':1, 'mesg': 'Cannot find the application'})
+      else:
+        platforms = ['avr_mega2560']
+        # signal deploy in other greenlet task
+        wusignal.signal_deploy(platforms)
+        set_active_application_index(app_ind)
+             
         self.content_type = 'application/json'
         self.write({'status':0, 'version': applications[app_ind].version})
-      else:
-        self.content_type = 'application/json'
-        self.write({'status':1, 'mesg': 'Deploy has failed'})
-      '''
-
-      # signal deploy in other greenlet task
-      wusignal.signal_deploy(platforms)
-      set_active_application_index(app_ind)
-           
-      self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version})
 
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
     global applications
     global location_tree
+    global routingTable
 
     app_ind = getAppIndex(app_id)
     if app_ind == None:
@@ -316,7 +309,7 @@ class map_application(tornado.web.RequestHandler):
       # comm.addActiveNodesToLocTree(fakedata.locTree)
 
       # Map with location tree info (discovery), this will produce mapping_results
-      applications[app_ind].map(location_tree)
+      applications[app_ind].map(location_tree, routingTable)
 
     #  print applications[app_ind].mapping_results
 
@@ -498,6 +491,7 @@ class testrtt(tornado.web.RequestHandler):
 class refresh_nodes(tornado.web.RequestHandler):
   def post(self):
     global location_tree
+    global routingTable
     global node_infos
 
     if SIMULATION == 0:
@@ -509,11 +503,15 @@ class refresh_nodes(tornado.web.RequestHandler):
     else:
       logging.error("SIMULATION %d is not invalid" % (SIMULATION))
       exit()
+    logging.info("building tree from discovery")
     location_tree.buildTree(node_infos)
     #furniture data loaded from fake data for purpose of 
     location_tree.addLandmark(fakedata.landmark1)
     location_tree.addLandmark(fakedata.landmark2)
     location_tree.printTree()
+    logging.info("getting routing information")
+    routingTable = getComm().getRoutingInformation()
+    logging.info(routingTable)
     # default is false
     set_location = self.get_argument('set_location', False)
 
@@ -560,6 +558,7 @@ class nodes(tornado.web.RequestHandler):
     if location:
       comm = getComm()
       if comm.setLocation(int(nodeId), location):
+        routingTable = comm.getRoutingInformation()
         # update our knowledge too
         for info in comm.getActiveNodeInfos():
           if info.nodeId == int(nodeId):
@@ -668,6 +667,7 @@ if __name__ == "__main__":
   update_applications()
   app.listen(MASTER_PORT)
   location_tree = LocationTree(LOCATION_ROOT)
+  routingTable = {}
   import_wuXML()
   make_FBP()
   ioloop.start()

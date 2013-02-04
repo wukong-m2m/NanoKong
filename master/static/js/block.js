@@ -25,6 +25,7 @@ Block.prototype.init=function() {
 	this.setSize(100,100);
 	this.location = '';
 	this.group_size = 1;
+	this.reaction_time = 1;
 	this.signals=[];
 	this.actions=[];
 	this.sigProper=[];
@@ -61,6 +62,7 @@ Block.prototype.serialize=function(obj) {
 	obj.type = this.type;
 	obj.location = this.location;
 	obj.group_size = this.group_size;
+	obj.reaction_time = this.reaction_time;
 	obj.actions = {};
 	obj.signals = {};
 	actlist= this.getActions();
@@ -83,6 +85,7 @@ Block.restore=function(a) {
 	n.type = a.type;
 	n.location = a.location;
 	n.group_size = a.group_size;
+	n.reaction_time = a.reaction_time;
 	// Call the restore of the derived class in the future
 	return n;
 }
@@ -169,10 +172,15 @@ Block.prototype.attach=function(parent) {
 		$('#propertyeditor').append('<h3> Fault Tolerance </h3><label for="propertyeditor_groupsize">Group Size</label>');
 		$('#propertyeditor').append('<br><input id=propertyeditor_groupsize name=value></input>');
 		$('#propertyeditor').append('');
+		$('#propertyeditor').append('<label for="propertyeditor_reactiontime">Reaction Time</label>');
+		$('#propertyeditor').append('<br><input id=propertyeditor_reactiontime name=value></input>');
+		$('#propertyeditor').append('');
 
 		$('#propertyeditor_location').val(self.location);
 		$('#propertyeditor_groupsize').spinner();
 		$('#propertyeditor_groupsize').spinner("value",self.group_size);
+		$('#propertyeditor_reactiontime').spinner();
+		$('#propertyeditor_reactiontime').spinner("value",self.reaction_time);
 
  
 		$("#propertyeditor").append('<h3> Action </h3><div id=propertyeditor_action></div>');
@@ -208,6 +216,7 @@ Block.prototype.attach=function(parent) {
 				'OK': function () {
 					self.location = $('#propertyeditor_location').val();
 					self.group_size = $('#propertyeditor_groupsize').spinner("value");
+					self.reaction_time = $('#propertyeditor_reactiontime').spinner("value");
 					for(i=0;i<_siglist.length;i++){
 						sig = _siglist[i];
 						self.sigProper[i]=$('#s'+sig.name).val();

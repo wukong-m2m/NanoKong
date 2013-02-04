@@ -7,6 +7,7 @@ from wkpf import *
 from locationTree import *
 from globals import *
 import fakedata
+from configuration import *
 
 communication = None
 
@@ -23,10 +24,11 @@ class Communication:
     def __init__(self):
       print 'Communciation constructor'
       self.all_node_infos = []
-      self.zwave = ZwaveAgent.init()
-      if not self.zwave:
-        print 'cannot initiate zwaveagent'
-        raise Exception
+      if not SIMULATION:
+        self.zwave = ZwaveAgent.init()
+        if not self.zwave:
+          print 'cannot initiate zwaveagent'
+          raise Exception
 
     def addActiveNodesToLocTree(self, locTree):
       for node_info in self.getActiveNodeInfos():
@@ -58,11 +60,19 @@ class Communication:
         return [self.getNodeInfo(int(destination)) for destination in node_ids]
 
     def getAllNodeInfos(self, force=False):
+      if SIMULATION:
+        return fakedata.simNodeInfos
       if force or self.all_node_infos == []:
         nodeIds = self.getNodeIds()
         self.all_node_infos = [self.getNodeInfo(int(destination)) for destination in nodeIds]
       print 'got all nodeInfos'
       return self.all_node_infos
+
+    def getRoutingInformation(self):
+      if SIMULATION:
+        return fakedata.routing
+      else:
+        return self.zwave.routing()
 
     def onAddMode(self):
       return self.zwave.add()

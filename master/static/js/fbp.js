@@ -275,7 +275,7 @@ function FBP_renderPage(page)
     g_nodes = [];
     g_lines = [];
     var hash={};
-    var loc, group_size;
+    var loc, group_size, reaction_time;
 
     for(i=0;i<page.nodes.length;i++) {
         n = Block.restore(page.nodes[i]);
@@ -304,7 +304,6 @@ function FBP_parseXMLPage(comps)
 
     for(i=0;i<comps.length;i++) {
         var c = $(comps[i]);
-        console.log(c.find("group_size").attr("requirement"));
         var meta ={};
         meta.x = c.attr("x");
         meta.y = c.attr("y");
@@ -313,13 +312,25 @@ function FBP_parseXMLPage(comps)
         meta.id = c.attr("instanceId");
         meta.type = c.attr("type");
         loc = c.find("location");
-        if (loc) {
+        if (loc.length > 0) {
             meta.location = loc.attr("requirement");
         }
+        //console.log(c.find("group_size").attr("requirement"));
+        console.log('location ' + meta.location);
         group_size = c.find("group_size");
-        if (group_size) {
+        if (group_size.length > 0) {
             meta.group_size = group_size.attr("requirement");
+        } else {
+            meta.group_size = 1;
         }
+        console.log('group size ' + meta.group_size);
+        reaction_time = c.find("reaction_time")
+        if (reaction_time.length > 0) {
+            meta.reaction_time = reaction_time.attr("requirement");
+        } else {
+            meta.reaction_time = 1;
+        }
+        console.log('reaction time ' + meta.reaction_time);
 		nodes.push(meta);
 		hash[meta.id] = meta;
     }
@@ -525,6 +536,9 @@ function FBP_toXML(gnodes,glines)
         if (source.group_size && source.group_size != '') {
             xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
         }
+        if (source.reaction_time && source.reaction_time != '') {
+            xml = xml + '        <reaction_time requirement="'+source.reaction_time+'" />\n';
+        }
 //sato add start            
         if(source.actions){
 			xml = xml + '        <actionProperty ';
@@ -555,6 +569,10 @@ function FBP_toXML(gnodes,glines)
         	if (source.group_size && source.group_size != '') {
             	xml = xml + '        <group_size requirement="'+source.group_size+'" />\n';
 	        }
+        	if (source.reaction_time && source.reaction_time != '') {
+            	xml = xml + '        <reaction_time requirement="'+source.reaction_time+'" />\n';
+	        }
+           
 //sato add start            
             if(gnodes[k].actions){
 				xml = xml + '        <actionProperty ';

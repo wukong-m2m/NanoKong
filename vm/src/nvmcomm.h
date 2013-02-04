@@ -41,6 +41,9 @@
 #define NVMCOMM_GROUP_UPDATE_COMPONENT_R         0x73
 #define NVMCOMM_GROUP_UPDATE_HEARTBEAT           0x74
 #define NVMCOMM_GROUP_UPDATE_HEARTBEAT_R         0x75
+#define NVMCOMM_GROUP_PROBE_NODE                 0x76
+#define NVMCOMM_GROUP_PROBE_NODE_R               0x77
+#define NVMCOMM_GROUP_TRIAGE_R                   0x78
 #define NVMCOMM_GROUP_ERROR_R                    0x7F
 
 #define NVMCOMM_WKPF_GET_WUCLASS_LIST            0x90

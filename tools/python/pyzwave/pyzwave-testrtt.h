@@ -11,5 +11,6 @@ int PyZwave_receive(int);
 extern char *PyZwave_status();
 extern void PyZwave_clearstatus();
 extern int PyZwave_zwavefd();
+extern void PyZwave_routing(unsigned node_id);
 
 #endif
