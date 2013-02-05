@@ -46,6 +46,7 @@ def constructHeartbeatGroups(heartbeatGroups, routingTable, allCandidateIds):
           if neighbor in allCandidateIds:
             heartbeatGroups[groups]['members'].append(neighbor)
             allCandidateIds.remove(neighbor)
+      logging.info(allCandidateIds)
       if len(allCandidateIds) > 0:
         groups += 1 #next group
         heartbeatGroups.insert(groups, {'period': 0, 'members': []})
@@ -186,10 +187,13 @@ def firstCandidate(app, FTComponentPolicy, heartbeatGroups, routingTable, wuObje
         logging.info(wuObject)
 
     # construct heartbeat groups plus period assignment
-    allCandidateIds = []
+    allCandidateIds = set()
+    allCandidates  = []
     for candidates in wuObjects.values():
-      allCandidateIds += candidates
-    allCandidateIds = [node.getNodeId() for node in allCandidateIds]
+      allCandidates += candidates
+    for node in allCandidates:
+      allCandidateIds.add(node.getNodeId())
+    allCandidateIds = list(allCandidateIds)
     nodeInfos = [locTree.getNodeInfoById(nodeId) for nodeId in allCandidateIds]
     constructHeartbeatGroups(heartbeatGroups, routingTable, allCandidateIds)
     determinePeriodForHeartbeatGroups(wuObjects, heartbeatGroups, FTComponentPolicy)
