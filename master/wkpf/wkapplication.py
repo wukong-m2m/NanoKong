@@ -134,6 +134,7 @@ def firstCandidate(app, FTComponentPolicy, heartbeatGroups, routingTable, wuObje
                         portNumber = wuobject.getPortNumber() 
                         candidateSet.append([node_info.nodeId, portNumber, True])
                         found = True
+                        break
                 if not found:
                     logging.info('creating wuobject')
                     sensorNode = locTree.sensor_dict[node_info.nodeId]
@@ -178,11 +179,11 @@ def firstCandidate(app, FTComponentPolicy, heartbeatGroups, routingTable, wuObje
           tmp.setOccupied(True)
           wuObject.append(tmp)
 
-        for unused in candidateSet[actualGroupSize:]:
-          senNd = locTree.getSensorById(unused[0])
-          if unused[1] in senNd.temp_port_list:          #not in means it is a native wuclass port, so no need to roll back	
-            senNd.temp_port_list.remove(unused[1])
-            senNd.port_list.remove(unused[1])
+#        for unused in candidateSet[actualGroupSize:]:
+ #         senNd = locTree.getSensorById(unused[0])
+ #         if unused[1] in senNd.temp_port_list:          #not in means it is a native wuclass port, so no need to roll back	
+ #           senNd.temp_port_list.remove(unused[1])
+ #           senNd.port_list.remove(unused[1])
 
         logging.info(wuObject)
 
