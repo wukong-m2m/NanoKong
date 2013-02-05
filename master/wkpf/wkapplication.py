@@ -57,14 +57,16 @@ def determinePeriodForHeartbeatGroups(wuObjects, heartbeatGroups, FTComponentPol
   logging.info('FTComponentPolicy')
   logging.info(FTComponentPolicy)
   for group in heartbeatGroups:
-    period = None
+    reaction = None
     for nodeId in group['members']:
       for candidates in wuObjects.values():
         for wuobject in candidates:
           if nodeId == wuobject.getNodeId():
-            if period == None or period > FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']:
-              period = FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']
-    group['period'] = period
+            if reaction == None or reaction > FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']:
+              reaction = FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']
+    #group heartbeat is reactiontime divided by 2,
+    #then multiplied by 1000 to microseconds
+    group['period'] = int((float(reaction)/2.0) * 1000.0) #reaction = 1, period = 500
 
 def sortCandidates(wuObjects):
     nodeScores = {}

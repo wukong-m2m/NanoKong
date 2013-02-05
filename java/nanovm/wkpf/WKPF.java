@@ -24,6 +24,7 @@ public class WKPF extends GENERATEDWKPF {
 
   // Load component-wuobject map and link definitions
   public static native void loadHeartbeatToNodeAddrMap(byte[][] map);
+  public static native void loadHeartbeatPeriods(int[] periods);
   public static native void loadComponentToWuObjectAddrMap(byte[][] map);
   public static native void loadLinkDefinitions(byte[] links);
 

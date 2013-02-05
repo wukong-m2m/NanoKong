@@ -43,40 +43,6 @@ uint8_t wkpf_get_link_by_dest_property_and_dest_wuclass_id(uint8_t property_numb
   return WKPF_ERR_LINK_NOT_FOUND;
 }
 
-uint8_t wkpf_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id) {
-#ifdef NVM_USE_GROUP
-  uint16_t number_of_groups = array_length(heartbeat_map_heap_id)/sizeof(heap_id_t);
-
-  DEBUGF_WKPF("WKPF: Scanning %x heartbeat groups (%x bytes)\n\n", number_of_groups, array_length(heartbeat_map_heap_id));
-
-  /* No restrictions on the size of heartbeat group yet
-  if (number_of_groups>MAX_NUMBER_OF_COMPONENTS)
-    return WKPF_ERR_OUT_OF_MEMORY;
-  */
-
-  int group_index = -1;
-  for(int i=0; i<number_of_groups; i++) {
-    heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(heartbeat_map_heap_id)+1+(2*i));
-    uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(address_t);
-    address_t *nodes = (address_t *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
-
-    DEBUGF_WKPF("WKPF: Scanning heartbeat group with %x nodes\n", number_of_nodes);
-    for (int j=0; j<number_of_nodes; j++) {
-      if (nodes[j] == nvmcomm_get_node_id()) {
-        DEBUGF_WKPF("Found itself\n");
-        group_index = i;
-        group_setup_watch_list(j, number_of_nodes, nodes);
-        break;
-      }
-    }
-    if (group_index != -1) {
-      break;
-    }
-  }
-#endif // NVM_USE_GROUP
-  return WKPF_OK;
-}
-
 uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
   uint16_t number_of_entries = array_length(map_heap_id)/sizeof(heap_id_t);
 
