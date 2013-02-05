@@ -39,16 +39,10 @@ class SensorNode:
         for wuObj in self.nodeInfo.wuObjects:
             self.port_list.append(wuObj.getPortNumber())
         self.port_list.sort()
-    def reserveNextPort(self):      #reserve a port from 128~255
+    def reserveNextPort(self):      #reserve a port from 0 ~ 127
         portSet = False
         
-        for j in range(len(self.port_list)):
-            if self.port_list[j]<self.last_reserved_port:
-                if j==len(self.port_list)-1:
-                    self.last_reserved_port = 0
-                    return 0
-                else:
-                    continue
+        for j in range(len(self.port_list)-1 ,-1 , -1):
             if (self.port_list[j]+1)%128 !=self.port_list[(j+1)%len(self.port_list)]:
                 self.port_list.append((self.port_list[j]+1)%128)
                 self.temp_port_list.append((self.port_list[j]+1)%128)
