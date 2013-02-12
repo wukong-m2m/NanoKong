@@ -10,7 +10,8 @@ json_data = odict.odict()
 number = 0
 MAX_LIFE = 1
 class LandmarkNode:
-    #location is a string, size is a tuple of three
+    #location is a string, size is a tuple of three (corresponding to x, y,z direction)
+    #assuming shapes to be cuboid, but it could also be cylinder, pyramid, ball etc
     def __init__(self, id, name, locationStr, size):
         self.id = id
         self.name = name
@@ -63,8 +64,84 @@ class LocationTreeNode:
         self.sensorLst = []
         self.sensorCnt = 0
         self.landmarkLst = []
+        
+        #key is the set of the destination and source (exchangeable)
+        #distance to self is always 0
+        self.distanceModifier = {} #stores a list of distance between children, default 0, used for distance between sensors in different children.
         self.idSet = set([]) #all sensor ids contained in this Node and its children nodes
 
+        #obj could be sensor or landmark 
+    def calcDistance(self, sensor, obj):
+        modifier = (sensor.coord[0]-obj.coord[0])**2+(sensor.coord[1]-obj.coord[1])**2+(sensor.coord[2]-obj.coord[2])**2
+        pos2 = sensor.locationTreeNode
+        snrId = sensor.nodeInfo.nodeId
+        pos1 = obj.locationTreeNode
+        curPos = pos1
+        while snrId not in curPos.idSet:
+            try:
+                modifier = modifier +self.distanceModifier[set([curPos.name,pos1.name])]
+            except KeyError:
+                modifier = modifier
+            pos1 = curPos
+            curPos = curPos.parent
+        try:
+            modifier = modifier +curPos.distanceModifier[set([pos1.name,pos2.name])]
+        except KeyError:
+            modifier = modifier
+        return modifier
+        
+    def addDistanceModifier(self, name1, name2, distance):
+        found = 0
+        ids = [name1, name2]
+        lst = self.children
+        if self.parent !=None:
+            lst.append(self.parent)
+        for child in lst:
+            if child.name == name1:
+                found = found+1
+                if found == 3:
+                    break
+            elif child.name == name2:
+                found = found +2
+                if found == 3:
+                    break
+        if found == 0:
+            logging.error("error! None of the names"+str(ids)+" found when adding distance modifier to " + self.name)
+            return False
+        elif found!=3:
+            logging.error("error! None of the names"+str(ids[2-found])+" not found when adding distance modifier to"+ self.name)
+            return False
+
+        self.distanceModifier[set([name1,name2])] = distance
+    
+    def delDistanceModifier(self, name1, name2, distance):
+        found = 0
+        ids = [name1, name2]
+        lst = self.children
+        if self.parent !=None:
+            lst.append(self.parent)
+        for child in lst:
+            if child.name == name1:
+                found = found+1
+                if found == 3:
+                    break
+            elif child.name == name2:
+                found = found +2
+                if found == 3:
+                    break
+        if found == 0:
+            logging.error("error! None of the names"+str(ids)+" found when adding distance modifier to " + self.name)
+            return False
+        elif found!=3:
+            logging.error("error! None of the names"+str(ids[2-found])+" not found when adding distance modifier to"+ self.name)
+            return False
+        try:
+            del self.distanceModifier[set([name1,name2])]
+        except KeyError:
+            logging.error("error! distance modifier does not exist for " +str(ids)+" in "+ self.name)
+            return False
+        return True
+            
     def addChild(self, name):
         tmp = LocationTreeNode (name, self)
         self.children.append(tmp)
