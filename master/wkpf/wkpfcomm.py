@@ -108,54 +108,52 @@ class Communication:
     def getLocation(self, destination):
       print 'getLocation', destination
 
-      reply = self.zwave.send(destination, pynvc.WKPF_GET_LOCATION, [], [pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R])
+      length = 0
+      location = ''
 
-      '''
-      sn = self.getNextSequenceNumberAsList()
-      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                        command=pynvc.WKPF_GET_LOCATION,
-                                                        payload=sn,
-                                                        allowedReplies=[pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R],
-                                                        verify=self.verifyWKPFmsg(messageStart=sn, minAdditionalBytes=0)) # number of wuclasses
-      '''
+      while (length == 0 or len(location) < length): # There's more to the location string, so send more messages to get the rest
+        # +1 because the first byte in the data stored on the node is the location string length
+        offset = len(location) + 1 if length > 0 else 0
+        reply = self.zwave.send(destination, pynvc.WKPF_GET_LOCATION, [offset], [pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R])
 
-      if reply == None:
-        return ""
+        if reply == None:
+          return ''
+        if reply.command == pynvc.WKPF_ERROR_R:
+          print "WKPF RETURNED ERROR ", reply.command
+          return '' # graceful degradation
+        if len(reply.payload) <= 2:
+          return ''
 
-      if reply.command == pynvc.WKPF_ERROR_R:
-        print "WKPF RETURNED ERROR ", reply.command
-        return [] # graceful degradation
+        if length == 0:
+          length = reply.payload[2] # byte 3 in the first message is the total length of the string
+          if length == 0:
+            return ''
+          location = ''.join([chr(byte) for byte in reply.payload[3:]])
+        else:
+          location += ''.join([chr(byte) for byte in reply.payload[2:]])
 
-      print reply
-      if len(reply.payload) > 2:
-        reply = reply.payload[2:] # without seq number
-        location_size = reply[0]
-        return ''.join([chr(bit) for bit in reply[1:location_size+1]]) # shift overhead
-      else:
-        return ''
+      return location[0:length] # The node currently send a bit too much, so we have to truncate the string to the length we need
 
     def setLocation(self, destination, location):
       print 'setLocation', destination
 
-      reply = self.zwave.send(destination, pynvc.WKPF_SET_LOCATION, [len(location)] + [int(ord(char)) for char in location], [pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R])
-      print reply
+      # Put length in front of location
+      locationstring = [len(location)] + [int(ord(char)) for char in location]
+      offset = 0
+      chunksize = 10
+      while offset < len(locationstring):
+        chunk = locationstring[offset:offset+chunksize]
+        message = [offset, len(chunk)] + chunk
+        offset += chunksize
 
-      '''
-      sn = self.getNextSequenceNumberAsList()
-      sn += [len(location)] + [int(ord(char)) for char in location]
-      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                        command=pynvc.WKPF_SET_LOCATION,
-                                                        payload=sn,
-                                                        allowedReplies=[pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R],
-                                                        verify=self.verifyWKPFmsg(messageStart=sn[:6], minAdditionalBytes=0)) # number of wuclasses
-      '''
+        reply = self.zwave.send(destination, pynvc.WKPF_SET_LOCATION, message, [pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R])
 
-      if reply == None:
-        return -1
+        if reply == None:
+          return -1
 
-      if reply.command == pynvc.WKPF_ERROR_R:
-        print "WKPF RETURNED ERROR ", reply.payload
-        return False
+        if reply.command == pynvc.WKPF_ERROR_R:
+          print "WKPF RETURNED ERROR ", reply.payload
+          return False
       return True
 
     def getFeatures(self, destination):

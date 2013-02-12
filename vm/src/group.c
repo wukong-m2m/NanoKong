@@ -7,6 +7,8 @@
 #include "delay.h"
 #include "nvmcomm.h"
 #include "debug.h"
+#include "heap.h"
+#include "array.h"
 #include "logging.h"
 #include "group.h"
 #include "led.h"
@@ -22,8 +24,6 @@
 #define GROUP_HEARTBEAT_NODE_REMOVE 0x07
 
 // Timeout
-#define HEARTBEAT_INTERVAL 1000
-#define HEARTBEAT_TIMEOUT 2500
 #define INITIALISATION_TIMEOUT 15000
 #define NOTIFY_TIMEOUT 10000
 
@@ -34,6 +34,8 @@ typedef struct {
     nvmtime_t expect_next_timestamp_before; // Initialise to currenttime + INITIALISATION_TIMEOUT
 } node_to_watch;
 
+uint32_t heartbeat_interval = 1000;
+uint32_t heartbeat_timeout = 2500;
 nvmtime_t next_time_to_notify = 0;
 // Watch list is now a list of nodes in order of heartbeat importance
 // The node at left_offset_to_monitor is the node to monitor
@@ -48,6 +50,7 @@ uint8_t front_offset_to_monitor = 0;
 // e.g. 0 will make the last node in watch list the node to send heartbeat to
 uint8_t back_offset_to_send_heartbeat = 0;
 nvmtime_t next_heartbeat_broadcast = 0; // Initialise to 0 to start sending heartbeats straight away.
+uint8_t group_index = -1;
 
 node_to_watch* monitored_node() {
   if (watch_list_count > 0 && watch_list_count > front_offset_to_monitor) {
@@ -73,6 +76,64 @@ node_to_watch* monitor_node() {
 #endif
 
   return NULL;
+}
+
+void initialize_heartbeat_interval(uint32_t period) {
+  heartbeat_interval = period;
+  heartbeat_timeout = 2*heartbeat_interval + 500;
+  DEBUGF_GROUP("GROUP: heartbeat_interval and timeout are updated to %x, %x\n", heartbeat_interval, heartbeat_timeout);
+}
+
+uint8_t group_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id) {
+#ifdef NVM_USE_GROUP
+  uint16_t number_of_groups = array_length(heartbeat_map_heap_id)/sizeof(heap_id_t);
+
+  DEBUGF_GROUP("GROUP: Scanning %x heartbeat groups (%x bytes)\n\n", number_of_groups, array_length(heartbeat_map_heap_id));
+
+  /* No restrictions on the size of heartbeat group yet
+  if (number_of_groups>MAX_NUMBER_OF_COMPONENTS)
+    return WKPF_ERR_OUT_OF_MEMORY;
+  */
+
+  group_index = -1;
+  for(int i=0; i<number_of_groups; i++) {
+    heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(heartbeat_map_heap_id)+1+(2*i));
+    uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(address_t);
+    address_t *nodes = (address_t *)((uint8_t *)heap_get_addr(nodes_heap_id)+1); // +1 to skip type byte
+
+    DEBUGF_GROUP("GROUP: Scanning heartbeat group with %x nodes\n", number_of_nodes);
+    for (int j=0; j<number_of_nodes; j++) {
+      if (nodes[j] == nvmcomm_get_node_id()) {
+        DEBUGF_GROUP("GROUP: Found itself\n");
+        group_index = i;
+        group_setup_watch_list(j, number_of_nodes, nodes);
+        break;
+      }
+    }
+    if (group_index != -1) {
+      break;
+    }
+  }
+#endif // NVM_USE_GROUP
+  return WKPF_OK;
+}
+
+uint8_t group_load_heartbeat_periods(heap_id_t periods_heap_id) {
+  uint16_t number_of_entries = array_length(periods_heap_id)/sizeof(uint32_t);
+  uint32_t* periods = (uint32_t *)((uint8_t *)heap_get_addr(periods_heap_id)+1); // +1 to skip type byte
+
+  DEBUGF_GROUP("GROUP: Loading %x periods\n\n", number_of_entries);
+  
+  if (group_index != -1 && group_index < number_of_entries) {
+    DEBUGF_GROUP("GROUP: Loading period %x for heartbeat group %x\n",
+                periods[group_index],
+                group_index
+                );
+    initialize_heartbeat_interval(periods[group_index]);
+  } else {
+    return WKPF_ERR_SHOULDNT_HAPPEN;
+  }
+  return WKPF_OK;
 }
 
 uint8_t group_probe_node(address_t node_id) {
@@ -259,12 +320,12 @@ void group_handle_heartbeat_message(address_t src) {
 #ifdef DEBUG
     DEBUGF_GROUP("expected\n");
 #endif
-    monitored_node()->expect_next_timestamp_before = nvm_current_time + HEARTBEAT_TIMEOUT;
+    monitored_node()->expect_next_timestamp_before = nvm_current_time + heartbeat_timeout;
     blink_once(LED6);
   }
 }
 
-// To be called periodically (at least as often as HEARTBEAT_INTERVAL)
+// To be called periodically (at least as often as heartbeat_interval)
 void send_heartbeat() {
     if (watch_list_count > 0 && monitor_node() != NULL) {
         // Send a heartbeat if it is due.
@@ -274,7 +335,7 @@ void send_heartbeat() {
 #endif
             /*nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);*/
             nvmcomm_send(monitor_node()->node_id, NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
-            next_heartbeat_broadcast = nvm_current_time + HEARTBEAT_INTERVAL;
+            next_heartbeat_broadcast = nvm_current_time + heartbeat_interval;
             blink_once(LED5);
         }
     }
@@ -299,7 +360,7 @@ void group_reconfiguration() {
 }
 
 void handle_failure() {
-  // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last HEARTBEAT_TIMEOUT ms.
+  // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last heartbeat_timeout ms.
   if (monitored_node() != NULL && nvm_current_time > monitored_node()->expect_next_timestamp_before) {
     address_t dead_node_id = monitored_node()->node_id;
 
@@ -308,7 +369,7 @@ void handle_failure() {
     uint8_t ret = group_probe_node(dead_node_id);
     if (ret == WKPF_OK) {
       // Like a heartbeat
-      monitored_node()->expect_next_timestamp_before = nvm_current_time + HEARTBEAT_TIMEOUT;
+      monitored_node()->expect_next_timestamp_before = nvm_current_time + heartbeat_timeout;
       return;
     } else if (ret == WKPF_ERR_NETWORK_TRIAGE) {
       // Reconfiguration or do nothing here
@@ -381,7 +442,7 @@ void handle_failure() {
     nvmcomm_poll(); // Process incoming messages
     group_remove_node_from_watchlist(dead_node_id);
     group_update_nodes_in_watchlist(GROUP_HEARTBEAT_NODE_REMOVE, dead_node_id);
-    monitored_node()->expect_next_timestamp_before = nvm_current_time + HEARTBEAT_TIMEOUT; // Initialization, it's ok to miss one if not lucky
+    monitored_node()->expect_next_timestamp_before = nvm_current_time + heartbeat_timeout; // Initialization, it's ok to miss one if not lucky
 
     // Blink
     blink_twice(LED5);

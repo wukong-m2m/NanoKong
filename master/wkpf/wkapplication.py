@@ -46,6 +46,7 @@ def constructHeartbeatGroups(heartbeatGroups, routingTable, allCandidateIds):
           if neighbor in allCandidateIds:
             heartbeatGroups[groups]['members'].append(neighbor)
             allCandidateIds.remove(neighbor)
+      logging.info(allCandidateIds)
       if len(allCandidateIds) > 0:
         groups += 1 #next group
         heartbeatGroups.insert(groups, {'period': 0, 'members': []})
@@ -56,14 +57,16 @@ def determinePeriodForHeartbeatGroups(wuObjects, heartbeatGroups, FTComponentPol
   logging.info('FTComponentPolicy')
   logging.info(FTComponentPolicy)
   for group in heartbeatGroups:
-    period = None
+    reaction = None
     for nodeId in group['members']:
       for candidates in wuObjects.values():
         for wuobject in candidates:
           if nodeId == wuobject.getNodeId():
-            if period == None or period > FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']:
-              period = FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']
-    group['period'] = period
+            if reaction == None or reaction > FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']:
+              reaction = FTComponentPolicy[str(wuobject.getWuClassId())]['reaction']
+    #group heartbeat is reactiontime divided by 2,
+    #then multiplied by 1000 to microseconds
+    group['period'] = int((float(reaction)/2.0) * 1000.0) #reaction = 1, period = 500
 
 def sortCandidates(wuObjects):
     nodeScores = {}
@@ -187,10 +190,13 @@ def firstCandidate(app, FTComponentPolicy, heartbeatGroups, routingTable, wuObje
         logging.info(wuObject)
 
     # construct heartbeat groups plus period assignment
-    allCandidateIds = []
+    allCandidateIds = set()
+    allCandidates  = []
     for candidates in wuObjects.values():
-      allCandidateIds += candidates
-    allCandidateIds = [node.getNodeId() for node in allCandidateIds]
+      allCandidates += candidates
+    for node in allCandidates:
+      allCandidateIds.add(node.getNodeId())
+    allCandidateIds = list(allCandidateIds)
     nodeInfos = [locTree.getNodeInfoById(nodeId) for nodeId in allCandidateIds]
     constructHeartbeatGroups(heartbeatGroups, routingTable, allCandidateIds)
     determinePeriodForHeartbeatGroups(wuObjects, heartbeatGroups, FTComponentPolicy)

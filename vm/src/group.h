@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+extern uint8_t group_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id);
+extern uint8_t group_load_heartbeat_periods(heap_id_t periods_heap_id);
 extern void send_heartbeat();
 extern void handle_failure();
 extern void group_handle_update(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd);

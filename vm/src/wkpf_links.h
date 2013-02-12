@@ -22,7 +22,6 @@ typedef struct remote_endpoints_struct {
   remote_endpoint* endpoints;
 } remote_endpoints;
 
-extern uint8_t wkpf_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id);
 extern uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id);
 extern uint8_t wkpf_load_links(heap_id_t links_heap_id);
 extern bool wkpf_does_property_need_initialisation_pull(uint8_t port_number, uint8_t property_number);
