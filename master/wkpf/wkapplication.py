@@ -78,7 +78,7 @@ def sortCandidates(wuObjects):
           nodeScores[node[0]] = 1
 
     for candidates in wuObjects:
-      sorted(candidates, key=lambda node: nodeScores[node[0]])
+      sorted(candidates, key=lambda node: nodeScores[node[0]], reverse=True)
 
 def firstCandidate(app, FTComponentPolicy, heartbeatGroups, routingTable, wuObjects, locTree):
     #input: nodes, WuObjects, WuLinks, WuClassDefsm, wuObjects is a list of wuobject list corresponding to group mapping
