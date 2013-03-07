@@ -1,28 +1,23 @@
-#!/usr/bin/python
-# vim: ts=2 sw=2
-import sys
-import time
+# vim: ts=4 sw=4
+import sys, time
 from transport import *
-from wkpf import *
+from models import *
 from locationTree import *
 from globals import *
 import fakedata
 from configuration import *
 
 communication = None
-
 # routing services here
 class Communication:
     @classmethod
     def init(cls):
-      print 'Communication init'
       global communication
       if not communication:
         communication = Communication()
       return communication
 
     def __init__(self):
-      print 'Communciation constructor'
       self.all_node_infos = []
       if not SIMULATION:
         self.zwave = ZwaveAgent.init()
@@ -55,7 +50,7 @@ class Communication:
     def getNodeInfos(self, node_ids):
       print 'getNodeInfos', node_ids
       if self.all_node_infos:
-        return filter(lambda info: info.nodeId in node_ids, self.all_node_infos)
+        return filter(lambda info: info.id in node_ids, self.all_node_infos)
       else:
         return [self.getNodeInfo(int(destination)) for destination in node_ids]
 
@@ -87,23 +82,21 @@ class Communication:
       return self.zwave.poll()
 
     def getNodeInfo(self, destination):
-      print 'getNodeInfo', destination
+      print 'getNodeInfo of node id', destination
+
+      location = self.getLocation(destination)
+      gevent.sleep(0) # give other greenlets some air to breath
+
       wuClasses = self.getWuClassList(destination)
-      print wuClasses
       gevent.sleep(0)
 
       wuObjects = self.getWuObjectList(destination)
-      print wuObjects
       gevent.sleep(0)
 
-      location = self.getLocation(destination)
-      print location
-      gevent.sleep(0)
-
-      return NodeInfo(nodeId = destination,
-                        wuClasses = wuClasses,
-                        wuObjects = wuObjects,
-                        location = location)
+      node = Node(destination, location, wuclasses, wuobjects)
+      node.save()
+      print node
+      return node
 
     def getLocation(self, destination):
       print 'getLocation', destination
@@ -232,11 +225,19 @@ class Communication:
       while len(reply) > 1:
         wuClassId = (reply[0] <<8) + reply[1]
         isVirtual = True if reply[2] == 1 else False
-        for wuclass in fakedata.all_wuclasses:
-            if wuclass.getId() == wuClassId:
-                wuclass.setNodeId(destination)
-                wuclasses.append(wuclass)
-        #wuclasses.append(WuClass(destination, wuClassId, isVirtual))
+        wuclass = WuClass.where(node_id=destination, id=wuClassId)
+        if not wuclass:
+            # only wuclass from XML with no node_id
+            for wuclass_component in WuClass.where(node_id=None):
+                if wuclass_component.id == wuClassId:
+                    wuclass = WuClass(wuclass_component.id, wuclass_component.name,
+                            wuclass_component.virtual, wuclass_component.type,
+                            copy.deepcopy(wuclass_component.properties), destination)
+                    wuclass.save()
+        else:
+            wuclass = wuclass[0]
+
+        wuclasses.append(wuclass)
         reply = reply[3:]
       return wuclasses
 
@@ -267,17 +268,30 @@ class Communication:
       reply = reply.payload[3:]
       while len(reply) > 1:
         wuClassId = (reply[1] <<8) + reply[2]
-        for wuclass in fakedata.all_wuclasses:
-          if wuclass.getId() == wuClassId:
-            wuobjects.append(WuObject(wuclass, 'testId', 1, nodeId=destination, portNumber=reply[0]))
-        #wuobjects.append(WuObject(destination, reply[0], (reply[1] <<8) + reply[2]))
+        port_number = reply[0]
+        wuobject = WuObject.where(node_id=destination, wuclass_id=wuClassId)
+        if not wuobject:
+            for wuclass in WuClass.where(id=wuClassId, node_id=destination):
+                wuobject = WuObject(destination, port_number, wuclass)
+                wuobject.save()
+        else:
+            # might need to update
+            wuobject.port_number = port_number
+            wuobject.save()
+            wuobject = wuobject[0]
+
+        wuobjects.append(wuobject)
         reply = reply[3:]
       return wuobjects
 
     def getProperty(self, wuobject, propertyNumber):
       print 'getProperty'
 
-      reply = self.zwave.send(wuobject.getNodeId(), pynvc.WKPF_READ_PROPERTY, [wuobject.getPortNumber(), wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber], [pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R])
+      reply = self.zwave.send(wuobject.node_id, 
+              pynvc.WKPF_READ_PROPERTY,
+              [wuobject.port_number, wuobject.wuclass.id/256, 
+                    wuobject.wuclass.id%256, propertyNumber], 
+              [pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R])
 
       '''
       sn = self.getNextSequenceNumberAsList()
@@ -314,12 +328,14 @@ class Communication:
       master_busy()
 
       if datatype == DATATYPE_BOOLEAN:
-        payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, 1 if value else 0]
+        payload=[wuobject.port_number, wuobject.wuclass.id/256,
+        wuobject.wuclass.id%256, propertyNumber, datatype, 1 if value else 0]
 
       elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
-        payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, value/256, value%256]
+        payload=[wuobject.port_number, wuobject.wuclass.id/256,
+        wuobject.wuclass.id%256, propertyNumber, datatype, value/256, value%256]
 
-      reply = self.zwave.send(wuobject.getNodeId(), pynvc.WKPF_WRITE_PROPERTY, payload, [pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R])
+      reply = self.zwave.send(wuobject.node_id, pynvc.WKPF_WRITE_PROPERTY, payload, [pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R])
 
       '''
       sn = self.getNextSequenceNumberAsList()

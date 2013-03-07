@@ -3,7 +3,6 @@
 import logging
 import odict
 import json
-from wkpf import NodeInfo, WuClass, WuObject
 
 json_data = odict.odict()
 #json_data = {}
@@ -37,8 +36,8 @@ class SensorNode:
     def initPortList(self, forceInit = True):
         if len(self.port_list)!=0 and forceInit == False:
             return
-        for wuObj in self.nodeInfo.wuObjects:
-            self.port_list.append(wuObj.getPortNumber())
+        for wuObj in self.nodeInfo.wuobjects:
+            self.port_list.append(wuObj.port_number)
         self.port_list.sort()
     def reserveNextPort(self):      #reserve a port from 0 ~ 127
         portSet = False
@@ -74,7 +73,7 @@ class LocationTreeNode:
     def calcDistance(self, sensor, obj):
         modifier = (sensor.coord[0]-obj.coord[0])**2+(sensor.coord[1]-obj.coord[1])**2+(sensor.coord[2]-obj.coord[2])**2
         pos2 = sensor.locationTreeNode
-        snrId = sensor.nodeInfo.nodeId
+        snrId = sensor.nodeInfo.id
         pos1 = obj.locationTreeNode
         curPos = pos1
         while snrId not in curPos.idSet:
@@ -155,12 +154,12 @@ class LocationTreeNode:
         self.sensorLst.append(sensorNode)
         self.sensorCnt = self.sensorCnt + 1
         sensorNode.locationTreeNode = self
-        self.idSet.add(sensorNode.nodeInfo.nodeId)
+        self.idSet.add(sensorNode.nodeInfo.id)
         # update sensorCnt for all ancestor nodes
         pa = self.parent
         while pa != None:
             pa.sensorCnt = pa.sensorCnt + 1
-            pa.idSet.add(sensorNode.nodeInfo.nodeId)
+            pa.idSet.add(sensorNode.nodeInfo.id)
             pa = pa.parent
     
     def getSensorById (self, Id): #return None on failure
@@ -174,7 +173,7 @@ class LocationTreeNode:
                     break
             if found == False: #sensor in curNode but not in its children
                 for senr in curNode.sensorLst:
-                    if senr.nodeInfo.nodeId == Id:
+                    if senr.nodeInfo.id == Id:
                         return senr
                 curNode = None
         return None
@@ -213,12 +212,12 @@ class LocationTreeNode:
         self.sensorLst.remove(sensorNode)
         self.sensorCnt = self.sensorCnt - 1
         sensorNode.locationTreeNode = None
-        self.idSet.remove(sensorNode.nodeInfo.nodeId)
+        self.idSet.remove(sensorNode.nodeInfo.id)
         # update sensorCnt for all ancestor nodes
         pa = self.parent
         while pa != None:
             pa.sensorCnt = pa.sensorCnt - 1
-            pa.idSet.remove(sensorNode.nodeInfo.nodeId)
+            pa.idSet.remove(sensorNode.nodeInfo.id)
             pa = pa.parent
         
     def getAllNodes(self):
@@ -231,7 +230,7 @@ class LocationTreeNode:
         tmpLst = []
         for sensor in locTreeNode.sensorLst:
             if sensor.isAlive():
-                tmpLst.append(sensor.nodeInfo.nodeId)
+                tmpLst.append(sensor.nodeInfo.id)
         tmpLst = set(tmpLst)
         for child in locTreeNode.children:
             tmpLst = tmpLst | child.getAllAliveNodeIds()
@@ -251,7 +250,7 @@ class LocationTreeNode:
             print_str = print_str + "\t"
         print_str = print_str + self.name + "#"
         for i in range(len(self.sensorLst)):
-            print_str = print_str + str(self.sensorLst[i].nodeInfo.nodeId) +str(self.sensorLst[i].coord)+", "
+            print_str = print_str + str(self.sensorLst[i].nodeInfo.id) +str(self.sensorLst[i].coord)+", "
        
         for landmarkNode in self.landmarkLst:
             print_str = print_str + 'landmark: '
@@ -280,7 +279,7 @@ class LocationTreeNode:
         global number
         for i in range(len(self.sensorLst)):
             number += 1
-            json_data[indent+1+number*10] = str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)
+            json_data[indent+1+number*10] = str(self.sensorLst[i].nodeInfo.id) + str(self.sensorLst[i].coord)
         for landmarkNode in self.landmarkLst:
         	number += 1
         	json_data[indent+1+number*10] = str(landmarkNode.name)+" "+str(landmarkNode.id)+str(landmarkNode.coord)         
@@ -298,7 +297,7 @@ class LocationTree:
             sensor = self.sensor_dict[k]
             sensor.life = sensor.life - 1
             if sensor.life == 0:
-                self.delSensor(sensor.nodeInfo.nodeId)
+                self.delSensor(sensor.nodeInfo.id)
             
     def updateSensors(self, newInfoList):
         #decrease all sensor lifes
@@ -343,7 +342,8 @@ class LocationTree:
         if startPos == None:
             startPos = self.root
         if landmarkNd.locationLst == None or len(landmarkNd.locationLst) == 0:
-            logging.error("error! location for node "+ str(landmarkNd.nodeInfo.nodeId)+ " is not set")
+            logging.error("error! location for node "+
+                str(landmarkNd.nodeInfo.id)+ " is not set")
             return False
         if startPos.name != landmarkNd.locationLst[0]:
             logging.error("error! location: "+ str(landmarkNd.locationLst[0])+ " does not match " + startPos.name)
@@ -388,17 +388,17 @@ class LocationTree:
     def addSensor(self, sensorNd, startPos = None ):
         if startPos == None:
             startPos = self.root
-        if sensorNd.nodeInfo.nodeId in self.sensor_dict:
-            if sensorNd.nodeInfo.location == self.sensor_dict[sensorNd.nodeInfo.nodeId].location:
-                self.sensor_dict[sensorNd.nodeInfo.nodeId].life = MAX_LIFE
-                self.sensor_dict[sensorNd.nodeInfo.nodeId].nodeInfo = sensorNd.nodeInfo
-                self.sensor_dict[sensorNd.nodeInfo.nodeId].port_list = sensorNd.port_list
-                self.sensor_dict[sensorNd.nodeInfo.nodeId].locationTreeNode = sensorNd.locationTreeNode
+        if sensorNd.nodeInfo.id in self.sensor_dict:
+            if sensorNd.nodeInfo.location == self.sensor_dict[sensorNd.nodeInfo.id].location:
+                self.sensor_dict[sensorNd.nodeInfo.id].life = MAX_LIFE
+                self.sensor_dict[sensorNd.nodeInfo.id].nodeInfo = sensorNd.nodeInfo
+                self.sensor_dict[sensorNd.nodeInfo.id].port_list = sensorNd.port_list
+                self.sensor_dict[sensorNd.nodeInfo.id].locationTreeNode = sensorNd.locationTreeNode
                 return True
             else: #sensor node location needs to be updated, delete the original inserted SensorNd first
-                self.delSensor(sensorNd.nodeInfo.nodeId)
+                self.delSensor(sensorNd.nodeInfo.id)
         if sensorNd.locationLst == None or len(sensorNd.locationLst) == 0:
-            logging.error("error! location for node "+ str(sensorNd.nodeInfo.nodeId)+ " is not set")
+            logging.error("error! location for node "+ str(sensorNd.nodeInfo.id)+ " is not set")
             return False
         if startPos.name != sensorNd.locationLst[0]:
             logging.error("error! location: "+ str(sensorNd.locationLst[0])+ " does not match " + startPos.name)
@@ -421,7 +421,7 @@ class LocationTree:
                     curPos = curPos.children[-1]
                 
         curPos.addSensor(sensorNd)
-        self.sensor_dict[sensorNd.nodeInfo.nodeId] = sensorNd
+        self.sensor_dict[sensorNd.nodeInfo.id] = sensorNd
         self.totalSensorCount = self.totalSensorCount +1
         return True
     
@@ -436,7 +436,7 @@ class LocationTree:
                     break
             if found == False: #sensor in curNode but not in its children
                 for senr in curNode.sensorLst:
-                    if senr.nodeInfo.nodeId == Id:
+                    if senr.nodeInfo.id == Id:
                         return senr.nodeInfo
                 curNode = None
         return None
@@ -452,7 +452,7 @@ class LocationTree:
                     break
             if found == False: #sensor in curNode but not in its children
                 for senr in curNode.sensorLst:
-                    if senr.nodeInfo.nodeId == Id:
+                    if senr.nodeInfo.id == Id:
                         return senr
                 curNode = None
         return None                

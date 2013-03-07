@@ -3,13 +3,11 @@
 #(, ), &, |, are preserved key words
 #priority | < & < ~
 #any kind of spaces, tabs or "\n" are not allowed in URL
-import sys, traceback
-import os
+import sys, traceback, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "./pyparsing"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "./../"))
 from configuration import *
-from wkpf import WuClass, WuObject, NodeInfo
+from models import *
 from locationTree import *
 from pyparsing import *
 '''
@@ -271,7 +269,7 @@ class LocationParser:
     def hasClass(locationTreeNode, classId):
         retLst = []
         for ndInfo in locationTreeNode.getAllNodeInfos():
-            if (classId in ndInfo.nativeWuClasses) or (classId in ndInfo.virtualWuClasses):
+            if classId in [x.id for x in ndInfo.wuclasses]:
                 retLst.append(ndInfo.nodeId)
         return retLst
                 
@@ -344,10 +342,10 @@ if __name__ == "__main__":
     loc1 = u"universal/Boli_Building/3F/N_Corridor/Room318@(8,1,3)"
     loc2 = u"universal/Boli_Building/2F/South_Corridor/Room318@(4,4,4)"
     loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318@(2,6,8)"
-    senNd0 = SensorNode(NodeInfo(0, [], [],loc0))
-    senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
-    senNd2 = SensorNode( NodeInfo(2, [], [], loc2))
-    senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
+    senNd0 = SensorNode(Node(0, loc0))
+    senNd1 = SensorNode(Node(1, loc1))
+    senNd2 = SensorNode(Node(2, loc2))
+    senNd3 = SensorNode(Node(3, loc3))
     locTree.addSensor(senNd0)
     locTree.addSensor(senNd1)
     locTree.addSensor(senNd2)

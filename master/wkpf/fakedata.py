@@ -1,10 +1,9 @@
-from wkpf import *
+from models import *
 from locationTree import *
 from configuration import *
 
-rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml")).values()
-all_wutypes = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml"), type='wutype').values()
+all_wuclasses = WuClass.all()
+all_wutypes = WuType.all()
 
 simNodeInfos = []
 locs = [u"WuKong", u"WuKong", u"WuKong", u"WuKong"]
@@ -24,6 +23,8 @@ def genFakeData():
   global coords
   global routing
 
+  # will fix, not now
+  '''
   count = 0
   for id in range(4):
     count = 0
@@ -43,6 +44,7 @@ def genFakeData():
     neighbors = simNodeIds[:]
     neighbors.remove(nodeid)
     routing[nodeid] = neighbors
+  '''
   
 '''
 locs = ["Boli_Building/3F/South_Corridor/Room336", "Boli_Building/3F/East_Corridor/Room318"]

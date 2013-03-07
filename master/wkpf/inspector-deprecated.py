@@ -4,9 +4,11 @@ from optparse import OptionParser
 import xml.dom.minidom
 import os
 from wkpfcomm import *
-import wkpf
-import pynvc
+import wkpf.parser
+import wkpf.pynvc
 import copy
+
+# this whole file is deprecated, need to rewrite to integrate with WuKong
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
