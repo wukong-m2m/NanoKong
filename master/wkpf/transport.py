@@ -1,5 +1,6 @@
 # vim: ts=4 sw=4
 import sys, os, fcntl
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import pickle
 import tornado.ioloop
 import hashlib
@@ -10,7 +11,6 @@ from gevent.event import AsyncResult
 from gevent.queue import Queue
 import wusignal
 import time
-sys.path.append(os.path.abspath("../../master"))
 from configuration import *
 from globals import *
 

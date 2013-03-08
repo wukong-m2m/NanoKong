@@ -1,6 +1,6 @@
 # vim: ts=4 sw=4
 import sys, os, traceback, copy
-sys.path.append(os.path.abspath(".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from parser import *
 from locationTree import *
 from xml.dom.minidom import parse, parseString
@@ -101,52 +101,93 @@ def firstCandidate(logger, changesets, routingTable, locTree):
             set_wukong_status(msg)
             logger.warning(msg)
 
+        # This is really tricky, basically there are two things you have to understand to understand this code
+        # 1. There are wuclass that are only for reference and other for actually having a c function on the node
+        # 2. All WuObjects have a wuclass, but it lies either in one of those types mentioned in #1
+        # 3. Usually we assume 'hard' wuclasses will have only native wuclass on the node, so the there will be no wuobjects with a wuclass not in the node.wuclasses list
+        # 4. node.wuclasses contains wuclasses that the node have code for it
+        # 5. node.wuobjects contains just wuobjects from any wuclasses, some might based on wuclass in node.wuclasses list
+        # e.g. A threahold wuclass would have native implementation (also in node.wuclasses) or a virtual implementation (not in node.wuclasses)
+
         # construct wuobjects, instances of component
         for candidate in candidates:
             node = locTree.getNodeInfoById(candidate)
             wuclass = WuClass.where(name=component.type)[0]
-            # prefers native implementation
-            if wuclass.id in [x.id for x in node.wuclasses]:
-                # has wuclass for native implementation
-                if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
-                    # use existing native wuobject
-                    for wuobject in node.wuobjects:
-                        if wuobject.wuclass.id == wuclass.id:
-                            component.instances.append(wuobject)
-                            break
-                else:
-                    # create a new native wuobject
-                    sensorNode = locTree.sensor_dict[node.id]
-                    sensorNode.initPortList(forceInit = False)
-                    port_number = sensorNode.reserveNextPort()
-                    wuclass_alternate = wuclass
-                    if wuclass.virtual:
-                        wuclass_alternate = copy.deepcopy(wuclass)
-                        wuclass_alternate.virtual = False
-                        wuclass_alternate.save() # a new found wuclass
-                    wuobject = WuObject(node.id, port_number, wuclass_alternate)
-                    wuobject.save()
-                    component.instances.append(wuobject)
+            if wuclass.type.lower() == 'hard':
+                # only native implementation
+                if wuclass.id in [x.id for x in node.wuclasses]:
+                    # has wuclass for native implementation
+                    if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
+                        # use existing wuobject
+                        for wuobject in node.wuobjects:
+                            if wuobject.wuclass.id == wuclass.id:
+                                component.instances.append(wuobject)
+                                break
+                    else:
+                        # create a new wuobject
+                        sensorNode = locTree.sensor_dict[node.id]
+                        sensorNode.initPortList(forceInit = False)
+                        port_number = sensorNode.reserveNextPort()
+                        wuclass_alternate = wuclass
+                        for wuclass_node in node.wuclasses:
+                            if wuclass_node.id == wuclass.id:
+                                wuclass_alternate = wuclass_node
+                        wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.save()
+                        component.instances.append(wuobject)
             else:
-                if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
-                    # use existing virtual wuobject
-                    for wuobject in node.wuobjects:
-                        if wuobject.wuclass.id == wuclass.id:
-                            component.instances.append(wuobject)
-                            break
+                # prefer native implementation
+                if wuclass.id in [x.id for x in node.wuclasses]:
+                    # has wuclass for native implementation
+                    if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
+                        # use existing wuobject
+                        for wuobject in node.wuobjects:
+                            if wuobject.wuclass.id == wuclass.id:
+                                component.instances.append(wuobject)
+                                break
+                    else:
+                        # create a new wuobject
+                        sensorNode = locTree.sensor_dict[node.id]
+                        sensorNode.initPortList(forceInit = False)
+                        port_number = sensorNode.reserveNextPort()
+                        wuclass_alternate = wuclass
+                        for wuclass_node in node.wuclasses:
+                            if wuclass_node.id == wuclass.id:
+                                wuclass_alternate = wuclass_node
+                        wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.save()
+                        component.instances.append(wuobject)
                 else:
-                    # create a new virtual wuobject
-                    sensorNode = locTree.sensor_dict[node.id]
-                    sensorNode.initPortList(forceInit = False)
-                    port_number = sensorNode.reserveNextPort()
-                    wuclass_alternate = wuclass
-                    if not wuclass.virtual:
-                        wuclass_alternate = copy.deepcopy(wuclass)
-                        wuclass_alternate.virtual = True
-                        wuclass_alternate.save() # a new found wuclass
-                    wuobject = WuObject(node.id, port_number, wuclass_alternate)
-                    wuobject.save()
-                    component.instances.append(wuobject)
+                    # no wuclass for native implementation
+                    if wuclass.id in [x.wuclass.id for x in node.wuobjects]:
+                        # use existing virtual wuobject
+                        for wuobject in node.wuobjects:
+                            if wuobject.wuclass.id == wuclass.id:
+                                component.instances.append(wuobject)
+                                break
+                    else:
+                        # TODO: there is unsupported VM opcode bug, don't do this
+                        '''
+                        # create a new virtual wuobject
+                        sensorNode = locTree.sensor_dict[node.id]
+                        sensorNode.initPortList(forceInit = False)
+                        port_number = sensorNode.reserveNextPort()
+                        wuclass_alternate = wuclass # node_id is not important, just a placeholder
+                        wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.save()
+                        component.instances.append(wuobject)
+                        '''
+
+        def prefer_hard(wuobject):
+            node = locTree.getNodeInfoById(wuobject.node_id)
+            wuclass = WuClass.where(name=component.type)[0]
+            print 'sort prefer wuobject of wuclass %d in node %d' % (wuobject.wuclass.id, node.id) if wuobject.wuclass.id in [x.id for x in node.wuclasses] else 'sort not prefer'
+            if wuobject.wuclass.id in [x.id for x in node.wuclasses]:
+                wuobject.hasLocalWuClass = True
+
+            return wuobject.wuclass.id in [x.id for x in node.wuclasses]
+
+        component.instances = sorted(component.instances, key=prefer_hard, reverse=True)
         
         if len(component.instances) == 0:
           logger.error ('[ERROR] No avilable match could be found for component %s' % (component))
@@ -160,14 +201,16 @@ def firstCandidate(logger, changesets, routingTable, locTree):
     allcandidates = set()
     for component in changesets.components:
         for wuobject in component.instances:
-            allcandidates.add(Node.where(id=wuobject.node_id)[0])
-    constructHeartbeatGroups(changetsets.heartbeatgroups, routingTable, allcandidates)
+            allcandidates.add(wuobject.node_id)
+    allcandidates = list(allcandidates)
+    allcandidates = map(lambda x: Node.where(id=x)[0], allcandidates)
+    constructHeartbeatGroups(changesets.heartbeatgroups, routingTable, allcandidates)
     determinePeriodForHeartbeatGroups(changesets.components, changesets.heartbeatgroups)
     logging.info('heartbeatGroups constructed, periods assigned')
     logging.info(changesets.heartbeatgroups)
 
     #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
-    for component in changeset.components:
+    for component in changesets.components:
         for wuobj in component.instances:
             senNd = locTree.getSensorById(wuobj.node_id)
             for j in senNd.temp_port_list:

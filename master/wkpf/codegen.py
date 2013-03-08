@@ -1,5 +1,5 @@
-# vim: ts=4 sw=4
 #!/usr/bin/python
+# vim: ts=4 sw=4
 
 # Wukong middleware framework
 # Codegen component frontend for component.xml
@@ -11,8 +11,8 @@
 # Author: Penn Su
 # Date: May 13, 2012
 
-import os, sys, re
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../master"))
+import sys, os, re
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import distutils.dir_util
 import logging
 from jinja2 import Template, Environment, FileSystemLoader
@@ -123,7 +123,7 @@ class WuProperty:
     def setDataType(self, typeName):
         print 'set datatype of name %s of property %s' % (typeName, self.getName())
         if typeName != self._wutype.getName():
-            for wutype in all_wutypes:
+            for wutype in WuType.all():
                 if wutype.getName() == typeName:
                     self._wutype = copy.deepcopy(wutype)
 

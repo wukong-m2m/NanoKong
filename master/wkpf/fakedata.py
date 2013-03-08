@@ -2,9 +2,6 @@ from models import *
 from locationTree import *
 from configuration import *
 
-all_wuclasses = WuClass.all()
-all_wutypes = WuType.all()
-
 simNodeInfos = []
 locs = [u"WuKong", u"WuKong", u"WuKong", u"WuKong"]
 #locs = [u"/universal/CS_Building/3F/South_Corridor/Room336@(0,1,2)", u"/universal/CS_Building/3F/East_Corridor/Room318@(0,5,4)",

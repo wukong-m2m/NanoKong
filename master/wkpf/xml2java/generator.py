@@ -6,6 +6,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from jinja2 import Template, Environment, FileSystemLoader
 from struct import pack
 
+from models import WuType
+
 from configuration import *
 from util import *
 
@@ -48,7 +50,11 @@ class Generator:
 
         # doesn't really matter to check since basic types are being take care of in application.java
         def propertyconstantvalue(property):
-            return 'GENERATEDWKPF.' + Convert.to_constant(property.dataType) + "_" + Convert.to_constant(property.name) + "_" + Convert.to_constant(property.value)
+            wutype = WuType.where(name=property.datatype)
+            if wutype:
+                return wutype[0].type.upper() + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
+            else:
+                return 'ENUM' + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
 
 
         print 'generating', os.path.join(JAVA_OUTPUT_DIR, name+".java")
@@ -63,5 +69,5 @@ class Generator:
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
         output = open(os.path.join(JAVA_OUTPUT_DIR, name + ".java"), 'w')
-        output.write(jinja2_env.get_template('application.java').render(name=name, changesets=changesets))
+        output.write(jinja2_env.get_template('application2.java').render(name=name, changesets=changesets))
         output.close()

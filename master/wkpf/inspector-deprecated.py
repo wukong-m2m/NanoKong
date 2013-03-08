@@ -91,7 +91,7 @@ def getNodeAndPortForComponent(componentName, mapping):
 def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
   name = getComponentPropertyName(wuObject.getWuClassId(), propertyNumber, componentDefinitions)
   wkpfcommData = comm.getProperty(wuObject, propertyNumber)
-  for candidate in fakedata.all_wuclasses:
+  for candidate in WuClass.all():
     for property in candidate:
       if property.getName() == name:
         ret_prop = copy.deepcopy(property)

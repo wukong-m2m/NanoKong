@@ -1,5 +1,5 @@
-# vim: ts=4 sw=4
 #!/usr/bin/python
+# vim: ts=4 sw=4
 # author: Penn Su
 from gevent import monkey; monkey.patch_all()
 import gevent
@@ -59,6 +59,9 @@ def copyAnything(src, dst):
   try:
     shutil.copytree(src, dst)
   except OSError as exc: # python >2.5
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
     if exc.errno == errno.ENOTDIR:
       shutil.copy(src, dst)
     else: raise
@@ -80,7 +83,9 @@ def delete_application(i):
     applications.pop(i)
     return True
   except Exception as e:
-    logging.error(e)
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
     return False
 
 def load_app_from_dir(dir):
@@ -158,7 +163,9 @@ class new_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app.config()})
     except Exception as e:
-      print e
+      exc_type, exc_value, exc_traceback = sys.exc_info()
+      print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg':'Cannot create application'})
 
@@ -208,7 +215,9 @@ class application(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':0})
       except Exception as e:
-        print e
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot save application'})
 
@@ -265,7 +274,9 @@ class deploy_application(tornado.web.RequestHandler):
         self.write({'status':0, 'page': deployment})
       
     except Exception as e:
-      print e
+      exc_type, exc_value, exc_traceback = sys.exc_info()
+      print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
 
@@ -670,6 +681,8 @@ wukong = tornado.web.Application([
 if __name__ == "__main__":
   logging.info("WuKong starting up...")
   setup_signal_handler_greenlet()
+  if os.path.exists('standardlibrary.db'):
+    os.remove('standardlibrary.db') 
   Parser.parseLibrary(COMPONENTXML_PATH)
   update_applications()
   import_wuXML()

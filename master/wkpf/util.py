@@ -1,3 +1,5 @@
+import sys, os, re
+
 class Convert:
     @staticmethod
     def CamelCase_to_underscore(name):

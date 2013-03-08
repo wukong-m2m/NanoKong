@@ -1,8 +1,8 @@
 # vim: ts=4 sw=4
-import sys, time
+import sys, time, copy
 from transport import *
-from models import *
 from locationTree import *
+from models import *
 from globals import *
 import fakedata
 from configuration import *
@@ -93,9 +93,8 @@ class Communication:
       wuObjects = self.getWuObjectList(destination)
       gevent.sleep(0)
 
-      node = Node(destination, location, wuclasses, wuobjects)
+      node = Node(destination, location, wuClasses, wuObjects)
       node.save()
-      print node
       return node
 
     def getLocation(self, destination):
@@ -225,17 +224,20 @@ class Communication:
       while len(reply) > 1:
         wuClassId = (reply[0] <<8) + reply[1]
         isVirtual = True if reply[2] == 1 else False
-        wuclass = WuClass.where(node_id=destination, id=wuClassId)
-        if not wuclass:
-            # only wuclass from XML with no node_id
-            for wuclass_component in WuClass.where(node_id=None):
-                if wuclass_component.id == wuClassId:
-                    wuclass = WuClass(wuclass_component.id, wuclass_component.name,
-                            wuclass_component.virtual, wuclass_component.type,
-                            copy.deepcopy(wuclass_component.properties), destination)
-                    wuclass.save()
+        wuclass = None
+        wuclass_query = WuClass.where(node_id=destination, id=wuClassId)
+        if not wuclass_query:
+            wuclass_component = WuClass.where(id=wuClassId)[0]
+            if wuclass_component:
+                wuclass = WuClass(wuclass_component.id, wuclass_component.name,
+                        wuclass_component.virtual, wuclass_component.type,
+                        copy.deepcopy(wuclass_component.properties), destination)
+                wuclass.save()
+            else:
+                print 'Unknown wuclass id', wuClassId
+                continue
         else:
-            wuclass = wuclass[0]
+            wuclass = wuclass_query[0]
 
         wuclasses.append(wuclass)
         reply = reply[3:]
@@ -269,16 +271,21 @@ class Communication:
       while len(reply) > 1:
         wuClassId = (reply[1] <<8) + reply[2]
         port_number = reply[0]
-        wuobject = WuObject.where(node_id=destination, wuclass_id=wuClassId)
-        if not wuobject:
-            for wuclass in WuClass.where(id=wuClassId, node_id=destination):
+        wuobject = None
+        wuobject_query = WuObject.where(node_id=destination, wuclass_id=wuClassId)
+        if wuobject_query == []:
+            wuclass = WuClass.where(id=wuClassId, node_id=destination)[0]
+            if wuclass:
                 wuobject = WuObject(destination, port_number, wuclass)
                 wuobject.save()
+            else:
+                print 'Unknown wuclass id', wuClassId
+                continue
         else:
             # might need to update
+            wuobject = wuobject_query[0]
             wuobject.port_number = port_number
             wuobject.save()
-            wuobject = wuobject[0]
 
         wuobjects.append(wuobject)
         reply = reply[3:]
@@ -374,6 +381,7 @@ class Communication:
         return ret
 
     def reprogramNvmdefault(self, destination, filename):
+      print "Reprogramming Nvmdefault..."
       MESSAGESIZE = 16
 
       reply = self.zwave.send(destination, pynvc.REPRG_OPEN, [], [pynvc.REPRG_OPEN_R])
@@ -385,6 +393,7 @@ class Communication:
                                                     quitOnFailure=False)
       '''
       if reply == None:
+        print "No reply, abort"
         return False
 
       reply = [reply.command] + reply.payload[2:] # without the seq numbers

@@ -11,7 +11,7 @@
         {% for node_info in node_infos %}
         <tr class={{ 'success' if node_info.isResponding() else 'error' }}>
             <td id="nodeId">
-                {{ node_info.node_id }}
+                {{ node_info.id }}
             </td>
             <td>
                 {% if set_location %}
@@ -24,7 +24,7 @@
             </td>
             <td>
                 {{ len(node_info.wuclasses) }} WuClasses and {{ len(node_info.wuobjects) }} WuObjects
-                <a role=button id=node{{ node_info.node_id }} data-toggle=modal href='#myModal' class='btn more'>Classes/Objects list</button>
+                <a role=button id=node{{ node_info.id }} data-toggle=modal href='#myModal' class='btn more'>Classes/Objects list</button>
             </td>
         </tr>
         {% end %}
@@ -98,13 +98,13 @@
 
     {% for node_info in node_infos %}
     
-    $('#node{{ node_info.node_id }}').click(function(e) {
+    $('#node{{ node_info.id }}').click(function(e) {
         e.preventDefault();
         console.log('click');
         $('#myModal .modal-header').html('Node Info');
         $('#myModal .modal-body').html("{% if node_info.isResponding() %}{% include "node-more.html" %}{% else %}<h4>Not responding</h4>{% end %}");
     });
-    //$('#node{{ node_info.node_id }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
+    //$('#node{{ node_info.id }}.more').popover({title: 'Node Info', content: infos, trigger: 'click', placement: 'left'});
 
     {% end %}
 </script>

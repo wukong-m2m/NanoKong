@@ -72,10 +72,13 @@ public class {{ name }} {
     private static void initialiseLocalWuObjects() {
         {%- for component in changesets.components %}
         //all WuClasses from the same group has the same instanceIndex and wuclass
+            {% for wuobject in component.instances %}
+
         if (WKPF.isLocalComponent((short){{ component.index }})) {
 
-            {% for wuobject in component.instances %}
-                {% if wuobject.wuclass.virtual %}
+        if (WKPF.getMyNodeId() == (short){{ wuobject.node_id }}) {
+                {% if not wuobject.hasLocalWuClass %}
+
 
         // Virtual WuClasses (Java)
         VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
@@ -102,20 +105,21 @@ public class {{ name }} {
         {%- for property in wuobject.wuclass.properties -%}
         {%- if property.value -%}
         {% if property.datatype.lower() == 'boolean' %}
-            WKPF.setPropertyBoolean({{ component.index }}, WKPF.{{ property|propertyconstname }}, {{ property.value }});
+            WKPF.setPropertyBoolean((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, {{ property.value }});
         {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
-            WKPF.setPropertyShort({{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+            WKPF.setPropertyShort((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
         {% elif property.datatype.lower() == 'refresh_rate' %}
-            WKPF.setPropertyRefreshRate({{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+            WKPF.setPropertyRefreshRate((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
         {% else %}
-            WKPF.setPropertyShort({{ component.index }}, WKPF.{{ property|propertyconstname }}, WKPF.{{ property|propertyconstantvalue }});
+            WKPF.setPropertyShort((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, WKPF.{{ property|propertyconstantvalue }});
         {%- endif -%}
         {%- endif -%}
         {%- endfor -%}
 
                 {% endif %}
-            {% endfor %}
         }
+        }
+            {% endfor %}
         {%- endfor %}
     }
 }

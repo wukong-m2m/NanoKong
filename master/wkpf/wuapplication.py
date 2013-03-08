@@ -1,6 +1,6 @@
 # vim: ts=4 sw=4
 import sys, os, traceback, time, re, copy
-sys.path.append(os.path.abspath(".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from models import WuClass, WuObject, WuComponent, WuLink, WuType
 from mapper import firstCandidate
 from locationTree import *
@@ -139,10 +139,8 @@ class WuApplication:
 
           component = WuComponent(index, location, group_size, reaction_time, type,
                   application_hashed_name)
-          component.save()
           componentInstanceMap[componentTag.getAttribute('instanceId')] = component
 
-          if not self.changesets.components: self.changesets.components = []
           self.changesets.components.append(component)
 
           '''
@@ -212,14 +210,12 @@ class WuApplication:
           
           to_wuclass = WuClass.where(name=componentInstanceMap[linkTag.getAttribute('toInstanceId')].type)[0]
           properties = to_wuclass.properties
-          from_property_id = [property for property in properties if linkTag.getAttribute('toProperty').lower() == property.name.lower()][0].id
+          to_property_id = [property for property in properties if linkTag.getAttribute('toProperty').lower() == property.name.lower()][0].id
 
           to_wuclass_id = to_wuclass.id
 
-          if not self.changesets.links: self.changesets.links = []
           link = WuLink(from_component_index, from_property_id, 
                   to_component_index, to_property_id, to_wuclass_id)
-          link.save()
           self.changesets.links.append(link)
 
           '''
@@ -244,13 +240,15 @@ class WuApplication:
       return mapFunc(self, self.changesets, routingTable, locTree)
 
   def map(self, location_tree, routingTable):
+    self.changesets = ChangeSets([], [], [])
     self.parseApplication()
     self.mapping(location_tree, routingTable)
     logging.info("Mapping Results")
     logging.info(self.changesets)
 
   def deploy_with_discovery(self,*args):
-    node_ids = [info.id for info in getComm().getActiveNodeInfos(force=True)]
+    #node_ids = [info.id for info in getComm().getActiveNodeInfos(force=False)]
+    node_ids = set([x.node_id for component in self.changesets.components for x in component.instances])
     self.deploy(node_ids,*args)
 
   def deploy(self, destination_ids, platforms):
