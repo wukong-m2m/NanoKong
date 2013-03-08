@@ -24,3 +24,6 @@ GENERATED*
 tools/python/pyzwave/testrtt
 config/master.cfg
 *__comp__*
+*standardlibrary.db*
+nanovmtool/dist/javadoc/*.html
+nanovmtool/dist/javadoc/*
