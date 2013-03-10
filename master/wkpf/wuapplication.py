@@ -328,7 +328,7 @@ class WuApplication:
         retries = 3
         while retries > 0:
           if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
-            self.status = "Deploying unsucessful for node %d, trying again" % (node_id)
+            self.status = "Deploy unsucessful for node %d, trying again" % (node_id)
             gevent.sleep(0)
             self.error('==Node not deployed successfully, retries = %d' % (retries))
             retries -= 1
