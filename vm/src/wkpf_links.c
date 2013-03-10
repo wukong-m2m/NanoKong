@@ -221,12 +221,13 @@ uint8_t wkpf_get_node_and_port_for_component(uint16_t component_id, address_t *n
 
   for (int i=0; i<component_to_wuobject_map[component_id].number_of_endpoints; i++) {
     DEBUGF_WKPF("WKPF: Scanning endpoint (%x, %x) in local component %x\n", component_to_wuobject_map[component_id].endpoints[i].node_id, component_to_wuobject_map[component_id].endpoints[i].port_number, component_id);
-    if (component_to_wuobject_map[component_id].endpoints[i].node_id == nvmcomm_get_node_id())
+    if (component_to_wuobject_map[component_id].endpoints[i].node_id == nvmcomm_get_node_id()) {
       DEBUGF_WKPF("WKPF: Matched endpoint (%x, %x)\n", component_to_wuobject_map[component_id].endpoints[i].node_id, component_to_wuobject_map[component_id].endpoints[i].port_number);
       *node_id = component_to_wuobject_map[component_id].endpoints[i].node_id;
       *port_number = component_to_wuobject_map[component_id].endpoints[i].port_number;
       DEBUGF_WKPF("WKPF: Get node and port (%x, %x) in component %x\n", *node_id, *port_number, component_id);
       return WKPF_OK;
+    }
   }
   return WKPF_ERR_ENDPOINT_NOT_FOUND;
 
