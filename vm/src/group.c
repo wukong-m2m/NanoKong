@@ -121,6 +121,8 @@ uint8_t group_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id) {
 uint8_t group_load_heartbeat_periods(heap_id_t periods_heap_id) {
   uint16_t number_of_entries = array_length(periods_heap_id)/sizeof(uint32_t);
   uint32_t* periods = (uint32_t *)((uint8_t *)heap_get_addr(periods_heap_id)+1); // +1 to skip type byte
+  // TODO: there is some problem with loading heartbeat period, seems 
+  // like it is not the same as loading form byte array
 
   DEBUGF_GROUP("GROUP: Loading %x periods\n\n", number_of_entries);
   
