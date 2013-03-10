@@ -72,54 +72,57 @@ public class {{ name }} {
     private static void initialiseLocalWuObjects() {
         {%- for component in changesets.components %}
         //all WuClasses from the same group has the same instanceIndex and wuclass
-            {% for wuobject in component.instances %}
-
         if (WKPF.isLocalComponent((short){{ component.index }})) {
 
-        if (WKPF.getMyNodeId() == (short){{ wuobject.node_id }}) {
+            {% for wuobject in component.instances %}
+
+            if (WKPF.getMyNodeId() == (short){{ wuobject.node_id }}) {
                 {% if not wuobject.hasLocalWuClass %}
 
-
-        // Virtual WuClasses (Java)
-        VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
-        WKPF.registerWuClass(WKPF.{{ wuobject.wuclass|wuclassconstname }}, {{ wuobject.wuclass|wuclassgenclassname }}.properties);
-        WKPF.createWuObject((short)WKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass|wuclassname }});
-        {%- for property in wuobject.wuclass.properties -%}
-        {%- if property.value -%}
-        {% if property.datatype.lower() == 'boolean' %}
-            WKPF.setPropertyBoolean(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, {{ property.value }});
-        {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
-            WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-        {% elif property.datatype.lower() == 'refresh_rate' %}
-            WKPF.setPropertyRefreshRate(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-        {% else %}
-            WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, WKPF.{{ property|propertyconstantvalue }});
-        {%- endif -%}
-        {%- endif -%}
-        {%- endfor -%}
+                // Virtual WuClasses (Java)
+                VirtualWuObject wuclassInstance{{ wuobject.wuclass|wuclassname }} = new {{ wuobject.wuclass|wuclassvirtualclassname }}();
+                WKPF.registerWuClass(WKPF.{{ wuobject.wuclass|wuclassconstname }}, {{ wuobject.wuclass|wuclassgenclassname }}.properties);
+                WKPF.createWuObject((short)WKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), wuclassInstance{{ wuobject.wuclass|wuclassname }});
+                {%- for property in wuobject.wuclass.properties -%}
+                {%- if property.value -%}
+                {% if property.datatype.lower() == 'boolean' %}
+                WKPF.setPropertyBoolean(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, {{ property.value }});
+                {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
+                WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                {% elif property.datatype.lower() == 'refresh_rate' %}
+                WKPF.setPropertyRefreshRate(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                {% else %}
+                WKPF.setPropertyShort(wuclassInstance{{ wuobject.wuclass|wuclassname }}, WKPF.{{ property|propertyconstname }}, WKPF.{{ property|propertyconstantvalue }});
+                {%- endif -%}
+                {%- endif -%}
+                {%- endfor -%}
 
                 {% else %}
 
-        // Native WuClasses (C)
-        WKPF.createWuObject((short)WKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), null);
-        {%- for property in wuobject.wuclass.properties -%}
-        {%- if property.value -%}
-        {% if property.datatype.lower() == 'boolean' %}
-            WKPF.setPropertyBoolean((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, {{ property.value }});
-        {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
-            WKPF.setPropertyShort((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-        {% elif property.datatype.lower() == 'refresh_rate' %}
-            WKPF.setPropertyRefreshRate((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
-        {% else %}
-            WKPF.setPropertyShort((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, WKPF.{{ property|propertyconstantvalue }});
-        {%- endif -%}
-        {%- endif -%}
-        {%- endfor -%}
+                // Native WuClasses (C)
+                WKPF.createWuObject((short)WKPF.{{ wuobject.wuclass|wuclassconstname }}, WKPF.getPortNumberForComponent((short){{ component.index }}), null);
+                {%- for property in wuobject.wuclass.properties -%}
+                {%- if property.value -%}
+                {% if property.datatype.lower() == 'boolean' %}
+                WKPF.setPropertyBoolean((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, {{ property.value }});
+                {% elif property.datatype.lower() == 'int' or property.datatype.lower() == 'short' %}
+                WKPF.setPropertyShort((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                {% elif property.datatype.lower() == 'refresh_rate' %}
+                WKPF.setPropertyRefreshRate((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, (short){{ property.value }});
+                {% else %}
+                WKPF.setPropertyShort((short){{ component.index }}, WKPF.{{ property|propertyconstname }}, WKPF.{{ property|propertyconstantvalue }});
+                {%- endif -%}
+                {%- endif -%}
+                {%- endfor -%}
 
                 {% endif %}
-        }
-        }
+
+            }
+
             {% endfor %}
+
+        }
+
         {%- endfor %}
     }
 }
