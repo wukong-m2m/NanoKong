@@ -104,6 +104,7 @@ def update_applications():
     if dirname.lower() == 'base': continue
     if not os.path.isdir(app_dir): continue
 
+    logging.info('scanning %s:' % (dirname))
     if dirname not in application_basenames:
       logging.info('%s' % (dirname))
       applications.append(load_app_from_dir(app_dir))
@@ -563,7 +564,7 @@ class nodes(tornado.web.RequestHandler):
     location = self.get_argument('location')
     if SIMULATION !=0:
       for info in node_infos:
-        if info.node_id == int(nodeId):
+        if info.id == int(nodeId):
           info.location = location
           info.save()
           senNd = SensorNode(info)
@@ -578,7 +579,7 @@ class nodes(tornado.web.RequestHandler):
         routingTable = comm.getRoutingInformation()
         # update our knowledge too
         for info in comm.getActiveNodeInfos():
-          if info.node_id == int(nodeId):
+          if info.id == int(nodeId):
             info.location = location
             info.save()
             senNd = SensorNode(info)

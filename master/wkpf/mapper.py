@@ -54,7 +54,7 @@ def determinePeriodForHeartbeatGroups(components, heartbeatgroups):
       for group in heartbeatgroups:
         if wuobject.node_id in [x.id for x in group.nodes]:
           #group heartbeat is reactiontime divided by 2, then multiplied by 1000 to microseconds
-          newperiod = int(component.reaction_time / 2.0 * 1000.0)
+          newperiod = int(float(component.reaction_time) / 2.0 * 1000.0)
           if not group.period or (group.period and group.period > newperiod):
             group.period = newperiod
           break

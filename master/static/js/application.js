@@ -59,6 +59,9 @@ function application_fill()
         dataType: 'json',
         success: function(r) {
             application_fillList(r);
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            console.log(errorThrown);
         }
     });
 
@@ -68,6 +71,7 @@ function application_fill()
                 alert(data.mesg);
             }
             else {
+                console.log(data);
                 application_fill();
             }
         });
