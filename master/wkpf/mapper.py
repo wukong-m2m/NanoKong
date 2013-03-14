@@ -167,6 +167,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                                 break
                     else:
                         # TODO: there is unsupported VM opcode bug, don't do this
+                        # for now until it is fixed
                         '''
                         # create a new virtual wuobject
                         sensorNode = locTree.sensor_dict[node.id]

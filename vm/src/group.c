@@ -34,8 +34,8 @@ typedef struct {
     nvmtime_t expect_next_timestamp_before; // Initialise to currenttime + INITIALISATION_TIMEOUT
 } node_to_watch;
 
-uint32_t heartbeat_interval = 1000;
-uint32_t heartbeat_timeout = 2500;
+uint32_t heartbeat_interval = 2000;
+uint32_t heartbeat_timeout = 4500;
 nvmtime_t next_time_to_notify = 0;
 // Watch list is now a list of nodes in order of heartbeat importance
 // The node at left_offset_to_monitor is the node to monitor
