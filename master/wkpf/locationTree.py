@@ -3,21 +3,23 @@
 import logging
 import odict
 import json
-from wkpf import NodeInfo, WuClass, WuObject
 
 json_data = odict.odict()
 #json_data = {}
 number = 0
 MAX_LIFE = 1
 class LandmarkNode:
-    #location is a string, size is a tuple of three
-    def __init__(self, id, name, locationStr, size):
+    #location is a string, size is a tuple of three (corresponding to x, y,z direction)
+    #assuming shapes to be cuboid, but it could also be cylinder, pyramid, ball etc
+    #size, direct are tuples
+    def __init__(self, id, name, locationStr, size, direct = None):
         self.id = id
         self.name = name
         self.location = locationStr
         self.locationTreeNode = None
         self.locationLst,x_coord,y_coord, z_coord = LocationTree.parseLocation(locationStr)
         self.coord = (x_coord,y_coord,z_coord)
+        self.direction = direct
         self.size = size
         
     
@@ -36,19 +38,13 @@ class SensorNode:
     def initPortList(self, forceInit = True):
         if len(self.port_list)!=0 and forceInit == False:
             return
-        for wuObj in self.nodeInfo.wuObjects:
-            self.port_list.append(wuObj.getPortNumber())
+        for wuObj in self.nodeInfo.wuobjects:
+            self.port_list.append(wuObj.port_number)
         self.port_list.sort()
-    def reserveNextPort(self):      #reserve a port from 128~255
+    def reserveNextPort(self):      #reserve a port from 0 ~ 127
         portSet = False
         
-        for j in range(len(self.port_list)):
-            if self.port_list[j]<self.last_reserved_port:
-                if j==len(self.port_list)-1:
-                    self.last_reserved_port = 0
-                    return 0
-                else:
-                    continue
+        for j in range(len(self.port_list)-1 ,-1 , -1):
             if (self.port_list[j]+1)%128 !=self.port_list[(j+1)%len(self.port_list)]:
                 self.port_list.append((self.port_list[j]+1)%128)
                 self.temp_port_list.append((self.port_list[j]+1)%128)
@@ -69,8 +65,107 @@ class LocationTreeNode:
         self.sensorLst = []
         self.sensorCnt = 0
         self.landmarkLst = []
+        self.size = None
+        self.originalPnt = (0,0,0)     #in coord system f parent
+        self.centerPnt = None       #in coord system of parent
+        #represent [[cosx1x2, cosx2y1, cosx2z1],[cosy1x2, cosy1y2,cosy1z2],[cosz1x2,cosz1y2,cosz1z2]]
+        #globalCoord = transMatrix * localCoord 
+        self.transMatrix = [[1,0,0],[0,1,0],[0,0,1]]   #default no transformation between coordinate system
+        
+        #key is the set of the destination and source (exchangeable)
+        #distance to self is always 0
+        self.distanceModifier = {} #stores a list of distance between children, default 0, used for distance between sensors in different children.
         self.idSet = set([]) #all sensor ids contained in this Node and its children nodes
 
+    #transMatrix is a 3*3 nested list
+    def setLocalTransMatrix (self, transMatrix):
+        self.localTransMatrix = transMatrix
+    
+    #origPoint is a tuple of 3, (0,1,2)
+    def setOriginalPnt (self, origPoint):
+        self.originalPnt = originalPoint
+    
+    def setCenterPnt (self, centerPnt):
+        self.centerPnt = centerPnt
+           
+    #obj could be sensor or landmark 
+    def calcDistance(self, sensor, obj):
+        sensorGlobalCoord = (0,0,0)
+        objGlobalCoord = (0,0,0)
+        for i in range(3):
+            for j in range(3):
+                sensorGlobalCoord[i] += self.transMatrix[i][j]*sensor.coord[j]
+                objGlobalCoord[i] += self.transMatrix[i][j]*obj.coord[j]
+        modifier = (sensorGlobalCoord[0]-objGlobalCoord[0])**2+(sensorGlobalCoord[1]-objGlobalCoord[1])**2+(sensorGlobalCoord[2]-objGlobalCoord[2])**2
+        pos2 = sensor.locationTreeNode
+        snrId = sensor.nodeInfo.nodeId
+        pos1 = obj.locationTreeNode
+        curPos = pos1
+        while snrId not in curPos.idSet:
+            try:
+                modifier = modifier +self.distanceModifier[set([curPos.name,pos1.name])]
+            except KeyError:
+                modifier = modifier
+            pos1 = curPos
+            curPos = curPos.parent
+        try:
+            modifier = modifier +curPos.distanceModifier[set([pos1.name,pos2.name])]
+        except KeyError:
+            modifier = modifier
+        return modifier
+        
+    def addDistanceModifier(self, name1, name2, distance):
+        found = 0
+        ids = [name1, name2]
+        lst = self.children
+        if self.parent !=None:
+            lst.append(self.parent)
+        for child in lst:
+            if child.name == name1:
+                found = found+1
+                if found == 3:
+                    break
+            elif child.name == name2:
+                found = found +2
+                if found == 3:
+                    break
+        if found == 0:
+            logging.error("error! None of the names"+str(ids)+" found when adding distance modifier to " + self.name)
+            return False
+        elif found!=3:
+            logging.error("error! None of the names"+str(ids[2-found])+" not found when adding distance modifier to"+ self.name)
+            return False
+
+        self.distanceModifier[set([name1,name2])] = distance
+    
+    def delDistanceModifier(self, name1, name2, distance):
+        found = 0
+        ids = [name1, name2]
+        lst = self.children
+        if self.parent !=None:
+            lst.append(self.parent)
+        for child in lst:
+            if child.name == name1:
+                found = found+1
+                if found == 3:
+                    break
+            elif child.name == name2:
+                found = found +2
+                if found == 3:
+                    break
+        if found == 0:
+            logging.error("error! None of the names"+str(ids)+" found when adding distance modifier to " + self.name)
+            return False
+        elif found!=3:
+            logging.error("error! None of the names"+str(ids[2-found])+" not found when adding distance modifier to"+ self.name)
+            return False
+        try:
+            del self.distanceModifier[set([name1,name2])]
+        except KeyError:
+            logging.error("error! distance modifier does not exist for " +str(ids)+" in "+ self.name)
+            return False
+        return True
+            
     def addChild(self, name):
         tmp = LocationTreeNode (name, self)
         self.children.append(tmp)
@@ -272,7 +367,8 @@ class LocationTree:
         if startPos == None:
             startPos = self.root
         if landmarkNd.locationLst == None or len(landmarkNd.locationLst) == 0:
-            logging.error("error! location for node "+ str(landmarkNd.nodeInfo.nodeId)+ " is not set")
+            logging.error("error! location for node "+
+                str(landmarkNd.nodeInfo.nodeId)+ " is not set")
             return False
         if startPos.name != landmarkNd.locationLst[0]:
             logging.error("error! location: "+ str(landmarkNd.locationLst[0])+ " does not match " + startPos.name)
