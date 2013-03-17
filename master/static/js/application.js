@@ -99,10 +99,10 @@ function application_fillList(r)
             var app_id = $(this).data('app_id');
 
             $('#content').empty();
-            $('#content').block({
-                message: '<h1>Processing</h1>',
-                css: { border: '3px solid #a00' }
-            });
+ //           $('#content').block({
+   //             message: '<h1>Processing</h1>',
+     //           css: { border: '3px solid #a00' }
+       //     });
 
             $.post('/applications/' + app_id, function(data) {
                 if (data.status == 1) {
