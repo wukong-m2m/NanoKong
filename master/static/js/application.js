@@ -99,10 +99,10 @@ function application_fillList(r)
             var app_id = $(this).data('app_id');
 
             $('#content').empty();
- //           $('#content').block({
-   //             message: '<h1>Processing</h1>',
-     //           css: { border: '3px solid #a00' }
-       //     });
+            $('#content').block({
+                message: '<h1>Processing</h1>',
+                css: { border: '3px solid #a00' }
+            });
 
             $.post('/applications/' + app_id, function(data) {
                 if (data.status == 1) {
@@ -134,7 +134,7 @@ function application_fillList(r)
                             poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
                                 console.log(data)
                                 if (data.wukong_status == "" && data.application_status == "") {
-                                    $('#deploy_results').dialog('close');
+                                    $('#deploy_results').dialog('destroy').remove();
                                 } else {
                                     $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
                                 }
@@ -416,8 +416,7 @@ function poll(url, version, options, callback)
 function make_tree(rt)
 {
 	$('#content').empty();
-	$('#content').append('<script type="text/javascript" src="/static/js/jquery.js"></script>'+
-		'<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
+	$('#content').append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
 		'<script type="text/javascript" src="/static/js/tree_expand.js"></script>');
 
 	var r = JSON.parse(rt.loc);
@@ -469,6 +468,8 @@ function make_tree(rt)
 				 '<button type="button" class="change-location">Set Location</button><br>'+
 				 'SensorID <input id="SensorId" type=text size="10"><br>'+
 				 'Location <input id="locName" type=text size="100"><br>'
+				 'Size <input id = "size" type=text size="100"><br>'
+				 'Direction <input id = "direction" type=text size="100"><br>'
 	html_tree += 'Add/Del Object <input id="node_addDel" type=text size="50"><br>'
 //	html_tree += 'add/del location <input id="loc_addDel" type=text size="50">'
 	html_tree += '</td></tr></table>'
