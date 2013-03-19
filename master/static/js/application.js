@@ -59,6 +59,9 @@ function application_fill()
         dataType: 'json',
         success: function(r) {
             application_fillList(r);
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            console.log(errorThrown);
         }
     });
 
@@ -68,6 +71,7 @@ function application_fill()
                 alert(data.mesg);
             }
             else {
+                console.log(data);
                 application_fill();
             }
         });
@@ -416,8 +420,7 @@ function poll(url, version, options, callback)
 function make_tree(rt)
 {
 	$('#content').empty();
-	$('#content').append('<script type="text/javascript" src="/static/js/jquery.js"></script>'+
-		'<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
+	$('#content').append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
 		'<script type="text/javascript" src="/static/js/tree_expand.js"></script>');
 
 	var r = JSON.parse(rt.loc);

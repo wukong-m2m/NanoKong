@@ -3,13 +3,11 @@
 #(, ), &, |, are preserved key words
 #priority | < & < ~
 #any kind of spaces, tabs or "\n" are not allowed in URL
-import sys, traceback
-import os
+import sys, traceback, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "./pyparsing"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "./../"))
 from configuration import *
-from wkpf import WuClass, WuObject, NodeInfo
+from models import *
 from locationTree import *
 from pyparsing import *
 '''
@@ -71,9 +69,12 @@ class LocationParser:
         return self._funct_dict[argument.getName()](self, locTreeNode, argument)
         
     #different functions
+    
     def isID(locationTreeNode, id):
         id = int(id)
-        return set([id])
+        if id in locationTreeNode.getAllNodes():
+            return set([id])
+        return set([])
         
     def getAll(locationTreeNode):
         return locationTreeNode.getAllAliveNodeIds()
@@ -81,6 +82,7 @@ class LocationParser:
     def near(locationTreeNode, dist, x, y=None,z=None):
         ret_val = set([])
         dist = float(dist)
+        obj = None
         try:            #case one, coordinates are given
             x = float(x)
             y = float(y)
@@ -93,18 +95,23 @@ class LocationParser:
             x = landMarks[0].coord[0]
             y = landMarks[0].coord[1]
             z = landMarks[0].coord[2]
+            obj = landMarks[0]
         idLst = list(locationTreeNode.idSet)
         for sensorId in idLst:
             sensorNd = locationTreeNode.getSensorById(sensorId)
-            if (sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2 <= dist**2:
+            dist = (sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2
+            if obj!=None:
+                dist = self.calcDistance(sensorNd, obj)
+            if dist <= dist**2:
                 #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
                 ret_val.add(sensorNd.nodeInfo.nodeId)
         return ret_val
 
-    #return the nearest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
-    def nearest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
+    #return the closest 'count' nodes from idset(or location treenode is idset=None) to x,y,z(or x)
+    def closest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
         node_lst = []       #list of nodes to be returned
         dist_lst = []       #list of nodes' distances in the node_list
+        obj = None
         try:            #case one, coordinates are given
             x = float(x)
             y = float(y)
@@ -117,6 +124,7 @@ class LocationParser:
             x = landMarks[0].coord[0]
             y = landMarks[0].coord[1]
             z = landMarks[0].coord[2]
+            obj = landMarks[0]
 
         if count ==-1:
             count = 65535   #count==-1 means we find and sort all
@@ -128,7 +136,10 @@ class LocationParser:
             sensorNd = locationTreeNode.getSensorById(sensorId)
             if sensorNd == None:
                 continue
+            
             dist = (sensorNd.coord[0]-x)**2+(sensorNd.coord[1]-y)**2+(sensorNd.coord[2]-z)**2
+            if obj!=None:
+                dist = self.calcDistance(sensorNd, obj)
             if dist >= largest_dist:
                 if len(node_lst)<count:
                     #print sensorNd.coord[0],sensorNd.coord[1],sensorNd.coord[2]
@@ -143,10 +154,132 @@ class LocationParser:
                         break
         return node_lst
 
+    def farthest(locationTreeNode, x, y=None,z=None, count=-1, idLst=None):
+        return LocationParser.__dict__["closest"](locationTreeNode, x, y,z, count, idLst).reverse()
+    
+    #sort nodes according to their distance to center
+    def findCenter(locationTreeNode, count=-1, idLst=None):
+        if idLst == None:
+            idLst = list(locationTreeNode.idSet)
+        sum=(0,0,0)
+        for sensorId in idLst:
+            sensorNd = locationTreeNode.getSensorById(sensorId)
+            sum = (sum[0] + sensorNd.coord[0], 
+                   sum[1] + sensorNd.coord[1],
+                   sum[2] + sensorNd.coord[2])
+        return LocationParser.__dict__["closest"] (locationTreeNode, sum[0], sum[1], sum[2], count, idLst)
+        
+    def inside(locationTreeNode, landMarkName):
+        landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
+        retLst = []
+        idLst = list(locationTreeNode.idSet)
+        for sensorId in idLst:
+            sensorNd = locationTreeNode.getSensorById(sensorId)
+            for obj in landMarkLst:
+                if (obj.coord[0]-obj.size[0]/2<=landMarkNode.coord[0]<=obj.coord[0]+obj.size[0]/2 and
+                    obj.coord[1]-obj.size[1]/2<=landMarkNode.coord[1]<=obj.coord[1]+obj.size[1]/2 and
+                    obj.coord[2]-obj.size[2]/2<=landMarkNode.coord[2]<=obj.coord[2]+obj.size[2]/2):
+                    retLst.append(sensorId)
+                    break
+        return set(retLst)
+    
+    def outside(locationTreeNode, landMarkName):
+        return locationTreeNode.idSet - inside(locationTreeNode, landMarkName)
+    
+    def tangent(locationTreeNode, landMarkName):
+        landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
+        retLst = []
+        idLst = list(locationTreeNode.idSet)
+        for sensorId in idLst:
+            sensorNd = locationTreeNode.getSensorById(sensorId)
+            coord = sensorNd.coord
+            #use checkPoint for tangentcheckPoint<0: no tangent, checkPoint>=1:tangent
+            #tangent in one direction:1, within range:0, outside range:-5(continue)
+            #error range 1/20 size.
+            for obj in landMarkLst:
+                checkPoint = 0  
+                for i in range(3):
+                    if (obj.coord[i]-obj.size[i]*11/20<=coord[i]<=obj.coord[i]+obj.size[i]*9/20 or
+                        obj.coord[i]+obj.size[i]*9/20<=coord[i]<=obj.coord[i]+obj.size[i]*11/20):
+                        checkPoint = checkPoint + 1
+                    elif obj.coord[i]-obj.size[i]/2<= coord[i]<=obj.coord[i]+obj.size[i]/2:
+                        scpre = checkPoint + 0
+                    else:
+                        checkPoint = -5
+                        break
+                if checkPoint >=1:
+                    retLst.append(sensorId)
+                    break
+        return set(retLst)
+    
+    #dimension --0 for x, 1 for y, 2 for z, 
+    #set dimention to 2 is equivalent to above()
+    def front(locationTreeNode, landMarkName, dimension):
+        landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
+        retLst = []
+        idLst = list(locationTreeNode.idSet)
+        for sensorId in idLst:
+            sensorNd = locationTreeNode.getSensorById(sensorId)
+            for obj in landMarkLst:
+                checkPoint = 0
+                for i in range(3):
+                    if i != dimension:
+                        if obj.coord[i]-obj.size[i]/2<=sensorNd.coord[i]<=obj.coord[i]+obj.size[i]/2:
+                            checkPoint = checkPoint +1
+                        else:
+                            break
+                    else:
+                        if sensorNd.coord[i]>=obj.coord[i]+obj.size[i]/2:
+                            checkPoint = checkPoint +1
+                        else:
+                            break
+                print checkPoint, i
+                if checkPoint ==3:
+                    retLst.append(sensorId)
+                    break
+        return set(retLst)
+    def back(locationTreeNode, landMarkName, dimension):
+        landMarkLst = locationTreeNode.findLandmarksByName(landMarkName)
+        retLst = []
+        idLst = list(locationTreeNode.idSet)
+        for sensorId in idLst:
+            sensorNd = locationTreeNode.getSensorById(sensorId)
+            checkPoint = 0
+            for obj in landMarkLst:
+                for i in range(3):
+                    if i != dimension:
+                        if obj.coord[i]-obj.size[i]/2<=landMarkNode.coord[i]<=obj.coord[i]+obj.size[i]/2:
+                            checkPoint = checkPoint +1
+                        else:
+                            break
+                    else:
+                        if landMarkNode.coord[i]<=obj.coord[i]-obj.size[i]/2:
+                            checkPoint = checkPoint +1
+                        else:
+                            break
+                if checkPoint ==3:
+                    retLst.append(sensorId)
+                    break
+        return set(retLst)
+    def above(locationTreeNode, landMarkName):
+        return LocationParser.__dict__["front"](locationTreeNode, landMarkName, 2)
+    def below(locationTreeNode, landMarkName):
+        return LocationParser.__dict__["back"](locationTreeNode, landMarkName, 2)
+    
+    def hasClass(locationTreeNode, classId):
+        retLst = []
+        for ndInfo in locationTreeNode.getAllNodeInfos():
+            if classId in [x.id for x in ndInfo.wuclasses]:
+                retLst.append(ndInfo.nodeId)
+        return retLst
+                
     _funct_dict = {
             u"specification":evaluateSpec,u"function":evaluateFunction,
             u"not":evaluateNegate, u"and":evaluateAnd, u"or": evaluateOr, 
-            u"near":near, u"isID":isID, u"getAll":getAll, u"nearest": nearest}
+            u"near":near, u"isID":isID, u"getAll":getAll, u"hasClass":hasClass,
+            u"inside":inside, u"outside":outside, u"tangent":tangent, 
+            u"above":above, u"below":below,u"front":front, u"back":back,
+            u"closest": closest, u"farthest":farthest, u"findCenter":findCenter}
             
             
     def _isFuncParameter(self, numStr):
@@ -208,21 +341,25 @@ if __name__ == "__main__":
     loc0 = u"universal/Boli_Building/3F/South_Corridor/Room318@(3,1,8)"
     loc1 = u"universal/Boli_Building/3F/N_Corridor/Room318@(8,1,3)"
     loc2 = u"universal/Boli_Building/2F/South_Corridor/Room318@(4,4,4)"
-    loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318@(5,2,2)"
-    senNd0 = SensorNode(NodeInfo(0, [], [],loc0))
-    senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
-    senNd2 = SensorNode( NodeInfo(2, [], [], loc2))
-    senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
+    loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318@(2,6,8)"
+    senNd0 = SensorNode(Node(0, loc0))
+    senNd1 = SensorNode(Node(1, loc1))
+    senNd2 = SensorNode(Node(2, loc2))
+    senNd3 = SensorNode(Node(3, loc3))
     locTree.addSensor(senNd0)
     locTree.addSensor(senNd1)
     locTree.addSensor(senNd2)
     locTree.addSensor(senNd3)
+    landmark1 = LandmarkNode(0, u'door',u"universal/Boli_Building/3F/South_Corridor/Room318@(3,1,9)", (2,1,4))
+    landmark2 = LandmarkNode(0, u'window',u"universal/Boli_Building/3F/South_Corridor/Room318@(3,7,5)", (2,2,4))
+    locTree.addLandmark(landmark1)
+    locTree.addLandmark(landmark2)
     locTree.printTree(locTree.root, 0)
-    query = u"/universal/Boli_Building#nearest(4,4,4)"
-    query2=u"/universal/Boli_Building#~near(4,4,4,4)&getAll()"
+    query = u"/universal/Boli_Building#above(window)"
+    query2=u"/universal/Boli_Building#findCenter()"
     func = u"nearest(4,4,4)"
     locParser = LocationParser( locTree)
-    result = locParser.parse(query)
+    result = locParser.parse(query2)
     print "parser result", result
     print [locTree.getNodeInfoById(nodeId) for nodeId in result]
 #    print locParser.evaluate(None, locParser.parse(query2)[0])

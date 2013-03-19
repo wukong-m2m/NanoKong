@@ -4,9 +4,11 @@ from optparse import OptionParser
 import xml.dom.minidom
 import os
 from wkpfcomm import *
-import wkpf
-import pynvc
+import wkpf.parser
+import wkpf.pynvc
 import copy
+
+# this whole file is deprecated, need to rewrite to integrate with WuKong
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
@@ -89,7 +91,7 @@ def getNodeAndPortForComponent(componentName, mapping):
 def readPropertyInfo(wuObject, propertyNumber, componentDefinitions):
   name = getComponentPropertyName(wuObject.getWuClassId(), propertyNumber, componentDefinitions)
   wkpfcommData = comm.getProperty(wuObject, propertyNumber)
-  for candidate in fakedata.all_wuclasses:
+  for candidate in WuClass.all():
     for property in candidate:
       if property.getName() == name:
         ret_prop = copy.deepcopy(property)

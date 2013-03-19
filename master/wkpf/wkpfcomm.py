@@ -1,28 +1,23 @@
-#!/usr/bin/python
-# vim: ts=2 sw=2
-import sys
-import time
+# vim: ts=4 sw=4
+import sys, time, copy
 from transport import *
-from wkpf import *
 from locationTree import *
+from models import *
 from globals import *
 import fakedata
 from configuration import *
 
 communication = None
-
 # routing services here
 class Communication:
     @classmethod
     def init(cls):
-      print 'Communication init'
       global communication
       if not communication:
         communication = Communication()
       return communication
 
     def __init__(self):
-      print 'Communciation constructor'
       self.all_node_infos = []
       if not SIMULATION:
         self.zwave = ZwaveAgent.init()
@@ -55,7 +50,7 @@ class Communication:
     def getNodeInfos(self, node_ids):
       print 'getNodeInfos', node_ids
       if self.all_node_infos:
-        return filter(lambda info: info.nodeId in node_ids, self.all_node_infos)
+        return filter(lambda info: info.id in node_ids, self.all_node_infos)
       else:
         return [self.getNodeInfo(int(destination)) for destination in node_ids]
 
@@ -87,75 +82,70 @@ class Communication:
       return self.zwave.poll()
 
     def getNodeInfo(self, destination):
-      print 'getNodeInfo', destination
+      print 'getNodeInfo of node id', destination
+
+      location = self.getLocation(destination)
+      gevent.sleep(0) # give other greenlets some air to breath
+
       wuClasses = self.getWuClassList(destination)
-      print wuClasses
       gevent.sleep(0)
 
       wuObjects = self.getWuObjectList(destination)
-      print wuObjects
       gevent.sleep(0)
 
-      location = self.getLocation(destination)
-      print location
-      gevent.sleep(0)
-
-      return NodeInfo(nodeId = destination,
-                        wuClasses = wuClasses,
-                        wuObjects = wuObjects,
-                        location = location)
+      node = Node(destination, location, wuClasses, wuObjects)
+      node.save()
+      return node
 
     def getLocation(self, destination):
       print 'getLocation', destination
 
-      reply = self.zwave.send(destination, pynvc.WKPF_GET_LOCATION, [], [pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R])
+      length = 0
+      location = ''
 
-      '''
-      sn = self.getNextSequenceNumberAsList()
-      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                        command=pynvc.WKPF_GET_LOCATION,
-                                                        payload=sn,
-                                                        allowedReplies=[pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R],
-                                                        verify=self.verifyWKPFmsg(messageStart=sn, minAdditionalBytes=0)) # number of wuclasses
-      '''
+      while (length == 0 or len(location) < length): # There's more to the location string, so send more messages to get the rest
+        # +1 because the first byte in the data stored on the node is the location string length
+        offset = len(location) + 1 if length > 0 else 0
+        reply = self.zwave.send(destination, pynvc.WKPF_GET_LOCATION, [offset], [pynvc.WKPF_GET_LOCATION_R, pynvc.WKPF_ERROR_R])
 
-      if reply == None:
-        return ""
+        if reply == None:
+          return ''
+        if reply.command == pynvc.WKPF_ERROR_R:
+          print "WKPF RETURNED ERROR ", reply.command
+          return '' # graceful degradation
+        if len(reply.payload) <= 2:
+          return ''
 
-      if reply.command == pynvc.WKPF_ERROR_R:
-        print "WKPF RETURNED ERROR ", reply.command
-        return [] # graceful degradation
+        if length == 0:
+          length = reply.payload[2] # byte 3 in the first message is the total length of the string
+          if length == 0:
+            return ''
+          location = ''.join([chr(byte) for byte in reply.payload[3:]])
+        else:
+          location += ''.join([chr(byte) for byte in reply.payload[2:]])
 
-      print reply
-      if len(reply.payload) > 2:
-        reply = reply.payload[2:] # without seq number
-        location_size = reply[0]
-        return ''.join([chr(bit) for bit in reply[1:location_size+1]]) # shift overhead
-      else:
-        return ''
+      return location[0:length] # The node currently send a bit too much, so we have to truncate the string to the length we need
 
     def setLocation(self, destination, location):
       print 'setLocation', destination
 
-      reply = self.zwave.send(destination, pynvc.WKPF_SET_LOCATION, [len(location)] + [int(ord(char)) for char in location], [pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R])
-      print reply
+      # Put length in front of location
+      locationstring = [len(location)] + [int(ord(char)) for char in location]
+      offset = 0
+      chunksize = 10
+      while offset < len(locationstring):
+        chunk = locationstring[offset:offset+chunksize]
+        message = [offset, len(chunk)] + chunk
+        offset += chunksize
 
-      '''
-      sn = self.getNextSequenceNumberAsList()
-      sn += [len(location)] + [int(ord(char)) for char in location]
-      src, reply = pynvc.sendWithRetryAndCheckedReceive(destination=destination,
-                                                        command=pynvc.WKPF_SET_LOCATION,
-                                                        payload=sn,
-                                                        allowedReplies=[pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R],
-                                                        verify=self.verifyWKPFmsg(messageStart=sn[:6], minAdditionalBytes=0)) # number of wuclasses
-      '''
+        reply = self.zwave.send(destination, pynvc.WKPF_SET_LOCATION, message, [pynvc.WKPF_SET_LOCATION_R, pynvc.WKPF_ERROR_R])
 
-      if reply == None:
-        return -1
+        if reply == None:
+          return -1
 
-      if reply.command == pynvc.WKPF_ERROR_R:
-        print "WKPF RETURNED ERROR ", reply.payload
-        return False
+        if reply.command == pynvc.WKPF_ERROR_R:
+          print "WKPF RETURNED ERROR ", reply.payload
+          return False
       return True
 
     def getFeatures(self, destination):
@@ -234,11 +224,22 @@ class Communication:
       while len(reply) > 1:
         wuClassId = (reply[0] <<8) + reply[1]
         isVirtual = True if reply[2] == 1 else False
-        for wuclass in fakedata.all_wuclasses:
-            if wuclass.getId() == wuClassId:
-                wuclass.setNodeId(destination)
-                wuclasses.append(wuclass)
-        #wuclasses.append(WuClass(destination, wuClassId, isVirtual))
+        wuclass = None
+        wuclass_query = WuClass.where(node_id=destination, id=wuClassId)
+        if not wuclass_query:
+            wuclass_component = WuClass.where(id=wuClassId)[0]
+            if wuclass_component:
+                wuclass = WuClass(wuclass_component.id, wuclass_component.name,
+                        wuclass_component.virtual, wuclass_component.type,
+                        copy.deepcopy(wuclass_component.properties), destination)
+                wuclass.save()
+            else:
+                print 'Unknown wuclass id', wuClassId
+                continue
+        else:
+            wuclass = wuclass_query[0]
+
+        wuclasses.append(wuclass)
         reply = reply[3:]
       return wuclasses
 
@@ -269,17 +270,35 @@ class Communication:
       reply = reply.payload[3:]
       while len(reply) > 1:
         wuClassId = (reply[1] <<8) + reply[2]
-        for wuclass in fakedata.all_wuclasses:
-          if wuclass.getId() == wuClassId:
-            wuobjects.append(WuObject(wuclass, 'testId', 1, nodeId=destination, portNumber=reply[0]))
-        #wuobjects.append(WuObject(destination, reply[0], (reply[1] <<8) + reply[2]))
+        port_number = reply[0]
+        wuobject = None
+        wuobject_query = WuObject.where(node_id=destination, wuclass_id=wuClassId)
+        if wuobject_query == []:
+            wuclass = WuClass.where(id=wuClassId, node_id=destination)[0]
+            if wuclass:
+                wuobject = WuObject(destination, port_number, wuclass)
+                wuobject.save()
+            else:
+                print 'Unknown wuclass id', wuClassId
+                continue
+        else:
+            # might need to update
+            wuobject = wuobject_query[0]
+            wuobject.port_number = port_number
+            wuobject.save()
+
+        wuobjects.append(wuobject)
         reply = reply[3:]
       return wuobjects
 
     def getProperty(self, wuobject, propertyNumber):
       print 'getProperty'
 
-      reply = self.zwave.send(wuobject.getNodeId(), pynvc.WKPF_READ_PROPERTY, [wuobject.getPortNumber(), wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber], [pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R])
+      reply = self.zwave.send(wuobject.node_id, 
+              pynvc.WKPF_READ_PROPERTY,
+              [wuobject.port_number, wuobject.wuclass.id/256, 
+                    wuobject.wuclass.id%256, propertyNumber], 
+              [pynvc.WKPF_READ_PROPERTY_R, pynvc.WKPF_ERROR_R])
 
       '''
       sn = self.getNextSequenceNumberAsList()
@@ -316,12 +335,14 @@ class Communication:
       master_busy()
 
       if datatype == DATATYPE_BOOLEAN:
-        payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, 1 if value else 0]
+        payload=[wuobject.port_number, wuobject.wuclass.id/256,
+        wuobject.wuclass.id%256, propertyNumber, datatype, 1 if value else 0]
 
       elif datatype == DATATYPE_INT16 or datatype == DATATYPE_REFRESH_RATE:
-        payload=[wuobject.portNumber, wuobject.getWuClassId()/256, wuobject.getWuClassId()%256, propertyNumber, datatype, value/256, value%256]
+        payload=[wuobject.port_number, wuobject.wuclass.id/256,
+        wuobject.wuclass.id%256, propertyNumber, datatype, value/256, value%256]
 
-      reply = self.zwave.send(wuobject.getNodeId(), pynvc.WKPF_WRITE_PROPERTY, payload, [pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R])
+      reply = self.zwave.send(wuobject.node_id, pynvc.WKPF_WRITE_PROPERTY, payload, [pynvc.WKPF_WRITE_PROPERTY_R, pynvc.WKPF_ERROR_R])
 
       '''
       sn = self.getNextSequenceNumberAsList()
@@ -360,6 +381,7 @@ class Communication:
         return ret
 
     def reprogramNvmdefault(self, destination, filename):
+      print "Reprogramming Nvmdefault..."
       MESSAGESIZE = 16
 
       reply = self.zwave.send(destination, pynvc.REPRG_OPEN, [], [pynvc.REPRG_OPEN_R])
@@ -371,6 +393,7 @@ class Communication:
                                                     quitOnFailure=False)
       '''
       if reply == None:
+        print "No reply, abort"
         return False
 
       reply = [reply.command] + reply.payload[2:] # without the seq numbers

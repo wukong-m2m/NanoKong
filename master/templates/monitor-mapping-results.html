@@ -1,5 +1,5 @@
 <!--<button id="map">Map</button>-->
-<!--<button {% if not mapping_results %}disabled="disabled"{% end %} id="deploy">Deploy</button>-->
+<!--<button {% if not changesets %}disabled="disabled"{% end %} id="deploy">Deploy</button>-->
 <table class="table">
     <thead>
         <tr>
@@ -10,20 +10,20 @@
         </tr>
     </thead>
     <tbody>
-        {% for key in mapping_results.keys() %}
-            {% for wuobject in mapping_results[key] %}
+        {% for component in changesets.components %}
+            {% for wuobject in component.instances %}
             <tr class=success>
                 <td>
-                    {{ wuobject.getInstanceId() }}
+                    {{ component.index }}
                 </td>
                 <td>
-                    {{ wuobject.getWuClassName() }}
+                    {{ wuobject.wuclass.name }}
                 </td>
                 <td>
-                    {{ wuobject.getNodeId() }}
+                    {{ wuobject.node_id }}
                 </td>
                 <td>
-                    {{ wuobject.getPortNumber() }}
+                    {{ wuobject.port_number }}
                 </td>
             </tr>
             {% end %}

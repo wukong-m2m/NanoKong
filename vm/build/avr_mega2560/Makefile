@@ -134,6 +134,9 @@ upload_bootloader1280:
 generate: $(COMPONENTXML_PATH) $(CODEGEN_PATH)
 	$(CODEGEN_PATH) -i $(COMPONENTXML_PATH) -p $(ROOT_DIR) -u niagara
 
+avarice:
+	avarice -g -j usb -B 4000000 :4242
+
 #include $(OBJS:.o=.d)
 
 

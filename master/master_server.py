@@ -1,32 +1,28 @@
 #!/usr/bin/python
-# vim: ts=2 sw=2
+# vim: ts=4 sw=4
 # author: Penn Su
 from gevent import monkey; monkey.patch_all()
 import gevent
-import tornado.ioloop
-import tornado.web
+import os, sys, zipfile, re, time
+sys.path.append(os.path.join(os.path.dirname(__file__), "wkpf"))
+import tornado.ioloop, tornado.web
 import tornado.template as template
-import os, sys, zipfile
 import simplejson as json
 import logging
 import hashlib
-from xml.dom.minidom import parse, parseString
 from threading import Thread
 import traceback
-import time
-import re
 import StringIO
 import shutil, errno
 import datetime
-from subprocess import Popen, PIPE, STDOUT
 
-import wkpf.fakedata
-import wkpf.wusignal
-from wkpf.wkapplication import WuApplication
-from wkpf.wkpf import *
-from wkpf.wkpfcomm import *
+import fakedata
+import wusignal
+from wkpf.wuapplication import WuApplication
+from wkpf.parser import *
+from wkpfcomm import *
 
-from wkpf.globals import *
+from globals import *
 from configuration import *
 
 import tornado.options
@@ -35,7 +31,6 @@ tornado.options.enable_pretty_logging()
 
 IP = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'
 
-#locationTree= None
 landId = 100
 node_infos = []
 
@@ -49,6 +44,8 @@ def make_FBP():
 	test_1 = fbp_main()
 	test_1.make()	
 
+location_tree = LocationTree(LOCATION_ROOT)
+routingTable = {}
 
 # Helper functions
 def setup_signal_handler_greenlet():
@@ -62,6 +59,9 @@ def copyAnything(src, dst):
   try:
     shutil.copytree(src, dst)
   except OSError as exc: # python >2.5
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
     if exc.errno == errno.ENOTDIR:
       shutil.copy(src, dst)
     else: raise
@@ -83,7 +83,9 @@ def delete_application(i):
     applications.pop(i)
     return True
   except Exception as e:
-    logging.error(e)
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
     return False
 
 def load_app_from_dir(dir):
@@ -102,11 +104,13 @@ def update_applications():
     if dirname.lower() == 'base': continue
     if not os.path.isdir(app_dir): continue
 
+    logging.info('scanning %s:' % (dirname))
     if dirname not in application_basenames:
       logging.info('%s' % (dirname))
       applications.append(load_app_from_dir(app_dir))
       application_basenames = [os.path.basename(app.dir) for app in applications]
 
+# deprecated
 def getPropertyValuesOfApp(mapping_results, property_names):
   properties_json = []
 
@@ -116,7 +120,7 @@ def getPropertyValuesOfApp(mapping_results, property_names):
       if name in wuobject:
         wuproperty = wuobject.getPropertyByName(name)
         (value, datatype, status) = comm.getProperty(wuobject, int(wuproperty.getId()))
-        properties_json.append({'name': name, 'value': value, 'wuclassname': wuproperty.getWuClassName()})
+        properties_json.append({'name': name, 'value': value, 'wuclassname': wuproperty.wuclass.name})
 
   return properties_json
 
@@ -160,7 +164,9 @@ class new_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':0, 'app': app.config()})
     except Exception as e:
-      print e
+      exc_type, exc_value, exc_traceback = sys.exc_info()
+      print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg':'Cannot create application'})
 
@@ -210,7 +216,9 @@ class application(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':0})
       except Exception as e:
-        print e
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot save application'})
 
@@ -251,18 +259,25 @@ class deploy_application(tornado.web.RequestHandler):
       # Discovery results
       node_infos = location_tree.getAllNodeInfos()
 
-      #node_infos = []
       app_ind = getAppIndex(app_id)
       if app_ind == None:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
-        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(app=applications[app_ind], app_id=app_id, node_infos=node_infos, logs=applications[app_ind].logs(), mapping_results=applications[app_ind].mapping_results, set_location=False, default_location=LOCATION_ROOT)
+        deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
+                app=applications[app_ind],
+                app_id=app_id, node_infos=node_infos,
+                logs=applications[app_ind].logs(),
+                changesets=applications[app_ind].changesets, 
+                set_location=False, 
+                default_location=LOCATION_ROOT)
         self.content_type = 'application/json'
         self.write({'status':0, 'page': deployment})
       
     except Exception as e:
-      print e
+      exc_type, exc_value, exc_traceback = sys.exc_info()
+      print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                      limit=2, file=sys.stdout)
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot initiate connection with the baseStation'})
 
@@ -273,10 +288,8 @@ class deploy_application(tornado.web.RequestHandler):
     set_wukong_status("Start deploying")
     applications[app_ind].status = "    "
     if SIMULATION==1:
-      from wkpf.xml2java.translator import generateJava
-      from wkpf.codegen import generateCode
-      generateCode(applications[app_ind])
-      generateJava(applications[app_ind])
+      applications[app_ind].generateCode()
+      applications[app_ind].generateJava()
       set_wukong_status("")
       applications[app_ind].status = ""
     else:
@@ -314,12 +327,16 @@ class map_application(tornado.web.RequestHandler):
     #  print applications[app_ind].mapping_results
 
       ret = []
-      for key, value in applications[app_ind].mapping_results.items():
-        for ind, wuobj in enumerate(value):
+      for component in applications[app_ind].changesets.components:
+        for ind, wuobj in enumerate(component.instances):
           if ind == 0:
-            ret.append({'leader': True, 'instanceId': wuobj.getInstanceId(), 'name': wuobj.getWuClassName(), 'nodeId': wuobj.getNodeId(), 'portNumber': wuobj.getPortNumber()})
+            ret.append({'leader': True, 'instanceId': component.index,
+                    'name': wuobj.wuclass.name, 'nodeId': wuobj.node_id,
+                    'portNumber': wuobj.port_number})
           else:
-            ret.append({'leader': False, 'instanceId': wuobj.getInstanceId(), 'name': wuobj.getWuClassName(), 'nodeId': wuobj.getNodeId(), 'portNumber': wuobj.getPortNumber()})
+            ret.append({'leader': False, 'instanceId': component.index, 'name':
+                    wuobj.wuclass.name, 'nodeId': wuobj.node_id, 'portNumber':
+                    wuobj.port_number})
 
       self.content_type = 'application/json'
       self.write({'status':0, 'mapping_results': ret, 'version': applications[app_ind].version})
@@ -336,10 +353,10 @@ class monitor_application(tornado.web.RequestHandler):
       #self.wrtie({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
     else:
 
-      #properties_json = {}
-      properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
+      properties_json = WuProperty.all() # for now
+      #properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
 
-      monitor = template.Loader(os.getcwd()).load('templates/monitor.html').generate(app=applications[app_ind], mapping_results={}, logs=applications[app_ind].logs(), properties_json=properties_json)
+      monitor = template.Loader(os.getcwd()).load('templates/monitor.html').generate(app=applications[app_ind], logs=applications[app_ind].logs(), properties_json=properties_json)
       self.content_type = 'application/json'
       self.write({'status':0, 'page': monitor})
 
@@ -351,7 +368,8 @@ class properties_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
+      properties_json = WuProperty.all() # for now
+      #properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
 
       self.content_type = 'application/json'
       self.write({'status':0, 'properties': properties_json})
@@ -531,7 +549,7 @@ class nodes(tornado.web.RequestHandler):
       info = comm.getNodeInfo(nodeId)
     elif SIMULATION == 1:
       for i in range(fakedata.simNodeInfos):
-          if fakedata.simNodeInfos[i].nodeId == nodeId:
+          if fakedata.simNodeInfos[i].node_id == nodeId:
               info = fakedata.simNodeInfos[i]
     else:
         logging.error("SIMULATION %d is not invalid" % (SIMULATION))
@@ -546,10 +564,10 @@ class nodes(tornado.web.RequestHandler):
     location = self.get_argument('location')
     if SIMULATION !=0:
       for info in node_infos:
-        if info.nodeId == int(nodeId):
+        if info.id == int(nodeId):
           info.location = location
+          info.save()
           senNd = SensorNode(info)
-#          senNd = SensorNode(info, 0, 0, 0)
           location_tree.addSensor(senNd)
       location_tree.printTree()
       self.content_type = 'application/json'
@@ -561,11 +579,11 @@ class nodes(tornado.web.RequestHandler):
         routingTable = comm.getRoutingInformation()
         # update our knowledge too
         for info in comm.getActiveNodeInfos():
-          if info.nodeId == int(nodeId):
+          if info.id == int(nodeId):
             info.location = location
+            info.save()
             senNd = SensorNode(info)
             print (info.location)
-#            senNd = SensorNode(info, 0, 0, 0)
             location_tree.addSensor(senNd)
         location_tree.printTree()
         self.content_type = 'application/json'
@@ -595,20 +613,20 @@ class tree(tornado.web.RequestHandler):
     disploc = location_tree.getJson()
 
     self.content_type = 'application/json'
-    self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})			
+    self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})
 
 class save_tree(tornado.web.RequestHandler):
-	def put(self):
-		global location_tree
-		
-		self.write({'tree':location_tree})
+    def put(self):
+        global location_tree
+        
+        self.write({'tree':location_tree})
 
-	def post(self):
-		landmark_info = self.get_argument('xml')
-		f = open("../ComponentDefinitions/landmark.xml","w")
-		f.write(landmark_info)
-		f.close()
-		
+    def post(self):
+        landmark_info = self.get_argument('xml')
+        f = open("../ComponentDefinitions/landmark.xml","w")
+        f.write(landmark_info)
+        f.close()
+        
 class add_landmark(tornado.web.RequestHandler):
   def put(self):
     global location_tree
@@ -628,13 +646,14 @@ class add_landmark(tornado.web.RequestHandler):
     
     self.content_type = 'application/json'
     self.write({'status':0})
-		       
+
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
   debug=True
 )
 
-app = tornado.web.Application([
+ioloop = tornado.ioloop.IOLoop.instance()
+wukong = tornado.web.Application([
   (r"/", main),
   (r"/main", main),
   (r"/testrtt/exclude", exclude_testrtt),
@@ -660,15 +679,14 @@ app = tornado.web.Application([
   (r"/loc_tree/land_mark", add_landmark)
 ], IP, **settings)
 
-ioloop = tornado.ioloop.IOLoop.instance()
 if __name__ == "__main__":
   logging.info("WuKong starting up...")
   setup_signal_handler_greenlet()
+  if os.path.exists('standardlibrary.db'):
+    os.remove('standardlibrary.db') 
+  Parser.parseLibrary(COMPONENTXML_PATH)
   update_applications()
-  app.listen(MASTER_PORT)
-  location_tree = LocationTree(LOCATION_ROOT)
-  routingTable = {}
   import_wuXML()
   make_FBP()
+  wukong.listen(MASTER_PORT)
   ioloop.start()
-

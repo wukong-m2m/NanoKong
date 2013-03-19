@@ -4,7 +4,7 @@
 #priority | < & < ~
 #any kind of spaces, tabs or "\n" are not allowed in URL
 
-from wkpf import WuClass, WuObject, NodeInfo
+from models import Node
 from locationTree import *
 
 
@@ -231,10 +231,10 @@ if __name__ == "__main__":
     loc1 = u"universal/Boli_Building/3F/South_Corridor/Room318@(4,1,7)"
     loc2 = u"universal/Boli_Building/3F/South_Corridor/Room318@(4,4,4)"
     loc3 = u"universal/Boli_Building/3F/South_Corridor/Room318@(5,2,2)"
-    senNd0 = SensorNode(NodeInfo(0, [], [],loc0))
-    senNd1 = SensorNode(NodeInfo(1, [], [], loc1))
-    senNd2 = SensorNode( NodeInfo(2, [], [], loc2))
-    senNd3 = SensorNode(NodeInfo(3, [], [], loc3))
+    senNd0 = SensorNode(Node(0, loc0))
+    senNd1 = SensorNode(Node(1, loc1))
+    senNd2 = SensorNode(Node(2, loc2))
+    senNd3 = SensorNode(Node(3, loc3))
     locTree.addSensor(senNd0)
     locTree.addSensor(senNd1)
     locTree.addSensor(senNd2)
