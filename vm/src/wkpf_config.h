@@ -11,6 +11,7 @@
 #define WPKF_FEATURE_LIGHT_ACTUATOR       1
 #define WPKF_FEATURE_NUMERIC_CONTROLLER   2
 #define WPKF_FEATURE_NATIVE_THRESHOLD     3
+//#define WPKF_FEATURE_TEMPERATURE_HUMIDITY_SENSOR 4
 #define WKPF_MAX_FEATURE_NUMBER           3
 
 // Stores the location in EEPROM, or returns WKPF_ERR_LOCATION_TOO_LONG if the string is too long.

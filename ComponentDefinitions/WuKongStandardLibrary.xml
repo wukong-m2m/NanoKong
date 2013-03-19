@@ -92,6 +92,12 @@
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="10" />
     </WuClass>
 
+    <WuClass name="Temperature_Humidity_Sensor" id="14" virtual="false" type="hard">
+        <property name="current_value_temperature" datatype="short" access="readonly" />
+        <property name="current_value_humidity" datatype="short" access="readonly" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="10" />
+    </WuClass>
+
     <WuClass name="Sound_Sensor" id="7" virtual="false" type="hard">
         <property name="current_value" datatype="short" access="readonly" />
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
