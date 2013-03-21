@@ -2672,6 +2672,7 @@ void zwavecmd_manufacture_get(unsigned int id)
 int zlen;
 unsigned char zdata[256];
 char init_data_buf[256]={0};
+char zwave_check_node_isfail=0;
 int zdataptr;
 int curcmd;
 
@@ -3263,6 +3264,11 @@ void zwave_check_state(unsigned char c)
                     zwave_ready = 1;
                     printf("HomeID: %02x%02x%02x%02x\n", zdata[0], zdata[1], zdata[2], zdata[3]);
                     fflush(stdout);
+                } else if (curcmd == IsFailedNodeId) {
+                    if(zdata[0]==1)
+                        zwave_check_node_isfail=1;
+                    else
+                        zwave_check_node_isfail=0;
                 } else {
                     if (PyZwave_print_debug_info) {
                         printf("Get response for command %x\n [", curcmd);
@@ -4452,11 +4458,11 @@ void PyZwave_discover_ack_cb(void * data, int txStatus) //TODO: this function is
 {
     int i=0;
     PyZwave_senddataAckReceived = txStatus;
-    for(i=0;i<10;++i){
+    /*for(i=0;i<10;++i){
         //		init_data_buf[i]=zdata[i];
         printf("buf%d: %d", i, init_data_buf[i]);
     }
-
+    printf("\n");*/
 
 }
 void PyZwave_discover(){
@@ -4483,6 +4489,68 @@ void PyZwave_discover(){
     zwave_my_address = zdata[4];
     printf("my zwave address: %d\n", zdata[4]);
 }
+
+
+void PyZwave_check_removefail(){
+    int i;
+    PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+    register_discover_callback(PyZwave_discover_ack_cb, NULL);
+    printf("calling GetInitData!\n");
+    ZW_GetInitData();
+    while (1) {
+        if (!PyZwave_receiveByte(1000)) {
+            break; // No data received.
+        }
+        if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+            break; // Ack or error received.
+    }
+
+    for(i=2;i<=init_data_buf[0];i++) {
+        PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+        register_discover_callback(PyZwave_discover_ack_cb, NULL);
+        printf("ack basic get %d\n",init_data_buf[i]);
+        txoptions |= TRANSMIT_OPTION_ACK;//ack basic get
+        repeat_cmd = BASIC_GET;
+        zwavecmd_basic_get((unsigned int)init_data_buf[i]);
+        while (1) {
+            if (!PyZwave_receiveByte(1000)) {
+                break; // No data received.
+            }
+            if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+                break; // Ack or error received.
+        }
+        //printf("PyZwave_senddataAckReceived=%d\n",PyZwave_senddataAckReceived);
+        if(PyZwave_senddataAckReceived == TRANSMIT_COMPLETE_OK)        
+            continue;//node still alive, no need to check fail
+
+        PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+        printf("isfail %d\n",init_data_buf[i]);
+        ZW_isFailedNodeId((int)init_data_buf[i]);
+        while (1) {
+            if (!PyZwave_receiveByte(1000)) {
+                break; // No data received.
+            }
+            if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+                break; // Ack or error received.
+        }
+        //printf("nodeid=%d========isfail=%d\n",init_data_buf[i],zdata[0],zwave_check_node_isfail);
+
+	if(zwave_check_node_isfail) {
+        PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+        register_discover_callback(PyZwave_discover_ack_cb, NULL);
+        printf("===removefail %d===\n",init_data_buf[i]);
+        ZW_removeFailedNodeId((int)init_data_buf[i]);
+            while (1) {
+                if (!PyZwave_receiveByte(1000)) {
+                    break; // No data received.
+                }
+                if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+                    break; // Ack or error received.
+            }
+        }
+    }
+}
+
 
 int PyZwave_zwavefd() {
     return zwavefd;
