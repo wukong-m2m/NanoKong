@@ -255,6 +255,28 @@ static PyObject* pyzwave_discover(PyObject *self, PyObject *args) {
     return message_list;
 }
 
+static PyObject* pyzwave_routing(PyObject *self, PyObject *args) {
+  int i;
+  int node_id;
+  PyObject* neighbor_list;
+
+  if (!PyArg_ParseTuple( args, "i", &node_id))
+    return NULL;
+
+  if (!initialised) {
+    PyErr_SetString(PyExc_IOError, "Call pyzwave.init first.");
+    return NULL;
+  }
+
+  PyZwave_routing((unsigned)node_id);
+
+  neighbor_list = PyList_New(0);
+  for (i=1; i<init_data_buf[0]+1; i++) {
+    PyList_Append(neighbor_list, PyInt_FromLong((long)init_data_buf[i] & 0xFF));
+  }
+  return neighbor_list;
+}
+
 PyMethodDef methods[] = {
   {"init", pyzwave_init, METH_VARARGS, "Sets the IP address to connect to"},
   {"send", pyzwave_send, METH_VARARGS, "Sends a list of bytes to a node"},
@@ -265,6 +287,7 @@ PyMethodDef methods[] = {
   {"receive", pyzwave_receive, METH_VARARGS, "Receive data"},
   {"setdebug", pyzwave_setdebug, METH_VARARGS, "Turn debug info on or off"},
   {"discover", pyzwave_discover, METH_VARARGS, "discover nodes"},
+  {"routing", pyzwave_routing, METH_VARARGS, "node neighbors"},
   {NULL, NULL, 0, NULL}
 };
 

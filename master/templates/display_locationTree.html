@@ -128,7 +128,7 @@ $('.change-location').click(function() {
 
 {% for node_info in node_infos %}
 
-	$('#node{{ node_info.nodeId }}').click(function(e) {
+	$('#node{{ node_info.id }}').click(function(e) {
 		e.preventDefault();
 		console.log('click');	
 		if(e.shiftKey){
@@ -144,7 +144,7 @@ $('.change-location').click(function() {
 		}
 	});
 	
-	$('#node{{ node_info.nodeId }}').dblclick(function(e) {
+	$('#node{{ node_info.id }}').dblclick(function(e) {
 		e.preventDefault();
 		console.log('dblclick');
 		$('#dispObj .modal-header').html('Node Info');

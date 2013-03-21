@@ -11,6 +11,7 @@
 *.map
 *.sym
 *.out
+*.pyc
 tools/zwave/search
 tools/zwave/testrtt
 .DS_Store
@@ -22,3 +23,7 @@ GENERATED*
 *.orig
 tools/python/pyzwave/testrtt
 config/master.cfg
+*__comp__*
+*standardlibrary.db*
+nanovmtool/dist/javadoc/*.html
+nanovmtool/dist/javadoc/*

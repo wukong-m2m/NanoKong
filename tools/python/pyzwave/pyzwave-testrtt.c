@@ -434,6 +434,7 @@ char * cmd_class_string(int cls)
 
 void clear_serial_api_queue(void)
 {
+    printf("clear_serial_api_queue\n");
     unsigned char ack = ZW_ACK;
     unsigned char c;
     struct timeval to;
@@ -480,6 +481,7 @@ void clear_serial_api_queue(void)
        }
        }
        */
+    printf("clear_serial_api_queue done\n");
 }
 
 int ZW_sendData(unsigned id,unsigned char *in,int len)
@@ -3143,15 +3145,19 @@ void ApplicationCommandHandler(unsigned char * buf, int len)
 
 void dumpRouteInformation()
 {
-    int i,j;
+    int i,j,k;
 
+    k=0;
     printf("connected to\n");
     for(i=0;i<29;i++) {
         for(j=0;j<8;j++)
             if (zdata[i]& (1<<j)) {
+                init_data_buf[k+1] = i*8+j+1;
                 printf("%d " , i*8+j+1);
+                ++k;
             }
     }
+    init_data_buf[0] = k;
     printf("\n");
 }
 void zwave_check_state(unsigned char c)
@@ -3201,6 +3207,9 @@ void zwave_check_state(unsigned char c)
             } else if (c == ZW_ACK) {
                 printf("       WAIT_SOF: SerialAPI got unknown ACK ????????\n");
                 ack_got = 1;
+            } else if (c == ZW_CAN) {
+                printf("       WAIT_SOF: SerialAPI got CAN, we should wait for ACK\n");
+                zstate = WAIT_ACK;
             }
             else {
                 printf("       WAIT_SOF: SerialAPI got unexpected byte 0x%x ?????????\n", c);
@@ -4491,6 +4500,7 @@ void PyZwave_discover(){
 }
 
 
+
 void PyZwave_check_removefail(){
     int i;
     PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
@@ -4551,6 +4561,19 @@ void PyZwave_check_removefail(){
     }
 }
 
+
+// Penn
+void PyZwave_routing(unsigned node_id) {
+  printf("calling GetRoutingInformation!\n");
+  PyZwave_senddataAckReceived = TRANSMIT_WAIT_FOR_ACK;
+  ZW_GetRoutingInformation(node_id);
+  while (1) {
+    if (!PyZwave_receiveByte(1000))
+      break; // No data received.
+    if (PyZwave_senddataAckReceived != TRANSMIT_WAIT_FOR_ACK)
+      break; // Ack or error received.
+  }
+}
 
 int PyZwave_zwavefd() {
     return zwavefd;

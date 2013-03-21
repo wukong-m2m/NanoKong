@@ -21,6 +21,8 @@
 #define DEBUG
 //#define DEBUG_WIRELESS_TRACE
 #define DEBUG_WIRELESS_TRACE_TARGET_NODE_ID 2
+// enable logging info
+//#define LOGGING
 
 // enable simple unittests for wuclass framework (choose 1)
 //#define TEST_WKPF_WUCLASSES
@@ -45,7 +47,7 @@
 #define NVM_USE_UTILS           // enable inline utils
 #define NVM_USE_MEMCPY_UP       // enable custom memcpy for heap compacting
 #define NVM_USE_COMM
-#define NVM_USE_COMMZWAVE       // enable Z-wave support
+//#define NVM_USE_COMMZWAVE       // enable Z-wave support
 #define NVM_USE_GROUP           // enable virtually synchronous process group
 //#define NVM_USE_COMMXBEE        // enable XBee support
 // bytecode location (choose one)

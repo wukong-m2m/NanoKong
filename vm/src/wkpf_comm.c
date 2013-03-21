@@ -88,21 +88,47 @@ void wkpf_comm_handle_message(address_t src, u08_t nvmcomm_command, u08_t *paylo
   switch (nvmcomm_command) {
     case NVMCOMM_WKPF_GET_LOCATION:
       {
-        char* location_in_message_payload = (char*)payload+3;
-        uint8_t* length_in_message_payload = (uint8_t *)&payload[2];
-        wkpf_config_get_location_string(location_in_message_payload, length_in_message_payload);
+        // Format of get_location request messages: payload[2] offset of the first byte requested
+        // Format of get_location return messages: payload[2..] the part of the location string
+
+        // The length of the location is stored by the master as the first byte of the string.
+
+        // Get the offset of the requested data within the location string
+        uint8_t requested_offset = payload[2];
+
+        // Read the EEPROM
+        char* location_in_message_payload = (char*)payload+2;
+//        uint8_t length = wkpf_config_get_part_of_location_string(location_in_message_payload, requested_offset, NVMCOMM_MESSAGE_SIZE-2);
+        uint8_t length = wkpf_config_get_part_of_location_string(location_in_message_payload, requested_offset, 5);
+
+        DEBUGF_WKPF("NVMCOMM_WKPF_GET_LOCATION: Reading %d bytes at offset %d\n", length, requested_offset);
+
         *response_cmd = NVMCOMM_WKPF_GET_LOCATION_R;
-        *response_size = 3 + *length_in_message_payload;
+        *response_size = 2 + length;
       }
     break;
     case NVMCOMM_WKPF_SET_LOCATION:
-      retval = wkpf_config_set_location_string((char*) payload+3, payload[2]);
-      if (retval == WKPF_OK) {
-        *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
-        *response_size = 2;//payload size
-      } else {
+      {
+        // Format of set_location request messages: payload[2] offset of part of the location string being sent
+        // Format of set_location request messages: payload[3] the length of part of the location string being sent
+        // Format of set_location request messages: payload[4..] the part of the location string
+        // Format of set_location return messages: payload[2] the wkpf return code
+
+        uint8_t written_offset = payload[2];
+        uint8_t length = payload[3];
+
+        DEBUGF_WKPF("NVMCOMM_WKPF_SET_LOCATION: Writing %d bytes at offset %d\n", length, written_offset);
+
+        // Read the EEPROM
+        retval = wkpf_config_set_part_of_location_string((char*) payload+4, written_offset, length);
+
+        // Send response
+        if (retval == WKPF_OK) {
+          *response_cmd = NVMCOMM_WKPF_SET_LOCATION_R;
+        } else {
+          *response_cmd = NVMCOMM_WKPF_ERROR_R;
+        }
         payload[2] = retval;       
-        *response_cmd = NVMCOMM_WKPF_ERROR_R;
         *response_size = 3;//payload size
       }
     break;

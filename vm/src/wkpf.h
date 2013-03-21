@@ -1,6 +1,7 @@
 #ifndef WKPF_H
 #define WKPF_H
 
+#include <stdlib.h>
 #include "types.h"
 #include "wkpf_wuclasses.h"
 #include "wkpf_wuobjects.h"
@@ -40,6 +41,7 @@
 #define WKPF_ERR_UNKNOWN_FEATURE                             17
 #define WKPF_ERR_LINK_NOT_FOUND                              18
 #define WKPF_ERR_ENDPOINT_NOT_FOUND                          19
+#define WKPF_ERR_NETWORK_TRIAGE                              20
 #define WKPF_ERR_SHOULDNT_HAPPEN                           0xFF
 
 extern void wkpf_init();

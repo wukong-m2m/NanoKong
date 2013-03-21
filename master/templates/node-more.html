@@ -1,9 +1,9 @@
 <h4>WuClasses:</h4>\
 <ul>\
-    {% for wuClass in node_info.wuClasses %}<li>Class Id: {{ wuClass.getId() }} Class Name: {{ wuClass.getName() }}</li>\{% end %}
+    {% for wuclass in node_info.wuclasses %}<li>Class Id: {{ wuclass.id }} Class Name: {{ wuclass.name }}</li>\{% end %}
 </ul>\
 
 <h4>WuObjects:</h4>\
 <ul>\
-    {% for wuObject in node_info.wuObjects %}<li>Class Name: {{ wuObject.getWuClass().getName() }} Instance Id: {{ wuObject.getInstanceId() }} Port Number: {{ wuObject.getPortNumber() }}</li>\{% end %}
+    {% for wuobject in node_info.wuobjects %}<li>Class Name: {{ wuobject.wuclass.name }} Port Number: {{ wuobject.port_number }}</li>\{% end %}
 </ul>\

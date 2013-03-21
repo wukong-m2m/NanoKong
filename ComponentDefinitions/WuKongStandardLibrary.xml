@@ -92,6 +92,12 @@
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="10" />
     </WuClass>
 
+    <WuClass name="Temperature_Humidity_Sensor" id="14" virtual="false" type="hard">
+        <property name="current_value_temperature" datatype="short" access="readonly" />
+        <property name="current_value_humidity" datatype="short" access="readonly" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="10" />
+    </WuClass>
+
     <WuClass name="Sound_Sensor" id="7" virtual="false" type="hard">
         <property name="current_value" datatype="short" access="readonly" />
         <property name="refresh_rate" datatype="refresh_rate" access="readwrite"/>
@@ -128,5 +134,11 @@
         <property name="if_true" datatype="boolean" access="writeonly" />
         <property name="if_false" datatype="boolean" access="writeonly" />
         <property name="output" datatype="boolean" access="readonly" />
+    </WuClass>
+
+    <!-- Just for testing -->
+    <WuClass name="Null" id="45" virtual="true" type="soft">
+        <property name="null" datatype="short" access="readwrite" />
+        <property name="refresh_rate" datatype="refresh_rate" access="readwrite" default="10" />
     </WuClass>
 </WuKong>
