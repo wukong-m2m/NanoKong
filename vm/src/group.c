@@ -52,6 +52,9 @@ uint8_t back_offset_to_send_heartbeat = 0;
 nvmtime_t next_heartbeat_broadcast = 0; // Initialise to 0 to start sending heartbeats straight away.
 uint8_t group_index = -1;
 
+uint16_t stat_outgoing_message_count = 0;
+uint16_t stat_received_message_count = 0;
+
 node_to_watch* monitored_node() {
   if (watch_list_count > 0 && watch_list_count > front_offset_to_monitor) {
     return &watch_list[front_offset_to_monitor];
@@ -114,6 +117,7 @@ uint8_t group_load_heartbeat_to_node_map(heap_id_t heartbeat_map_heap_id) {
       break;
     }
   }
+  DEBUGF_STATS("STATS: Finished loading heartbeat group (used in total of %x bytes)\n\n", sizeof(watch_list));
 #endif // NVM_USE_GROUP
   return WKPF_OK;
 }
@@ -149,6 +153,7 @@ uint8_t group_probe_node(address_t node_id) {
 #endif
     return WKPF_ERR_NVMCOMM_SEND_ERROR;
   }
+  stat_outgoing_message_count++;
 
   // Wait for a reply
   uint32_t timeout = nvm_current_time + 100;
@@ -159,6 +164,7 @@ uint8_t group_probe_node(address_t node_id) {
 #ifdef DEBUG
       DEBUGF_GROUP("got a reply\n");
 #endif
+      stat_received_message_count++;
       if (reply->command == NVMCOMM_GROUP_TRIAGE_R) {
         return WKPF_ERR_NETWORK_TRIAGE;
       } else if (reply->command == NVMCOMM_GROUP_PROBE_NODE_R) {
@@ -191,6 +197,7 @@ void group_update_component_for_all_other_endpoints(uint8_t cmd, address_t node_
       DEBUGF_GROUP("cannot send component update message to node %x\n", dest);
 #endif
     }
+    stat_outgoing_message_count++;
 #ifdef DEBUG
     DEBUGF_GROUP("sent component update message to node %x\n", dest);
 #endif
@@ -200,6 +207,7 @@ void group_update_component_for_all_other_endpoints(uint8_t cmd, address_t node_
       nvmcomm_message *reply = nvmcomm_wait(100, (u08_t[]){cmd+1 /* the reply to this command */, NVMCOMM_WKPF_ERROR_R}, 2);
       if (reply != NULL // Check sequence number because an old message could be received: the right type, but not the reply to our last sent message
             && check_sequence_number(reply->payload, message)) {
+        stat_received_message_count++;
 #ifdef DEBUG
         DEBUGF_GROUP("got a reply\n");
 #endif
@@ -224,6 +232,7 @@ void group_update_nodes_in_watchlist(uint8_t cmd, address_t node_id) {
       DEBUGF_GROUP("cannot send heartbeat group update message to node %x\n", dest);
 #endif
     }
+    stat_outgoing_message_count++;
 #ifdef DEBUG
     DEBUGF_GROUP("send heartbeat group update message to node %x\n", dest);
 #endif
@@ -250,6 +259,7 @@ bool group_node_in_watchlist(address_t node) {
 }
 
 void group_handle_probe_message(address_t src, u08_t nvmcomm_command, u08_t *payload, u08_t *response_size, u08_t *response_cmd) {
+  stat_received_message_count++;
   if (nvmcomm_command == NVMCOMM_GROUP_PROBE_NODE) {
     if (group_node_in_watchlist(src)) {
       *response_cmd = nvmcomm_command+1;
@@ -266,6 +276,7 @@ void group_handle_update(address_t src, u08_t nvmcomm_command, u08_t *payload, u
     uint8_t operation;
     uint8_t component_id;
     address_t node_id;
+    stat_received_message_count++;
 #ifdef DEBUG
     if (nvmcomm_command == NVMCOMM_GROUP_UPDATE_COMPONENT)
       DEBUGF_GROUP("got component update message from node %x\n", src);
@@ -317,6 +328,7 @@ void group_handle_heartbeat_message(address_t src) {
 #ifdef DEBUG
   DEBUGF_GROUP("got a heartbeat message from node %x\n", src);
 #endif
+  stat_received_message_count++;
 
   if (monitored_node()->node_id == src) {
 #ifdef DEBUG
@@ -337,6 +349,7 @@ void send_heartbeat() {
 #endif
             /*nvmcomm_broadcast(NVMCOMM_GROUP_HEARTBEAT, NULL, 0);*/
             nvmcomm_send(monitor_node()->node_id, NVMCOMM_GROUP_HEARTBEAT, NULL, 0);
+            stat_outgoing_message_count++;
             next_heartbeat_broadcast = nvm_current_time + heartbeat_interval;
             blink_once(LED5);
         }
@@ -364,6 +377,8 @@ void group_reconfiguration() {
 void handle_failure() {
   // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last heartbeat_timeout ms.
   if (monitored_node() != NULL && nvm_current_time > monitored_node()->expect_next_timestamp_before) {
+    stat_outgoing_message_count = 0;
+    stat_received_message_count = 0;
     address_t dead_node_id = monitored_node()->node_id;
 
     // A probe, not used
@@ -445,6 +460,8 @@ void handle_failure() {
     group_remove_node_from_watchlist(dead_node_id);
     group_update_nodes_in_watchlist(GROUP_HEARTBEAT_NODE_REMOVE, dead_node_id);
     monitored_node()->expect_next_timestamp_before = nvm_current_time + heartbeat_timeout; // Initialization, it's ok to miss one if not lucky
+
+    DEBUGF_STATS("STATS: Total outgoing messages %x, received messages %x\n\n", stat_outgoing_message_count, stat_received_message_count);
 
     // Blink
     blink_twice(LED5);
