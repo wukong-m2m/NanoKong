@@ -1,4 +1,3 @@
-# vim: ts=4 sw=4
 import sys, os, traceback, time, re, copy
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from models import WuClass, WuObject, WuComponent, WuLink, WuType
@@ -37,7 +36,7 @@ class WuApplication:
     self.mapper = None
     self.inspector = None
     # 5 levels: self.logger.debug, self.logger.info, self.logger.warn, self.logger.error, self.logger.critical
-    self.logger = logging.getLogger('wukong')
+    self.logger = logging.getLogger(self.id[:5])
     self.logger.setLevel(logging.DEBUG) # to see all levels
     self.loggerHandler = wukonghandler.WukongHandler(1024 * 3, target=logging.FileHandler(os.path.join(self.dir, 'compile.log')))
     self.logger.addHandler(self.loggerHandler)
@@ -137,37 +136,29 @@ class WuApplication:
           group_size = int(componentTag.getElementsByTagName('group_size')[0].getAttribute('requirement'))
           reaction_time = float(componentTag.getElementsByTagName('reaction_time')[0].getAttribute('requirement'))
 
-          component = WuComponent(index, location, group_size, reaction_time, type,
-                  application_hashed_name)
-          componentInstanceMap[componentTag.getAttribute('instanceId')] = component
+          action_attributes = {}
+          # set default output property values for components in application
+          for propertyTag in componentTag.getElementsByTagName('actionProperty'):
+            for attr in propertyTag.attributes.values():
+              action_attributes[attr.name] = attr.value
 
+          signal_attributes = {}
+          # set default input property values for components in application
+          for propertyTag in componentTag.getElementsByTagName('signalProperty'):
+            for attr in propertyTag.attributes.values():
+              signal_attributes[attr.name] = attr.value
+          final_attributes = dict(action_attributes.items()
+              + signal_attributes.items())
+
+          properties_with_default_values = final_attributes.items()
+
+          component = WuComponent(index, location, group_size, reaction_time, type,
+                  application_hashed_name, properties_with_default_values)
+          componentInstanceMap[componentTag.getAttribute('instanceId')] = component
           self.changesets.components.append(component)
 
-          '''
-          instanceId=componentTag.getAttribute('instanceId') # actually it's block id in block.js so it will never collide
-          if instanceId in instanceIdSet:
-              wuClass = self.wuObjects[instanceId]
-          else:
-              instanceIdSet.append(instanceId)
-              # a copy of wuclass
-              wuClass = copy.deepcopy(self.wuClasses[componentTag.getAttribute('type')])
-          '''
-
-          #TODO: will ask Sen Zhou to fix it later
-          '''
-          # set properties from FBP to wuclass properties
-          for propertyTag in componentTag.getElementsByTagName('signalProperty'):
-              for attr in propertyTag.attributes.values():
-                  if len(attr.value) !=0:
-                      wuClass.setPropertyValueByName(attr.name, attr.value)
-
-          for propertyTag in componentTag.getElementsByTagName('actionProperty'):
-              for attr in propertyTag.attributes.values():
-                  if len(attr.value) !=0:
-                      wuClass.setPropertyValueByName(attr.name, attr.value)
-          '''
                       
-          '''
+          ''' deprecated
           queries = []
           for locationQuery in componentTag.getElementsByTagName('location'):
               queries.append(locationQuery.getAttribute('requirement'))
@@ -307,9 +298,6 @@ class WuApplication:
         gevent.sleep(0)
         return False
       self.info('==Finishing compression')
-      if  SIMULATION !=0:
-          self.status('==In simulation, not deploying')
-          return False
 
       self.status = "Deploying bytecode to nodes"
       gevent.sleep(0)
@@ -319,29 +307,18 @@ class WuApplication:
       self.info('==Deploying to nodes %s' % (str(destination_ids)))
       remaining_ids = copy.deepcopy(destination_ids)
 
+      gevent.sleep(0)
       for node_id in destination_ids:
         remaining_ids.remove(node_id)
         self.status = "Deploying bytecode to node %d, remaining %s" % (node_id, str(remaining_ids))
-        gevent.sleep(0)
         self.info('==Deploying to node id: %d' % (node_id))
-        ret = False
-        retries = 3
-        while retries > 0:
-          if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=False):
-            self.status = "Deploy unsucessful for node %d, trying again" % (node_id)
-            gevent.sleep(0)
-            self.error('==Node not deployed successfully, retries = %d' % (retries))
-            retries -= 1
-          else:
-            ret = True
-            break
-        if not ret:
-          self.status = "Deploying unsuccessful"
-          gevent.sleep(0)
+        if not comm.reprogram(node_id, os.path.join(platform_dir, 'nvmdefault.h'), retry=3):
+          self.status = "Deploy unsucessful for node %d" % (node_id)
+          self.error('==Node not deployed successfully')
           return False
-        self.info('==Deploying to node completed')
+        self.info('...completed')
     self.info('==Deployment has completed')
-    self.status = "Deploying sucess"
+    self.status = "Deploying success"
     gevent.sleep(0)
     self.status = ""
     master_available()
