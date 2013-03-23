@@ -420,8 +420,7 @@ function poll(url, version, options, callback)
 function make_tree(rt)
 {
 	$('#content').empty();
-	$('#content').append('<script type="text/javascript" src="/static/js/jquery.js"></script>'+
-		'<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
+	$('#content').append('<script type="text/javascript" src="/static/js/jquery.treeview.js"></script>'+
 		'<script type="text/javascript" src="/static/js/tree_expand.js"></script>');
 
 	var r = JSON.parse(rt.loc);

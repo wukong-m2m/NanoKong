@@ -166,15 +166,17 @@ Block.prototype.attach=function(parent) {
 	});
 	this.div.dblclick(function() {
 		$('#propertyeditor').empty();
-		$('#propertyeditor').append('<h3>Location</h3>');
-		$('#propertyeditor').append('<input type=text id=propertyeditor_location></input>');
+		$('#propertyeditor').append('<div id=propertyeditor_tab>');
+		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_action>Actions</a></li><li><a href=#propertyeditor_signal>Signals</a></li></ul>');
 
-		$('#propertyeditor').append('<h3> Fault Tolerance </h3><label for="propertyeditor_groupsize">Group Size</label>');
-		$('#propertyeditor').append('<br><input id=propertyeditor_groupsize name=value></input>');
-		$('#propertyeditor').append('');
-		$('#propertyeditor').append('<label for="propertyeditor_reactiontime">Reaction Time</label>');
-		$('#propertyeditor').append('<br><input id=propertyeditor_reactiontime name=value></input>');
-		$('#propertyeditor').append('');
+		$('#propertyeditor_tab').append('<div id=propertyeditor_loc><input type=text id=propertyeditor_location></input></div>');
+
+		$('#propertyeditor_tab').append('<div id=propertyeditor_ft><label for="propertyeditor_groupsize">Group Size</label>');
+		$('#propertyeditor_ft').append('<br><input id=propertyeditor_groupsize name=value></input>');
+		$('#propertyeditor_ft').append('<br>');
+		$('#propertyeditor_ft').append('<label for="propertyeditor_reactiontime">Reaction Time</label>');
+		$('#propertyeditor_ft').append('<br><input id=propertyeditor_reactiontime name=value></input></div>');
+		$('#propertyeditor_ft').append('');
 
 		$('#propertyeditor_location').val(self.location);
 		$('#propertyeditor_groupsize').spinner();
@@ -183,10 +185,11 @@ Block.prototype.attach=function(parent) {
 		$('#propertyeditor_reactiontime').spinner("value",self.reaction_time);
 
  
-		$("#propertyeditor").append('<h3> Action </h3><div id=propertyeditor_action></div>');
-		$("#propertyeditor").append('<h3> Signal </h3><div id=propertyeditor_signal></div>');
+		$("#propertyeditor_tab").append('<div id=propertyeditor_action></div>');
+		$("#propertyeditor_tab").append('<div id=propertyeditor_signal></div></div>');
 		$("#propertyeditor_action").empty();
 		$("#propertyeditor_signal").empty();
+		$("#propertyeditor_tab").tabs();
 		
 		var _actlist = Block.current.getActions();
 		for(i=0;i<_actlist.length;i++) {
@@ -230,7 +233,10 @@ Block.prototype.attach=function(parent) {
 				'Cancel': function() {
 					$('#propertyeditor').dialog("close");
 				}
-			}
+			},
+			width:600, height:400,
+			title:"Property Editor"
+
 		}).dialog("open");
 	});
 	this.draw();
