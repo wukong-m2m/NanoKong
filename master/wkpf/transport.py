@@ -18,6 +18,8 @@ import pynvc # for message constants
 import pyzwave
 import pyzigbee
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 Message = namedtuple('Message', 'destination command payload')
 Defer = namedtuple('Defer', 'callback error_cb verify allowed_replies message timeout')
 
@@ -51,13 +53,13 @@ class DeferredQueue:
                 return defer_id, defer
             else:
                 log = "Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(deliver)
-                logging.warning(log)
+                logger.warning(log)
         return False, False
 
     def add_defer(self, defer):
         queue_id = str(len(self.queue)) + hashlib.md5(str(defer.message.destination) + str(defer.message.command)).hexdigest()
         log = "adding to queue: queue_id " + str(queue_id)
-        logging.debug(log)
+        logger.debug(log)
         self.queue[queue_id] = defer
         return queue_id
 
@@ -242,13 +244,13 @@ class ZwaveAgent(TransportAgent):
                     # with seq number
                     deliver = new_deliver(src, reply[0], reply[1:])
                     messages.put_nowait(deliver)
-                    logging.debug('receive: put a message to messages')
+                    logger.debug('receive: put a message to messages')
             except:
-                logging.exception('receive exception')
+                logger.exception('receive exception')
 
             defer_queue.removeTimeoutDefer()
 
-            #logging.debug('receive: going to sleep')
+            #logger.debug('receive: going to sleep')
             gevent.sleep(0.01) # sleep for at least 10 msec
 
 
@@ -256,10 +258,10 @@ class ZwaveAgent(TransportAgent):
     def handler(self):
         while 1:
             defer = tasks.get()
-            logging.debug('handler: getting defer from task queue')
+            logger.debug('handler: getting defer from task queue')
 
             if defer.message.command == "discovery":
-                logging.debug('handler: processing discovery request')
+                logger.debug('handler: processing discovery request')
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
                 total_nodes = nodes[1]
@@ -271,7 +273,7 @@ class ZwaveAgent(TransportAgent):
                     pass # sometimes gateway_id is not in the list
                 defer.callback(discovered_nodes)
             elif defer.message.command == "routing":
-                logging.debug('handler: processing routing request')
+                logger.debug('handler: processing routing request')
                 routing = {}
                 nodes = pyzwave.discover()
                 gateway_id = nodes[0]
@@ -288,7 +290,7 @@ class ZwaveAgent(TransportAgent):
                         pass
                 defer.callback(routing)
             else:
-                logging.debug('handler: processing send request')
+                logger.debug('handler: processing send request')
                 retries = 1
                 destination = defer.message.destination
                 command = defer.message.command
@@ -296,7 +298,7 @@ class ZwaveAgent(TransportAgent):
 
                 while retries > 0:
                     try:
-                        logging.debug("handler: sending message from defer")
+                        logger.debug("handler: sending message from defer")
                         pyzwave.send(destination, [0x88, command] + payload)
 
                         if len(defer.allowed_replies) > 0:
@@ -305,11 +307,11 @@ class ZwaveAgent(TransportAgent):
                         break
                     except Exception as e:
                         log = "==IOError== retries remaining: " + str(retries)
-                        logging.exception(log)
+                        logger.exception(log)
                     retries -= 1
 
                 if retries == 0 or len(defer.allowed_replies) == 0:
-                    logging.error("handler: returns immediately to handle failues, or defer has no expected replies")
+                    logger.error("handler: returns immediately to handle failues, or defer has no expected replies")
                     defer.callback(None)
 
             gevent.sleep(0)
@@ -328,7 +330,7 @@ class BrokerAgent:
         self._agents = []
         gevent.spawn(self.run)
         self._defer_queue = defer_queue
-        logging.info('BrokerAgent init')
+        logger.info('BrokerAgent init')
 
     def append(self, defer):
         self._defer_queue.add_defer(defer)
@@ -340,12 +342,12 @@ class BrokerAgent:
         while 1:
             # monitor pipes from receive
             deliver = messages.get()
-            logging.debug('getting messages from nodes')
-            logging.debug(str(deliver))
+            logger.debug('getting messages from nodes')
+            logger.debug(str(deliver))
 
             # display logs from nodes if received
-            if deliver.command == pynvc.LOGGING:
-                logging.info('[LOGGING] node %d : %s' % (deliver.destination,
+            if deliver.command == pynvc.logger:
+                logger.info('[logger] node %d : %s' % (deliver.destination,
                             str(bytearray(deliver.payload))))
 
             # find out which defer it is for
@@ -361,13 +363,14 @@ class BrokerAgent:
                 # if it is special messages
                 if not is_master_busy():
                     if deliver.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
-                        logging.info("reconfiguration message received")
+                        logger.info("reconfiguration message received")
                         wusignal.signal_reconfig()
                 else:
                     #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
-                    logging.debug("message discarded")
-                    logging.debug(str(deliver))
+                    logger.debug("message discarded")
+                    logger.debug(str(deliver))
             gevent.sleep(0)
 
+# creates the broker agent
 defer_queue = DeferredQueue()
 agent = BrokerAgent.init()
