@@ -1,6 +1,7 @@
 // vim: ts=4 sw=4
 var FBP_canvas;
 var FBP_CANVAS_TOP=50;
+var FBP_linkIsActive= false;
 var g_lines=[];
 var g_nodes=[];
 var g_pages={};
@@ -169,6 +170,13 @@ function FBP_link()
         alert("select a source first");
         return;
     }
+	if (FBP_linkIsActive) {
+		FBP_linkIsActive = false;
+		$('#canvastop').unbind();
+		$('#canvastop').hide();
+		return;
+	}
+	FBP_linkIsActive = true;
     FBP_source = Block.current;
     var x1,y1,x2,y2;
 
