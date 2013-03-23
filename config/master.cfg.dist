@@ -1,12 +1,27 @@
-#[network]
+###[network]
 #for NTU zwave gateway, 10.3.36.231; for UCI gatway, 192.168.2.1
 #you can also put path to the usb wudevice as a base station e.g. /dev/ttyACM0
 #with the latest testrtt
+# ZWAVE_GATEWAY_IP=192.168.2.1
+# ZWAVE_GATEWAY_IP=/dev/ttyUSB0
+# are both valid
 ZWAVE_GATEWAY_IP=192.168.2.1
 
 
 
-#[makefile]
+###[master]
+#nanovmtool executable
+ROOT = ../../
+NANOVMTOOL = %(ROOT)s/nanovmtool/
+
+#javac executable
+
+#location tree root info
+LOCATION_ROOT = WuKong
+
+
+
+###[makefile]
 #type of device
 DEVICE = atmega2560
 
@@ -24,16 +39,3 @@ MASTER_PORT = 5000
 
 # port number for WuDevice
 PORT = /dev/tty.usbmodemfa1311
-
-#[master]
-#nanovmtool executable
-ROOT = ../../
-NANOVMTOOL = %(ROOT)s/nanovmtool/
-
-#javac executable
-
-#location tree root info
-LOCATION_ROOT = universal
-
-#whether using fake data 0--- not use, 1 --- use fakedata1 for simulation
-SIMULATION = 1
