@@ -1,4 +1,3 @@
-# vim: ts=4 sw=4
 import sys, os, traceback, copy
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from parser import *
@@ -121,6 +120,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         # use existing wuobject
                         for wuobject in node.wuobjects:
                             if wuobject.wuclass.id == wuclass.id:
+                                wuobject.properties_with_default_values = component.properties_with_default_values
+                                wuobject.save()
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -133,6 +134,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                             if wuclass_node.id == wuclass.id:
                                 wuclass_alternate = wuclass_node
                         wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.properties_with_default_values = component.properties_with_default_values
                         wuobject.save()
                         component.instances.append(wuobject)
             else:
@@ -143,6 +145,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         # use existing wuobject
                         for wuobject in node.wuobjects:
                             if wuobject.wuclass.id == wuclass.id:
+                                wuobject.properties_with_default_values = component.properties_with_default_values
+                                wuobject.save()
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -155,6 +159,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                             if wuclass_node.id == wuclass.id:
                                 wuclass_alternate = wuclass_node
                         wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.properties_with_default_values = component.properties_with_default_values
                         wuobject.save()
                         component.instances.append(wuobject)
                 else:
@@ -163,6 +168,8 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         # use existing virtual wuobject
                         for wuobject in node.wuobjects:
                             if wuobject.wuclass.id == wuclass.id:
+                                wuobject.properties_with_default_values = component.properties_with_default_values
+                                wuobject.save()
                                 component.instances.append(wuobject)
                                 break
                     else:
@@ -175,6 +182,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
                         port_number = sensorNode.reserveNextPort()
                         wuclass_alternate = wuclass # node_id is not important, just a placeholder
                         wuobject = WuObject(node.id, port_number, wuclass_alternate)
+                        wuobject.properties_with_default_values = component.properties_with_default_values
                         wuobject.save()
                         component.instances.append(wuobject)
                         '''

@@ -61,9 +61,11 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
     for (int j=0; j<number_of_nodes; j++) {
       DEBUGF_WKPF("\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
     }
+    DEBUGF_STATS("STATS: Component %x used in total of %x bytes)\n\n", i, sizeof(number_of_nodes) + sizeof(nodes));
   }
 
   number_of_components = number_of_entries;
+  DEBUGF_STATS("STATS: Finished loading component map (used in total of %x bytes)\n\n", sizeof(component_to_wuobject_map));
   return WKPF_OK;
 }
 

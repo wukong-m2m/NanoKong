@@ -1,4 +1,3 @@
-# vim: ts=4 sw=4
 import sqlite3
 
 connection = None
@@ -12,7 +11,7 @@ def global_conn():
 # in wuclasses, there are some with node_id NULL, that are wuclasses from XML
 # also the same with properties, node_id might be NULL
 def bootstrap_database():
-    print 'bootstraping database'
+    print 'bootstraping database "', "standardlibrary.db", '"'
     global connection
     connection = sqlite3.connect("standardlibrary.db")
     c = connection.cursor()
@@ -79,18 +78,20 @@ def bootstrap_database():
 
 class WuComponent:
     def __init__(self, component_index, location, group_size, reaction_time,
-            type, application_hashed_name):
+            type, application_hashed_name, properties_with_default_values=[]):
         self.index = component_index
         self.location = location
         self.group_size = group_size # int
         self.reaction_time = reaction_time # float
         self.type = type # wuclass name
         self.application_hashed_name = application_hashed_name
+        # a list of tuples with property name and default value 
+        self.properties_with_default_values = properties_with_default_values
         self.instances = [] # WuObjects allocated on various Nodes after mapping
         self.heartbeatgroups = []
 
     def __repr__(self):
-        return 'WuComponent#(\n\rcomponent_index=%d,\n\rlocationquery=%s,\n\rgroup_size=%d,\n\rreaction_time=%f,\n\rtype=%s,\n\rinstances=%r)' % (self.index, self.location, self.group_size, self.reaction_time, self.type, self.instances)
+        return 'WuComponent#(\n\tcomponent_index=%d,\n\tlocationquery=%s,\n\tgroup_size=%d,\n\treaction_time=%f,\n\ttype=%s,\n\tinstances=%r,\n\tdefault_properties=%r)' % (self.index, self.location, self.group_size, self.reaction_time, self.type, self.instances, self.properties_with_default_values)
 
 class WuLink:
     def __init__(self, from_component_index, from_property_id,
@@ -111,7 +112,7 @@ class WuValue:
         self.identity = identity
 
     def __repr__(self):
-        return "WuValue#(\n\rvalue=%s,\n\rdatatype_id=%d)" % (self.value, self.datatype_id)
+        return "WuValue#(\n\tvalue=%s,\n\tdatatype_id=%d)" % (self.value, self.datatype_id)
 
     def save(self):
         c = global_conn().cursor()
@@ -168,7 +169,7 @@ class WuType:
         self.identity = identity
 
     def __repr__(self):
-        return "WuType#(\n\rname=%s,\n\rtype=%s,\n\rvalues=%s)" % (self.name, self.type,
+        return "WuType#(\n\tname=%s,\n\ttype=%s,\n\tvalues=%s)" % (self.name, self.type,
                 self.values)
 
     def save(self):
@@ -182,7 +183,7 @@ class WuType:
             if type(value) != WuValue:
                 new_values.append(WuValue(value, self.identity))
         self.values = new_values
-        map(lambda x: x.save(), self.values)
+        map(lambda x: x.save(), self.values) # don't need to assign back
 
 class Node:
     @classmethod
@@ -269,7 +270,7 @@ class Node:
         self.identity = identity
 
     def __repr__(self):
-        return 'Node#(\n\rid="%d",\n\rlocation="%s",\n\rwuclasses=%r,\n\rwuobjects=%r)' % (self.id, self.location, self.wuclasses, self.wuobjects)
+        return 'Node#(\n\tid="%d",\n\tlocation="%s",\n\twuclasses=%r,\n\twuobjects=%r)' % (self.id, self.location, self.wuclasses, self.wuobjects)
 
     def __eq__(self, other):
         if isinstance(other, Node):
@@ -349,11 +350,12 @@ class WuClass:
         self.properties = properties
         def func(x):
           x.wuclass = self
-        map(func, self.properties)
+          return x
+        self.properties = map(func, self.properties)
         self.identity = identity
 
     def __repr__(self):
-        return 'WuClass#(\n\rid="%d",\n\rname="%s",\n\rnode_id="%s",\n\rvirtual=%r,\n\rtype="%s",\n\rproperties=%s)' % (self.id, self.name, self.node_id, self.virtual, self.type, self.properties)
+        return 'WuClass#(\n\tid="%d",\n\tname="%s",\n\tnode_id="%s",\n\tvirtual=%r,\n\ttype="%s",\n\tproperties=%s)' % (self.id, self.name, self.node_id, self.virtual, self.type, self.properties)
 
     def __eq__(self, other):
         if isinstance(other, WuClass):
@@ -414,7 +416,7 @@ class WuProperty:
         self.identity = None
 
     def __repr__(self):
-        return 'WuProperty#(\n\rid="%d",\n\rname="%s",\n\rdatatype=%s,\n\raccess="%s",\n\rvalue=%s)' % (self.id, self.name, self.datatype, self.access, self.value)
+        return 'WuProperty#(\n\tid="%d",\n\tname="%s",\n\tdatatype=%s,\n\taccess="%s",\n\tvalue=%s)' % (self.id, self.name, self.datatype, self.access, self.value)
 
     def __eq__(self, other):
         if isinstance(other, WuProperty):
@@ -467,15 +469,18 @@ class WuObject:
     def find(cls, id):
         return WuObject.where(id=id)
 
-    def __init__(self, node_id, port_number, wuclass, identity=None):
+    def __init__(self, node_id, port_number, wuclass, identity=None,
+            properties_with_default_values=[]):
         self.node_id = node_id
         self.port_number = port_number
         self.wuclass = wuclass # if None, means the host doesn't have WuClass, it's virtual
         self.identity = identity
+        # a list of tuples with property name and default value 
+        self.properties_with_default_values = properties_with_default_values
         self.hasLocalWuClass = False
 
     def __repr__(self):
-        return 'WuObject#(\n\rnode_id="%s",\n\rport_number=%d,\n\rwuclass="%r")' % (self.node_id, self.port_number, self.wuclass)
+        return 'WuObject#(\n\tnode_id="%s",\n\tport_number=%d,\n\twuclass="%r",\n\tdefault_properties=%r)' % (self.node_id, self.port_number, self.wuclass, self.properties_with_default_values)
 
     def __eq__(self, other):
         if isinstance(other, WuObject):

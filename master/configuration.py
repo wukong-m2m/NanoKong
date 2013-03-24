@@ -9,7 +9,6 @@ ZWAVE_GATEWAY_IP = config.get('ZWAVE_GATEWAY_IP', '')
 MASTER_PORT = int(config.get('MASTER_PORT', 80))
 
 LOCATION_ROOT = config.get('LOCATION_ROOT', 'universal')
-SIMULATION = int(config.get('SIMULATION', 1))
 
 DEPLOY_PLATFORMS = ['avr_mega2560']
 

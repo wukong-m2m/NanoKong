@@ -4,9 +4,11 @@
 import glob
 import os
 import logging
+from configuration import *
 
 def addHead():
-	g = open("./templates/fbp.html","a")
+	head_path = os.path.join(ROOT_PATH, "master/templates/fbp.html")
+	g = open(head_path, "a")
 	g.write('\n'+
             '<html>'+'\n'+
             '\t'+'<head>'+'\n'+
@@ -34,7 +36,8 @@ def addMiddle(aList):
         g.close()
 
 def addEnd():
-    g = open("./templates/fbp.html","a")
+    end_path = os.path.join(ROOT_PATH, "master/templates/fbp.html")
+    g = open(end_path, "a")
     g.write(
                 '\t'+'</head>'+'\n'+
                 '\t'+'<body scrolling="no">'+'\n'+
