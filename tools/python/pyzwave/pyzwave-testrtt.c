@@ -3272,6 +3272,7 @@ void zwave_check_state(unsigned char c)
                 } else if (curcmd == FUNC_ID_MEMORY_GET_ID) {
                     zwave_ready = 1;
                     printf("HomeID: %02x%02x%02x%02x\n", zdata[0], zdata[1], zdata[2], zdata[3]);
+                    printf("My address: %x\n", zdata[4]);
                     fflush(stdout);
                 } else if (curcmd == IsFailedNodeId) {
                     if(zdata[0]==1)
@@ -3522,6 +3523,8 @@ void usage(void)
     printf("       dump all node information in the controller's EEPROM\n");
     printf("    controller initnodeinfo <devmask> <generic> <specific> <class1> <class 2> ....\n");
     printf("       setup the node info frame for the controller\n");
+    printf("    controller reset\n");
+    printf("       reset all node information in controller's EEPROM\n");
     printf("    actuator set <id> <scene> <level> <duration>\n");
     printf("    actuator get <id> <scene>\n");
     printf("    route print <id>\n");
@@ -4177,175 +4180,6 @@ void read_stdin_thread(void * data)
 }
 #endif //_WIN32
 
-int main(int argc, char *argv[])
-{
-    struct timeval to;
-    fd_set rs;
-    int i;
-    char c;
-    int n;
-    char cmd_buf[512];
-#ifdef _WIN32
-    HANDLE stdin_thread;
-    WSADATA wsaData;
-    struct sockaddr_in local;
-    struct sockaddr_in remote;
-    int local_len;
-    int remote_len;
-    int sfd_listen;
-    int sfd_commu;
-#endif //_WIN32
-
-    i = 1;
-    repeat = 0;
-    zseq = time(NULL) % 255;
-
-#ifdef _WIN32
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        printf("WSAStartup error\n");
-        return -1;
-    }
-#endif //_WIN32
-    /*
-       if (argc <= 1) {
-       usage();
-       exit(0);
-       }
-       */
-
-    if (argv[i] && !strcmp(argv[i], "-d")) {
-        if (argv[i+1]) {
-            strcpy(g_dev_name, argv[i+1]);
-            i++;
-        }
-        i++;
-    }
-    if (argv[i] && !strcmp(argv[i],"host")) {
-        g_host = argv[i+1];
-        i+=2;
-    }
-
-    if ((argc-i) <= 0)
-        usage();
-
-    if (zwave_init() < 0) {
-        printf("can not open zwave device\n");
-        exit(-1);
-    }
-
-    register_persistent_class_callback(COMMAND_CLASS_SENSOR_MULTILEVEL,multilevel_sensor_persistent_dump);
-
-
-
-#ifdef _WIN32
-    ///////////// create command line thread
-    if ((sfd_listen = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
-        exit(-1);
-    }
-    local.sin_family = AF_INET;
-    local.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    local.sin_port = htons(0);
-    if (bind(sfd_listen, (struct sockaddr *)&local, sizeof(struct sockaddr_in)) < 0) {	
-        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
-        exit(-1);
-    }
-    if (getsockname(sfd_listen, (struct sockaddr *)&local, &local_len) < 0) {
-        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
-        exit(-1);
-    }
-    server_port = ntohs(local.sin_port);
-    printf("SERVER_PORT: %d\n", server_port);
-
-    listen(sfd_listen, 5);
-
-    //stdin_thread = CreateThread(NULL, 0, read_stdin_thread, NULL, 0, NULL);
-    stdin_thread = (HANDLE)_beginthread(read_stdin_thread, 0, NULL);
-
-    if ((sfd_commu=(int)accept(sfd_listen, (struct sockaddr *)&remote, &remote_len)) < 0) {
-        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
-        exit(-1);
-    }
-    printf("Accept connection from %s:%d\n", inet_ntoa(remote.sin_addr), ntohs(remote.sin_port));
-#endif //_WIN32
-
-    process_cmd(argc-i, &argv[i]);
-
-    to.tv_sec = interval/1000;
-    to.tv_usec = (interval%1000)*1000;
-
-    while(1) {
-        FD_ZERO(&rs);
-        FD_SET(zwavefd, &rs);
-#ifdef _WIN32	
-        FD_SET(sfd_commu, &rs);
-#else //_WIN32	
-        FD_SET(STDIN_FILENO, &rs);
-#endif //_WIN32	
-
-
-        n = select(FD_SETSIZE,&rs,NULL,NULL, &to);
-        if (n < 0) {
-            printf("Z-Wave device file is closed !!!\n");
-            break;
-        }
-        else if (n == 0) {	// timeout
-            if (nowait)
-                exit(main_ret);
-
-            to.tv_sec = interval/1000;
-            to.tv_usec = (interval%1000)*1000;
-
-            execute_idle_callback();
-
-            if (repeat) {
-                if (repeat_cmd == BASIC_SET) {
-                    repeat_value = ((repeat_value==0)? 255:0);
-                    zwavecmd_basic_set(repeat_nodeid, repeat_value);
-                } else {
-                    if (rtt_start_ms != 0) {
-                        printf("X\n");
-                    } else {
-                        printf("\7");
-                        repeat_value = ((repeat_value==0)? 255:0);
-                        zwavecmd_basic_set(repeat_nodeid, repeat_value);
-                        fflush(stdout);
-                    }
-                    rtt_start_ms = get_tick_ms();
-                    zwavecmd_basic_get(repeat_nodeid);
-                }
-            }
-            continue;
-        }
-#ifdef _WIN32	
-        if (FD_ISSET(sfd_commu, &rs)) {
-            DWORD ret;
-            read(sfd_commu, cmd_buf, sizeof(cmd_buf));
-            if (process_cmd_line(cmd_buf)) {
-                fclose(stdin);
-                WaitForSingleObject(stdin_thread, INFINITE);
-                break;
-            }
-        }
-#else //_WIN32	
-        if (FD_ISSET(STDIN_FILENO, &rs)) {
-            fgets(cmd_buf, sizeof(cmd_buf), stdin);
-            if (process_cmd_line(cmd_buf)) {
-                break;
-            }
-        }
-#endif //_WIN32	
-        if (FD_ISSET(zwavefd,&rs)) {
-            int len=read(zwavefd,&c,1);
-            if (len > 0) {
-                //printf("%x\n",c);
-                zwave_check_state(c);
-            }
-        }
-    }
-    printf("end of main\n");
-    return 0;
-}
 
 //// 20111025 Niels Reijers: for PyZwave
 int PyZwave_bytesReceived = 0;
@@ -4585,4 +4419,176 @@ char *PyZwave_status() {
 
 void PyZwave_clearstatus() {
     memset(current_status, '\0', sizeof(current_status));
+}
+
+
+
+int main(int argc, char *argv[])
+{
+    struct timeval to;
+    fd_set rs;
+    int i;
+    char c;
+    int n;
+    char cmd_buf[512];
+#ifdef _WIN32
+    HANDLE stdin_thread;
+    WSADATA wsaData;
+    struct sockaddr_in local;
+    struct sockaddr_in remote;
+    int local_len;
+    int remote_len;
+    int sfd_listen;
+    int sfd_commu;
+#endif //_WIN32
+
+    i = 1;
+    repeat = 0;
+    zseq = time(NULL) % 255;
+
+#ifdef _WIN32
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        printf("WSAStartup error\n");
+        return -1;
+    }
+#endif //_WIN32
+    /*
+       if (argc <= 1) {
+       usage();
+       exit(0);
+       }
+       */
+
+    if (argv[i] && !strcmp(argv[i], "-d")) {
+        if (argv[i+1]) {
+            strcpy(g_dev_name, argv[i+1]);
+            i++;
+        }
+        i++;
+        txoptions |= TRANSMIT_OPTION_ACK + TRANSMIT_OPTION_AUTO_ROUTE;
+        register_persistent_class_callback(COMMAND_CLASS_PROPRIETARY, PyZwave_proprietary_class_cb);
+    }
+    if (argv[i] && !strcmp(argv[i],"host")) {
+        g_host = argv[i+1];
+        i+=2;
+        register_persistent_class_callback(COMMAND_CLASS_SENSOR_MULTILEVEL,multilevel_sensor_persistent_dump);
+    }
+
+    if ((argc-i) <= 0)
+        usage();
+
+    if (zwave_init() < 0) {
+        printf("can not open zwave device\n");
+        exit(-1);
+    }
+
+
+#ifdef _WIN32
+    ///////////// create command line thread
+    if ((sfd_listen = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
+        exit(-1);
+    }
+    local.sin_family = AF_INET;
+    local.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    local.sin_port = htons(0);
+    if (bind(sfd_listen, (struct sockaddr *)&local, sizeof(struct sockaddr_in)) < 0) {	
+        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
+        exit(-1);
+    }
+    if (getsockname(sfd_listen, (struct sockaddr *)&local, &local_len) < 0) {
+        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
+        exit(-1);
+    }
+    server_port = ntohs(local.sin_port);
+    printf("SERVER_PORT: %d\n", server_port);
+
+    listen(sfd_listen, 5);
+
+    //stdin_thread = CreateThread(NULL, 0, read_stdin_thread, NULL, 0, NULL);
+    stdin_thread = (HANDLE)_beginthread(read_stdin_thread, 0, NULL);
+
+    if ((sfd_commu=(int)accept(sfd_listen, (struct sockaddr *)&remote, &remote_len)) < 0) {
+        printf("%s:%d ERRNO=%d (%s)\n", __FUNCTION__, __LINE__, ERRNO, strerror(ERRNO));
+        exit(-1);
+    }
+    printf("Accept connection from %s:%d\n", inet_ntoa(remote.sin_addr), ntohs(remote.sin_port));
+#endif //_WIN32
+
+    process_cmd(argc-i, &argv[i]);
+
+    to.tv_sec = interval/1000;
+    to.tv_usec = (interval%1000)*1000;
+
+    while(1) {
+        FD_ZERO(&rs);
+        FD_SET(zwavefd, &rs);
+#ifdef _WIN32	
+        FD_SET(sfd_commu, &rs);
+#else //_WIN32	
+        FD_SET(STDIN_FILENO, &rs);
+#endif //_WIN32	
+
+
+        n = select(FD_SETSIZE,&rs,NULL,NULL, &to);
+        if (n < 0) {
+            printf("Z-Wave device file is closed !!!\n");
+            break;
+        }
+        else if (n == 0) {	// timeout
+            if (nowait)
+                exit(main_ret);
+
+            to.tv_sec = interval/1000;
+            to.tv_usec = (interval%1000)*1000;
+
+            execute_idle_callback();
+
+            if (repeat) {
+                if (repeat_cmd == BASIC_SET) {
+                    repeat_value = ((repeat_value==0)? 255:0);
+                    zwavecmd_basic_set(repeat_nodeid, repeat_value);
+                } else {
+                    if (rtt_start_ms != 0) {
+                        printf("X\n");
+                    } else {
+                        printf("\7");
+                        repeat_value = ((repeat_value==0)? 255:0);
+                        zwavecmd_basic_set(repeat_nodeid, repeat_value);
+                        fflush(stdout);
+                    }
+                    rtt_start_ms = get_tick_ms();
+                    zwavecmd_basic_get(repeat_nodeid);
+                }
+            }
+            continue;
+        }
+#ifdef _WIN32	
+        if (FD_ISSET(sfd_commu, &rs)) {
+            DWORD ret;
+            read(sfd_commu, cmd_buf, sizeof(cmd_buf));
+            if (process_cmd_line(cmd_buf)) {
+                fclose(stdin);
+                WaitForSingleObject(stdin_thread, INFINITE);
+                break;
+            }
+        }
+#else //_WIN32	
+        if (FD_ISSET(STDIN_FILENO, &rs)) {
+            fgets(cmd_buf, sizeof(cmd_buf), stdin);
+            if (process_cmd_line(cmd_buf)) {
+                break;
+            }
+        }
+#endif //_WIN32	
+        if (FD_ISSET(zwavefd,&rs)) {
+            int len=read(zwavefd,&c,1);
+            if (len > 0) {
+                //printf("%x\n",c);
+                zwave_check_state(c);
+            }
+        }
+    }
+    printf("end of main\n");
+    return 0;
 }
