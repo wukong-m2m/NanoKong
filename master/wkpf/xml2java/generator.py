@@ -2,14 +2,14 @@
 #!/usr/bin/python
 
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from jinja2 import Template, Environment, FileSystemLoader
 from struct import pack
 
-from models import WuType
+from wkpf.models import *
 
 from configuration import *
-from util import *
+from wkpf.util import *
 
 
 class Generator:
@@ -46,15 +46,29 @@ class Generator:
             return "GENERATEDVirtual" + Convert.to_java(wuclass.name) + "WuObject"
 
         def propertyconstname(property):
+            print 'propertyconstname'
             return "PROPERTY_" + Convert.to_constant(property.wuclass.name) + "_" + Convert.to_constant(property.name)
 
         # doesn't really matter to check since basic types are being take care of in application.java
         def propertyconstantvalue(property):
+            print 'propertyconstantvalue'
             wutype = WuType.where(name=property.datatype)
             if wutype:
                 return wutype[0].type.upper() + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
             else:
                 return 'ENUM' + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
+
+        def getPropertyByName(name):
+            property_query = WuProperty.where(name=name)
+            print 'getPropertyByName'
+            # need to query by wuclass id as well
+            if property_query:
+                for property in property_query:
+                    if property.wuclass:
+                        print property
+                        return property
+            else:
+                return False
 
 
         print 'generating', os.path.join(JAVA_OUTPUT_DIR, name+".java")
@@ -68,6 +82,7 @@ class Generator:
         jinja2_env.filters['wuclassgenclassname'] = wuclassgenclassname
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
+        jinja2_env.filters['getPropertyByName'] = getPropertyByName
         output = open(os.path.join(JAVA_OUTPUT_DIR, name + ".java"), 'w')
         output.write(jinja2_env.get_template('application2.java').render(name=name, changesets=changesets))
         output.close()
