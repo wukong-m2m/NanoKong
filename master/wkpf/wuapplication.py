@@ -1,6 +1,6 @@
 import sys, os, traceback, time, re, copy
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from models import WuClass, WuObject, WuComponent, WuLink, WuType
+from models import WuClass, WuObject, WuComponent, WuLink, WuType, WuProperty
 from mapper import firstCandidate
 from locationTree import *
 from locationParser import *
