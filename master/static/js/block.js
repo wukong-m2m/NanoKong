@@ -30,6 +30,7 @@ Block.prototype.init=function() {
 	this.actions=[];
 	this.sigProper=[];
 	this.actProper=[];
+	this.monitorProper=[];
 	Block_count++;
 	Block.widgets.push(this);
 }
@@ -69,6 +70,10 @@ Block.prototype.serialize=function(obj) {
 	for(l=0;l<this.actProper.length;l++){
 		act = actlist[l];
 		obj.actions[act.name] = this.actProper[l];
+	}
+	for(l=0;l<this.monitorProper.length;l++){
+		act = actlist[l];
+		obj.monitor[act.name] = this.monitorProper[l];
 	}
 	siglist = this.getSignals();
 	for(l=0;l<this.sigProper.length;l++) {
@@ -167,7 +172,7 @@ Block.prototype.attach=function(parent) {
 	this.div.dblclick(function() {
 		$('#propertyeditor').empty();
 		$('#propertyeditor').append('<div id=propertyeditor_tab>');
-		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_action>Actions</a></li><li><a href=#propertyeditor_signal>Signals</a></li></ul>');
+		$('#propertyeditor_tab').append('<ul><li><a href=#propertyeditor_loc>Location</a></li><li><a href=#propertyeditor_ft>Fault Tolerance</a></li><li><a href=#propertyeditor_action>Actions</a></li><li><a href=#propertyeditor_signal>Signals</a></li><li><a href=#propertyeditor_monitor>Monitors</a></li></ul>');
 
 		$('#propertyeditor_tab').append('<div id=propertyeditor_loc><input type=text id=propertyeditor_location></input></div>');
 
@@ -187,8 +192,10 @@ Block.prototype.attach=function(parent) {
  
 		$("#propertyeditor_tab").append('<div id=propertyeditor_action></div>');
 		$("#propertyeditor_tab").append('<div id=propertyeditor_signal></div></div>');
+		$("#propertyeditor_tab").append('<div id=propertyeditor_monitor></div></div>');
 		$("#propertyeditor_action").empty();
 		$("#propertyeditor_signal").empty();
+		$("#propertyeditor_monitor").empty();
 		$("#propertyeditor_tab").tabs();
 		
 		var _actlist = Block.current.getActions();
@@ -205,6 +212,9 @@ Block.prototype.attach=function(parent) {
 //	    		}
 //	    		$('#a'+act.name).val(self.actProper[i]);
 //	    	}
+			$('#propertyeditor_monitor').append(act.name+'<input type=checkbox id=m'+act.name+'></input><br>');
+			$('#m'+act.name).val(self.monitorProper[i]);
+
 		}
 		var _siglist = Block.current.getSignals();
 		for(i=0;i<_siglist.length;i++) {
@@ -227,6 +237,7 @@ Block.prototype.attach=function(parent) {
 					for(i=0;i<_actlist.length;i++){
 						act = _actlist[i];
 						self.actProper[i]=$('#a'+act.name).val();
+						self.monitorProper[i]=$('#m'+act.name).val();
 					}
 					$('#propertyeditor').dialog("close");
 				},
@@ -234,7 +245,7 @@ Block.prototype.attach=function(parent) {
 					$('#propertyeditor').dialog("close");
 				}
 			},
-			width:600, height:400,
+			width:700, height:400,
 			title:"Property Editor"
 
 		}).dialog("open");
