@@ -54,6 +54,7 @@ u32_t zwave_learn_startT;
 u08_t zwave_learn_mode;
 // u32_t expire;  // The expire time of the last command
 u32_t nvmcomm_zwaveLastByteTime;
+bool has_init = FALSE;
 
 bool nvmcomm_zwave_my_address_loaded = FALSE;
 address_t nvmcomm_zwave_my_address;
@@ -240,6 +241,7 @@ void nvmcomm_zwave_init() {
         }
     }
     DEBUGF_COMM("My Zwave node_id: %x\n", nvmcomm_zwave_my_address);
+    has_init = true;
 }
 
 void nvmcomm_zwave_setcallback(void (*func)(address_t, u08_t, u08_t *, u08_t)) {
@@ -294,6 +296,8 @@ int nvmcomm_zwave_send(address_t dest, u08_t nvc3_command, u08_t *data, u08_t le
 
 // Get the ID of this node
 address_t nvmcomm_zwave_get_node_id() {
+    if (!has_init)
+        DEBUGF("Zwave is not turned on, please inspect your config.h.\n");
     return nvmcomm_zwave_my_address;
 }
 
