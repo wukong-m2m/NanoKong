@@ -113,11 +113,11 @@ $(TEST_PATH)/%.o: $(TEST_PATH)/%.c Makefile
 check: $(CHECK_OBJS)
 	$(CC) $(CLDFLAGS) -o $@_nanokong $(OBJS)
 
-clean: deep_clean
-	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
-
-deep_clean:
+purge: clean
 	find $(ROOT_DIR) -name 'GENERATED*' -exec rm -rf {} \;
+
+clean:
+	rm -f *.d *.o *~ nvmdefault.h *.elf avr/*.d *.hex
 
 upload_bootloader_asp:
 	$(AVRDUDE) -p atmega2560 -P usb -c usbasp -e    -U lock:w:0x3F:m -U efuse:w:0xFD:m -U hfuse:w:0xD8:m -U lfuse:w:0xFF:m # Erase and set bits so we can write to NRWW section
