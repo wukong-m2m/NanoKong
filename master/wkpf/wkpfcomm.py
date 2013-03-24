@@ -178,6 +178,7 @@ class Communication:
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUCLASS_LIST, [], [pynvc.WKPF_GET_WUCLASS_LIST_R, pynvc.WKPF_ERROR_R])
 
+      print 'Respond received'
 
       if reply == None:
         return []
@@ -221,6 +222,8 @@ class Communication:
       set_wukong_status("Discovery: Requesting wuobject list from node %d" % (destination))
 
       reply = self.zwave.send(destination, pynvc.WKPF_GET_WUOBJECT_LIST, [], [pynvc.WKPF_GET_WUOBJECT_LIST_R, pynvc.WKPF_ERROR_R])
+
+      print 'Respond received'
 
 
       if reply == None:
