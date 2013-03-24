@@ -203,8 +203,11 @@ def firstCandidate(logger, changesets, routingTable, locTree):
           return False
 
     # sort candidates
-    # TODO: think about it, probably not going to used for this thesis
+    # TODO:simple sorting, first fit, last fit, hardware fit, etc
     #sortCandidates(changesets.components)
+
+    # limit to min candidate if possible
+    component.instances = component.instances[:mincandidates]
 
     # construct heartbeat groups plus period assignment
     allcandidates = set()
