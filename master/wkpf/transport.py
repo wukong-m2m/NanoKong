@@ -41,6 +41,7 @@ class DeferredQueue:
     def removeTimeoutDefer(self):
         for key, defer in self.queue.items():
             if defer.timeout < int(round(time.time() * 1000)):
+                print 'remove timeouted defer', defer
                 # call error cb
                 defer.error_cb()
                 del self.queue[key]
@@ -63,7 +64,9 @@ class DeferredQueue:
         return queue_id
 
     def remove_defer(self, defer_id):
+        print 'remove_defer'
         if defer_id in self.queue:
+            print 'removing defer', self.queue[defer_id]
             del self.queue[defer_id]
             return defer_id
         else:
