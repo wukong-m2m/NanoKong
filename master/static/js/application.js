@@ -132,8 +132,8 @@ function application_fillList(r)
                             // start polling
                             window.options = {repeat: true};
                             $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
-                            $('#deploy_results #wukong_status').text('Waiting from master');
-                            $('#deploy_results #application_status').text("");
+                            $('#deploy_results #wukong_status').text('');
+                            $('#deploy_results #application_status').text('');
 
                             poll('/applications/' + current_application + '/poll', 0, window.options, function(data) {
                                 console.log(data)
@@ -248,19 +248,19 @@ function application_polling(app_id)
     // start polling
     window.options = {repeat: true};
     $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
-    $('#deploy_results #wukong_status').text('Waiting from master');
-    $('#deploy_results #application_status').text("");
+    $('#deploy_results #wukong_status').text('');
+    $('#deploy_results #application_status').text('');
 
     poll('/applications/' + app_id + '/poll', 0, window.options, function(data) {
         console.log(data)
-        if (data.wukong_status == "" && data.application_status == "") {
-            $('#deploy_results').dialog('destroy');
-        } else {
+        if (data.wukong_status == "clear" && data.application_status == "clear") {
+            $('#deploy_results').dialog('close');
+        } else if (data.wukong_status != "" && data.application_status != "") {
             $('#deploy_results').dialog({modal: true, autoOpen: true, width: 600, height: 300}).dialog('open');
+            $('#deploy_results #wukong_status').text(data.wukong_status);
+            $('#deploy_results #application_status').text(data.application_status);
         }
 
-        $('#deploy_results #wukong_status').text(data.wukong_status);
-        $('#deploy_results #application_status').text(data.application_status);
 
     });
 }
