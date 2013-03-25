@@ -46,18 +46,19 @@ class DeferredQueue:
                 del self.queue[key]
 
     def find_defer(self, deliver):
+        print 'finding defer for message in queue', self.queue
         for defer_id, defer in self.queue.items():
             if defer.verify(deliver, defer):
+                print 'found'
                 return defer_id, defer
             else:
-                log = "Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(deliver)
-                print log
+                print "Either one of " + str(defer.allowed_replies) + " expected from defer " + str(defer) + " does not match or the sequence number got skewed: " + str(deliver)
+        print 'not found'
         return False, False
 
     def add_defer(self, defer):
         queue_id = str(len(self.queue)) + hashlib.md5(str(defer.message.destination) + str(defer.message.command)).hexdigest()
-        log = "adding to queue: queue_id " + str(queue_id)
-        print log
+        print "adding to queue: queue_id ", str(queue_id)
         self.queue[queue_id] = defer
         return queue_id
 
@@ -294,13 +295,15 @@ class ZwaveAgent(TransportAgent):
                 command = defer.message.command
                 payload = defer.message.payload
 
+                # prevent pyzwave send got preempted and defer is not in queue
+                if len(defer.allowed_replies) > 0:
+                    print "handler: appending defer", defer, "to queue"
+                    BrokerAgent.init().append(defer)
+
                 while retries > 0:
                     try:
                         print "handler: sending message from defer"
                         pyzwave.send(destination, [0x88, command] + payload)
-
-                        if len(defer.allowed_replies) > 0:
-                            BrokerAgent.init().append(defer)
 
                         break
                     except Exception as e:
@@ -363,6 +366,8 @@ class BrokerAgent:
                     if deliver.command == pynvc.GROUP_NOTIFY_NODE_FAILURE:
                         print "reconfiguration message received"
                         wusignal.signal_reconfig()
+                    else:
+                        print "what?"
                 else:
                     #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
                     print "message discarded"
