@@ -1,5 +1,5 @@
 import sys, os, traceback, time, re, copy
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from models import WuClass, WuObject, WuComponent, WuLink, WuType, WuProperty
 from mapper import firstCandidate
 from locationTree import *
@@ -318,9 +318,8 @@ class WuApplication:
           return False
         self.info('...completed')
     self.info('==Deployment has completed')
-    self.status = "Deploying success"
-    gevent.sleep(0)
-    self.status = ""
+    self.status = "Deployment has succeeded"
+    self.status = "clear" # close the dialog
     master_available()
     return True
 
