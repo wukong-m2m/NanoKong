@@ -3,7 +3,6 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 import os, sys, zipfile, re, time
-sys.path.append(os.path.join(os.path.dirname(__file__), "wkpf"))
 import tornado.ioloop, tornado.web
 import tornado.template as template
 import simplejson as json
@@ -15,12 +14,12 @@ import StringIO
 import shutil, errno
 import datetime
 
-import wusignal
+import wkpf.wusignal
 from wkpf.wuapplication import WuApplication
 from wkpf.parser import *
-from wkpfcomm import *
+from wkpf.wkpfcomm import *
 
-from globals import *
+from wkpf.globals import *
 from configuration import *
 
 import tornado.options
@@ -243,8 +242,8 @@ class reset_application(tornado.web.RequestHandler):
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      set_wukong_status("")
-      applications[app_ind].status = ""
+      set_wukong_status("clear")
+      applications[app_ind].status = "clear"
       self.content_type = 'application/json'
       self.write({'status':0, 'version': applications[app_ind].version})
 
