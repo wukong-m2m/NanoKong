@@ -1,5 +1,5 @@
 import sys, os, traceback, copy
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from parser import *
 from locationTree import *
 from xml.dom.minidom import parse, parseString
@@ -8,7 +8,6 @@ import simplejson as json
 import logging, logging.handlers, wukonghandler
 from collections import namedtuple
 from locationParser import *
-from wkpfcomm import *
 from codegen import CodeGen
 from xml2java.generator import Generator
 import copy

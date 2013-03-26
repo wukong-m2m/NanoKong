@@ -5,19 +5,19 @@ from models import *
 from globals import *
 from configuration import *
 
-communication = None
 # routing services here
 class Communication:
+    _communication = None
     @classmethod
     def init(cls):
-      global communication
-      if not communication:
-        communication = Communication()
-      return communication
+      if not cls._communication:
+        cls._communication = Communication()
+      return cls._communication
 
     def __init__(self):
       self.all_node_infos = []
-      self.zwave = ZwaveAgent.init()
+      self.broker = getAgent()
+      self.zwave = getZwaveAgent()
       if not self.zwave:
         print 'cannot initiate zwaveagent'
         raise Exception

@@ -9,8 +9,8 @@
 #It seems only generateJava() is used here --- Sen 12/18/2012
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "../python"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../master"))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../python")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../master")))
 from wkpf import *
 import pickle
 from xml.dom.minidom import parse, parseString

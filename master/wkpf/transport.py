@@ -1,6 +1,6 @@
 # vim: ts=4 sw=4
 import sys, os, fcntl
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import pickle
 import tornado.ioloop
 import hashlib
@@ -35,6 +35,13 @@ def new_deliver(*args):
     return Message(*args)
 
 class DeferredQueue:
+    _defer_queue = None
+    @classmethod
+    def init(cls):
+        if not cls._defer_queue:
+            cls._defer_queue = DeferredQueue()
+        return cls._defer_queue
+
     def __init__(self):
         self.queue = {}
 
@@ -110,13 +117,12 @@ class TransportAgent:
         pass
 
 class ZwaveAgent(TransportAgent):
-    agent = None
-
+    _zwave_agent = None
     @classmethod
     def init(cls):
-        if not cls.agent:
-            cls.agent = ZwaveAgent()
-        return cls.agent
+        if not cls._zwave_agent:
+            cls._zwave_agent = ZwaveAgent()
+        return cls._zwave_agent
 
     def __init__(self):
         self._mode = 'stop'
@@ -250,7 +256,7 @@ class ZwaveAgent(TransportAgent):
             except:
                 print 'receive exception'
 
-            defer_queue.removeTimeoutDefer()
+            getDeferredQueue().removeTimeoutDefer()
 
             #logger.debug('receive: going to sleep')
             gevent.sleep(0.01) # sleep for at least 10 msec
@@ -301,7 +307,7 @@ class ZwaveAgent(TransportAgent):
                 # prevent pyzwave send got preempted and defer is not in queue
                 if len(defer.allowed_replies) > 0:
                     print "handler: appending defer", defer, "to queue"
-                    BrokerAgent.init().append(defer)
+                    getAgent().append(defer)
 
                 while retries > 0:
                     try:
@@ -321,26 +327,19 @@ class ZwaveAgent(TransportAgent):
             gevent.sleep(0)
 
 class BrokerAgent:
-    agent = None
-
+    _broker_agent = None
     @classmethod
     def init(cls):
-        if not cls.agent:
-            cls.agent = BrokerAgent()
-        return cls.agent
+        if not cls._broker_agent:
+            cls._broker_agent = BrokerAgent()
+        return cls._broker_agent
 
     def __init__(self):
-        #tornado.ioloop.PeriodicCallback(self.run, 100) # in a new ioloop instance
-        self._agents = []
         gevent.spawn(self.run)
-        self._defer_queue = defer_queue
         print 'BrokerAgent init'
 
     def append(self, defer):
-        self._defer_queue.add_defer(defer)
-
-    def add(self, agent):
-        self._agents.append(agent)
+        getDeferredQueue().add_defer(defer)
 
     def run(self):
         while 1:
@@ -355,14 +354,14 @@ class BrokerAgent:
                             str(bytearray(deliver.payload)))
 
             # find out which defer it is for
-            defer_id, defer = self._defer_queue.find_defer(deliver)
+            defer_id, defer = getDeferredQueue().find_defer(deliver)
 
             if defer_id and defer:
                 # call callback
                 defer.callback(deliver)
 
                 # remove it
-                self._defer_queue.remove_defer(defer_id)
+                getDeferredQueue().remove_defer(defer_id)
             else:
                 # if it is special messages
                 if not is_master_busy():
@@ -377,6 +376,11 @@ class BrokerAgent:
                     print str(deliver)
             gevent.sleep(0)
 
-# creates the broker agent
-defer_queue = DeferredQueue()
-agent = BrokerAgent.init()
+def getAgent():
+    return BrokerAgent.init()
+
+def getZwaveAgent():
+    return ZwaveAgent.init()
+
+def getDeferredQueue():
+    return DeferredQueue.init()

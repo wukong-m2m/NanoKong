@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 import os, sys
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
+sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../..")))
 from jinja2 import Template, Environment, FileSystemLoader
 from struct import pack
 

@@ -12,7 +12,7 @@
 # Date: May 13, 2012
 
 import sys, os, re
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import distutils.dir_util
 import logging
 from jinja2 import Template, Environment, FileSystemLoader
