@@ -37,6 +37,7 @@ class TestParser(unittest.TestCase):
     """)
 
     self.assertEqual(len(WuClass.all()), 1)
+    self.assertEqual(len(WuClass.where(id="0")), 1)
 
 if __name__ == '__main__':
   unittest.main()
