@@ -51,24 +51,23 @@ class Generator:
 
         # doesn't really matter to check since basic types are being take care of in application.java
         def propertyconstantvalue(property):
-            print 'propertyconstantvalue'
             wutype = WuType.where(name=property.datatype)
             if wutype:
                 return wutype[0].type.upper() + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
             else:
                 return 'ENUM' + '_' + Convert.to_constant(property.datatype) + "_" + Convert.to_constant(property.value)
 
-        def getPropertyByName(name):
-            property_query = WuProperty.where(name=name)
-            print 'getPropertyByName'
-            # need to query by wuclass id as well
-            if property_query:
-                for property in property_query:
-                    if property.wuclass:
-                        print property
-                        return property
-            else:
-                return False
+        def generateProperties(wuclass_properties, component_properties):
+            properties = []
+            for property in wuclass_properties:
+                if property.value.strip() != "" and (not property.name in [x.name for x in properties]):
+                    properties.append(property)
+
+            for property in properties:
+                if property.name in component_properties:
+                    if component_property[property.name].strip() != "":
+                        property.value = component_property[property.name]
+            return properties
 
 
         print 'generating', os.path.join(JAVA_OUTPUT_DIR, name+".java")
@@ -82,7 +81,7 @@ class Generator:
         jinja2_env.filters['wuclassgenclassname'] = wuclassgenclassname
         jinja2_env.filters['propertyconstname'] = propertyconstname
         jinja2_env.filters['propertyconstantvalue'] = propertyconstantvalue
-        jinja2_env.filters['getPropertyByName'] = getPropertyByName
+        jinja2_env.filters['generateProperties'] = generateProperties
         output = open(os.path.join(JAVA_OUTPUT_DIR, name + ".java"), 'w')
         output.write(jinja2_env.get_template('application2.java').render(name=name, changesets=changesets))
         output.close()

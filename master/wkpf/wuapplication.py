@@ -150,7 +150,10 @@ class WuApplication:
           final_attributes = dict(action_attributes.items()
               + signal_attributes.items())
 
-          properties_with_default_values = final_attributes.items()
+          properties_with_default_values = {}
+          for x, y in final_attributes.items():
+            if y.strip() != "":
+              properties_with_default_values[x] = y
 
           component = WuComponent(index, location, group_size, reaction_time, type,
                   application_hashed_name, properties_with_default_values)

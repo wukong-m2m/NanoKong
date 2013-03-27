@@ -208,11 +208,11 @@ class Communication:
                 wuclass.save()
             else:
                 print 'Unknown wuclass id', wuClassId
-                continue
         else:
             wuclass = wuclass_query[0]
 
-        wuclasses.append(wuclass)
+        if wuclass:
+            wuclasses.append(wuclass)
         reply = reply[3:]
       return wuclasses
 
@@ -248,14 +248,14 @@ class Communication:
                 wuobject.save()
             else:
                 print 'Unknown wuclass id', wuClassId
-                continue
         else:
             # might need to update
             wuobject = wuobject_query[0]
             wuobject.port_number = port_number
             wuobject.save()
 
-        wuobjects.append(wuobject)
+        if wuobject:
+            wuobjects.append(wuobject)
         reply = reply[3:]
       return wuobjects
 

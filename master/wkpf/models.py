@@ -315,8 +315,7 @@ class WuClass:
 
             properties = []
             p = (wuclasses_row['id'],)
-            properties_rows = c.execute("SELECT * from properties WHERE wuclass_id=?",
-                    p).fetchall()
+            properties_rows = c.execute("SELECT * from properties WHERE wuclass_id=?", p).fetchall()
             for properties_row in properties_rows:
                 properties.append(WuProperty(
                             properties_row['id'],
@@ -416,7 +415,7 @@ class WuProperty:
         self.identity = None
 
     def __repr__(self):
-        return 'WuProperty#(\n\tid="%d",\n\tname="%s",\n\tdatatype=%s,\n\taccess="%s",\n\tvalue=%s)' % (self.id, self.name, self.datatype, self.access, self.value)
+        return 'WuProperty#(\n\tid="%d",\n\tname="%s",\n\tdatatype=%s,\n\taccess="%s",\n\tvalue=%s,\n\twuclass_id=%s,\n\tnode_id=%s)' % (self.id, self.name, self.datatype, self.access, self.value, self.wuclass.id, self.wuclass.node_id)
 
     def __eq__(self, other):
         if isinstance(other, WuProperty):
