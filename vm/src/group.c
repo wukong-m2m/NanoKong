@@ -376,6 +376,8 @@ void group_reconfiguration() {
 void handle_failure() {
   // Check all nodes we're supposed to watch to see if we've received a heartbeat in the last heartbeat_timeout ms.
   if (monitored_node() != NULL && nvm_current_time > monitored_node()->expect_next_timestamp_before) {
+    nvmtime_t cstart = nvm_current_time;
+    nvmtime_t cend = 0;
     stat_outgoing_message_count = 0;
     stat_received_message_count = 0;
     address_t dead_node_id = monitored_node()->node_id;
@@ -459,8 +461,10 @@ void handle_failure() {
     group_remove_node_from_watchlist(dead_node_id);
     group_update_nodes_in_watchlist(GROUP_HEARTBEAT_NODE_REMOVE, dead_node_id);
     monitored_node()->expect_next_timestamp_before = nvm_current_time + heartbeat_timeout; // Initialization, it's ok to miss one if not lucky
+    cend = nvm_current_time;
 
-    DEBUGF_STATS("STATS: Total outgoing messages %x, received messages %x\n\n", stat_outgoing_message_count, stat_received_message_count);
+    DEBUGF_STATS("STATS: Total outgoing messages: %x, received messages: %x for recovery\n\n", stat_outgoing_message_count, stat_received_message_count);
+    DEBUGF_STATS("STATS: Time took to recover in microseconds %llu\n\n", (cend - cstart));
 
     // Blink
     blink_twice(LED5);

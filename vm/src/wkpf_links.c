@@ -50,6 +50,7 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
   if (number_of_entries>MAX_NUMBER_OF_COMPONENTS)
     return WKPF_ERR_OUT_OF_MEMORY;
 
+  uint16_t total_component_map_size = 0;
   for(int i=0; i<number_of_entries; i++) {
     heap_id_t nodes_heap_id = *((uint8_t *)heap_get_addr(map_heap_id)+1+(2*i));
     uint16_t number_of_nodes = array_length(nodes_heap_id)/sizeof(remote_endpoint);
@@ -60,11 +61,13 @@ uint8_t wkpf_load_component_to_wuobject_map(heap_id_t map_heap_id) {
     for (int j=0; j<number_of_nodes; j++) {
       DEBUGF_WKPF("\t (node %x, port %x)\n", nodes[j].node_id, nodes[j].port_number);
     }
-    DEBUGF_STATS("STATS: Component %x used in total of %x bytes)\n\n", i, sizeof(number_of_nodes) + sizeof(nodes));
+    uint16_t component_map_size = number_of_nodes * sizeof(remote_endpoint) + sizeof(remote_endpoint*)
+    total_component_map_size += component_map_size;
+    DEBUGF_STATS("STATS: Component %x used in total of %x bytes)\n\n", i, component_map_size);
   }
 
   number_of_components = number_of_entries;
-  DEBUGF_STATS("STATS: Finished loading component map (used in total of %x bytes)\n\n", sizeof(component_to_wuobject_map));
+  DEBUGF_STATS("STATS: Finished loading component map (used in total of %x bytes)\n\n", total_component_map_size);
   return WKPF_OK;
 }
 
