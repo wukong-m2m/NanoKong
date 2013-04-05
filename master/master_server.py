@@ -296,9 +296,8 @@ class save_fbp(tornado.web.RequestHandler):
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       xml = self.get_argument('xml')
-      app.updateXML(xml)
-      #app = load_app_from_dir(app.dir)
-      #app.xml = xml
+      app.xml = xml
+      app.saveConfig()
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']

@@ -84,14 +84,6 @@ class WuApplication:
     self.logger.warning(line)
     self.version += 1
 
-  def updateXML(self, xml):
-    self.xml = xml
-    self.setFlowDom(parseString(self.xml))
-    self.saveConfig()
-    f = open(os.path.join(self.dir, self.id + '.xml'), 'w')
-    f.write(xml)
-    f.close()
-
   def loadConfig(self):
     if self.dir:
       config = json.load(open(os.path.join(self.dir, 'config.json')))
