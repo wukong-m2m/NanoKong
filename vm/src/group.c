@@ -1,4 +1,3 @@
-//# vim: ts=2 sw=2
 #include <eeprom.h>
 #include <string.h>
 #include <stdio.h>

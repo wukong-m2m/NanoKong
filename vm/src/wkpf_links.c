@@ -1,4 +1,3 @@
-//# vim: ts=2 sw=2
 #include "config.h"
 #include "types.h"
 #include "debug.h"

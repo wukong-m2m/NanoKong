@@ -1,4 +1,3 @@
-// vim: ts=8
 //  NanoVM, a tiny java VM for the Atmel AVR family
 //  Copyright (C) 2005 by Till Harbaum <Till@Harbaum.org>
 //
