@@ -1,11 +1,12 @@
 #!/usr/bin/python
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../master'))
 from optparse import OptionParser
 import xml.dom.minidom
-import os
+import copy
 from wkpfcomm import *
 from wkpf.parser import *
 import wkpf.pynvc
-import copy
 
 rootpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
