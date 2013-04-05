@@ -333,7 +333,7 @@ class LocationTree:
     def getAllAliveNodeIds(self):
         tmpLst = []
         for key in self.sensor_dict.keys():
-            if self.sensor_dict(key).isAlive() == True:
+            if self.sensor_dict[key].isAlive() == True:
                 tmpLst.append(key)
         return tmpLst
     
