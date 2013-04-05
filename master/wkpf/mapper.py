@@ -82,16 +82,15 @@ def firstCandidate(logger, changesets, routingTable, locTree):
         # filter by location
         locParser = LocationParser(locTree)
         try:
-            tmpSet = locParser.parse(locationquery)
+            candidates = locParser.parse(locationquery)
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            logger.error('cannot find match for location query %s, so we will invalid the query and pick all by default', locationquery)
-            logger.error('Locality conditions for component wuclass id "%s" are too strict; no available candidate found' % (wuObject[0].getWuClass().getId()))
-            logging.error("location Tree")
+            logger.error('cannot find match for location query "%s", so we will invalid the query and pick all by default' % (locationquery))
+            logger.error('Locality conditions for component wuclass "%s" are too strict; no available candidate found' % (component.type))
             logging.error(locTree.printTree())
             set_wukong_status(str(exc_type)+str(exc_value))
-            tmpSet = locTree.getAllAliveNodeIds()
-        candidates = tmpSet
+            candidates = locTree.getAllAliveNodeIds()
+            # TODO: probably need some other ways to handle this
 
 
         if len(candidates) < mincandidates:
@@ -189,13 +188,15 @@ def firstCandidate(logger, changesets, routingTable, locTree):
         def prefer_hard(wuobject):
             node = locTree.getNodeInfoById(wuobject.node_id)
             wuclass = WuClass.where(name=component.type)[0]
-            print 'sort prefer wuobject of wuclass %d in node %d' % (wuobject.wuclass.id, node.id) if wuobject.wuclass.id in [x.id for x in node.wuclasses] else 'sort not prefer'
+            #print 'sort prefer wuobject of wuclass %d in node %d' % (wuobject.wuclass.id, node.id) if wuobject.wuclass.id in [x.id for x in node.wuclasses] else 'sort not prefer'
             if wuobject.wuclass.id in [x.id for x in node.wuclasses]:
                 wuobject.hasLocalWuClass = True
 
             return wuobject.wuclass.id in [x.id for x in node.wuclasses]
 
         component.instances = sorted(component.instances, key=prefer_hard, reverse=True)
+        logger.info("component %s" % (component.type))
+        logger.info([wuobject.node_id for wuobject in component.instances])
         # sort candidates
         # TODO:simple sorting, first fit, last fit, hardware fit, etc
         #sortCandidates(changesets.components)
@@ -217,7 +218,7 @@ def firstCandidate(logger, changesets, routingTable, locTree):
     constructHeartbeatGroups(changesets.heartbeatgroups, routingTable, allcandidates)
     determinePeriodForHeartbeatGroups(changesets.components, changesets.heartbeatgroups)
     logging.info('heartbeatGroups constructed, periods assigned')
-    logging.info(changesets.heartbeatgroups)
+    logging.info(repr(changesets.heartbeatgroups))
 
     #delete and roll back all reservation during mapping after mapping is done, next mapping will overwritten the current one
     for component in changesets.components:
