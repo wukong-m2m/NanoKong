@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "./pypar
 from wkpf.configuration import *
 from wkpf.models import *
 from wkpf.locationTree import *
-from wkpf.pyparsing import *
+from pyparsing import *
 '''
 #BNF Rules:
 <Number> ::= [0-9] | [0-9] <Number>
