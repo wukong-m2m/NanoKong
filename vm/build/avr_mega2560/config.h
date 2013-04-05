@@ -19,8 +19,8 @@
 
 // enable debug info
 #define DEBUG
-//#define DEBUG_WIRELESS_TRACE
-#define DEBUG_WIRELESS_TRACE_TARGET_NODE_ID 2
+#define DEBUG_WIRELESS_TRACE
+#define DEBUG_WIRELESS_TRACE_TARGET_NODE_ID 1
 // enable logging info
 //#define LOGGING
 
