@@ -236,8 +236,6 @@ class WuApplication:
     self.changesets = ChangeSets([], [], [])
     self.parseApplication()
     self.mapping(location_tree, routingTable)
-    logging.info("Mapping Results")
-    logging.info(self.changesets)
 
   def deploy_with_discovery(self,*args):
     #node_ids = [info.id for info in getComm().getActiveNodeInfos(force=False)]
