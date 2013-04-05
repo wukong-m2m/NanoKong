@@ -1,8 +1,7 @@
+import os, sys
 import pyzwave
 import pyzigbee
-import sys
-import os
-from configuration import *
+from wkpf.configuration import *
 
 REPRG_OPEN                   = 0x10
 REPRG_OPEN_R                 = 0x11

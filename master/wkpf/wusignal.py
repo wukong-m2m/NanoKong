@@ -1,7 +1,8 @@
-from globals import *
+from wkpf.globals import *
+from wkpf.wubutler import *
 import gevent
 from gevent.event import AsyncResult
-import pynvc
+import wkpf.pynvc
 import logging
 
 signal_reconfiguration = False
@@ -24,15 +25,14 @@ def signal_handler():
         if not is_master_busy():
             if signal_reconfiguration:
                 if len(applications) > 0:
-                    active_application().reconfiguration()
+                    WuButler().current_application.reconfiguration()
                     signal_reconfiguration = False
 
             if signal_deployment:
                 if len(applications) > 0:
                     gevent.sleep(2)
-                    active_application().deploy_with_discovery(*signal_deployment)
+                    WuButler().current_application.deploy_with_discovery(*signal_deployment)
                     #node_ids = [info.nodeId for info in getComm().getActiveNodeInfos(force=True)]
-                    #active_application().deploy(node_ids,*signal_deployment)
                     signal_deployment = None
 
         gevent.sleep(0.15)

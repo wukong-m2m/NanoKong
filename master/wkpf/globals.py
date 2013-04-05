@@ -1,5 +1,3 @@
-active_ind = 0
-applications = []
 location_tree = None
 wukong_status = ""
 
@@ -16,18 +14,6 @@ def master_busy():
 def master_available():
     global MASTER_BUSY
     MASTER_BUSY = False
-
-def active_application():
-  global applications
-  global active_ind
-  try:
-    return applications[active_ind]
-  except:
-    return None
-
-def set_active_application_index(new_index):
-  global active_ind
-  active_ind = new_index
 
 def get_wukong_status():
   global wukong_status

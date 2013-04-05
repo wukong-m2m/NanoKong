@@ -1,4 +1,16 @@
 import sys, os, re
+import shutil, errno
+
+def copyAnything(src, dst):
+  try:
+    shutil.copytree(src, dst)
+  except OSError as exc: # python >2.5
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    print traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
+    if exc.errno == errno.ENOTDIR:
+      shutil.copy(src, dst)
+    else: raise
 
 class Convert:
     @staticmethod

@@ -4,7 +4,7 @@
 import glob
 import os
 import logging
-from configuration import *
+from wkpf.configuration import *
 
 def addHead():
 	head_path = os.path.join(ROOT_PATH, "master/templates/fbp.html")

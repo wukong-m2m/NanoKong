@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# vim: ts=2 sw=2
 
 # Translator convert the flow of WuKong components and their definitions into one application Java file
 #
@@ -11,7 +10,6 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../python")))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../master")))
-from wkpf import *
 import pickle
 from xml.dom.minidom import parse, parseString
 from wkpf.mapper import *

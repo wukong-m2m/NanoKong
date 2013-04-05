@@ -6,10 +6,10 @@
 import sys, traceback, os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "./pyparsing")))
-from configuration import *
-from models import *
-from locationTree import *
-from pyparsing import *
+from wkpf.configuration import *
+from wkpf.models import *
+from wkpf.locationTree import *
+from wkpf.pyparsing import *
 '''
 #BNF Rules:
 <Number> ::= [0-9] | [0-9] <Number>

@@ -1,9 +1,9 @@
 import sys, time, copy
-from transport import *
-from locationTree import *
-from models import *
-from globals import *
-from configuration import *
+from wkpf.transport import *
+from wkpf.locationTree import *
+from wkpf.models import *
+from wkpf.globals import *
+from wkpf.configuration import *
 
 # routing services here
 class Communication:
@@ -77,16 +77,19 @@ class Communication:
       print 'getNodeInfo of node id', destination
 
       location = self.getLocation(destination)
-      gevent.sleep(0) # give other greenlets some air to breath
+      print 'got location'
 
       wuClasses = self.getWuClassList(destination)
-      gevent.sleep(0)
+      print 'got wuclasses'
 
       wuObjects = self.getWuObjectList(destination)
-      gevent.sleep(0)
+      print 'got wuobjects'
 
+      print 'create node'
       node = Node(destination, location, wuClasses, wuObjects)
+      print 'preare node save'
       node.save()
+      print 'node saved'
       return node
 
     def getLocation(self, destination):
@@ -189,13 +192,18 @@ class Communication:
 
       wuclasses = []
       reply = reply.payload[3:]
+      print repr(reply)
       while len(reply) > 1:
         wuClassId = (reply[0] <<8) + reply[1]
         isVirtual = True if reply[2] == 1 else False
         wuclass = None
+        print 'begin wuclass_query'
         wuclass_query = WuClass.where(node_id=destination, id=wuClassId)
+        print 'end wuclass_query', wuclass_query
         if not wuclass_query:
+            print 'begin wuclass_component'
             wuclass_component = WuClass.where(id=wuClassId)[0]
+            print 'end wuclass_component', wuclass_component
             if wuclass_component:
                 new_properties_with_node_infos = copy.deepcopy(wuclass_component.properties)
                 def anew(x):
@@ -205,7 +213,9 @@ class Communication:
                 wuclass = WuClass(wuclass_component.id, wuclass_component.name,
                         wuclass_component.virtual, wuclass_component.type,
                         new_properties_with_node_infos, destination)
+                print 'prepare save wuclass'
                 wuclass.save()
+                print 'done save wuclass'
             else:
                 print 'Unknown wuclass id', wuClassId
         else:
@@ -235,17 +245,24 @@ class Communication:
 
       wuobjects = []
       reply = reply.payload[3:]
+      print repr(reply)
       while len(reply) > 1:
         wuClassId = (reply[1] <<8) + reply[2]
         port_number = reply[0]
         wuobject = None
+        print 'begin wuobject_query'
         wuobject_query = WuObject.where(node_id=destination, wuclass_id=wuClassId)
+        print 'end wuobject_query', wuobject_query
         if wuobject_query == []:
+            print 'begin wuclass_query'
             wuclass_query = WuClass.where(id=wuClassId, node_id=destination)
+            print 'end wuclass_query', wuclass_query
             if len(wuclass_query) > 0:
                 wuclass = wuclass_query[0]
                 wuobject = WuObject(destination, port_number, wuclass)
+                print 'begin save'
                 wuobject.save()
+                print 'end save'
             else:
                 print 'Unknown wuclass id', wuClassId
         else:

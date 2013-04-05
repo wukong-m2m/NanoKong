@@ -8,7 +8,7 @@ from struct import pack
 
 from wkpf.models import *
 
-from configuration import *
+from wkpf.configuration import *
 from wkpf.util import *
 
 

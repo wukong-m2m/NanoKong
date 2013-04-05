@@ -20,8 +20,8 @@ import shutil, errno
 import datetime
 from subprocess import Popen, PIPE, STDOUT
 
-from configuration import *
-from globals import *
+from wkpf.configuration import *
+from wkpf.globals import *
 
 # allcandidates are all node ids ([int])
 def constructHeartbeatGroups(heartbeatgroups, routingTable, allcandidates):
@@ -196,17 +196,16 @@ def firstCandidate(logger, changesets, routingTable, locTree):
             return wuobject.wuclass.id in [x.id for x in node.wuclasses]
 
         component.instances = sorted(component.instances, key=prefer_hard, reverse=True)
+        # sort candidates
+        # TODO:simple sorting, first fit, last fit, hardware fit, etc
+        #sortCandidates(changesets.components)
+
+        # limit to min candidate if possible
+        component.instances = component.instances[:mincandidates]
         
         if len(component.instances) == 0:
           logger.error ('[ERROR] No avilable match could be found for component %s' % (component))
           return False
-
-    # sort candidates
-    # TODO:simple sorting, first fit, last fit, hardware fit, etc
-    #sortCandidates(changesets.components)
-
-    # limit to min candidate if possible
-    component.instances = component.instances[:mincandidates]
 
     # construct heartbeat groups plus period assignment
     allcandidates = set()

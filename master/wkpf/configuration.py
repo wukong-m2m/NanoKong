@@ -1,7 +1,7 @@
 import os
 from configobj import ConfigObj
 
-ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 CONFIG_PATH = os.path.join(ROOT_PATH, 'config', 'master.cfg')
 config = ConfigObj(CONFIG_PATH)
 

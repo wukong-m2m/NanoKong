@@ -2,7 +2,7 @@
 
 import os
 import logging
-from configuration import *
+from wkpf.configuration import *
 
 lst = [];
 

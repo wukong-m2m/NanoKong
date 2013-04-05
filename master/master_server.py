@@ -2,25 +2,21 @@
 # author: Penn Su
 from gevent import monkey; monkey.patch_all()
 import gevent
-import os, sys, zipfile, re, time
+import os, sys, re, time
 import tornado.ioloop, tornado.web
 import tornado.template as template
 import simplejson as json
 import logging
-import hashlib
-from threading import Thread
 import traceback
-import StringIO
-import shutil, errno
-import datetime
 
+from wkpf.wubutler import WuButler
 import wkpf.wusignal
 from wkpf.wuapplication import WuApplication
 from wkpf.parser import *
 from wkpf.wkpfcomm import *
 
 from wkpf.globals import *
-from configuration import *
+from wkpf.configuration import *
 
 import tornado.options
 tornado.options.parse_command_line()
@@ -52,75 +48,6 @@ def allowed_file(filename):
   return '.' in filename and \
       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-def copyAnything(src, dst):
-  try:
-    shutil.copytree(src, dst)
-  except OSError as exc: # python >2.5
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    print traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                  limit=2, file=sys.stdout)
-    if exc.errno == errno.ENOTDIR:
-      shutil.copy(src, dst)
-    else: raise
-
-def getAppIndex(app_id):
-  global applications
-  # make sure it is not unicode
-  app_id = app_id.encode('ascii','ignore')
-  for index, app in enumerate(applications):
-    if app.id == app_id:
-      return index
-  return None
-
-def delete_application(i):
-  global applications
-  try:
-    shutil.rmtree(applications[i].dir)
-    #os.system('rm -rf ' + applications[i].dir)
-    applications.pop(i)
-    return True
-  except Exception as e:
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    print traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                  limit=2, file=sys.stdout)
-    return False
-
-def load_app_from_dir(dir):
-  app = WuApplication(dir=dir)
-  app.loadConfig()
-  return app
-
-def update_applications():
-  global applications
-  logging.info('updating applications:')
-
-  application_basenames = [os.path.basename(app.dir) for app in applications]
-
-  for dirname in os.listdir(APP_DIR):
-    app_dir = os.path.join(APP_DIR, dirname)
-    if dirname.lower() == 'base': continue
-    if not os.path.isdir(app_dir): continue
-
-    logging.info('scanning %s:' % (dirname))
-    if dirname not in application_basenames:
-      logging.info('%s' % (dirname))
-      applications.append(load_app_from_dir(app_dir))
-      application_basenames = [os.path.basename(app.dir) for app in applications]
-
-# deprecated
-def getPropertyValuesOfApp(mapping_results, property_names):
-  properties_json = []
-
-  comm = getComm()
-  for wuobject in mapping_results.values():
-    for name in property_names:
-      if name in wuobject:
-        wuproperty = wuobject.getPropertyByName(name)
-        (value, datatype, status) = comm.getProperty(wuobject, int(wuproperty.getId()))
-        properties_json.append({'name': name, 'value': value, 'wuclassname': wuproperty.wuclass.name})
-
-  return properties_json
-
 # List all uploaded applications
 class main(tornado.web.RequestHandler):
   def get(self):
@@ -128,38 +55,23 @@ class main(tornado.web.RequestHandler):
 
 class list_applications(tornado.web.RequestHandler):
   def get(self):
-    self.render('templates/index.html', applications=applications)
+    self.render('templates/index.html', applications=WuButler().applications)
 
   def post(self):
-    global applications
-    update_applications()
-    apps = sorted([application.config() for application in applications], key=lambda k: k['name'])
+    WuButler().load_applications()
+    apps = sorted([application.config() for application in WuButler().applications], key=lambda k: k['name'])
     self.content_type = 'application/json'
     self.write(json.dumps(apps))
 
 # Returns a form to upload new application
 class new_application(tornado.web.RequestHandler):
   def post(self):
-    global applications
-    #self.redirect('/applications/'+str(applications[-1].id), permanent=True)
+    #self.redirect('/applications/'+str(WuButler().applications[-1].id), permanent=True)
     #self.render('templates/upload.html')
     try:
-      app_name = 'application' + str(len(applications))
-      app_id = hashlib.md5(app_name).hexdigest()
-
-      # copy base for the new application
-      logging.info('creating application...')
-      copyAnything(BASE_DIR, os.path.join(APP_DIR, app_id))
-
-      app = WuApplication(id=app_id, name=app_name, dir=os.path.join(APP_DIR, app_id))
-      applications.append(app)
-
-      # dump config file to app
-      logging.info('saving application configuration...')
-      app.saveConfig()
-
+      application = WuButler().create_application()
       self.content_type = 'application/json'
-      self.write({'status':0, 'app': app.config()})
+      self.write({'status':0, 'app': application.config()})
     except Exception as e:
       exc_type, exc_value, exc_traceback = sys.exc_info()
       print traceback.print_exception(exc_type, exc_value, exc_traceback,
@@ -170,46 +82,44 @@ class new_application(tornado.web.RequestHandler):
 class application(tornado.web.RequestHandler):
   # topbar info
   def get(self, app_id):
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       title = ""
       if self.get_argument('title'):
         title = self.get_argument('title')
-      app = applications[app_ind].config()
-      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind], title=title, default_location=LOCATION_ROOT)
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=app, 
+            title=title, default_location=LOCATION_ROOT)
+
       self.content_type = 'application/json'
-      self.write({'status':0, 'app': app, 'topbar': topbar})
+      self.write({'status':0, 'app': app.config(), 'topbar': topbar})
 
   # Display a specific application
   def post(self, app_id):
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       # active application
-      set_active_application_index(app_ind)
-      app = applications[app_ind].config()
-      #app = {'name': applications[app_ind].name, 'desc': applications[app_ind].desc, 'id': applications[app_ind].id}
-      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=applications[app_ind], title="Flow Based Programming")
+      WuButler().current_application = app
+      topbar = template.Loader(os.getcwd()).load('templates/topbar.html').generate(application=app, title="Flow Based Programming")
       self.content_type = 'application/json'
-      self.write({'status':0, 'app': app, 'topbar': topbar})
+      self.write({'status':0, 'app': app.config(), 'topbar': topbar})
 
   # Update a specific application
   def put(self, app_id):
-    global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       try:
-        applications[app_ind].name = self.get_argument('name', 'application name')
-        applications[app_ind].desc = self.get_argument('desc', '')
-        applications[app_ind].saveConfig()
+        app.name = self.get_argument('name', 'application name')
+        app.desc = self.get_argument('desc', '')
+        app.saveConfig()
         self.content_type = 'application/json'
         self.write({'status':0})
       except Exception as e:
@@ -221,13 +131,12 @@ class application(tornado.web.RequestHandler):
 
   # Destroy a specific application
   def delete(self, app_id):
-    global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
-      if delete_application(app_ind):
+      if app.destroy():
         self.content_type = 'application/json'
         self.write({'status':0})
       else:
@@ -236,36 +145,34 @@ class application(tornado.web.RequestHandler):
 
 class reset_application(tornado.web.RequestHandler):
   def post(self, app_id):
-    app_ind = getAppIndex(app_id)
-
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       set_wukong_status("clear")
-      applications[app_ind].status = "clear"
+      app.status = "clear"
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version})
+      self.write({'status':0, 'version': app.version})
 
 class deploy_application(tornado.web.RequestHandler):
   def get(self, app_id):
-    global applications
     global location_tree
     global node_infos
     try:
       # Discovery results
       node_infos = location_tree.getAllNodeInfos()
 
-      app_ind = getAppIndex(app_id)
-      if app_ind == None:
+      app = WuButler().application_by_id(app_id)
+      if app == None:
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot find the application'})
       else:
         deployment = template.Loader(os.getcwd()).load('templates/deployment.html').generate(
-                app=applications[app_ind],
+                app=app,
                 app_id=app_id, node_infos=node_infos,
-                logs=applications[app_ind].logs(),
-                changesets=applications[app_ind].changesets, 
+                logs=app.logs(),
+                changesets=app.changesets, 
                 set_location=False, 
                 default_location=LOCATION_ROOT)
         self.content_type = 'application/json'
@@ -280,30 +187,30 @@ class deploy_application(tornado.web.RequestHandler):
 
   def post(self, app_id):
     global location_tree
-    app_ind = getAppIndex(app_id)
+    app = WuButler().application_by_id(app_id)
 
-    set_wukong_status("Start deploying")
-    applications[app_ind].status = "    "
-    if app_ind == None:
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
+      set_wukong_status("Start deploying")
+      app.status = "    "
+
       platforms = ['avr_mega2560']
       # signal deploy in other greenlet task
       wusignal.signal_deploy(platforms)
-      set_active_application_index(app_ind)
+      WuButler().current_application = app
          
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version})
+      self.write({'status':0, 'version': app.version})
 
 class map_application(tornado.web.RequestHandler):
   def post(self, app_id):
-    global applications
     global location_tree
     global routingTable
 
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
@@ -311,12 +218,10 @@ class map_application(tornado.web.RequestHandler):
       # TODO: need platforms from fbp
 
       # Map with location tree info (discovery), this will produce mapping_results
-      applications[app_ind].map(location_tree, routingTable)
-
-    #  print applications[app_ind].mapping_results
+      app.map(location_tree, routingTable)
 
       ret = []
-      for component in applications[app_ind].changesets.components:
+      for component in app.changesets.components:
         for ind, wuobj in enumerate(component.instances):
           if ind == 0:
             ret.append({'leader': True, 'instanceId': component.index,
@@ -328,37 +233,33 @@ class map_application(tornado.web.RequestHandler):
                     wuobj.port_number})
 
       self.content_type = 'application/json'
-      self.write({'status':0, 'mapping_results': ret, 'version': applications[app_ind].version})
+      self.write({'status':0, 'mapping_results': ret, 'version': app.version})
 
 class monitor_application(tornado.web.RequestHandler):
   def get(self, app_id):
-    global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
-    #elif not applications[app_ind].mapping_results or not applications[app_ind].deployed:
+    #elif not app.mapping_results or not app.deployed:
       #self.content_type = 'application/json'
       #self.wrtie({'status':1, 'mesg': 'No mapping results or application out of sync, please deploy the application first.'})
     else:
 
       properties_json = WuProperty.all() # for now
-      #properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
 
-      monitor = template.Loader(os.getcwd()).load('templates/monitor.html').generate(app=applications[app_ind], logs=applications[app_ind].logs(), properties_json=properties_json)
+      monitor = template.Loader(os.getcwd()).load('templates/monitor.html').generate(app=app, logs=app.logs(), properties_json=properties_json)
       self.content_type = 'application/json'
       self.write({'status':0, 'page': monitor})
 
 class properties_application(tornado.web.RequestHandler):
   def post(self, app_id):
-    global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       properties_json = WuProperty.all() # for now
-      #properties_json = getPropertyValuesOfApp(applications[app_ind].mapping_results, [property.getName() for wuobject in applications[app_ind].mapping_results.values() for property in wuobject])
 
       self.content_type = 'application/json'
       self.write({'status':0, 'properties': properties_json})
@@ -366,9 +267,8 @@ class properties_application(tornado.web.RequestHandler):
 # Never let go
 class poll(tornado.web.RequestHandler):
   def post(self, app_id):
-    global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
@@ -382,48 +282,45 @@ class poll(tornado.web.RequestHandler):
       set_wukong_status("")
 
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version,
+      self.write({'status':0, 'version': app.version,
           'wukong_status': wukong_status, 
-          'application_status': applications[app_ind].status, 
-          'returnCode': applications[app_ind].returnCode, 
-          'logs': applications[app_ind].retrieve()})
+          'application_status': app.status, 
+          'returnCode': app.returnCode, 
+          'logs': app.retrieve()})
 
 class save_fbp(tornado.web.RequestHandler):
   def post(self, app_id):
-    global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       xml = self.get_argument('xml')
-      applications[app_ind].updateXML(xml)
-      #applications[app_ind] = load_app_from_dir(applications[app_ind].dir)
-      #applications[app_ind].xml = xml
+      app.updateXML(xml)
+      #app = load_app_from_dir(app.dir)
+      #app.xml = xml
       # TODO: need platforms from fbp
       #platforms = self.get_argument('platforms')
       platforms = ['avr_mega2560']
 
       self.content_type = 'application/json'
-      self.write({'status':0, 'version': applications[app_ind].version})
+      self.write({'status':0, 'version': app.version})
 
 class load_fbp(tornado.web.RequestHandler):
   def get(self, app_id):
     self.render('templates/fbp.html')
 
   def post(self, app_id):
-    global applications
-    app_ind = getAppIndex(app_id)
-    if app_ind == None:
+    app = WuButler().application_by_id(app_id)
+    if app == None:
       self.content_type = 'application/json'
       self.write({'status':1, 'mesg': 'Cannot find the application'})
     else:
       self.content_type = 'application/json'
-      self.write({'status':0, 'xml': applications[app_ind].xml})
+      self.write({'status':0, 'xml': app.xml})
 
 class poll_testrtt(tornado.web.RequestHandler):
   def post(self):
-    global applications
     comm = getComm()
     status = comm.currentStatus()
     if status != None:
@@ -435,7 +332,6 @@ class poll_testrtt(tornado.web.RequestHandler):
 
 class stop_testrtt(tornado.web.RequestHandler):
   def post(self):
-    global applications
     comm = getComm()
     if comm.onStopMode():
       self.content_type = 'application/json'
@@ -446,7 +342,6 @@ class stop_testrtt(tornado.web.RequestHandler):
 
 class exclude_testrtt(tornado.web.RequestHandler):
   def post(self):
-    global applications
     comm = getComm()
     if comm.onDeleteMode():
       self.content_type = 'application/json'
@@ -457,7 +352,6 @@ class exclude_testrtt(tornado.web.RequestHandler):
 
 class include_testrtt(tornado.web.RequestHandler):
   def post(self):
-    global applications
     comm = getComm()
     if comm.onAddMode():
       self.content_type = 'application/json'
@@ -628,7 +522,7 @@ if __name__ == "__main__":
   if os.path.exists('standardlibrary.db'):
     os.remove('standardlibrary.db') 
   Parser.parseLibrary(COMPONENTXML_PATH)
-  update_applications()
+  WuButler().load_applications()
   import_wuXML()
   make_FBP()
   wukong.listen(MASTER_PORT)
@@ -636,7 +530,7 @@ if __name__ == "__main__":
 else: # so it could be called from test or other external libraries
   logging.info("WuKong starting up in tests...")
   setup_signal_handler_greenlet()
-  update_applications()
+  WuButler().load_applications()
   import_wuXML()
   make_FBP()
   wukong.listen(MASTER_PORT)

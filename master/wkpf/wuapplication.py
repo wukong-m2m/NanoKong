@@ -1,22 +1,22 @@
 import sys, os, traceback, time, re, copy
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from models import WuClass, WuObject, WuComponent, WuLink, WuType, WuProperty
-from mapper import firstCandidate
-from locationTree import *
-from locationParser import *
+from wkpf.models import WuClass, WuObject, WuComponent, WuLink, WuType, WuProperty
+from wkpf.mapper import firstCandidate
+from wkpf.locationTree import *
+from wkpf.locationParser import *
 from xml.dom.minidom import parse, parseString
 from xml.parsers.expat import ExpatError
 import simplejson as json
 import logging, logging.handlers, wukonghandler
-from wkpfcomm import *
-from codegen import CodeGen
+from wkpf.wkpfcomm import *
+from wkpf.codegen import CodeGen
 from xml2java.generator import Generator
 from threading import Thread
 from subprocess import Popen, PIPE, STDOUT
 from collections import namedtuple
 
-from configuration import *
-from globals import *
+from wkpf.configuration import *
+from wkpf.globals import *
 
 ChangeSets = namedtuple('ChangeSets', ['components', 'links', 'heartbeatgroups'])
 
@@ -42,17 +42,18 @@ class WuApplication:
     self.logger.addHandler(self.loggerHandler)
 
     # For Mapper
-    self.name = ""
     self.applicationDom = ""
     self.destinationDir = outputDir
     self.templateDir = templateDir
     self.componentXml = componentXml
-
     self.changesets = ChangeSets([], [], [])
+    if os.path.exists(os.path.join(self.dir, 'config.json')):
+      self.loadConfig() # load values from configurations if it exist already
+    else:
+      self.saveConfig() # then save it back if this is a new app without existing configurations
 
   def setFlowDom(self, flowDom):
     self.applicationDom = flowDom
-    self.name = flowDom.getElementsByTagName('application')[0].getAttribute('name')
 
   def setOutputDir(self, outputDir):
     self.destinationDir = outputDir
@@ -92,17 +93,18 @@ class WuApplication:
     f.close()
 
   def loadConfig(self):
-    config = json.load(open(os.path.join(self.dir, 'config.json')))
-    self.id = config['id']
-    self.name = config['name']
-    self.desc = config['desc']
-    self.dir = config['dir']
-    self.xml = config['xml']
-    try:
-      dom = parseString(self.xml)
-      self.setFlowDom(dom)
-    except ExpatError:
-      pass
+    if self.dir:
+      config = json.load(open(os.path.join(self.dir, 'config.json')))
+      self.id = config['id']
+      self.name = config['name']
+      self.desc = config['desc']
+      self.dir = config['dir']
+      self.xml = config['xml']
+      try:
+        dom = parseString(self.xml)
+        self.setFlowDom(dom)
+      except ExpatError:
+        pass
 
   def saveConfig(self):
     json.dump(self.config(), open(os.path.join(self.dir, 'config.json'), 'w'))
@@ -118,6 +120,11 @@ class WuApplication:
 
   def __repr__(self):
     return json.dumps(self.config())
+
+  def destroy(self):
+    shutil.rmtree(self.dir)
+    del self.butler.applications[self.id]
+    return True
 
   def parseApplication(self):
       componentInstanceMap = {}

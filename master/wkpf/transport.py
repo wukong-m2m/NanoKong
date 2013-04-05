@@ -11,8 +11,8 @@ from gevent.event import AsyncResult
 from gevent.queue import Queue
 import wusignal
 import time
-from configuration import *
-from globals import *
+from wkpf.configuration import *
+from wkpf.globals import *
 
 import pynvc # for message constants
 import pyzwave
