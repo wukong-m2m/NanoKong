@@ -13,7 +13,8 @@ def global_conn():
 def bootstrap_database():
     print 'bootstraping database "', "standardlibrary.db", '"'
     global connection
-    connection = sqlite3.connect("standardlibrary.db")
+    #connection = sqlite3.connect("standardlibrary.db")
+    connection = sqlite3.connect(":memory:")
     c = connection.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS nodes
         (identity INTEGER PRIMARY KEY,
@@ -237,8 +238,6 @@ class Node:
             wuobjects_rows = c.execute("SELECT * from wuobjects WHERE node_id=?",
                     t).fetchall()
             for wuobjects_row in wuobjects_rows:
-                print wuobjects_row['wuclass_id']
-                print [x.id for x in wuclasses]
                 wuclass = filter(lambda x: x.id == int(wuobjects_row['wuclass_id']),
                         wuclasses)
                 # WuObjects could be virtual, where the host doesn't have WuClass
@@ -372,6 +371,7 @@ class WuClass:
         t = (self.identity, self.id, self.name, self.virtual, self.type, self.node_id,)
         c.execute("INSERT OR REPLACE INTO wuclasses VALUES (?,?,?,?,?,?)", t)
         self.identity = c.lastrowid
+        global_conn().commit()
         map(lambda x: x.save(), self.properties)
 
 class WuProperty:
