@@ -8,6 +8,7 @@
 #include "GENERATEDwuclass_numeric_controller.h"
 #include "GENERATEDwuclass_light_actuator.h"
 #include "GENERATEDwuclass_light_sensor.h"
+#include "GENERATEDwuclass_trigger.h"
 
 uint8_t wkpf_register_wuclass_and_create_wuobject(wkpf_wuclass_definition wuclass, uint8_t port_number) {
   uint8_t retval = wkpf_register_wuclass(wuclass);
@@ -51,6 +52,12 @@ uint8_t wkpf_native_wuclasses_init() {
 
   if (wkpf_config_get_feature_enabled(WPKF_FEATURE_NATIVE_THRESHOLD)) {
     retval = wkpf_register_wuclass(wuclass_threshold);
+    if (retval != WKPF_OK)
+      return retval;
+  }
+  
+  if (wkpf_config_get_feature_enabled(WPKF_FEATURE_TRIGGER)) {
+    retval = wkpf_register_wuclass(wuclass_trigger);
     if (retval != WKPF_OK)
       return retval;
   }

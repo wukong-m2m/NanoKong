@@ -62,7 +62,7 @@ WKPF_FEATURE_LIGHT_SENSOR         = 0
 WKPF_FEATURE_LIGHT_ACTUATOR       = 1
 WKPF_FEATURE_NUMERIC_CONTROLLER   = 2
 WKPF_FEATURE_NATIVE_THRESHOLD     = 3
-
+WKPF_FEATURE_TRIGGER              = 4
 pymodule = 0
 
 # WARNING:obsolete, use transport.py instead

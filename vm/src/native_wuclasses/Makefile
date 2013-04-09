@@ -16,6 +16,7 @@ NATIVE_WUCLASSES_OBJS = \
     wuclass_loop_delay_short_update.o \
     wuclass_condition_selector_boolean_update.o \
     wuclass_condition_selector_short_update.o \
+    wuclass_trigger_update.o \
     GENERATEDwuclass_generic.o \
     GENERATEDwuclass_threshold.o \
     GENERATEDwuclass_numeric_controller.o \
@@ -26,7 +27,8 @@ NATIVE_WUCLASSES_OBJS = \
     GENERATEDwuclass_loop_delay_boolean.o \
     GENERATEDwuclass_loop_delay_short.o \
     GENERATEDwuclass_condition_selector_boolean.o \
-    GENERATEDwuclass_condition_selector_short.o
+    GENERATEDwuclass_condition_selector_short.o \
+    GENERATEDwuclass_trigger.o
 
 OBJS += $(NATIVE_WUCLASSES_OBJS)
 
