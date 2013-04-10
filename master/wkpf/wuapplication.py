@@ -285,7 +285,7 @@ class WuApplication:
 
       # Generate nvmdefault.h
       self.info('==Compressing application code to bytecode format')
-      pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.id), shell=True, stdout=PIPE, stderr=PIPE)
+      pp = Popen('cd %s; make application FLOWXML=%s' % (platform_dir, self.name), shell=True, stdout=PIPE, stderr=PIPE)
       self.returnCode = None
       (infomsg,errmsg) = pp.communicate()
 
