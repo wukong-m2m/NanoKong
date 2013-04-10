@@ -369,7 +369,7 @@ class BrokerAgent:
                         print "reconfiguration message received"
                         wusignal.signal_reconfig()
                     else:
-                        print "what?"
+                        print "what?", str(bytearray(deliver.payload))
                 else:
                     #log = "Incorrect reply received. Message type correct, but didnt pass verification: " + str(message)
                     print "message discarded"
