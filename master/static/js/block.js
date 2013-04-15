@@ -66,6 +66,7 @@ Block.prototype.serialize=function(obj) {
 	obj.reaction_time = this.reaction_time;
 	obj.actions = {};
 	obj.signals = {};
+	obj.monitor = {};
 	actlist= this.getActions();
 	for(l=0;l<this.actProper.length;l++){
 		act = actlist[l];
