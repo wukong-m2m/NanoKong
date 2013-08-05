@@ -7,11 +7,11 @@ all_wuclasses = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongS
 all_wutypes = parseXML(os.path.join(rootpath, "ComponentDefinitions", "WuKongStandardLibrary.xml"), type='wutype').values()
 
 simNodeInfos = []
-locs = [u"/Eng_Hall/3F/South_Corridor/Room336@(0,1,2)", u"/Eng_Hall/3F/East_Corridor/Room318@(0,5,4)",
-u"/Eng_Hall/3F/South_Corridor/Room336@(0,1,3)", u"/Eng_Hall/3F/East_Corridor/Room318@(0,6,4)"]
+locs = [u"/Wukong/3F/South_Corridor/Room336@(0,1,2)", u"/Wukong/3F/East_Corridor/Room318@(0,5,4)",
+u"/Wukong/3F/South_Corridor/Room336@(0,1,3)", u"/Wukong/3F/East_Corridor/Room318@(0,6,4)"]
 coords = [(0, 1, 2), (0, 5, 3), (0,1,3), (0, 6, 4)]
-landmark1 = LandmarkNode(0, u'door',u"/Eng_Hall@(1,0,2)", (2,0.5,4))
-landmark2 = LandmarkNode(0, u'window',u"/Eng_Hall@(3,7,5)", (4,0.5,7))
+landmark1 = LandmarkNode(u'door',u"/Wukong/3F/South_Corridor/Room336@(1,0,2)", (2,0.5,4),(0,1,0))
+landmark2 = LandmarkNode(u'window',u"/Wukong/3F/South_Corridor/Room336@(1,2,5)", (4,0.5,7),(0,-1,0))
 def genFakeData():	
 	wuobjects = []
 	global simNodeInfos

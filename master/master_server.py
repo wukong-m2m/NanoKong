@@ -575,7 +575,7 @@ class nodes(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.write({'status':1, 'mesg': 'Cannot set location, please try again.'})
 
-class tree(tornado.web.RequestHandler):	
+class loc_tree(tornado.web.RequestHandler):	
   def post(self):
     global location_tree
     global node_infos
@@ -589,16 +589,76 @@ class tree(tornado.web.RequestHandler):
         load_xml += row	
     else:
       pass
-    print node_infos      
+  #  print node_infos      
     addloc = template.Loader(os.getcwd()).load('templates/display_locationTree.html').generate(node_infos=node_infos)
-
-    location_tree.printTree()
-    disploc = location_tree.getJson()
+    print "addloc"+str(addloc)
+    disploc = location_tree.getJson()   #a list of all the nodes to be drawn
+    print "displaying disploc" 
+    print disploc
 
     self.content_type = 'application/json'
-    self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})			
+    self.write({'loc':json.dumps(disploc),'node':addloc,'xml':load_xml})	
+  
+  def get(self, node_id):
+    global location_tree
+    global node_infos
+    node_id = int(node_id)
+    curNode = location_tree.findLocationById(node_id)
+    if curNode == None:
+        self.write({'status':1,'message':'cannot find node id '+str(node_id)})
+        return
+    else:
+        self.write({'status':0, 'message':'succeed in finding node id'+str(node_id), 
+                    'distanceModifier':str(curNode.distanceModifier), 'centerPnt':curNode.centerPnt, 
+                    'size':curNode.size, 'location':curNode.getLocationStr(), 'local_coord':curNode.getOriginalPnt(),
+                    'global_coord':curNode.getGlobalOrigPnt()})	
 
-class save_tree(tornado.web.RequestHandler):
+class sensor_info(tornado.web.RequestHandler):	
+    def get(self, node_id, sensor_id):
+        global location_tree
+        global node_infos
+        node_id = int(node_id)
+        curNode = location_tree.findLocationById(node_id)
+        if curNode == None:
+            self.write({'status':1,'message':'cannot find node id '+str(node_id)})
+            return
+        if sensor_id[0:2] =='se':   #sensor case
+            se_id = int(sensor_id[2:])
+            sensr = curNode.getSensorById(se_id)
+            self.write({'status':0,'message':'find sensor id '+str(se_id), 'location':sensr.location})
+        elif sensor_id[0:2] =='lm': #landmark case
+            lm_id = int(sensor_id[2:])
+            landmk = curNode.findLandmarkById(lm_id)
+            self.write({'status':0,'message':'find landmark id '+str(lm_id), 'location':landmk.location,'size':landmk.size, 'direction':landmk.direction})
+        else:
+            self.write({'status':1, 'message':'failed in finding '+sensor_id+" in node"+ str(node_id)})
+    
+    
+class tree_modifier(tornado.web.RequestHandler):
+  def put(self, mode):
+    start_id = self.get_argument("start")
+    end_id = self.get_argument("end")
+    distance = self.get_argument("distance")
+    paNode = location_tree.findLocationById(int(start_id)//100)      #find parent node
+    if paNode !=None:
+        if int(mode) == 0:        #adding modifier between siblings
+            if paNode.addDistanceModifier(int(start_id), int(end_id), int(distance)):
+                self.write({'status':0,'message':'adding distance modifier between '+str(start_id) +'and'+str(end_id)+'to node'+str(int(start_id)//100)})
+                return
+            else:
+                self.write({'status':1,'message':'adding faild due to not able to find common direct father of the two nodes'})
+                return
+        elif int(mode) == 1:        #deleting modifier between siblings
+            if paNode.delDistanceModifier(int(start_id), int(end_id), int(distance)):
+                self.write({'status':0,'message':'deletinging distance modifier between '+str(start_id) +'and'+str(end_id)+'to node'+str(int(start_id)//100)})
+                return
+            else:
+                self.write({'status':1,'message':'deleting faild due to not able to find common direct father of the two nodes'})
+                return
+    self.write({'status':1,'message':'operation faild due to not able to find common direct father of the two nodes'})
+    
+ 
+class save_landmark(tornado.web.RequestHandler):
 	def put(self):
 		global location_tree
 		
@@ -614,21 +674,29 @@ class add_landmark(tornado.web.RequestHandler):
   def put(self):
     global location_tree
     global landId
-
     name = self.get_argument("name")
+    id = 0;
     location = self.get_argument("location")
     operation = self.get_argument("ope")
-    
+    size  = self.get_argument("size")
+    direct = self.get_argument("direction")
+    landmark = None
+    rt_val = 0
+    msg = ''
     if(operation=="1"):
-      landId += 1
-      landmark = LandmarkNode(landId, name, location, 0) 
-      location_tree.addLandmark(landmark)
+      landmark = LandmarkNode(name, location, size, direct) 
+      rt_val = location_tree.addLandmark(landmark)
+      msg = 'add fails'
       location_tree.printTree()
-#    elif(operation=="0")
-#      location_tree.delLandmark()
+    elif(operation=="0"):
+      rt_val = location_tree.delLandmark(id)
+      msg = 'deletion fails'
     
     self.content_type = 'application/json'
-    self.write({'status':0})
+    if rt_val ==0:
+        self.write({'status':0, 'id':landmark.getId()})
+    if rt_val ==1:
+        self.write({'status':1, 'id':landmark.getId(), 'msg':msg})
 		       
 settings = dict(
   static_path=os.path.join(os.path.dirname(__file__), "static"),
@@ -656,8 +724,11 @@ app = tornado.web.Application([
   (r"/applications/([a-fA-F\d]{32})/monitor", monitor_application),
   (r"/applications/([a-fA-F\d]{32})/fbp/save", save_fbp),
   (r"/applications/([a-fA-F\d]{32})/fbp/load", load_fbp),
-  (r"/loc_tree", tree),
-  (r"/loc_tree/save", save_tree),
+  (r"/loc_tree/nodes/([0-9]*)", loc_tree),
+  (r"/loc_tree/nodes/([0-9]*)/(\w+)", sensor_info),
+  (r"/loc_tree", loc_tree),
+  (r"/loc_tree/modifier/([0-9]*)", tree_modifier),
+  (r"/loc_tree/save", save_landmark),
   (r"/loc_tree/land_mark", add_landmark)
 ], IP, **settings)
 

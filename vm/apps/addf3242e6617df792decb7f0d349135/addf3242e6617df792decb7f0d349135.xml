@@ -1,0 +1,29 @@
+<application name="addf3242e6617df792decb7f0d349135">
+<page title="_first_">
+    <component type="Threshold" instanceId="20" x="501" y="140" w="100" h="100">
+        <link fromProperty="output" toInstanceId="21" toProperty="input"/>
+        <location requirement="/Engineering_Hall@(12,3,4)" />
+        <group_size requirement="1" />
+        <actionProperty operator="" threshold="" value=""  />
+        <signalProperty operator="" threshold="" value="" output=""  />
+    </component>
+    <component type="Trigger" instanceId="21" x="208" y="305" w="100" h="100">
+        <link fromProperty="output" toInstanceId="23" toProperty="on_off"/>
+        <group_size requirement="1" />
+        <actionProperty  />
+        <signalProperty  />
+    </component>
+    <component type="Light_Sensor" instanceId="22" x="217" y="129" w="100" h="100">
+        <link fromProperty="current_value" toInstanceId="20" toProperty="value"/>
+        <location requirement="/E@(3,2,5)" />
+        <group_size requirement="1" />
+        <actionProperty refresh_rate=""  />
+        <signalProperty current_value="" refresh_rate=""  />
+    </component>
+    <component type="Light_Actuator" instanceId="23" x="559" y="308" w="100" h="100">
+        <group_size requirement="1" />
+        <actionProperty  />
+        <signalProperty  />
+    </component>
+</page>
+</application>

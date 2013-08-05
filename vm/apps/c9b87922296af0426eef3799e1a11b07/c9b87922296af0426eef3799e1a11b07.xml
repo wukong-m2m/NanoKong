@@ -1,0 +1,26 @@
+<application name="c9b87922296af0426eef3799e1a11b07">
+<page title="_first_">
+    <component type="Light_Sensor" instanceId="19" x="100" y="236" w="100" h="100">
+        <link fromProperty="current_value" toInstanceId="21" toProperty="value"/>
+        <actionProperty refresh_rate="3000"  />
+        <signalProperty current_value="" refresh_rate=""  />
+    </component>
+    <component type="Threshold" instanceId="21" x="378" y="298" w="100" h="100">
+        <link fromProperty="output" toInstanceId="20" toProperty="on_off"/>
+        <group_size requirement="1" />
+        <actionProperty  />
+        <signalProperty  />
+    </component>
+    <component type="Numeric_Controller" instanceId="22" x="87" y="376" w="100" h="100">
+        <link fromProperty="output" toInstanceId="21" toProperty="threshold"/>
+        <group_size requirement="1" />
+        <actionProperty  />
+        <signalProperty  />
+    </component>
+    <component type="Light_Actuator" instanceId="20" x="636" y="284" w="100" h="100">
+        <group_size requirement="1" />
+        <actionProperty  />
+        <signalProperty  />
+    </component>
+</page>
+</application>

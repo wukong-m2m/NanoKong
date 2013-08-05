@@ -33,7 +33,7 @@ class LocationParser:
         self.locationTree = locationTree
 
     def evaluateAnd(self, locTreeNode, argument):
-        print "argument in evalAnd:"+str(argument)
+        #print "argument in evalAnd:"+str(argument)
         if len(argument)==1:
             return self.evaluate(locTreeNode, argument[0])
         return self.evaluate(locTreeNode, argument[0]).intersection(self.evaluate(locTreeNode, argument[1]))
@@ -48,7 +48,7 @@ class LocationParser:
         
     def evaluateFunction(self, locTreeNode, argument):
         arglst = argument[1:]
-        print "function arguments:", argument
+       # print "function arguments:", argument
         return self._funct_dict[argument[0]](locTreeNode, *arglst)
     
     def parsePath(self):
@@ -58,14 +58,14 @@ class LocationParser:
         return evaluatePath
         
     def evaluateSpec(self, locTreeNode, argument):
-        print "argument: "+str(argument)
+       # print "argument: "+str(argument)
         locTreeNode = argument[0]
         if len(argument)<2:     #if no functions after URL, shortcut for URL#getAll()
             return locTreeNode.getAllAliveNodeIds()
         return self.evaluate(locTreeNode, argument[1])
         
     def evaluate(self, locTreeNode, argument):
-        print 'name: '+argument.getName()+" "+str(argument)
+       # print 'name: '+argument.getName()+" "+str(argument)
         return self._funct_dict[argument.getName()](self, locTreeNode, argument)
         
     #different functions

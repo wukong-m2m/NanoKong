@@ -1,0 +1,84 @@
+body {
+	margin: 0px;
+}
+input, select, textarea {
+	padding: 6px;
+}
+option {
+	padding: 5px;
+},
+.no-space-tabular table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.no-space-tabular table tr td, .no-space-tabular table tr th {
+	text-align: left;
+	vertical-align: top;
+	border-spacing: 0,0,0,0;
+	padding: 0,0,0,0;
+	word-wrap: break-word;
+}
+
+.tabular-data table {
+	border-collapse: collapse;
+	width: 100%;
+}
+.tabular-data table tr td, .resume-tabular-data table tr th {
+	text-align: left;
+	vertical-align: top;
+	border-spacing: 4px 4px 4px 4px;
+	padding: 4px 4px 4px 4px;
+	word-wrap: break-word;
+}
+.linear-form table th {
+	width: 190px;
+}
+
+.hidden {
+	display: none;
+}
+div.group-box-outer {
+	margin: 2px;
+}
+div.group-box {
+	padding: 2px;
+}
+div.group-box h3 {
+	text-align: left; 
+	margin: 0; 
+}
+
+div.mid-size-left {
+	float: left;
+	width: 400px;
+}
+div.small-size-left {
+	float: left;
+	width: 300px;
+}
+div.small-size-right {
+	float: right;
+	width: 300px;
+	vertical-align: top;
+}
+div.left-all {
+	width: 100%;
+	float: left;
+	height: auto;
+}
+div.left {
+	display: inline;
+	float: left;
+}
+div.right-all{
+	width: 100%;
+	float: right;
+}
+div.right {
+	float: right;
+}
+
+.break {
+	clear: both;
+}

@@ -1,49 +1,54 @@
 #the children of leaf nodes are sensor nodes, sensor nodes
 
 import logging
-import odict
 import json
 
-json_data = odict.odict()
-#json_data = {}
-number = 0
 MAX_LIFE = 1
 class LandmarkNode:
     #location is a string, size is a tuple of three (corresponding to x, y,z direction)
     #assuming shapes to be cuboid, but it could also be cylinder, pyramid, ball etc
     #size, direct are tuples
-    def __init__(self, id, name, locationStr, size, direct = None):
-        self.id = id
+    currentID = 0
+    def __init__(self, name, locationStr, size, direct = None):
+        self.id = LandmarkNode.currentID
+        LandmarkNode.currentID = LandmarkNode.currentID+1
         self.name = name
         self.location = locationStr
         self.locationTreeNode = None
         self.locationLst,x_coord,y_coord, z_coord = LocationTree.parseLocation(locationStr)
         self.coord = (x_coord,y_coord,z_coord)
+        self.size = size 
         self.direction = direct
-        self.size = size
+        self.json_data = []
+    def getId():
+        return self.id
         
-    
 class SensorNode:
     def __init__(self, nodeInfo):
         self.location = nodeInfo.location
         self.locationLst, x_coord, y_coord, z_coord = LocationTree.parseLocation(nodeInfo.location)
         self.locationTreeNode = None
         self.nodeInfo = nodeInfo
-        self.coord = (x_coord,y_coord,z_coord)
+        self.coord = (x_coord,y_coord,z_coord)      #local coord
         self.life = MAX_LIFE
         self.port_list = []
         self.temp_port_list = []
         self.last_reserved_port = 0
-        
+    
+    def getGlobalCoord(self):
+        if self.locationTreeNode!= None:
+            return self.locationTreeNode.transformToGlobal(self.coord)
+        else:
+            return self.coord
+                    
     def initPortList(self, forceInit = True):
         if len(self.port_list)!=0 and forceInit == False:
             return
-        for wuObj in self.nodeInfo.wuobjects:
-            self.port_list.append(wuObj.port_number)
+        for wuObj in self.nodeInfo.wuObjects:
+            self.port_list.append(wuObj._portNumber)
         self.port_list.sort()
     def reserveNextPort(self):      #reserve a port from 0 ~ 127
         portSet = False
-        
         for j in range(len(self.port_list)-1 ,-1 , -1):
             if (self.port_list[j]+1)%128 !=self.port_list[(j+1)%len(self.port_list)]:
                 self.port_list.append((self.port_list[j]+1)%128)
@@ -58,6 +63,12 @@ class SensorNode:
 
 class LocationTreeNode:
     def __init__(self, name, parent):
+        self.id = 1
+        if parent != None:
+            if self in parent.children:
+                self.id = 100*parent.id + parent.children.index(self)
+            else:
+                self.id = 100*parent.id + len(parent.children)
         self.name = name
         self.parent = parent
         self.children = []
@@ -65,9 +76,9 @@ class LocationTreeNode:
         self.sensorLst = []
         self.sensorCnt = 0
         self.landmarkLst = []
-        self.size = None
-        self.originalPnt = (0,0,0)     #in coord system f parent
-        self.centerPnt = None       #in coord system of parent
+        self.size = (0,0)
+        self.originalPnt = (0,0,0)     #in coord system of parent
+        self.centerPnt = (0,0,0)      #in coord system of parent
         #represent [[cosx1x2, cosx2y1, cosx2z1],[cosy1x2, cosy1y2,cosy1z2],[cosz1x2,cosz1y2,cosz1z2]]
         #globalCoord = transMatrix * localCoord 
         self.transMatrix = [[1,0,0],[0,1,0],[0,0,1]]   #default no transformation between coordinate system
@@ -81,10 +92,35 @@ class LocationTreeNode:
     def setLocalTransMatrix (self, transMatrix):
         self.localTransMatrix = transMatrix
     
-    #origPoint is a tuple of 3, (0,1,2)
+    #transform a local vector (x,y,z) to global one
+    def transformToGlobal(self, vect):
+        newVec = (0,0,0)
+        for i in range(3):
+            for j in range[3]:
+                newVec[i] = newVec[i]+ self.transMatrix[i][j]*vect[j]
+        return newVec
+        
+    #origPoint is a tuple of 3, e.g.(0,1,2)
     def setOriginalPnt (self, origPoint):
         self.originalPnt = originalPoint
+        
+    def getGlobalOrigPnt(self):    
+        pa_global = (0,0,0)
+        curNd = self
+        while curNd.parent !=None:
+            curNd = curNd.parent
+            pa_global = (pa_global[0] + curNd..transformToGlobal(origPoint[0]), 
+                         pa_global[1]+ curNd.transformToGlobal(origPoint[1]), 
+                         pa_global[2]+ curNd.transformToGlobal(origPoint[2]))
+        pa_global = (curNd.originalPnt[0] + curNd..transformToGlobal(origPoint[0]), 
+                     curNd.originalPnt[1]+ curNd.transformToGlobal(origPoint[1]), 
+                     curNd.originalPnt[2]+ curNd.transformToGlobal(origPoint[2]))
+        return pa_global
     
+    def getOriginalPnt (self):
+        return self.originalPnt
+    def getCenterPnt(self):
+        return self.centerPnt
     def setCenterPnt (self, centerPnt):
         self.centerPnt = centerPnt
            
@@ -103,66 +139,69 @@ class LocationTreeNode:
         curPos = pos1
         while snrId not in curPos.idSet:
             try:
-                modifier = modifier +self.distanceModifier[set([curPos.name,pos1.name])]
+                modifier = modifier +self.distanceModifier[(pos1.id,curPos.id)]
             except KeyError:
                 modifier = modifier
             pos1 = curPos
             curPos = curPos.parent
         try:
-            modifier = modifier +curPos.distanceModifier[set([pos1.name,pos2.name])]
+            modifier = modifier +curPos.distanceModifier[(pos1.id,pos2.id)]
         except KeyError:
             modifier = modifier
         return modifier
         
-    def addDistanceModifier(self, name1, name2, distance):
+    def addDistanceModifier(self, id1, id2, distance):
         found = 0
-        ids = [name1, name2]
+        ids = [id1, id2]
         lst = self.children
-        if self.parent !=None:
-            lst.append(self.parent)
+     #   if self.parent !=None:
+      #      lst.append(self.parent)
         for child in lst:
-            if child.name == name1:
+            if child.id == id1:
                 found = found+1
                 if found == 3:
                     break
-            elif child.name == name2:
+            elif child.id == id2:
                 found = found +2
                 if found == 3:
                     break
         if found == 0:
-            logging.error("error! None of the names"+str(ids)+" found when adding distance modifier to " + self.name)
+            logging.error("error! None of the ids"+str(ids)+" found when adding distance modifier to " + str(self.id))
             return False
         elif found!=3:
-            logging.error("error! None of the names"+str(ids[2-found])+" not found when adding distance modifier to"+ self.name)
+            logging.error("error! Id"+str(ids[2-found])+" not found when adding distance modifier to"+ str(self.id))
             return False
 
-        self.distanceModifier[set([name1,name2])] = distance
+        self.distanceModifier[(id1,id2)] = distance
+        self.distanceModifier[(id2,id1)] = distance
+        return True
     
-    def delDistanceModifier(self, name1, name2, distance):
+    def delDistanceModifier(self, id1, id2, distance):
         found = 0
-        ids = [name1, name2]
+        ids = [id1, id2]
         lst = self.children
         if self.parent !=None:
             lst.append(self.parent)
         for child in lst:
-            if child.name == name1:
+            if child.id == id1:
                 found = found+1
                 if found == 3:
                     break
-            elif child.name == name2:
+            elif child.id == id2:
                 found = found +2
                 if found == 3:
                     break
         if found == 0:
-            logging.error("error! None of the names"+str(ids)+" found when adding distance modifier to " + self.name)
+            logging.error("error! None of the ids"+str(ids)+" found when adding distance modifier to " + self.id)
             return False
         elif found!=3:
-            logging.error("error! None of the names"+str(ids[2-found])+" not found when adding distance modifier to"+ self.name)
+            logging.error("error! None of the ids"+str(ids[2-found])+" found when adding distance modifier to"+ self.id)
             return False
         try:
-            del self.distanceModifier[set([name1,name2])]
+            del self.distanceModifier[(id1,id2)]
+            del self.distanceModifier[(id2,id1)]
         except KeyError:
-            logging.error("error! distance modifier does not exist for " +str(ids)+" in "+ self.name)
+            logging.error("error! distance modifier does not exist for " +str(ids)+" in "+ self.id)
             return False
         return True
             
@@ -207,12 +246,16 @@ class LocationTreeNode:
         if landmarkNode not in self.landmarkLst:
             self.landmarkLst.append(landmarkNode)
             landmarkNode.locationTreeNode = self
+            return 0
+        return 1
     
     def delLandmark (self, landmarkId):
         for landmarkNd in self.landmarkLst:
             if landmarkId == landmarkNd.id:
                 self.landmarkLst.remove(landmarkNd)
                 del landmarkNd
+                return 0
+        return 1
                 
     def findLandmarksByName(self, landmarkName):
         retLst = []
@@ -268,6 +311,14 @@ class LocationTreeNode:
         for child in self.children:
             ret_val.append(child.getAllNodeInfos())
         return ret_val
+    
+    def getLocationStr(self):
+        loc_str = '/'+self.name
+        cur_node = self
+        while(cur_node.parent !=None):
+            loc_str = '/'+ cur_node.parent.name+ loc_str
+            cur_node = cur_node.parent
+        return loc_str
         
     def toString(self, indent = 0):
         print_str = ""
@@ -282,32 +333,16 @@ class LocationTreeNode:
             print_str = print_str + str(landmarkNode.id)+str(landmarkNode.name)+str(landmarkNode.coord)+', '
         return print_str
         
-    def _toString(self, indent = 0):
-        global number
-        print_str = ""
-        print_str = print_str + self.name + "#"
-        json_data[indent+number*10] = print_str
-        if not len(self.sensorLst) == 0:
-            self._chldString(indent)
-        return print_str
-        
-    def to_String(self, indent = 0):
-        global number
+    def _genJsonArray(self, indent = 0):
         print_str = ""
         print_str = print_str + self.name
-        json_data[indent+number*10] = print_str
-        if not len(self.sensorLst) == 0:
-            self._chldString(indent)
-        return print_str
-        
-    def _chldString(self, indent=0):
-        global number
+        json_data = []
+        json_data.append([0,indent, [self.id, print_str]])
         for i in range(len(self.sensorLst)):
-            number += 1
-            json_data[indent+1+number*10] = str(self.sensorLst[i].nodeInfo.nodeId) + str(self.sensorLst[i].coord)
+            json_data.append([1, indent+1,  [self.sensorLst[i].nodeInfo.nodeId, str(self.sensorLst[i].coord)]])
         for landmarkNode in self.landmarkLst:
-        	number += 1
-        	json_data[indent+1+number*10] = str(landmarkNode.name)+" "+str(landmarkNode.id)+str(landmarkNode.coord)         
+        	json_data.append([2, indent+1, [str(landmarkNode.name), landmarkNode.id, str(landmarkNode.coord), str(landmarkNode.size)]])  
+        return json_data
         
 class LocationTree:
         
@@ -481,6 +516,23 @@ class LocationTree:
                         return senr
                 curNode = None
         return None                
+    def findLocationById(self, node_id):
+        idLst = []
+       #each number in the list will indicate which child of the tree to go into to find the node
+        while node_id>=100:
+          idLst.append(node_id%100)
+          node_id = node_id//100
+
+        idLst.append(node_id)
+        idLst.reverse()
+        idLst = idLst[1:]       #get rid of heading 1 (which means root)
+        curNode = self.root
+        for i in idLst:
+          if len(curNode.children)> i:
+            curNode= curNode.children[i]
+          else:
+            return None
+        return curNode
         
     def findLocation(self, startPos, locationStr):
         locationLst = None
@@ -523,29 +575,25 @@ class LocationTree:
         return locationLst, eval(x_coord),eval(y_coord),eval(z_coord)
 
     def printTree(self, treeNd=None, indent = 0):
-        json_data.clear()
-        number = 0
-        self.tmp_printTree(treeNd, indent)		
-
-    def tmp_printTree(self, treeNd=None, indent = 0):
-        global number
-        number += 1
-
-        _str = ""
+        
         str =""
         if treeNd ==None:
             treeNd = self.root
-
-        _str += treeNd._toString(indent)
         str += treeNd.toString(indent)
         
         print (str)
 
         for i in range(treeNd.childrenCnt):
-            self.tmp_printTree(treeNd.children[i], indent+1)
+            self.printTree(treeNd.children[i], indent+1)
 
-    def getJson(self):
-        return json_data
+    def getJson(self, treeNd=None, indent = 0):
+        if treeNd ==None:
+            self.json_data = []
+            treeNd = self.root
+        self.json_data.extend(treeNd._genJsonArray(indent))
+        for i in range(treeNd.childrenCnt):
+            self.getJson(treeNd.children[i], indent+1)
+        return self.json_data
 
     def buildTree(self, node_infos):
         self.updateSensors(node_infos)

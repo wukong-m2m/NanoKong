@@ -1,0 +1,439 @@
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00000b0e Next update at:00000c08
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 63
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00000bcc Next update at:00000dc0
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time af0
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00000c12 Next update at:00000d0c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 63
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00000d16 Next update at:00000e10
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 63
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00000dca Next update at:00000fbe
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time cee
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00000e1a Next update at:00000f14
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 63
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00000f1e Next update at:00001018
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 64 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00000fd2 Next update at:000011c6
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time ef6
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00001022 Next update at:0000111c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00001126 Next update at:00001220
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000011d0 Next update at:000013c4
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 10f4
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000122a Next update at:00001324
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000132e Next update at:00001428
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000013ce Next update at:000015c2
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 12f2
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00001432 Next update at:0000152c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 63
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 63 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00001536 Next update at:00001630
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 64 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000015ea Next update at:000017de
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 150e
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000163a Next update at:00001734
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 65
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 65 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000173e Next update at:00001838
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 64 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000017f2 Next update at:000019e6
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 1716
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00001842 Next update at:0000193c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00001946 Next update at:00001a40
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000019f0 Next update at:00001be4
+WKPFUPDATE: Update native wuobject at port 2
+WKFWKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00001f5e Next update at:00002058
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00001fea Next update at:000021de
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 1f0e
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002062 Next update at:0000215c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002166 Next update at:00002260
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 60
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 60 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:0000221a Next update at:0000240e
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 213e
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000226a Next update at:00002364
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 5d
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 5d -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000236e Next update at:00002468
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 53
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 53 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00002422 Next update at:00002616
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 2346
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002472 Next update at:0000256c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 3b
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 3b -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002576 Next update at:00002670
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 18
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 18 -> TRUE
+WKPFUPDATE(Native Trigger): input 1 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 1 time a
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000026d4 Next update at:000028c8
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 1 count 2 time be
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000026e8 Next update at:000027e2
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: b
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value b -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000027ec Next update at:000028e6
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 7
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 7 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000028d2 Next update at:00002ac6
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 1 count 3 time 2bc
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000028f0 Next update at:000029ea
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: a
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value a -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000029f4 Next update at:00002aee
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 7
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 7 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00002ad0 Next update at:00002cc4
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 1 count 4 time 4ba
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002af8 Next update at:00002bf2
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 6
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 6 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002bfc Next update at:00002cf6
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 4
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 4 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00002cce Next update at:00002ec2
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 1 count 5 time 6b8
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002d00 Next update at:00002dfa
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 15
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 15 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002e04 Next update at:00002efe
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 50
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 50 -> FALSE
+WKPFUPDATE(Native Trigger): input 0 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 0 time 898
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00002f62 Next update at:00003156
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time 94c
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00002f76 Next update at:00003070
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 73
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 73 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000307a Next update at:00003174
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 75
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 75 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00003160 Next update at:00003354
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time b4a
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000317e Next update at:00003278
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 52
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 52 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003282 Next update at:0000337c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 54
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 54 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:0000335e Next update at:00003552
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time d48
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003386 Next update at:00003480
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 23
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 23 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000348a Next update at:00003584
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 10
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 10 -> TRUE
+WKPFUPDATE(Native Trigger): input 1 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 1 time a
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000035e8 Next update at:000037dc
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 2 time be
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000035fc Next update at:000036f6
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 9
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 9 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003700 Next update at:000037fa
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 8
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 8 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000037e6 Next update at:000039da
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 3 time 2bc
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003804 Next update at:000038fe
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 5
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 5 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003908 Next update at:00003a02
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 4
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 4 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000039e4 Next update at:00003bd8
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 4 time 4ba
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003a0c Next update at:00003b06
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 4
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003b10 Next update at:00003c0a
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 3
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 3 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00003be2 Next update at:00003dd6
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 5 time 6b8
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003c14 Next update at:00003d0e
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 3
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003d18 Next update at:00003e12
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 2
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 2 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00003de0 Next update at:00003fd4
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 6 time 8b6
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003e1c Next update at:00003f16
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 3
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 3 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00003f20 Next update at:0000401a
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 1
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 1 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00003fde Next update at:000041d2
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 7 time ab4
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004024 Next update at:0000411e
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 1
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004128 Next update at:00004222
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 10
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 10 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000041dc Next update at:000043d0
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 8 time cb2
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000422c Next update at:00004326
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 50
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 50 -> FALSE
+WKPFUPDATE(Native Trigger): input 0 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 0 time dac
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000438a Next update at:00004484
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 70
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 70 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00004448 Next update at:0000463c
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time f1e
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000448e Next update at:00004588
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 72
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 72 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004592 Next update at:0000468c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 5b
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 5b -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00004646 Next update at:0000483a
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time 111c
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004696 Next update at:00004790
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 51
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 51 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000479a Next update at:00004894
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 1e
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 1e -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:0000484e Next update at:00004a42
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time 1324
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000489e Next update at:00004998
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: e
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value e -> TRUE
+WKPFUPDATE(Native Trigger): input 1 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 1 time a
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000049fc Next update at:00004af6
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 8
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 8 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00004ab0 Next update at:00004ca4
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 2 time 17c
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004b00 Next update at:00004bfa
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 6
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 6 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004c04 Next update at:00004cfe
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 10
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 10 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00004cb8 Next update at:00004eac
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 3 time 37a
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004d08 Next update at:00004e02
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 58
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 58 -> FALSE
+WKPFUPDATE(Native Trigger): input 0 prev_input 1
+WKPFUPDATE(Native Trigger): output 1 count 0 time 474
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004e66 Next update at:00004f60
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 68
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 68 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00004f24 Next update at:00005118
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 5e6
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00004f6a Next update at:00005064
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 64
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 64 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000506e Next update at:00005168
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 65
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 65 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00005122 Next update at:00005316
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 0 time 7e4
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00005172 Next update at:0000526c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 2f
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 2f -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00005276 Next update at:00005370
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 13
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 13 -> TRUE
+WKPFUPDATE(Native Trigger): input 1 prev_input 0
+WKPFUPDATE(Native Trigger): output 1 count 1 time a
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000053d4 Next update at:000055c8
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 1 count 2 time be
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000053e8 Next update at:000054e2
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 7
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 7 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000054ec Next update at:000055e6
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 7
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:000055d2 Next update at:000057c6
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 1 prev_input 1
+WKPFUPDATE(Native Trigger): output 1 count 3 time 2bc
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000055f0 Next update at:000056ea
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 10
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 10 -> TRUE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:000056f4 Next update at:000057ee
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 4c
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 4c -> FALSE
+WKPFUPDATE(Native Trigger): input 0 prev_input 1
+WKPFUPDATE(Native Trigger): output 0 count 0 time 488
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00005852 Next update at:00005a46
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time 53c
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00005866 Next update at:00005960
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 65
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 65 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:0000596a Next update at:00005a64
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 77
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 77 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00005a50 Next update at:00005c44
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time 73a
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00005a6e Next update at:00005b68
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 55
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 55 -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00005b72 Next update at:00005c6c
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 5c
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 5c -> FALSE
+WKPFUPDATE: Scheduled next update for object at port 2. Refresh rate:1f4 Current time:00005c4e Next update at:00005e42
+WKPFUPDATE: Update native wuobject at port 2
+WKPFUPDATE(Native Trigger): input 0 prev_input 0
+WKPFUPDATE(Native Trigger): output 0 count 0 time 938
+WKPFUPDATE: Scheduled next update for object at port 3. Refresh rate:fa Current time:00005c76 Next update at:00005d70
+WKPFUPDATE: Update native wuobject at port 3
+WKPFUPDATE(LightSensor): Sensed light value: 72
+WKPFUPDATE(Threshold): Native threshold: operator 0 threshold 1e value 72 -> FALSE
+

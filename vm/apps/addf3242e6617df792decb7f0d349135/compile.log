@@ -1,0 +1,807 @@
+group size for component [wuobject(node:None port:None wuclass id: 1 queries:['', 1])] is 1 for candidates [[10, 1, True]]
+will select the first 1 in this candidateSet [[10, 1, True]]
+group size for component [wuobject(node:None port:None wuclass id: 10 queries:['', 1])] is 1 for candidates [[10, 2, True]]
+will select the first 1 in this candidateSet [[10, 2, True]]
+group size for component [wuobject(node:None port:None wuclass id: 5 queries:['', 1])] is 1 for candidates [[10, 3, True]]
+will select the first 1 in this candidateSet [[10, 3, True]]
+group size for component [wuobject(node:None port:None wuclass id: 4 queries:['', 1])] is 1 for candidates [[10, 4, True]]
+will select the first 1 in this candidateSet [[10, 4, True]]
+==Generating necessary files for wukong
+==================Begin TypeDefs=====================
+Parsing wutype ThresholdOperator
+Parsing wutype LogicalOperator
+Parsing wutype MathOperator
+==================End of TypeDefs=====================
+==================Begin WuClasses=====================
+Parsing WuClass Generic
+Parsing WuClass Trigger
+Parsing WuClass Threshold
+Parsing WuClass Temperature_Sensor
+Parsing WuClass Logical
+Parsing WuClass Condition_selector_boolean
+Parsing WuClass Condition_selector_short
+Parsing WuClass Loop_delay_boolean
+Parsing WuClass Loop_delay_short
+Parsing WuClass MathOp
+Parsing WuClass Numeric_Controller
+Parsing WuClass Light_Sensor
+Parsing WuClass Sound_Sensor
+Parsing WuClass PIR_Sensor
+Parsing WuClass Light_Actuator
+Parsing WuClass Occupancy_Sensor
+Parsing WuClass And_Gate
+Parsing WuClass If_short
+Parsing WuClass If_boolean
+Parsing WuClass Null
+==Generating application code in target language (Java)
+==Compressing application code to bytecode format
+mkdir -p ../../../../java/classes
+javac -d ../../../../java/classes ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#javac -classpath "../../../../java/nanovm:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#jar -cf NanoKong.jar ../../../../java/nanovm/*/*.class
+#mv NanoKong.jar ../../../../java/examples
+#javac -classpath "../../../../java/nanovm:../../../../java/nanovm/wkpf:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java
+#make clean
+#make generate
+make nvmdefault.h
+make[1]: Entering directory `/Users/senatorjo/NanoKong/NanoKong/vm/apps/addf3242e6617df792decb7f0d349135/avr_mega2560'
+mkdir -p ../../../../java/classes
+javac -d ../../../../java/classes ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#javac -classpath "../../../../java/nanovm:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#jar -cf NanoKong.jar ../../../../java/nanovm/*/*.class
+#mv NanoKong.jar ../../../../java/examples
+#javac -classpath "../../../../java/nanovm:../../../../java/nanovm/wkpf:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java
+java -cp ../../../../nanovmtool/build/classes org/nanovm/NanoVMTool -c -f nvmdefault.h ../../../../nanovmtool/config/Mega8.config "../../../../java/classes" addf3242e6617df792decb7f0d349135
+NanoVMTool V1.6 - (c) 2005-2007 by Till Harbaum
+Initializing native mapper
+Read config ../../../../nanovmtool/config/Mega8.config
+read native ../../../../nanovmtool/config/Object
+trying to load ../../../../nanovmtool/config/Object.native
+read native ../../../../nanovmtool/config/System
+trying to load ../../../../nanovmtool/config/System.native
+read native ../../../../nanovmtool/config/PrintStream
+trying to load ../../../../nanovmtool/config/PrintStream.native
+read native ../../../../nanovmtool/config/InputStream
+trying to load ../../../../nanovmtool/config/InputStream.native
+read native ../../../../nanovmtool/config/StringBuffer
+trying to load ../../../../nanovmtool/config/StringBuffer.native
+read native ../../../../nanovmtool/config/StringBuilder
+trying to load ../../../../nanovmtool/config/StringBuilder.native
+read native ../../../../nanovmtool/config/AVR
+trying to load ../../../../nanovmtool/config/AVR.native
+read native ../../../../nanovmtool/config/Port
+trying to load ../../../../nanovmtool/config/Port.native
+read native ../../../../nanovmtool/config/Timer
+trying to load ../../../../nanovmtool/config/Timer.native
+read native ../../../../nanovmtool/config/Adc
+trying to load ../../../../nanovmtool/config/Adc.native
+read native ../../../../nanovmtool/config/Pwm
+trying to load ../../../../nanovmtool/config/Pwm.native
+read native ../../../../nanovmtool/config/NvmComm
+trying to load ../../../../nanovmtool/config/NvmComm.native
+read native ../../../../nanovmtool/config/USART
+trying to load ../../../../nanovmtool/config/USART.native
+read native ../../../../nanovmtool/config/WKPF
+trying to load ../../../../nanovmtool/config/WKPF.native
+read native ../../../../nanovmtool/config/Math
+trying to load ../../../../nanovmtool/config/Math.native
+CLASSPATH: ../../../../java/classes
+Trying ../../../../java/classes/addf3242e6617df792decb7f0d349135.class
+Loading class addf3242e6617df792decb7f0d349135
+Classfile version 0.50
+CP: # of entries = 97
+CP: 1 METHODREF 24 41
+CP: 2 FIELDREF 42 43
+CP: 3 STRING 44
+CP: 4 METHODREF 45 46
+CP: 5 METHODREF 47 48
+CP: 6 METHODREF 45 49
+CP: 7 FIELDREF 23 50
+CP: 8 METHODREF 47 51
+CP: 9 FIELDREF 23 52
+CP: 10 METHODREF 47 53
+CP: 11 FIELDREF 23 54
+CP: 12 METHODREF 47 55
+CP: 13 METHODREF 23 56
+CP: 14 METHODREF 47 57
+CP: 15 METHODREF 58 59
+CP: 16 METHODREF 47 60
+CP: 17 METHODREF 47 61
+CP: 18 METHODREF 47 62
+CP: 19 METHODREF 47 63
+CP: 20 METHODREF 47 64
+CP: 21 METHODREF 47 65
+CP: 22 CLASS 26
+CP: 23 CLASS 44
+CP: 24 CLASS 66
+CP: 25 UTF "linkDefinitions"
+CP: 26 UTF "[B"
+CP: 27 UTF "componentInstanceToWuObjectAddrMap"
+CP: 28 UTF "[[B"
+CP: 29 UTF "heartbeatToNodeAddrMap"
+CP: 30 UTF "<init>"
+CP: 31 UTF "()V"
+CP: 32 UTF "Code"
+CP: 33 UTF "LineNumberTable"
+CP: 34 UTF "main"
+CP: 35 UTF "([Ljava/lang/String;)V"
+CP: 36 UTF "StackMapTable"
+CP: 37 UTF "initialiseLocalWuObjects"
+CP: 38 UTF "<clinit>"
+CP: 39 UTF "SourceFile"
+CP: 40 UTF "addf3242e6617df792decb7f0d349135.java"
+CP: 41 NAMEANDTYPE 30 31
+CP: 42 CLASS 67
+CP: 43 NAMEANDTYPE 68 69
+CP: 44 UTF "addf3242e6617df792decb7f0d349135"
+CP: 45 CLASS 70
+CP: 46 NAMEANDTYPE 71 72
+CP: 47 CLASS 73
+CP: 48 NAMEANDTYPE 74 75
+CP: 49 NAMEANDTYPE 71 76
+CP: 50 NAMEANDTYPE 29 28
+CP: 51 NAMEANDTYPE 77 78
+CP: 52 NAMEANDTYPE 27 28
+CP: 53 NAMEANDTYPE 79 78
+CP: 54 NAMEANDTYPE 25 26
+CP: 55 NAMEANDTYPE 80 81
+CP: 56 NAMEANDTYPE 37 31
+CP: 57 NAMEANDTYPE 82 83
+CP: 58 CLASS 84
+CP: 59 NAMEANDTYPE 85 31
+CP: 60 NAMEANDTYPE 86 87
+CP: 61 NAMEANDTYPE 88 89
+CP: 62 NAMEANDTYPE 90 91
+CP: 63 NAMEANDTYPE 92 93
+CP: 64 NAMEANDTYPE 94 95
+CP: 65 NAMEANDTYPE 96 93
+CP: 66 UTF "java/lang/Object"
+CP: 67 UTF "java/lang/System"
+CP: 68 UTF "out"
+CP: 69 UTF "Ljava/io/PrintStream;"
+CP: 70 UTF "java/io/PrintStream"
+CP: 71 UTF "println"
+CP: 72 UTF "(Ljava/lang/String;)V"
+CP: 73 UTF "nanovm/wkpf/WKPF"
+CP: 74 UTF "getMyNodeId"
+CP: 75 UTF "()S"
+CP: 76 UTF "(I)V"
+CP: 77 UTF "loadHeartbeatToNodeAddrMap"
+CP: 78 UTF "([[B)V"
+CP: 79 UTF "loadComponentToWuObjectAddrMap"
+CP: 80 UTF "loadLinkDefinitions"
+CP: 81 UTF "([B)V"
+CP: 82 UTF "select"
+CP: 83 UTF "()Lnanovm/wkpf/VirtualWuObject;"
+CP: 84 UTF "nanovm/wkpf/VirtualWuObject"
+CP: 85 UTF "update"
+CP: 86 UTF "isLocalComponent"
+CP: 87 UTF "(S)Z"
+CP: 88 UTF "getPortNumberForComponent"
+CP: 89 UTF "(S)B"
+CP: 90 UTF "createWuObject"
+CP: 91 UTF "(SBLnanovm/wkpf/VirtualWuObject;)V"
+CP: 92 UTF "setPropertyShort"
+CP: 93 UTF "(SBS)V"
+CP: 94 UTF "setPropertyBoolean"
+CP: 95 UTF "(SBZ)V"
+CP: 96 UTF "setPropertyRefreshRate"
+class: flags=33; class index=23; super class index=24
+class: #interfaces=0
+class: #fields=3
+  field: flags=26; name index=25; signature index=26
+  field: #attributes=0
+  field: flags=26; name index=27; signature index=28
+  field: #attributes=0
+  field: flags=26; name index=29; signature index=28
+  field: #attributes=0
+class: #methods=4
+  method: flags=1; name index=30; signature index=31
+  method: #attributes=1
+    method: attribute name index=32; length=29
+      code: maxStack=1; maxLocals=1; bytecode length=5
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=33; length=6
+          line numbers: #line numbers=1
+          line numbers: start PC=0; line number=6
+  method: flags=9; name index=34; signature index=35
+  method: #attributes=1
+    method: attribute name index=32; length=123
+      code: maxStack=2; maxLocals=2; bytecode length=53
+      code: exception table length=0
+      code: #attributes=2
+        code: code attribute name index=33; length=42
+          line numbers: #line numbers=10
+          line numbers: start PC=0; line number=54
+          line numbers: start PC=8; line number=55
+          line numbers: start PC=17; line number=56
+          line numbers: start PC=23; line number=57
+          line numbers: start PC=29; line number=58
+          line numbers: start PC=35; line number=59
+          line numbers: start PC=38; line number=62
+          line numbers: start PC=42; line number=63
+          line numbers: start PC=46; line number=64
+          line numbers: start PC=50; line number=66
+        code: code attribute name index=36; length=4
+          unknown attribute: attribute name="StackMapTable"
+  method: flags=10; name index=37; signature index=31
+  method: #attributes=1
+    method: attribute name index=32; length=187
+      code: maxStack=3; maxLocals=0; bytecode length=119
+      code: exception table length=0
+      code: #attributes=2
+        code: code attribute name index=33; length=38
+          line numbers: #line numbers=9
+          line numbers: start PC=0; line number=71
+          line numbers: start PC=7; line number=74
+          line numbers: start PC=42; line number=76
+          line numbers: start PC=49; line number=79
+          line numbers: start PC=73; line number=81
+          line numbers: start PC=80; line number=84
+          line numbers: start PC=96; line number=86
+          line numbers: start PC=103; line number=89
+          line numbers: start PC=118; line number=90
+        code: code attribute name index=36; length=6
+          unknown attribute: attribute name="StackMapTable"
+  method: flags=8; name index=38; signature index=31
+  method: #attributes=1
+    method: attribute name index=32; length=240
+      code: maxStack=7; maxLocals=0; bytecode length=208
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=33; length=14
+          line numbers: #line numbers=3
+          line numbers: start PC=0; line number=19
+          line numbers: start PC=122; line number=31
+          line numbers: start PC=189; line number=46
+class: #attributes=1
+  class: attribute name index=39; length=2
+    class: filename index=40
+Checking dependencies ...
+Resolving method references ...
+Method java/lang/Object.<init>:()V -> native
+Method java/io/PrintStream.println:(Ljava/lang/String;)V -> native
+Method nanovm/wkpf/WKPF.getMyNodeId:()S -> native
+Method java/io/PrintStream.println:(I)V -> native
+Method nanovm/wkpf/WKPF.loadHeartbeatToNodeAddrMap:([[B)V -> native
+Method nanovm/wkpf/WKPF.loadComponentToWuObjectAddrMap:([[B)V -> native
+Method nanovm/wkpf/WKPF.loadLinkDefinitions:([B)V -> native
+Method addf3242e6617df792decb7f0d349135.initialiseLocalWuObjects:()V -> already present
+Method nanovm/wkpf/WKPF.select:()Lnanovm/wkpf/VirtualWuObject; -> native
+Method nanovm/wkpf/VirtualWuObject.update:()V -> missing
+CLASSPATH: ../../../../java/classes
+Trying ../../../../java/classes/nanovm/wkpf/VirtualWuObject.class
+Loading class nanovm/wkpf/VirtualWuObject
+Classfile version 0.50
+CP: # of entries = 14
+CP: 1 METHODREF 3 11
+CP: 2 CLASS 12
+CP: 3 CLASS 13
+CP: 4 UTF "<init>"
+CP: 5 UTF "()V"
+CP: 6 UTF "Code"
+CP: 7 UTF "LineNumberTable"
+CP: 8 UTF "update"
+CP: 9 UTF "SourceFile"
+CP: 10 UTF "VirtualWuObject.java"
+CP: 11 NAMEANDTYPE 4 5
+CP: 12 UTF "nanovm/wkpf/VirtualWuObject"
+CP: 13 UTF "java/lang/Object"
+class: flags=1057; class index=2; super class index=3
+class: #interfaces=0
+class: #fields=0
+class: #methods=2
+  method: flags=1; name index=4; signature index=5
+  method: #attributes=1
+    method: attribute name index=6; length=29
+      code: maxStack=1; maxLocals=1; bytecode length=5
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=7; length=6
+          line numbers: #line numbers=1
+          line numbers: start PC=0; line number=3
+  method: flags=1; name index=8; signature index=5
+  method: #attributes=1
+    method: attribute name index=6; length=25
+      code: maxStack=0; maxLocals=1; bytecode length=1
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=7; length=6
+          line numbers: #line numbers=1
+          line numbers: start PC=0; line number=4
+class: #attributes=1
+  class: attribute name index=9; length=2
+    class: filename index=10
+Checking dependencies ...
+Resolving method references ...
+Method java/lang/Object.<init>:()V -> native
+Method nanovm/wkpf/WKPF.isLocalComponent:(S)Z -> native
+Method nanovm/wkpf/WKPF.getPortNumberForComponent:(S)B -> native
+Method nanovm/wkpf/WKPF.createWuObject:(SBLnanovm/wkpf/VirtualWuObject;)V -> native
+Method nanovm/wkpf/WKPF.setPropertyShort:(SBS)V -> native
+Method nanovm/wkpf/WKPF.setPropertyBoolean:(SBZ)V -> native
+Method nanovm/wkpf/WKPF.setPropertyRefreshRate:(SBS)V -> native
+Generating unified class file ...
+Feature value is 0x0
+Writing 0 constant entries
+Writing 1 strings
+  entry[0] = "addf3242e6617df792decb7f0d349135"
+------- <init>()V
+------- main([Ljava/lang/String;)V
+------- initialiseLocalWuObjects()V
+------- <clinit>()V
+------- <init>()V
+------- update()V
+Converting addf3242e6617df792decb7f0d349135.<init>:()V
+invoke #1 -> method java/lang/Object:<init>.()V, native id: #1000
+
+Converting addf3242e6617df792decb7f0d349135.main:([Ljava/lang/String;)V
+get/putstatic #2 -> field java/lang/System:out.Ljava/io/PrintStream;, native, id: #1100
+ldc #3 -> string "addf3242e6617df792decb7f0d349135", id: #0
+invoke #4 -> method java/io/PrintStream:println.(Ljava/lang/String;)V, native id: #1201
+get/putstatic #2 -> field java/lang/System:out.Ljava/io/PrintStream;, native, id: #1100
+invoke #5 -> method nanovm/wkpf/WKPF:getMyNodeId.()S, native id: #2d0d
+invoke #6 -> method java/io/PrintStream:println.(I)V, native id: #1202
+get/putstatic #7 -> field addf3242e6617df792decb7f0d349135:heartbeatToNodeAddrMap.[[B, local, static id: #2
+invoke #8 -> method nanovm/wkpf/WKPF:loadHeartbeatToNodeAddrMap.([[B)V, native id: #2d0e
+get/putstatic #9 -> field addf3242e6617df792decb7f0d349135:componentInstanceToWuObjectAddrMap.[[B, local, static id: #1
+invoke #10 -> method nanovm/wkpf/WKPF:loadComponentToWuObjectAddrMap.([[B)V, native id: #2d0f
+get/putstatic #11 -> field addf3242e6617df792decb7f0d349135:linkDefinitions.[B, local, static id: #0
+invoke #12 -> method nanovm/wkpf/WKPF:loadLinkDefinitions.([B)V, native id: #2d10
+invoke #13 -> method addf3242e6617df792decb7f0d349135:initialiseLocalWuObjects.()V, local id: #2
+invoke #14 -> method nanovm/wkpf/WKPF:select.()Lnanovm/wkpf/VirtualWuObject;, native id: #2d0c
+invoke #15 -> method nanovm/wkpf/VirtualWuObject:update.()V, local id: #5
+
+Converting addf3242e6617df792decb7f0d349135.initialiseLocalWuObjects:()V
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #19 -> method nanovm/wkpf/WKPF:setPropertyShort.(SBS)V, native id: #2d09
+invoke #19 -> method nanovm/wkpf/WKPF:setPropertyShort.(SBS)V, native id: #2d09
+invoke #19 -> method nanovm/wkpf/WKPF:setPropertyShort.(SBS)V, native id: #2d09
+invoke #20 -> method nanovm/wkpf/WKPF:setPropertyBoolean.(SBZ)V, native id: #2d0a
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #21 -> method nanovm/wkpf/WKPF:setPropertyRefreshRate.(SBS)V, native id: #2d0b
+invoke #20 -> method nanovm/wkpf/WKPF:setPropertyBoolean.(SBZ)V, native id: #2d0a
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #21 -> method nanovm/wkpf/WKPF:setPropertyRefreshRate.(SBS)V, native id: #2d0b
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #20 -> method nanovm/wkpf/WKPF:setPropertyBoolean.(SBZ)V, native id: #2d0a
+
+Converting addf3242e6617df792decb7f0d349135.<clinit>:()V
+get/putstatic #11 -> field addf3242e6617df792decb7f0d349135:linkDefinitions.[B, local, static id: #0
+get/putstatic #9 -> field addf3242e6617df792decb7f0d349135:componentInstanceToWuObjectAddrMap.[[B, local, static id: #1
+get/putstatic #7 -> field addf3242e6617df792decb7f0d349135:heartbeatToNodeAddrMap.[[B, local, static id: #2
+
+Converting nanovm/wkpf/VirtualWuObject.<init>:()V
+invoke #1 -> method java/lang/Object:<init>.()V, native id: #1000
+
+Converting nanovm/wkpf/VirtualWuObject.update:()V
+
+Feature value is 0x10
+Generating unified class file ...
+Writing C header file
+Writing to file nvmdefault.h
+make[1]: Leaving directory `/Users/senatorjo/NanoKong/NanoKong/vm/apps/addf3242e6617df792decb7f0d349135/avr_mega2560'
+
+
+==Finishing compression
+==Deploying to nodes [10]
+==Deploying to node id: 10
+==Deploying to node completed
+==Deployment has completed
+Locality conditions for component wuclass id "1" are too strict; no available candidate found
+group size for component [wuobject(node:None port:None wuclass id: 1 queries:['', 1])] is 1 for candidates [[10, 1, True]]
+will select the first 1 in this candidateSet [[10, 1, True]]
+group size for component [wuobject(node:None port:None wuclass id: 10 queries:['', 1])] is 1 for candidates [[10, 2, True]]
+will select the first 1 in this candidateSet [[10, 2, True]]
+group size for component [wuobject(node:None port:None wuclass id: 5 queries:['', 1])] is 1 for candidates [[10, 3, True]]
+will select the first 1 in this candidateSet [[10, 3, True]]
+group size for component [wuobject(node:None port:None wuclass id: 4 queries:['', 1])] is 1 for candidates [[10, 4, True]]
+will select the first 1 in this candidateSet [[10, 4, True]]
+==Generating necessary files for wukong
+==================Begin TypeDefs=====================
+Parsing wutype ThresholdOperator
+Parsing wutype LogicalOperator
+Parsing wutype MathOperator
+==================End of TypeDefs=====================
+==================Begin WuClasses=====================
+Parsing WuClass Generic
+Parsing WuClass Trigger
+Parsing WuClass Threshold
+Parsing WuClass Temperature_Sensor
+Parsing WuClass Logical
+Parsing WuClass Condition_selector_boolean
+Parsing WuClass Condition_selector_short
+Parsing WuClass Loop_delay_boolean
+Parsing WuClass Loop_delay_short
+Parsing WuClass MathOp
+Parsing WuClass Numeric_Controller
+Parsing WuClass Light_Sensor
+Parsing WuClass Sound_Sensor
+Parsing WuClass PIR_Sensor
+Parsing WuClass Light_Actuator
+Parsing WuClass Occupancy_Sensor
+Parsing WuClass And_Gate
+Parsing WuClass If_short
+Parsing WuClass If_boolean
+Parsing WuClass Null
+==Generating application code in target language (Java)
+==Compressing application code to bytecode format
+mkdir -p ../../../../java/classes
+javac -d ../../../../java/classes ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#javac -classpath "../../../../java/nanovm:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#jar -cf NanoKong.jar ../../../../java/nanovm/*/*.class
+#mv NanoKong.jar ../../../../java/examples
+#javac -classpath "../../../../java/nanovm:../../../../java/nanovm/wkpf:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java
+#make clean
+#make generate
+make nvmdefault.h
+make[1]: Entering directory `/Users/senatorjo/NanoKong/NanoKong/vm/apps/addf3242e6617df792decb7f0d349135/avr_mega2560'
+mkdir -p ../../../../java/classes
+javac -d ../../../../java/classes ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#javac -classpath "../../../../java/nanovm:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java ../../../../java/nanovm/avr/AVR.java ../../../../java/nanovm/avr/Adc.java ../../../../java/nanovm/avr/Port.java ../../../../java/nanovm/avr/Pwm.java ../../../../java/nanovm/avr/Timer.java ../../../../java/nanovm/avr/USART.java ../../../../java/nanovm/io/Lcd.java ../../../../java/nanovm/io/NvmComm.java ../../../../java/nanovm/lang/Math.java ../../../../java/nanovm/util/Formatter.java ../../../../java/nanovm/wkpf/GENERATEDVirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualIfShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualNullWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/GENERATEDVirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/GENERATEDWKPF.java ../../../../java/nanovm/wkpf/VirtualAndGateWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualConditionSelectorShortWuObject.java ../../../../java/nanovm/wkpf/VirtualLogicalWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayBooleanWuObject.java ../../../../java/nanovm/wkpf/VirtualLoopDelayShortWuObject.java ../../../../java/nanovm/wkpf/VirtualMathOpWuObject.java ../../../../java/nanovm/wkpf/VirtualNullWuObject.java ../../../../java/nanovm/wkpf/VirtualOccupancySensorWuObject.java ../../../../java/nanovm/wkpf/VirtualThresholdWuObject.java ../../../../java/nanovm/wkpf/VirtualWuObject.java ../../../../java/nanovm/wkpf/WKPF.java ../../../../java/examples/addf3242e6617df792decb7f0d349135.java
+#jar -cf NanoKong.jar ../../../../java/nanovm/*/*.class
+#mv NanoKong.jar ../../../../java/examples
+#javac -classpath "../../../../java/nanovm:../../../../java/nanovm/wkpf:../../../../java/examples" ../../../../java/nanovm/asuro/Asuro.java
+java -cp ../../../../nanovmtool/build/classes org/nanovm/NanoVMTool -c -f nvmdefault.h ../../../../nanovmtool/config/Mega8.config "../../../../java/classes" addf3242e6617df792decb7f0d349135
+NanoVMTool V1.6 - (c) 2005-2007 by Till Harbaum
+Initializing native mapper
+Read config ../../../../nanovmtool/config/Mega8.config
+read native ../../../../nanovmtool/config/Object
+trying to load ../../../../nanovmtool/config/Object.native
+read native ../../../../nanovmtool/config/System
+trying to load ../../../../nanovmtool/config/System.native
+read native ../../../../nanovmtool/config/PrintStream
+trying to load ../../../../nanovmtool/config/PrintStream.native
+read native ../../../../nanovmtool/config/InputStream
+trying to load ../../../../nanovmtool/config/InputStream.native
+read native ../../../../nanovmtool/config/StringBuffer
+trying to load ../../../../nanovmtool/config/StringBuffer.native
+read native ../../../../nanovmtool/config/StringBuilder
+trying to load ../../../../nanovmtool/config/StringBuilder.native
+read native ../../../../nanovmtool/config/AVR
+trying to load ../../../../nanovmtool/config/AVR.native
+read native ../../../../nanovmtool/config/Port
+trying to load ../../../../nanovmtool/config/Port.native
+read native ../../../../nanovmtool/config/Timer
+trying to load ../../../../nanovmtool/config/Timer.native
+read native ../../../../nanovmtool/config/Adc
+trying to load ../../../../nanovmtool/config/Adc.native
+read native ../../../../nanovmtool/config/Pwm
+trying to load ../../../../nanovmtool/config/Pwm.native
+read native ../../../../nanovmtool/config/NvmComm
+trying to load ../../../../nanovmtool/config/NvmComm.native
+read native ../../../../nanovmtool/config/USART
+trying to load ../../../../nanovmtool/config/USART.native
+read native ../../../../nanovmtool/config/WKPF
+trying to load ../../../../nanovmtool/config/WKPF.native
+read native ../../../../nanovmtool/config/Math
+trying to load ../../../../nanovmtool/config/Math.native
+CLASSPATH: ../../../../java/classes
+Trying ../../../../java/classes/addf3242e6617df792decb7f0d349135.class
+Loading class addf3242e6617df792decb7f0d349135
+Classfile version 0.50
+CP: # of entries = 97
+CP: 1 METHODREF 24 41
+CP: 2 FIELDREF 42 43
+CP: 3 STRING 44
+CP: 4 METHODREF 45 46
+CP: 5 METHODREF 47 48
+CP: 6 METHODREF 45 49
+CP: 7 FIELDREF 23 50
+CP: 8 METHODREF 47 51
+CP: 9 FIELDREF 23 52
+CP: 10 METHODREF 47 53
+CP: 11 FIELDREF 23 54
+CP: 12 METHODREF 47 55
+CP: 13 METHODREF 23 56
+CP: 14 METHODREF 47 57
+CP: 15 METHODREF 58 59
+CP: 16 METHODREF 47 60
+CP: 17 METHODREF 47 61
+CP: 18 METHODREF 47 62
+CP: 19 METHODREF 47 63
+CP: 20 METHODREF 47 64
+CP: 21 METHODREF 47 65
+CP: 22 CLASS 26
+CP: 23 CLASS 44
+CP: 24 CLASS 66
+CP: 25 UTF "linkDefinitions"
+CP: 26 UTF "[B"
+CP: 27 UTF "componentInstanceToWuObjectAddrMap"
+CP: 28 UTF "[[B"
+CP: 29 UTF "heartbeatToNodeAddrMap"
+CP: 30 UTF "<init>"
+CP: 31 UTF "()V"
+CP: 32 UTF "Code"
+CP: 33 UTF "LineNumberTable"
+CP: 34 UTF "main"
+CP: 35 UTF "([Ljava/lang/String;)V"
+CP: 36 UTF "StackMapTable"
+CP: 37 UTF "initialiseLocalWuObjects"
+CP: 38 UTF "<clinit>"
+CP: 39 UTF "SourceFile"
+CP: 40 UTF "addf3242e6617df792decb7f0d349135.java"
+CP: 41 NAMEANDTYPE 30 31
+CP: 42 CLASS 67
+CP: 43 NAMEANDTYPE 68 69
+CP: 44 UTF "addf3242e6617df792decb7f0d349135"
+CP: 45 CLASS 70
+CP: 46 NAMEANDTYPE 71 72
+CP: 47 CLASS 73
+CP: 48 NAMEANDTYPE 74 75
+CP: 49 NAMEANDTYPE 71 76
+CP: 50 NAMEANDTYPE 29 28
+CP: 51 NAMEANDTYPE 77 78
+CP: 52 NAMEANDTYPE 27 28
+CP: 53 NAMEANDTYPE 79 78
+CP: 54 NAMEANDTYPE 25 26
+CP: 55 NAMEANDTYPE 80 81
+CP: 56 NAMEANDTYPE 37 31
+CP: 57 NAMEANDTYPE 82 83
+CP: 58 CLASS 84
+CP: 59 NAMEANDTYPE 85 31
+CP: 60 NAMEANDTYPE 86 87
+CP: 61 NAMEANDTYPE 88 89
+CP: 62 NAMEANDTYPE 90 91
+CP: 63 NAMEANDTYPE 92 93
+CP: 64 NAMEANDTYPE 94 95
+CP: 65 NAMEANDTYPE 96 93
+CP: 66 UTF "java/lang/Object"
+CP: 67 UTF "java/lang/System"
+CP: 68 UTF "out"
+CP: 69 UTF "Ljava/io/PrintStream;"
+CP: 70 UTF "java/io/PrintStream"
+CP: 71 UTF "println"
+CP: 72 UTF "(Ljava/lang/String;)V"
+CP: 73 UTF "nanovm/wkpf/WKPF"
+CP: 74 UTF "getMyNodeId"
+CP: 75 UTF "()S"
+CP: 76 UTF "(I)V"
+CP: 77 UTF "loadHeartbeatToNodeAddrMap"
+CP: 78 UTF "([[B)V"
+CP: 79 UTF "loadComponentToWuObjectAddrMap"
+CP: 80 UTF "loadLinkDefinitions"
+CP: 81 UTF "([B)V"
+CP: 82 UTF "select"
+CP: 83 UTF "()Lnanovm/wkpf/VirtualWuObject;"
+CP: 84 UTF "nanovm/wkpf/VirtualWuObject"
+CP: 85 UTF "update"
+CP: 86 UTF "isLocalComponent"
+CP: 87 UTF "(S)Z"
+CP: 88 UTF "getPortNumberForComponent"
+CP: 89 UTF "(S)B"
+CP: 90 UTF "createWuObject"
+CP: 91 UTF "(SBLnanovm/wkpf/VirtualWuObject;)V"
+CP: 92 UTF "setPropertyShort"
+CP: 93 UTF "(SBS)V"
+CP: 94 UTF "setPropertyBoolean"
+CP: 95 UTF "(SBZ)V"
+CP: 96 UTF "setPropertyRefreshRate"
+class: flags=33; class index=23; super class index=24
+class: #interfaces=0
+class: #fields=3
+  field: flags=26; name index=25; signature index=26
+  field: #attributes=0
+  field: flags=26; name index=27; signature index=28
+  field: #attributes=0
+  field: flags=26; name index=29; signature index=28
+  field: #attributes=0
+class: #methods=4
+  method: flags=1; name index=30; signature index=31
+  method: #attributes=1
+    method: attribute name index=32; length=29
+      code: maxStack=1; maxLocals=1; bytecode length=5
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=33; length=6
+          line numbers: #line numbers=1
+          line numbers: start PC=0; line number=6
+  method: flags=9; name index=34; signature index=35
+  method: #attributes=1
+    method: attribute name index=32; length=123
+      code: maxStack=2; maxLocals=2; bytecode length=53
+      code: exception table length=0
+      code: #attributes=2
+        code: code attribute name index=33; length=42
+          line numbers: #line numbers=10
+          line numbers: start PC=0; line number=54
+          line numbers: start PC=8; line number=55
+          line numbers: start PC=17; line number=56
+          line numbers: start PC=23; line number=57
+          line numbers: start PC=29; line number=58
+          line numbers: start PC=35; line number=59
+          line numbers: start PC=38; line number=62
+          line numbers: start PC=42; line number=63
+          line numbers: start PC=46; line number=64
+          line numbers: start PC=50; line number=66
+        code: code attribute name index=36; length=4
+          unknown attribute: attribute name="StackMapTable"
+  method: flags=10; name index=37; signature index=31
+  method: #attributes=1
+    method: attribute name index=32; length=188
+      code: maxStack=3; maxLocals=0; bytecode length=120
+      code: exception table length=0
+      code: #attributes=2
+        code: code attribute name index=33; length=38
+          line numbers: #line numbers=9
+          line numbers: start PC=0; line number=71
+          line numbers: start PC=7; line number=74
+          line numbers: start PC=42; line number=76
+          line numbers: start PC=49; line number=79
+          line numbers: start PC=73; line number=81
+          line numbers: start PC=80; line number=84
+          line numbers: start PC=97; line number=86
+          line numbers: start PC=104; line number=89
+          line numbers: start PC=119; line number=90
+        code: code attribute name index=36; length=6
+          unknown attribute: attribute name="StackMapTable"
+  method: flags=8; name index=38; signature index=31
+  method: #attributes=1
+    method: attribute name index=32; length=240
+      code: maxStack=7; maxLocals=0; bytecode length=208
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=33; length=14
+          line numbers: #line numbers=3
+          line numbers: start PC=0; line number=19
+          line numbers: start PC=122; line number=31
+          line numbers: start PC=189; line number=46
+class: #attributes=1
+  class: attribute name index=39; length=2
+    class: filename index=40
+Checking dependencies ...
+Resolving method references ...
+Method java/lang/Object.<init>:()V -> native
+Method java/io/PrintStream.println:(Ljava/lang/String;)V -> native
+Method nanovm/wkpf/WKPF.getMyNodeId:()S -> native
+Method java/io/PrintStream.println:(I)V -> native
+Method nanovm/wkpf/WKPF.loadHeartbeatToNodeAddrMap:([[B)V -> native
+Method nanovm/wkpf/WKPF.loadComponentToWuObjectAddrMap:([[B)V -> native
+Method nanovm/wkpf/WKPF.loadLinkDefinitions:([B)V -> native
+Method addf3242e6617df792decb7f0d349135.initialiseLocalWuObjects:()V -> already present
+Method nanovm/wkpf/WKPF.select:()Lnanovm/wkpf/VirtualWuObject; -> native
+Method nanovm/wkpf/VirtualWuObject.update:()V -> missing
+CLASSPATH: ../../../../java/classes
+Trying ../../../../java/classes/nanovm/wkpf/VirtualWuObject.class
+Loading class nanovm/wkpf/VirtualWuObject
+Classfile version 0.50
+CP: # of entries = 14
+CP: 1 METHODREF 3 11
+CP: 2 CLASS 12
+CP: 3 CLASS 13
+CP: 4 UTF "<init>"
+CP: 5 UTF "()V"
+CP: 6 UTF "Code"
+CP: 7 UTF "LineNumberTable"
+CP: 8 UTF "update"
+CP: 9 UTF "SourceFile"
+CP: 10 UTF "VirtualWuObject.java"
+CP: 11 NAMEANDTYPE 4 5
+CP: 12 UTF "nanovm/wkpf/VirtualWuObject"
+CP: 13 UTF "java/lang/Object"
+class: flags=1057; class index=2; super class index=3
+class: #interfaces=0
+class: #fields=0
+class: #methods=2
+  method: flags=1; name index=4; signature index=5
+  method: #attributes=1
+    method: attribute name index=6; length=29
+      code: maxStack=1; maxLocals=1; bytecode length=5
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=7; length=6
+          line numbers: #line numbers=1
+          line numbers: start PC=0; line number=3
+  method: flags=1; name index=8; signature index=5
+  method: #attributes=1
+    method: attribute name index=6; length=25
+      code: maxStack=0; maxLocals=1; bytecode length=1
+      code: exception table length=0
+      code: #attributes=1
+        code: code attribute name index=7; length=6
+          line numbers: #line numbers=1
+          line numbers: start PC=0; line number=4
+class: #attributes=1
+  class: attribute name index=9; length=2
+    class: filename index=10
+Checking dependencies ...
+Resolving method references ...
+Method java/lang/Object.<init>:()V -> native
+Method nanovm/wkpf/WKPF.isLocalComponent:(S)Z -> native
+Method nanovm/wkpf/WKPF.getPortNumberForComponent:(S)B -> native
+Method nanovm/wkpf/WKPF.createWuObject:(SBLnanovm/wkpf/VirtualWuObject;)V -> native
+Method nanovm/wkpf/WKPF.setPropertyShort:(SBS)V -> native
+Method nanovm/wkpf/WKPF.setPropertyBoolean:(SBZ)V -> native
+Method nanovm/wkpf/WKPF.setPropertyRefreshRate:(SBS)V -> native
+Generating unified class file ...
+Feature value is 0x0
+Writing 0 constant entries
+Writing 1 strings
+  entry[0] = "addf3242e6617df792decb7f0d349135"
+------- <init>()V
+------- main([Ljava/lang/String;)V
+------- initialiseLocalWuObjects()V
+------- <clinit>()V
+------- <init>()V
+------- update()V
+Converting addf3242e6617df792decb7f0d349135.<init>:()V
+invoke #1 -> method java/lang/Object:<init>.()V, native id: #1000
+
+Converting addf3242e6617df792decb7f0d349135.main:([Ljava/lang/String;)V
+get/putstatic #2 -> field java/lang/System:out.Ljava/io/PrintStream;, native, id: #1100
+ldc #3 -> string "addf3242e6617df792decb7f0d349135", id: #0
+invoke #4 -> method java/io/PrintStream:println.(Ljava/lang/String;)V, native id: #1201
+get/putstatic #2 -> field java/lang/System:out.Ljava/io/PrintStream;, native, id: #1100
+invoke #5 -> method nanovm/wkpf/WKPF:getMyNodeId.()S, native id: #2d0d
+invoke #6 -> method java/io/PrintStream:println.(I)V, native id: #1202
+get/putstatic #7 -> field addf3242e6617df792decb7f0d349135:heartbeatToNodeAddrMap.[[B, local, static id: #2
+invoke #8 -> method nanovm/wkpf/WKPF:loadHeartbeatToNodeAddrMap.([[B)V, native id: #2d0e
+get/putstatic #9 -> field addf3242e6617df792decb7f0d349135:componentInstanceToWuObjectAddrMap.[[B, local, static id: #1
+invoke #10 -> method nanovm/wkpf/WKPF:loadComponentToWuObjectAddrMap.([[B)V, native id: #2d0f
+get/putstatic #11 -> field addf3242e6617df792decb7f0d349135:linkDefinitions.[B, local, static id: #0
+invoke #12 -> method nanovm/wkpf/WKPF:loadLinkDefinitions.([B)V, native id: #2d10
+invoke #13 -> method addf3242e6617df792decb7f0d349135:initialiseLocalWuObjects.()V, local id: #2
+invoke #14 -> method nanovm/wkpf/WKPF:select.()Lnanovm/wkpf/VirtualWuObject;, native id: #2d0c
+invoke #15 -> method nanovm/wkpf/VirtualWuObject:update.()V, local id: #5
+
+Converting addf3242e6617df792decb7f0d349135.initialiseLocalWuObjects:()V
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #19 -> method nanovm/wkpf/WKPF:setPropertyShort.(SBS)V, native id: #2d09
+invoke #19 -> method nanovm/wkpf/WKPF:setPropertyShort.(SBS)V, native id: #2d09
+invoke #19 -> method nanovm/wkpf/WKPF:setPropertyShort.(SBS)V, native id: #2d09
+invoke #20 -> method nanovm/wkpf/WKPF:setPropertyBoolean.(SBZ)V, native id: #2d0a
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #21 -> method nanovm/wkpf/WKPF:setPropertyRefreshRate.(SBS)V, native id: #2d0b
+invoke #20 -> method nanovm/wkpf/WKPF:setPropertyBoolean.(SBZ)V, native id: #2d0a
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #21 -> method nanovm/wkpf/WKPF:setPropertyRefreshRate.(SBS)V, native id: #2d0b
+invoke #16 -> method nanovm/wkpf/WKPF:isLocalComponent.(S)Z, native id: #2d12
+invoke #17 -> method nanovm/wkpf/WKPF:getPortNumberForComponent.(S)B, native id: #2d11
+invoke #18 -> method nanovm/wkpf/WKPF:createWuObject.(SBLnanovm/wkpf/VirtualWuObject;)V, native id: #2d03
+invoke #20 -> method nanovm/wkpf/WKPF:setPropertyBoolean.(SBZ)V, native id: #2d0a
+
+Converting addf3242e6617df792decb7f0d349135.<clinit>:()V
+get/putstatic #11 -> field addf3242e6617df792decb7f0d349135:linkDefinitions.[B, local, static id: #0
+get/putstatic #9 -> field addf3242e6617df792decb7f0d349135:componentInstanceToWuObjectAddrMap.[[B, local, static id: #1
+get/putstatic #7 -> field addf3242e6617df792decb7f0d349135:heartbeatToNodeAddrMap.[[B, local, static id: #2
+
+Converting nanovm/wkpf/VirtualWuObject.<init>:()V
+invoke #1 -> method java/lang/Object:<init>.()V, native id: #1000
+
+Converting nanovm/wkpf/VirtualWuObject.update:()V
+
+Feature value is 0x10
+Generating unified class file ...
+Writing C header file
+Writing to file nvmdefault.h
+make[1]: Leaving directory `/Users/senatorjo/NanoKong/NanoKong/vm/apps/addf3242e6617df792decb7f0d349135/avr_mega2560'
+
+
+==Finishing compression
+==Deploying to nodes [10]
+==Deploying to node id: 10
+==Deploying to node completed
+==Deployment has completed
+group size for component [wuobject(node:None port:None wuclass id: 5 queries:['', 1])] is 1 for candidates [[0, 12, True], [1, 12, True], [2, 12, True], [3, 12, True]]
+will select the first 1 in this candidateSet [[0, 12, True], [1, 12, True], [2, 12, True], [3, 12, True]]
+group size for component [wuobject(node:None port:None wuclass id: 4 queries:['', 1])] is 1 for candidates [[0, 10, True], [1, 10, True], [2, 10, True], [3, 10, True]]
+will select the first 1 in this candidateSet [[0, 10, True], [1, 10, True], [2, 10, True], [3, 10, True]]
+group size for component [wuobject(node:None port:None wuclass id: 1 queries:['', 1])] is 1 for candidates [[0, 13, True], [1, 12, True], [2, 12, True], [3, 12, True]]
+will select the first 1 in this candidateSet [[0, 13, True], [1, 12, True], [2, 12, True], [3, 12, True]]
+group size for component [wuobject(node:None port:None wuclass id: 3 queries:['', 1])] is 1 for candidates [[0, 2, True], [1, 2, True], [2, 2, True], [3, 2, True]]
+will select the first 1 in this candidateSet [[0, 2, True], [1, 2, True], [2, 2, True], [3, 2, True]]
