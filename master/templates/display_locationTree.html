@@ -181,7 +181,6 @@ $('.set_node').click(function() {
 	}
     console.log(nodeId);
     console.log($('#locName').val());
-    XXXXXXXXXXXXXXXX
     $.ajax('/loc_tree/nodes/' + nodeId, {
         type: 'PUT',
         dataType: 'json',
